@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fce7f3"/>
+      <stop offset="100%" style="stop-color:#fbcfe8"/>
+    </linearGradient>
+    <pattern id="hearts" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
+      <path d="M80,60 C80,40 60,30 45,45 C30,30 10,40 10,60 C10,85 45,100 80,115 C115,100 150,85 150,60 C150,40 130,30 115,45 C100,30 80,40 80,60Z" fill="#ec4899" opacity="0.08" transform="scale(0.5)"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#hearts)"/>
+</svg>

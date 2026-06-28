@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA Charge RN Workstation</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-clinical">
+
+<div class="app-container" id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>🏥 Charge RN</h1>
+      <p>Workstation</p>
+      <div class="nurse-badge" id="nurseBadge">Unassigned</div>
+      <div class="patient-count" id="patientCount">0 patients</div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search name or room..." oninput="renderPatientList()">
+    </div>
+    <div class="patient-list" id="patientList">
+      <!-- Rendered by JS -->
+    </div>
+    <div style="padding: 8px; border-top: 1px solid var(--border); display: flex; gap: 4px; flex-wrap: wrap;">
+      <button class="btn btn-primary btn-sm" onclick="showAddPatient()" style="flex:1">+ Add</button>
+      <button class="btn btn-secondary btn-sm" onclick="showSettings()" style="flex:1">⚙️</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Top nav tabs -->
+    <nav class="top-nav" id="topNav">
+      <button class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
+      <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
+      <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
+      <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')">🧠 Neuro</button>
+      <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')">💩 BM</button>
+      <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')">🩺 Skin</button>
+      <button class="nav-tab" data-tab="weights" onclick="switchTab('weights')">⚖️ Weights</button>
+      <button class="nav-tab" data-tab="postfall" onclick="switchTab('postfall')">🆘 Post-Fall</button>
+      <button class="nav-tab" data-tab="oral" onclick="switchTab('oral')">🦷 Oral</button>
+      <button class="nav-tab" data-tab="sbar" onclick="switchTab('sbar')">📞 SBAR</button>
+      <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">📦 Transfer</button>
+      <div class="nav-right">
+        <button class="btn btn-secondary btn-sm" onclick="showSettings()" title="Settings">⚙️</button>
+        <button class="btn btn-secondary btn-sm" onclick="printPatient()" title="Print this patient">🖨️</button>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="content-area" id="contentArea">
+      <!-- Rendered by JS based on selected patient/tab -->
+    </div>
+  </main>
+</div>
+
+<!-- Add patient modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Patient</h2>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Patient Name (Last, First)</label>
+        <input type="text" id="addName" placeholder="e.g., Johnson, Harold">
+      </div>
+      <div class="form-group">
+        <label>Last 4</label>
+        <input type="text" id="addLast4" placeholder="1234" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label>Room</label>
+        <input type="text" id="addRoom" placeholder="101A">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Diet</label>
+        <input type="text" id="addDiet" placeholder="Regular, Renal, etc.">
+      </div>
+      <div class="form-group">
+        <label>Isolation</label>
+        <select id="addIsolation">
+          <option value="None">None</option>
+          <option value="Contact">Contact</option>
+          <option value="Droplet">Droplet</option>
+          <option value="Airborne">Airborne</option>
+          <option value="Contact + Droplet">Contact + Droplet</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Code Status</label>
+        <select id="addCodeStatus">
+          <option value="Full Code">Full Code</option>
+          <option value="DNR">DNR</option>
+          <option value="DNI">DNI</option>
+          <option value="DNR/DNI">DNR/DNI</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Allergies</label>
+        <input type="text" id="addAllergies" placeholder="NKDA or list">
+      </div>
+      <div class="form-group">
+        <label>Fall Risk</label>
+        <select id="addFallRisk">
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Vitals Frequency</label>
+        <input type="text" id="addVitalsFreq" placeholder="Q4h, Q8h, etc.">
+      </div>
+      <div class="form-group">
+        <label>Bath Days</label>
+        <input type="text" id="addBathDays" placeholder="Mon, Wed, Fri">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAddPatient()">Save</button>
+    </div>
+    <input type="hidden" id="editPatientId" value="">
+  </div>
+</div>
+
+<script>
+// ============== DATA LAYER ==============
+let data = {         patients: [
+          {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"2",name:"Martinez, Dolores",last4:"6789",room:"102A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"Lab draw Tue 0600",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"3",name:"Baker, William",last4:"1112",room:"103A",diet:"Pureed",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Wed","Fri","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"4",name:"Anderson, James",last4:"001",room:"104A",diet:"Regular",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"5",name:"Brown, Mary",last4:"002",room:"105A",diet:"Renal",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"6",name:"Clark, Robert",last4:"003",room:"106A",diet:"Pureed",isolation:"Droplet",fallRisk:false,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Wed","Sun"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"7",name:"Davis, Patricia",last4:"004",room:"107A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"8",name:"Edwards, John",last4:"005",room:"108A",diet:"Dysphagia",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"9",name:"Foster, Jennifer",last4:"006",room:"109A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"DNR/DNI",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"10",name:"Garcia, David",last4:"007",room:"110A",diet:"Heart Healthy",isolation:"Contact + Droplet",fallRisk:true,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"11",name:"Harris, Linda",last4:"008",room:"111A",diet:"Low Sodium",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"12",name:"Irwin, Richard",last4:"009",room:"112A",diet:"No Concentrated Sweets",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"13",name:"Jones, Barbara",last4:"010",room:"113A",diet:"Regular",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"14",name:"Kelly, Joseph",last4:"011",room:"114A",diet:"Renal",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"15",name:"Lewis, Elizabeth",last4:"012",room:"115A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"DNI",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"16",name:"Miller, Thomas",last4:"013",room:"116A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"Latex",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"17",name:"Nelson, Margaret",last4:"014",room:"117A",diet:"Dysphagia",isolation:"Contact + Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Fri","Sat"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"18",name:"O'Brien, Charles",last4:"015",room:"118A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"19",name:"Parker, Susan",last4:"016",room:"119A",diet:"Heart Healthy",isolation:"None",fallRisk:true,codeStatus:"DNR",allergies:"Iodine",bathDays:["Tue","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"20",name:"Quinn, William",last4:"017",room:"120A",diet:"Low Sodium",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Sulfa",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"21",name:"Reynolds, Dorothy",last4:"018",room:"121A",diet:"Regular",isolation:"Contact",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"22",name:"Smith, George",last4:"019",room:"122A",diet:"Renal",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"PCN",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"23",name:"Taylor, Helen",last4:"020",room:"123A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"24",name:"Upton, Kenneth",last4:"021",room:"124A",diet:"Mechanical Soft",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"25",name:"Valdez, Betty",last4:"022",room:"125A",diet:"Dysphagia",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"26",name:"Washington, Edward",last4:"023",room:"126A",diet:"Diabetic",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"27",name:"Xavier, Sandra",last4:"024",room:"127A",diet:"Heart Healthy",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"28",name:"Young, Ronald",last4:"025",room:"128A",diet:"Low Sodium",isolation:"None",fallRisk:true,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"29",name:"Zimmerman, Larry",last4:"026",room:"129A",diet:"Regular",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:"Kidney specialist consult pending"},
+          {id:"30",name:"Adams, Carol",last4:"027",room:"130A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+        ],
+        settings: { nurseName: '', background: 'clinical' }, nextId: 31 };
+let selectedPatientId = null;
+let currentTab = 'overview';
+
+function loadData() {
+  try {
+    const stored = localStorage.getItem('va-rn-workstation');
+    if (stored) {
+      data = JSON.parse(stored);
+    } else {
+      // Load sample data
+      data = {
+                patients: [
+          {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"2",name:"Martinez, Dolores",last4:"6789",room:"102A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"Lab draw Tue 0600",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"3",name:"Baker, William",last4:"1112",room:"103A",diet:"Pureed",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Wed","Fri","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"4",name:"Anderson, James",last4:"001",room:"104A",diet:"Regular",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"5",name:"Brown, Mary",last4:"002",room:"105A",diet:"Renal",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"6",name:"Clark, Robert",last4:"003",room:"106A",diet:"Pureed",isolation:"Droplet",fallRisk:false,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Wed","Sun"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"7",name:"Davis, Patricia",last4:"004",room:"107A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"8",name:"Edwards, John",last4:"005",room:"108A",diet:"Dysphagia",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"9",name:"Foster, Jennifer",last4:"006",room:"109A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"DNR/DNI",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"10",name:"Garcia, David",last4:"007",room:"110A",diet:"Heart Healthy",isolation:"Contact + Droplet",fallRisk:true,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"11",name:"Harris, Linda",last4:"008",room:"111A",diet:"Low Sodium",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"12",name:"Irwin, Richard",last4:"009",room:"112A",diet:"No Concentrated Sweets",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"13",name:"Jones, Barbara",last4:"010",room:"113A",diet:"Regular",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"14",name:"Kelly, Joseph",last4:"011",room:"114A",diet:"Renal",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"15",name:"Lewis, Elizabeth",last4:"012",room:"115A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"DNI",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"16",name:"Miller, Thomas",last4:"013",room:"116A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"Latex",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"17",name:"Nelson, Margaret",last4:"014",room:"117A",diet:"Dysphagia",isolation:"Contact + Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Fri","Sat"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"18",name:"O'Brien, Charles",last4:"015",room:"118A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"19",name:"Parker, Susan",last4:"016",room:"119A",diet:"Heart Healthy",isolation:"None",fallRisk:true,codeStatus:"DNR",allergies:"Iodine",bathDays:["Tue","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"20",name:"Quinn, William",last4:"017",room:"120A",diet:"Low Sodium",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Sulfa",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"21",name:"Reynolds, Dorothy",last4:"018",room:"121A",diet:"Regular",isolation:"Contact",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"22",name:"Smith, George",last4:"019",room:"122A",diet:"Renal",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"PCN",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"23",name:"Taylor, Helen",last4:"020",room:"123A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"24",name:"Upton, Kenneth",last4:"021",room:"124A",diet:"Mechanical Soft",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"25",name:"Valdez, Betty",last4:"022",room:"125A",diet:"Dysphagia",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"26",name:"Washington, Edward",last4:"023",room:"126A",diet:"Diabetic",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"27",name:"Xavier, Sandra",last4:"024",room:"127A",diet:"Heart Healthy",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"28",name:"Young, Ronald",last4:"025",room:"128A",diet:"Low Sodium",isolation:"None",fallRisk:true,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"29",name:"Zimmerman, Larry",last4:"026",room:"129A",diet:"Regular",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:"Kidney specialist consult pending"},
+          {id:"30",name:"Adams, Carol",last4:"027",room:"130A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+        ],
+        settings: { nurseName: '', background: 'clinical' },
+        nextId: 31
+      };
+    }
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+  applyTheme();
+  updateNurseBadge();
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('va-rn-workstation', JSON.stringify(data));
+  } catch(e) {
+    console.error('Save error:', e);
+    alert('Error saving data. Check browser storage limits.');
+  }
+}
+
+// ============== HELPERS ==============
+function roomSort(a, b) {
+  // Sort by number then letter: 101A, 101B, 102A...
+  const parseRoom = (r) => {
+    const m = r.match(/^(\d+)([A-Z]?)$/);
+    return m ? [parseInt(m[1]), m[2] || ''] : [9999, ''];
+  };
+  const [na, la] = parseRoom(a.room);
+  const [nb, lb] = parseRoom(b.room);
+  return na - nb || la.localeCompare(lb);
+}
+
+function getPatient(id) {
+  return data.patients.find(p => p.id === id);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+// ============== THEME ==============
+function applyTheme() {
+  const theme = data.settings.background || 'clinical';
+  document.body.className = 'theme-' + theme;
+}
+
+function updateNurseBadge() {
+  const badge = document.getElementById('nurseBadge');
+  badge.textContent = data.settings.nurseName ? `👩‍⚕️ ${data.settings.nurseName}` : 'Unassigned';
+}
+
+// ============== PATIENT LIST ==============
+function renderPatientList() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  let patients = [...data.patients].sort(roomSort);
+  if (q) {
+    patients = patients.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.room.toLowerCase().includes(q) ||
+      p.last4.includes(q)
+    );
+  }
+  const container = document.getElementById('patientList');
+  document.getElementById('patientCount').textContent = `${patients.length} patient${patients.length !== 1 ? 's' : ''}`;
+
+  if (patients.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="big-icon">🏥</div><h3>No patients</h3><p>Add a patient to get started</p></div>`;
+    return;
+  }
+
+  container.innerHTML = patients.map(p => {
+    const active = p.id === selectedPatientId ? 'active' : '';
+    const badges = [];
+    if (p.isolation && p.isolation !== 'None') badges.push(`<span class="badge badge-isolation">${p.isolation}</span>`);
+    if (p.fallRisk) badges.push(`<span class="badge badge-fallrisk">Fall Risk</span>`);
+    if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push(`<span class="badge badge-dnr">${p.codeStatus}</span>`);
+
+    return `<div class="patient-card ${active}" onclick="selectPatient('${p.id}')">
+      <div class="room-badge">${p.room}</div>
+      <div class="patient-info">
+        <div class="patient-name">${p.name}</div>
+        <div class="patient-meta">#${p.last4} | ${p.diet || '—'}</div>
+        <div class="patient-badges">${badges.join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============== NAVIGATION ==============
+function selectPatient(id) {
+  selectedPatientId = id;
+  renderPatientList();
+  renderContent();
+  // Update nav to show patient name
+  const p = getPatient(id);
+  if (p) document.querySelector('.sidebar-header p').textContent = p.name;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  renderContent();
+}
+
+function showAddPatient(patientId) {
+  document.getElementById('editPatientId').value = patientId || '';
+  document.getElementById('modalTitle').textContent = patientId ? 'Edit Patient' : 'Add Patient';
+  if (patientId) {
+    const p = getPatient(patientId);
+    document.getElementById('addName').value = p.name || '';
+    document.getElementById('addLast4').value = p.last4 || '';
+    document.getElementById('addRoom').value = p.room || '';
+    document.getElementById('addDiet').value = p.diet || '';
+    document.getElementById('addIsolation').value = p.isolation || 'None';
+    document.getElementById('addCodeStatus').value = p.codeStatus || 'Full Code';
+    document.getElementById('addAllergies').value = p.allergies || '';
+    document.getElementById('addFallRisk').value = p.fallRisk ? 'true' : 'false';
+    document.getElementById('addVitalsFreq').value = p.vitalsFreq || '';
+    document.getElementById('addBathDays').value = (p.bathDays || []).join(', ');
+  } else {
+    document.getElementById('addName').value = '';
+    document.getElementById('addLast4').value = '';
+    document.getElementById('addRoom').value = '';
+    document.getElementById('addDiet').value = '';
+    document.getElementById('addIsolation').value = 'None';
+    document.getElementById('addCodeStatus').value = 'Full Code';
+    document.getElementById('addAllergies').value = '';
+    document.getElementById('addFallRisk').value = 'false';
+    document.getElementById('addVitalsFreq').value = '';
+    document.getElementById('addBathDays').value = '';
+  }
+  document.getElementById('addModal').classList.add('show');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('show');
+}
+
+function saveAddPatient() {
+  const name = document.getElementById('addName').value.trim();
+  const last4 = document.getElementById('addLast4').value.trim();
+  const room = document.getElementById('addRoom').value.trim();
+  const diet = document.getElementById('addDiet').value.trim();
+  const isolation = document.getElementById('addIsolation').value;
+  const codeStatus = document.getElementById('addCodeStatus').value;
+  const allergies = document.getElementById('addAllergies').value.trim();
+  const fallRisk = document.getElementById('addFallRisk').value === 'true';
+  const vitalsFreq = document.getElementById('addVitalsFreq').value.trim();
+  const bathDaysStr = document.getElementById('addBathDays').value.trim();
+
+  if (!name || !last4 || !room) {
+    alert('Name, Last 4, and Room are required.');
+    return;
+  }
+
+  const editId = document.getElementById('editPatientId').value;
+  const bathDays = bathDaysStr ? bathDaysStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  if (editId) {
+    const p = getPatient(editId);
+    Object.assign(p, { name, last4, room, diet, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays });
+  } else {
+    const newPatient = {
+      id: String(data.nextId++),
+      name, last4, room, diet, isolation, fallRisk, codeStatus, allergies,
+      bathDays, showerTime: 'AM', vitalsFreq, appointments: '',
+      bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
+      weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
+      sbar: '', transferChecklist: [], notes: ''
+    };
+    data.patients.push(newPatient);
+  }
+
+  saveData();
+  closeAddModal();
+  selectedPatientId = null;
+  renderPatientList();
+  renderContent();
+}
+
+function deletePatient(id) {
+  if (!confirm('Remove this patient from the roster?')) return;
+  data.patients = data.patients.filter(p => p.id !== id);
+  if (selectedPatientId === id) selectedPatientId = null;
+  saveData();
+  renderPatientList();
+  renderContent();
+}
+
+// ============== RENDER CONTENT ==============
+function renderContent() {
+  const area = document.getElementById('contentArea');
+  const p = selectedPatientId ? getPatient(selectedPatientId) : null;
+
+  if (currentTab === 'settings') { renderSettings(); return; }
+
+  if (!p) {
+    area.innerHTML = `<div class="welcome-screen">
+      <div class="big-icon">🏥</div>
+      <h2>VA Charge RN Workstation</h2>
+      <p>Select a patient from the sidebar to view their worksheet, or add a new patient to get started.</p>
+      <p style="font-size:13px">${data.patients.length} patient${data.patients.length !== 1 ? 's' : ''} on roster</p>
+    </div>`;
+    return;
+  }
+
+  area.innerHTML = `
+    ${renderPatientHeader(p)}
+    <div class="tab-panel" id="tabOverview" style="display:${currentTab==='overview'||currentTab===undefined?'block':'none'}">${renderOverview(p)}</div>
+    <div class="tab-panel" id="tabBath" style="display:${currentTab==='bath'?'block':'none'}">${renderBath(p)}</div>
+    <div class="tab-panel" id="tabVitals" style="display:${currentTab==='vitals'?'block':'none'}">${renderVitals(p)}</div>
+    <div class="tab-panel" id="tabNeuro" style="display:${currentTab==='neuro'?'block':'none'}">${renderNeuro(p)}</div>
+    <div class="tab-panel" id="tabBm" style="display:${currentTab==='bm'?'block':'none'}">${renderBM(p)}</div>
+    <div class="tab-panel" id="tabSkin" style="display:${currentTab==='skin'?'block':'none'}">${renderSkin(p)}</div>
+    <div class="tab-panel" id="tabWeights" style="display:${currentTab==='weights'?'block':'none'}">${renderWeights(p)}</div>
+    <div class="tab-panel" id="tabPostfall" style="display:${currentTab==='postfall'?'block':'none'}">${renderPostFall(p)}</div>
+    <div class="tab-panel" id="tabOral" style="display:${currentTab==='oral'?'block':'none'}">${renderOral(p)}</div>
+    <div class="tab-panel" id="tabSbar" style="display:${currentTab==='sbar'?'block':'none'}">${renderSBAR(p)}</div>
+    <div class="tab-panel" id="tabTransfer" style="display:${currentTab==='transfer'?'block':'none'}">${renderTransfer(p)}</div>
+  `;
+}
+
+function renderPatientHeader(p) {
+  const flags = [];
+  if (p.isolation && p.isolation !== 'None') flags.push(`<span class="badge badge-isolation">🧫 ${p.isolation}</span>`);
+  if (p.fallRisk) flags.push(`<span class="badge badge-fallrisk">⚠️ Fall Risk</span>`);
+  if (p.codeStatus && p.codeStatus !== 'Full Code') flags.push(`<span class="badge badge-dnr">⚖️ ${p.codeStatus}</span>`);
+
+  return `<div class="patient-header no-print">
+    <div class="info-block">
+      <div class="name">${p.name}</div>
+      <div class="sub">Room ${p.room} • #${p.last4} • ${p.diet || 'No diet'} • ${p.vitalsFreq || 'No VS freq'}</div>
+    </div>
+    <div class="flags">${flags.join('')}</div>
+    <div style="margin-left:auto;display:flex;gap:4px">
+      <button class="btn btn-secondary btn-sm" onclick="showAddPatient('${p.id}')">✏️ Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deletePatient('${p.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+// ============== OVERVIEW TAB ==============
+function renderOverview(p) {
+  const todayWeight = (p.weights || []).filter(w => w.date === todayStr());
+  const hasPostFall = (p.postFallVS || []).length > 0;
+
+  return `
+    <div class="card">
+      <div class="card-title">🩺 Quick View</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Allergies</label>
+          <div style="font-size:13px;padding:8px 0">${p.allergies || 'NKDA'}</div>
+        </div>
+        <div class="form-group">
+          <label>Code Status</label>
+          <div style="font-size:13px;padding:8px 0"><strong>${p.codeStatus || 'Full Code'}</strong></div>
+        </div>
+        <div class="form-group">
+          <label>Bath Days</label>
+          <div style="font-size:13px;padding:8px 0">${(p.bathDays || []).join(', ') || '—'} (${p.showerTime || 'AM'})</div>
+        </div>
+        <div class="form-group">
+          <label>Isolation</label>
+          <div style="font-size:13px;padding:8px 0">${p.isolation || 'None'}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Appointments</label>
+        <textarea rows="2" onchange="updateField('${p.id}','appointments',this.value)">${p.appointments || ''}</textarea>
+      </div>
+    </div>
+
+    ${p.notes ? `<div class="card"><div class="card-title">📝 Notes</div><div style="font-size:13px">${p.notes}</div></div>` : ''}
+  `;
+}
+
+// ============== BATH TAB ==============
+function renderBath(p) {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  const isBathToday = (p.bathDays || []).includes(today);
+
+  return `<div class="card">
+    <div class="card-title">🚿 Bath / Shower Schedule</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bath Days</label>
+        <div class="check-grid">
+          ${days.map(d => {
+            const checked = (p.bathDays || []).includes(d);
+            const isToday = d === today;
+            const cls = `check-item${checked ? ' checked' : ''}${isToday ? '' : ''}`;
+            return `<div class="${cls}" onclick="toggleBathDay('${p.id}','${d}')">
+              <span>${d}${isToday ? ' (Today)' : ''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Shower Time Preference</label>
+        <select onchange="updateField('${p.id}','showerTime',this.value)">
+          <option value="AM" ${p.showerTime==='AM'?'selected':''}>AM Shift (0600-1830)</option>
+          <option value="PM" ${p.showerTime==='PM'?'selected':''}>PM Shift (1800-0630)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:13px;color:var(--text-muted)">
+      ${isBathToday ? '✅ Bath scheduled for today' : '📅 No bath scheduled for today'}
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Bath Notes</label>
+      <textarea rows="2" placeholder="RDG (Restorative Dressing & Grooming), special needs..." onchange="updateField('${p.id}','bathNotes',this.value)">${p.bathNotes || ''}</textarea>
+    </div>
+  </div>`;
+}
+
+function toggleBathDay(pid, day) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.bathDays) p.bathDays = [];
+  const idx = p.bathDays.indexOf(day);
+  if (idx > -1) p.bathDays.splice(idx, 1);
+  else p.bathDays.push(day);
+  saveData();
+  renderContent();
+}
+
+// ============== VITALS TAB ==============
+function renderVitals(p) {
+  return `<div class="card">
+    <div class="card-title">❤️ Vital Signs</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>VS Frequency</label>
+        <input type="text" value="${p.vitalsFreq || ''}" onchange="updateField('${p.id}','vitalsFreq',this.value)" placeholder="Q4h, Q8h, Qshift...">
+      </div>
+    </div>
+    <div class="vitals-grid">
+      <div class="vital-card">
+        <div class="label">BP</div>
+        <div class="value bp">—</div>
+      </div>
+      <div class="vital-card">
+        <div class="label">Pulse</div>
+        <div class="value pulse">—</div>
+      </div>
+      <div class="vital-card">
+        <div class="label">Temp</div>
+        <div class="value temp">—</div>
+      </div>
+      <div class="vital-card">
+        <div class="label">Resp</div>
+        <div class="value resp">—</div>
+      </div>
+      <div class="vital-card">
+        <div class="label">O2 Sat</div>
+        <div class="value o2">—</div>
+      </div>
+      <div class="vital-card">
+        <div class="label">Pain</div>
+        <div class="value pain">—</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted)">Vitals are documented in CPRS. This section serves as a quick reminder of frequency and trends.</div>
+  </div>`;
+}
+
+// ============== NEURO TAB ==============
+const NEURO_PHASES = [
+  { label: 'q1h x 4 (first 4 hours)', cls: 'q1h', count: 4, freq: 1 },
+  { label: 'q2h x 4 (next 8 hours)', cls: 'q2h', count: 4, freq: 2 },
+  { label: 'q4h x 24 (next 24 hours)', cls: 'q4h', count: 6, freq: 4 },
+];
+
+function renderNeuro(p) {
+  if (!p.neuroChecks) p.neuroChecks = [];
+
+  const LOC_OPTIONS = ['Alert','Drowsy','Stuporous','Comatose'];
+  const PUPIL_OPTIONS = ['PERL','Sluggish','Dilated','R>L','L>R'];
+  const MOTOR_OPTIONS = ['Equal','R>L','L>R','Unable','Absent'];
+  const EXTREMITIES = ['RU','LU','RL','LL','Unable','Absent'];
+  const PAIN_RESPONSE = ['Appropriate','Inappropriate','None'];
+
+  // Generate empty slots if none exist
+  const totalSlots = 4 + 4 + 6;
+  if (p.neuroChecks.length < totalSlots) {
+    while (p.neuroChecks.length < totalSlots) {
+      p.neuroChecks.push({ time: '', loc: '', pupils: '', motor: '', extRU: '', extLU: '', extRL: '', extLL: '', pain: '', vitals: '', sig: '' });
+    }
+    saveData();
+  }
+
+  let html = `<div class="card">
+    <div class="card-title">🧠 Neurological Checks</div>
+    <div style="font-size:13px;margin-bottom:10px;padding:6px 10px;background:#fef3c7;border-radius:6px;border-left:3px solid #d97706">
+      <strong>Protocol:</strong> q1h x 4 → q2h x 4 → q4h x 24
+    </div>
+    <div style="overflow-x:auto">
+    <table class="data-table neuro-table">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th style="width:80px">Time</th>
+        <th style="width:90px">LOC</th>
+        <th style="width:80px">Pupils</th>
+        <th style="width:80px">Motor</th>
+        <th style="width:110px">Extremities</th>
+        <th style="width:100px">Pain Resp</th>
+        <th style="width:120px">VS</th>
+        <th style="width:50px">Sig</th>
+      </tr></thead>
+      <tbody>`;
+
+  let idx = 0;
+  for (const phase of NEURO_PHASES) {
+    html += `<tr><td colspan="9" class="neuro-phase ${phase.cls}">${phase.label}</td></tr>`;
+    for (let i = 0; i < phase.count; i++) {
+      const c = p.neuroChecks[idx] || { time: '', loc: '', pupils: '', motor: '', extRU: '', extLU: '', extRL: '', extLL: '', pain: '', vitals: '', sig: '' };
+      html += `<tr>
+        <td>${idx+1}</td>
+        <td><input type="time" value="${c.time}" onchange="updateNeuro(${idx},'time',this.value)"></td>
+        <td>
+          <select onchange="updateNeuro(${idx},'loc',this.value)" style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text)">
+            <option value="">—</option>
+            ${LOC_OPTIONS.map(o => `<option value="${o}" ${c.loc===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <select onchange="updateNeuro(${idx},'pupils',this.value)" style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text)">
+            <option value="">—</option>
+            ${PUPIL_OPTIONS.map(o => `<option value="${o}" ${c.pupils===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <select onchange="updateNeuro(${idx},'motor',this.value)" style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text)">
+            <option value="">—</option>
+            ${MOTOR_OPTIONS.map(o => `<option value="${o}" ${c.motor===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td><input type="text" value="${c.extRU||''} ${c.extLU||''} ${c.extRL||''} ${c.extLL||''}" placeholder="RU LU RL LL" onchange="updateNeuroExtremities(${idx},this.value)" style="width:100%"></td>
+        <td>
+          <select onchange="updateNeuro(${idx},'pain',this.value)" style="width:100%;padding:4px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text)">
+            <option value="">—</option>
+            ${PAIN_RESPONSE.map(o => `<option value="${o}" ${c.pain===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td><input type="text" value="${c.vitals||''}" placeholder="BP/T/P/R/O2" onchange="updateNeuro(${idx},'vitals',this.value)" style="width:100%"></td>
+        <td><input type="text" value="${c.sig||''}" placeholder="Initials" onchange="updateNeuro(${idx},'sig',this.value)" style="width:50px"></td>
+      </tr>`;
+      idx++;
+    }
+  }
+
+  html += `</tbody></table></div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <div><strong>LOC:</strong> Alert / Drowsy / Stuporous / Comatose</div>
+      <div><strong>Pupils:</strong> PERL / Sluggish / Dilated / R>L / L>R</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+      <strong>Motor:</strong> Equal / R>L / L>R / Unable / Absent &nbsp;|&nbsp;
+      <strong>Pain:</strong> Appropriate / Inappropriate / None
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function updateNeuro(idx, field, value) {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  if (!p.neuroChecks) p.neuroChecks = [];
+  if (!p.neuroChecks[idx]) p.neuroChecks[idx] = {};
+  p.neuroChecks[idx][field] = value;
+  saveData();
+}
+
+function updateNeuroExtremities(idx, value) {
+  const parts = (value || '').split(/\s+/).filter(Boolean);
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  if (!p.neuroChecks) p.neuroChecks = [];
+  if (!p.neuroChecks[idx]) p.neuroChecks[idx] = {};
+  p.neuroChecks[idx].extRU = parts[0] || '';
+  p.neuroChecks[idx].extLU = parts[1] || '';
+  p.neuroChecks[idx].extRL = parts[2] || '';
+  p.neuroChecks[idx].extLL = parts[3] || '';
+  saveData();
+}
+
+// ============== BM TAB ==============
+function renderBM(p) {
+  const BM_TYPES = ['BM','Small BM','Liquid/Diarrhea','Constipated','None','Assisted'];
+  if (!p.bmLog) p.bmLog = [];
+
+  return `<div class="card">
+    <div class="card-title">💩 Bowel Movement Log</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:0">
+        <label>Type</label>
+        <select id="bmType">
+          ${BM_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="bmNotes" placeholder="Color, consistency, etc.">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-primary" onclick="addBMEntry()">+ Log BM</button>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px">History</div>
+    ${p.bmLog.length === 0 ? '<div style="color:var(--text-muted);font-size:13px">No entries yet</div>' :
+      [...p.bmLog].reverse().map((b,i) => `<div class="bm-entry">
+        <span class="bm-time">${formatDate(b.time)}</span>
+        <span class="bm-detail"><strong>${b.type}</strong>${b.notes ? ' — ' + b.notes : ''}</span>
+        <span class="bm-edit" onclick="deleteBmEntry(${p.bmLog.length - 1 - i})">🗑️</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function addBMEntry() {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  const type = document.getElementById('bmType').value;
+  const notes = document.getElementById('bmNotes').value.trim();
+  if (!p.bmLog) p.bmLog = [];
+  p.bmLog.push({ time: new Date().toISOString(), type, notes });
+  document.getElementById('bmNotes').value = '';
+  saveData();
+  renderContent();
+}
+
+function deleteBmEntry(idx) {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  p.bmLog.splice(idx, 1);
+  saveData();
+  renderContent();
+}
+
+// ============== SKIN TAB ==============
+function renderSkin(p) {
+  if (!p.skinAssessments) p.skinAssessments = { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' };
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+
+  return `<div class="card">
+    <div class="card-title">🩺 Weekly Skin Assessments</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+      ⏰ Complete during AM care. If veteran leaves before 0730, assess before departure.
+    </div>
+    <div class="skin-grid">
+      ${days.map(d => `
+        <div class="skin-day">
+          <h4>${d}</h4>
+          <textarea onchange="updateSkin('${p.id}','${d}',this.value)">${p.skinAssessments[d] || ''}</textarea>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function updateSkin(pid, day, value) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.skinAssessments) p.skinAssessments = { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' };
+  p.skinAssessments[day] = value;
+  saveData();
+}
+
+// ============== WEIGHTS TAB ==============
+const WEIGHT_METHODS = ['S (Standing)', 'C (Ceiling lift)', 'B (Bed)', 'ADM (Admit)'];
+
+function renderWeights(p) {
+  if (!p.weights) p.weights = [];
+
+  return `<div class="card">
+    <div class="card-title">⚖️ Weight Log</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:0">
+        <label>Weight (lbs)</label>
+        <input type="text" id="weightValue" placeholder="e.g., 165.4">
+      </div>
+      <div class="form-group">
+        <label>Method</label>
+        <select id="weightMethod">
+          ${WEIGHT_METHODS.map(m => `<option value="${m}">${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="weightDate" value="${todayStr()}">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-primary" onclick="addWeightEntry()">+ Log</button>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px">History <span style="font-weight:400;color:var(--text-muted)">(most recent first)</span></div>
+    ${p.weights.length === 0 ? '<div style="color:var(--text-muted);font-size:13px">No weights recorded</div>' :
+      `<table class="weight-table">
+        <thead><tr><th>Date</th><th>Weight</th><th>Method</th><th></th></tr></thead>
+        <tbody>
+          ${[...p.weights].reverse().map((w,i) => `<tr>
+            <td>${w.date}</td>
+            <td><strong>${w.weight} lbs</strong></td>
+            <td>${w.method}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteWeight(${p.weights.length - 1 - i})">🗑️</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+  </div>`;
+}
+
+function addWeightEntry() {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  const weight = document.getElementById('weightValue').value.trim();
+  const method = document.getElementById('weightMethod').value;
+  const date = document.getElementById('weightDate').value || todayStr();
+  if (!weight) { alert('Enter a weight value'); return; }
+  if (!p.weights) p.weights = [];
+  p.weights.push({ date, weight, method });
+  document.getElementById('weightValue').value = '';
+  saveData();
+  renderContent();
+}
+
+function deleteWeight(idx) {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  p.weights.splice(idx, 1);
+  saveData();
+  renderContent();
+}
+
+// ============== POST-FALL TAB ==============
+function renderPostFall(p) {
+  if (!p.postFallVS) p.postFallVS = [];
+
+  const phases = [
+    { label: 'q15min x 4', key: 'q15', count: 4 },
+    { label: 'q30min x 2', key: 'q30', count: 2 },
+    { label: 'q1h x 2', key: 'q1h', count: 2 },
+  ];
+
+  const totalSlots = 4 + 2 + 2;
+  if (p.postFallVS.length < totalSlots) {
+    while (p.postFallVS.length < totalSlots) {
+      p.postFallVS.push({ time: '', bp: '', pulse: '', resp: '', o2: '', pain: '' });
+    }
+    saveData();
+  }
+
+  let idx = 0;
+  let html = `<div class="card">
+    <div class="card-title">🆘 Post-Fall Vital Sign Monitoring</div>
+    <div style="padding:8px 12px;background:#fef2f2;border-radius:6px;border-left:3px solid #dc2626;font-size:13px;margin-bottom:12px">
+      <strong>Protocol:</strong> Per Falls Policy — q15min x4 → q30min x2 → q1h x2 → q shift<br>
+      After complete, vitals monitored q shift. Enter ALL vitals into CPRS.
+    </div>
+    <div class="vs-timeline">
+      ${phases.map(phase => {
+        const slots = [];
+        for (let i = 0; i < phase.count; i++) {
+          const c = p.postFallVS[idx] || { time: '', bp: '', pulse: '', resp: '', o2: '', pain: '' };
+          slots.push(`<div class="vs-slot">
+            <input type="time" value="${c.time}" onchange="updatePostFall(${idx},'time',this.value)" style="width:120px">
+            <span>BP</span><input type="text" value="${c.bp}" onchange="updatePostFall(${idx},'bp',this.value)" style="width:50px">
+            <span>P</span><input type="text" value="${c.pulse}" onchange="updatePostFall(${idx},'pulse',this.value)" style="width:40px">
+            <span>R</span><input type="text" value="${c.resp}" onchange="updatePostFall(${idx},'resp',this.value)" style="width:40px">
+            <span>O2</span><input type="text" value="${c.o2}" onchange="updatePostFall(${idx},'o2',this.value)" style="width:40px">
+            <span>Pain</span><input type="text" value="${c.pain}" onchange="updatePostFall(${idx},'pain',this.value)" style="width:40px">
+          </div>`);
+          idx++;
+        }
+        return `<div class="vs-phase"><h4>${phase.label}</h4>${slots.join('')}</div>`;
+      }).join('')}
+    </div>
+  </div>`;
+  return html;
+}
+
+function updatePostFall(idx, field, value) {
+  const p = getPatient(selectedPatientId);
+  if (!p) return;
+  if (!p.postFallVS) p.postFallVS = [];
+  if (!p.postFallVS[idx]) p.postFallVS[idx] = {};
+  p.postFallVS[idx][field] = value;
+  saveData();
+}
+
+// ============== ORAL TAB ==============
+function renderOral(p) {
+  if (!p.oralInfo) p.oralInfo = { dental: '', notes: '' };
+  const dentalOptions = ['Natural','Partial','Dentures','Implants'];
+
+  return `<div class="card">
+    <div class="card-title">🦷 Oral / Dental Information</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dental Type</label>
+        <div class="check-grid">
+          ${dentalOptions.map(o => {
+            const checked = (p.oralInfo.dental || '').split(',').map(s => s.trim()).includes(o);
+            return `<div class="check-item${checked ? ' checked' : ''}" onclick="toggleDental('${p.id}','${o}')">${o}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Oral Notes</label>
+      <textarea rows="3" onchange="updateOralNotes('${p.id}',this.value)">${p.oralInfo.notes || ''}</textarea>
+    </div>
+  </div>`;
+}
+
+function toggleDental(pid, option) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.oralInfo) p.oralInfo = { dental: '', notes: '' };
+  let items = p.oralInfo.dental ? p.oralInfo.dental.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const idx = items.indexOf(option);
+  if (idx > -1) items.splice(idx, 1);
+  else items.push(option);
+  p.oralInfo.dental = items.join(', ');
+  saveData();
+  renderContent();
+}
+
+function updateOralNotes(pid, value) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.oralInfo) p.oralInfo = { dental: '', notes: '' };
+  p.oralInfo.notes = value;
+  saveData();
+}
+
+// ============== SBAR TAB ==============
+function renderSBAR(p) {
+  return `<div class="card">
+    <div class="card-title">📞 SBAR Report</div>
+    <div class="form-group">
+      <label>S — Situation</label>
+      <textarea rows="2" placeholder="Chief complaint, diagnosis, code status, allergies..." onchange="updateSbar('${p.id}','situation',this.value)">${(p.sbar && p.sbarObj && p.sbarObj.situation) || ''}</textarea>
+    </div>
+    <div class="form-group">
+      <label>B — Background</label>
+      <textarea rows="3" placeholder="Past medical hx, mental status, pain level, vitals, cardiac rhythm, O2, IV info, labs..." onchange="updateSbar('${p.id}','background',this.value)">${(p.sbar && p.sbarObj && p.sbarObj.background) || ''}</textarea>
+    </div>
+    <div class="form-group">
+      <label>A — Assessment</label>
+      <textarea rows="3" placeholder="Medications given, physical assessment findings..." onchange="updateSbar('${p.id}','assessment',this.value)">${(p.sbar && p.sbarObj && p.sbarObj.assessment) || ''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>R — Recommendation</label>
+        <input type="text" placeholder="Recommendation, destination, etc." onchange="updateSbar('${p.id}','recommendation',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.recommendation) || ''}">
+      </div>
+      <div class="form-group">
+        <label>Faxed To</label>
+        <input type="text" placeholder="Facility and physician" onchange="updateSbar('${p.id}','faxedTo',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.faxedTo) || ''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nurse Giving Report</label>
+        <input type="text" onchange="updateSbar('${p.id}','reportingNurse',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.reportingNurse) || ''}">
+      </div>
+      <div class="form-group">
+        <label>Nurse Receiving Report</label>
+        <input type="text" onchange="updateSbar('${p.id}','receivingNurse',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.receivingNurse) || ''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Time Faxed</label>
+        <input type="time" onchange="updateSbar('${p.id}','timeFaxed',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.timeFaxed) || ''}">
+      </div>
+      <div class="form-group">
+        <label>Time Received</label>
+        <input type="time" onchange="updateSbar('${p.id}','timeReceived',this.value)" value="${(p.sbar && p.sbarObj && p.sbarObj.timeReceived) || ''}">
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateSbar(pid, field, value) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.sbarObj) p.sbarObj = {};
+  p.sbarObj[field] = value;
+  p.sbar = 'filled';
+  saveData();
+}
+
+// ============== TRANSFER TAB ==============
+const TRANSFER_ITEMS = [
+  'Date/Time of Transfer',
+  'Accepting Facility & Physician',
+  'Patient ID band verified',
+  'Transferring Nurse',
+  'Consent signed by patient & provider',
+  'Travel request completed',
+  'SBAR completed & faxed',
+  'Report called to receiving unit',
+  'Inter-facility Transfer Note completed',
+  'All paperwork copied/printed/sent',
+  'Patient belongings packed',
+  'MAA notified when patient left floor',
+];
+
+function renderTransfer(p) {
+  if (!p.transferChecklist) p.transferChecklist = [];
+
+  return `<div class="card">
+    <div class="card-title">📦 Transfer Checklist</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+      Ensure every applicable item is addressed prior to transfer. In emergencies, complete as much as possible without delaying care.
+    </div>
+    ${TRANSFER_ITEMS.map((item, i) => {
+      const checked = p.transferChecklist.includes(item);
+      return `<div class="checklist-item ${checked ? 'done' : ''}">
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTransferItem('${p.id}','${item.replace(/'/g, "\\'")}')">
+        <label>${item}</label>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label>Transfer Notes</label>
+        <textarea rows="2" placeholder="Any additional transfer details..." onchange="updateField('${p.id}','transferNotes',this.value)">${p.transferNotes || ''}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleTransferItem(pid, item) {
+  const p = getPatient(pid);
+  if (!p) return;
+  if (!p.transferChecklist) p.transferChecklist = [];
+  const idx = p.transferChecklist.indexOf(item);
+  if (idx > -1) p.transferChecklist.splice(idx, 1);
+  else p.transferChecklist.push(item);
+  saveData();
+  renderContent();
+}
+
+// ============== GENERIC UPDATE ==============
+function updateField(pid, field, value) {
+  const p = getPatient(pid);
+  if (!p) return;
+  p[field] = value;
+  saveData();
+}
+
+// ============== SETTINGS ==============
+const THEMES = [
+  { id: 'clinical', label: 'Clinical', icon: '🏥' },
+  { id: 'ocean', label: 'Ocean', icon: '🌊' },
+  { id: 'forest', label: 'Forest', icon: '🌲' },
+  { id: 'lavender', label: 'Lavender', icon: '🌸' },
+  { id: 'sunset', label: 'Sunset', icon: '🌅' },
+  { id: 'mint', label: 'Mint', icon: '🌿' },
+  { id: 'slate', label: 'Slate', icon: '🪨' },
+  { id: 'rose', label: 'Rose', icon: '🌹' },
+  { id: 'steel', label: 'Steel', icon: '⚙️' },
+  { id: 'warmth', label: 'Warmth', icon: '☀️' },
+  { id: 'night', label: 'Night Mode', icon: '🌙' },
+  { id: 'sky', label: 'Sky', icon: '☁️' },
+  { id: 'blue-gloves', label: 'Blue Gloves', icon: '🧤' },
+  { id: 'blue-heart', label: 'Blue Heart', icon: '💙' },
+  { id: 'pink-bg', label: 'Pink Background', icon: '🌸' },
+  { id: 'pink-heart', label: 'Pink Heart', icon: '💗' },
+  { id: 'stethoscope', label: 'Stethoscope', icon: '🩺' },
+  { id: 'heartbeat', label: 'Heartbeat', icon: '📈' },
+  { id: 'pink-hearts', label: 'Pink Hearts', icon: '💕' },
+  { id: 'caduceus', label: 'Caduceus', icon: '⚕️' },
+  { id: 'gold-stars', label: 'Gold Stars', icon: '⭐' },
+  { id: 'patriotic-flag', label: 'Patriotic Flag', icon: '🇺🇸' },
+  { id: 'patriotic-stethoscope', label: 'Patriotic Stethoscope', icon: '🩺' },
+  { id: 'patriotic-heart', label: 'Patriotic Heart', icon: '❤️' },
+  { id: 'patriotic-watercolor', label: 'Patriotic Watercolor', icon: '🎨' },
+  { id: 'patriotic-hospital', label: 'Patriotic Hospital', icon: '🏥' },
+]
+
+function showSettings() {
+  selectedPatientId = null;
+  currentTab = 'settings';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  renderPatientList();
+  renderContent();
+}
+
+function renderSettings() {
+  const area = document.getElementById('contentArea');
+  area.innerHTML = `<div class="settings-page">
+    <div class="card">
+      <div class="card-title">⚙️ Settings</div>
+      <div class="form-group">
+        <label>Your Name (Charge RN)</label>
+        <input type="text" value="${data.settings.nurseName || ''}" onchange="updateSetting('nurseName',this.value)" placeholder="e.g., Brooks, RN">
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">🎨 Choose Your Background Theme</div>
+      <div class="theme-grid">
+        ${THEMES.map(t => `
+          <div class="theme-option ${data.settings.background === t.id ? 'selected' : ''}" onclick="selectTheme('${t.id}')">
+            <div class="theme-swatch ${t.id}"></div>
+            <div>${t.icon} ${t.label}</div>
+          </div>
+        `).join('')}
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="card-title">💾 Data Management</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
+        Export to save a backup. Import to restore from file. All data is stored locally in this browser.
+      </div>
+      <div class="data-actions">
+        <button class="btn btn-primary" onclick="exportData()">📤 Export JSON</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">📥 Import JSON</button>
+        <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('Clear ALL patient data? This cannot be undone.')){clearAllData()}">🗑️ Clear All</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateSetting(key, value) {
+  data.settings[key] = value;
+  saveData();
+  updateNurseBadge();
+}
+
+function selectTheme(id) {
+  data.settings.background = id;
+  saveData();
+  applyTheme();
+  renderSettings();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `va-rn-workstation-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.patients && imported.settings) {
+        if (confirm(`Replace current data (${data.patients.length} patients) with imported data (${imported.patients.length} patients)?`)) {
+          data = imported;
+          saveData();
+          applyTheme();
+          updateNurseBadge();
+          selectedPatientId = null;
+          renderPatientList();
+          renderContent();
+          alert('Import successful!');
+        }
+      } else {
+        alert('Invalid data file.');
+      }
+    } catch(e) {
+      alert('Error reading file.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  data = {         patients: [
+          {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"2",name:"Martinez, Dolores",last4:"6789",room:"102A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"Lab draw Tue 0600",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"3",name:"Baker, William",last4:"1112",room:"103A",diet:"Pureed",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Wed","Fri","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"4",name:"Anderson, James",last4:"001",room:"104A",diet:"Regular",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"5",name:"Brown, Mary",last4:"002",room:"105A",diet:"Renal",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"6",name:"Clark, Robert",last4:"003",room:"106A",diet:"Pureed",isolation:"Droplet",fallRisk:false,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Wed","Sun"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"7",name:"Davis, Patricia",last4:"004",room:"107A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"8",name:"Edwards, John",last4:"005",room:"108A",diet:"Dysphagia",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"9",name:"Foster, Jennifer",last4:"006",room:"109A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"DNR/DNI",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"10",name:"Garcia, David",last4:"007",room:"110A",diet:"Heart Healthy",isolation:"Contact + Droplet",fallRisk:true,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"11",name:"Harris, Linda",last4:"008",room:"111A",diet:"Low Sodium",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"12",name:"Irwin, Richard",last4:"009",room:"112A",diet:"No Concentrated Sweets",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"13",name:"Jones, Barbara",last4:"010",room:"113A",diet:"Regular",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"14",name:"Kelly, Joseph",last4:"011",room:"114A",diet:"Renal",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"15",name:"Lewis, Elizabeth",last4:"012",room:"115A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"DNI",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"16",name:"Miller, Thomas",last4:"013",room:"116A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"Latex",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"17",name:"Nelson, Margaret",last4:"014",room:"117A",diet:"Dysphagia",isolation:"Contact + Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Fri","Sat"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"18",name:"O'Brien, Charles",last4:"015",room:"118A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"19",name:"Parker, Susan",last4:"016",room:"119A",diet:"Heart Healthy",isolation:"None",fallRisk:true,codeStatus:"DNR",allergies:"Iodine",bathDays:["Tue","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"20",name:"Quinn, William",last4:"017",room:"120A",diet:"Low Sodium",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Sulfa",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"21",name:"Reynolds, Dorothy",last4:"018",room:"121A",diet:"Regular",isolation:"Contact",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"22",name:"Smith, George",last4:"019",room:"122A",diet:"Renal",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"PCN",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"23",name:"Taylor, Helen",last4:"020",room:"123A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"24",name:"Upton, Kenneth",last4:"021",room:"124A",diet:"Mechanical Soft",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"25",name:"Valdez, Betty",last4:"022",room:"125A",diet:"Dysphagia",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"26",name:"Washington, Edward",last4:"023",room:"126A",diet:"Diabetic",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"27",name:"Xavier, Sandra",last4:"024",room:"127A",diet:"Heart Healthy",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"28",name:"Young, Ronald",last4:"025",room:"128A",diet:"Low Sodium",isolation:"None",fallRisk:true,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+          {id:"29",name:"Zimmerman, Larry",last4:"026",room:"129A",diet:"Regular",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:"Kidney specialist consult pending"},
+          {id:"30",name:"Adams, Carol",last4:"027",room:"130A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
+        ],
+        settings: { nurseName: '', background: 'clinical' }, nextId: 31 };
+  saveData();
+  applyTheme();
+  updateNurseBadge();
+  selectedPatientId = null;
+  renderPatientList();
+  renderContent();
+}
+
+// ============== PRINT ==============
+function printPatient() {
+  const p = selectedPatientId ? getPatient(selectedPatientId) : null;
+  if (!p) return;
+
+  const printWin = window.open('', '_blank', 'width=800,height=600');
+  const style = document.querySelector('link[rel="stylesheet"]') ? document.querySelector('link[rel="stylesheet"]').outerHTML : '';
+
+  // Get the content of the currently visible tab
+  const visibleTab = document.querySelector('.tab-panel[style*=\"block\"]');
+  const tabContent = visibleTab ? visibleTab.innerHTML : '';
+
+  printWin.document.write(`<!DOCTYPE html><html><head><title>${p.name} — ${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}</title>${style}
+    <style>body{padding:20px;font-family:'Segoe UI',sans-serif;color:#1a1a2e}@media print{body{padding:0;margin:0}}
+    .print-header{border-bottom:2px solid #2563eb;padding-bottom:10px;margin-bottom:20px}
+    .print-header h1{font-size:22px;margin:0}
+    .print-header .sub{color:#6b7280;font-size:13px}
+    .section{margin-bottom:16px}
+    .section h3{font-size:14px;color:#2563eb;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0}
+    td,th{padding:4px 6px;border:1px solid #d1d5db;text-align:left}
+    th{background:#f3f4f6;font-size:10px;text-transform:uppercase}
+    .badge-print{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px}
+  </style></head><body>
+    <div class="print-header">
+      <h1>${p.name}</h1>
+      <div class="sub">Room ${p.room} • #${p.last4} • ${p.diet || ''} • ${p.isolation !== 'None' ? '🧫 ' + p.isolation : ''} • ${p.codeStatus || ''}</div>
+    </div>
+    ${tabContent}
+    <div style="margin-top:20px;font-size:10px;color:#9ca3af;text-align:center">Printed from VA Charge RN Workstation — ${new Date().toLocaleString()}</div>
+  </body></html>`);
+  printWin.document.close();
+  setTimeout(() => { printWin.print(); }, 500);
+}
+
+// ============== INIT ==============
+loadData();
+renderPatientList();
+renderContent();
+
+// Close modal on overlay click
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddModal();
+});
+</script>
+</body>
+</html>
