@@ -1385,13 +1385,54 @@ function showSettings() {
 }
 
 function renderSettings() {
+  var s = data.settings;
   return `<div class="settings-page">
     <div class="card">
       <div class="card-title">⚙️ Settings</div>
       <div class="form-group">
         <label>Your Name (Charge RN)</label>
-        <input type="text" value="${data.settings.nurseName || ''}" onchange="updateSetting('nurseName',this.value)" placeholder="e.g., Brooks, RN">
+        <input type="text" value="${s.nurseName || ''}" onchange="updateSetting('nurseName',this.value)" placeholder="e.g., Brooks, RN">
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="card-title" style="font-size:14px">📋 Day Shift Assignments</div>
+      <div class="form-row"><div class="form-group"><label>Charge Nurse</label><input type="text" value="${s.assignDayCharge||''}" onchange="updateSetting('assignDayCharge',this.value)"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>North Meds</label><input type="text" value="${s.assignDayNorthMeds||''}" onchange="updateSetting('assignDayNorthMeds',this.value)"></div>
+        <div class="form-group"><label>South Meds</label><input type="text" value="${s.assignDaySouthMeds||''}" onchange="updateSetting('assignDaySouthMeds',this.value)"></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">North PT Care</div>
+      <div class="form-row">
+        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignDayNorthB1||''}" onchange="updateSetting('assignDayNorthB1',this.value)"></div>
+        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignDayNorthB2||''}" onchange="updateSetting('assignDayNorthB2',this.value)"></div>
+        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignDayNorthB3||''}" onchange="updateSetting('assignDayNorthB3',this.value)"></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">South PT Care</div>
+      <div class="form-row">
+        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignDaySouthB1||''}" onchange="updateSetting('assignDaySouthB1',this.value)"></div>
+        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignDaySouthB2||''}" onchange="updateSetting('assignDaySouthB2',this.value)"></div>
+        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignDaySouthB3||''}" onchange="updateSetting('assignDaySouthB3',this.value)"></div>
+      </div>
+      <div class="form-row"><div class="form-group"><label>Float</label><input type="text" value="${s.assignDayFloat||''}" onchange="updateSetting('assignDayFloat',this.value)"></div></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+      <div class="card-title" style="font-size:14px">🌙 Night Shift Assignments</div>
+      <div class="form-row"><div class="form-group"><label>Charge Nurse</label><input type="text" value="${s.assignNightCharge||''}" onchange="updateSetting('assignNightCharge',this.value)"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>North Meds</label><input type="text" value="${s.assignNightNorthMeds||''}" onchange="updateSetting('assignNightNorthMeds',this.value)"></div>
+        <div class="form-group"><label>South Meds</label><input type="text" value="${s.assignNightSouthMeds||''}" onchange="updateSetting('assignNightSouthMeds',this.value)"></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">North PT Care</div>
+      <div class="form-row">
+        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignNightNorthB1||''}" onchange="updateSetting('assignNightNorthB1',this.value)"></div>
+        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignNightNorthB2||''}" onchange="updateSetting('assignNightNorthB2',this.value)"></div>
+        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignNightNorthB3||''}" onchange="updateSetting('assignNightNorthB3',this.value)"></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">South PT Care</div>
+      <div class="form-row">
+        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignNightSouthB1||''}" onchange="updateSetting('assignNightSouthB1',this.value)"></div>
+        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignNightSouthB2||''}" onchange="updateSetting('assignNightSouthB2',this.value)"></div>
+        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignNightSouthB3||''}" onchange="updateSetting('assignNightSouthB3',this.value)"></div>
+      </div>
+      <div class="form-row"><div class="form-group"><label>Float</label><input type="text" value="${s.assignNightFloat||''}" onchange="updateSetting('assignNightFloat',this.value)"></div></div>
       <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
       <div style="font-size:14px;font-weight:600;margin-bottom:10px">🎨 Choose Your Background Theme</div>
       <div class="theme-grid">
@@ -1867,7 +1908,63 @@ function renderClinicView() {
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
+
+    <!-- Page 2: Assignment Sheet -->
+    <div class="no-print" style="page-break-before:always;height:0"></div>
+    <div style="margin-top:24px;font-size:16px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #2563eb;padding-bottom:4px">📋 Shift Assignments — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'})}</div>
+
+    <div style="display:flex;gap:20px;margin-top:12px;flex-wrap:wrap">
+      ${renderShiftTable('☀️ Day Shift',data.settings,'assignDay')}
+      ${renderShiftTable('🌙 Night Shift',data.settings,'assignNight')}
+    </div>
+
+    <!-- Page 3: Appointments -->
+    <div style="page-break-before:always;margin-top:24px;font-size:16px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #2563eb;padding-bottom:4px">📅 Appointments — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'})}</div>
+    <div style="margin-top:8px;overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:#f0f4f8">
+        <th style="padding:4px 6px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b">Room</th>
+        <th style="padding:4px 6px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b">Patient</th>
+        <th style="padding:4px 6px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b">Appointments</th>
+      </tr></thead>
+      <tbody>${renderAppointmentRows()}</tbody>
+    </table></div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Appointments are managed per-patient via Edit or the patient dashboard Overview tab.</div>
   </div>`;
+}
+
+function renderShiftTable(title, s, p) {
+  return `<div style="flex:1;min-width:300px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">${title}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <tbody>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600">Charge Nurse</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'Charge'] || '_____________'}  <span style="font-size:9px;color:#9ca3af">____________ (Signature)</span></td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600">North Meds</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'NorthMeds'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600">South Meds</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'SouthMeds'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600;background:#f8fafc" colspan="2">North PT Care</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 1</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'NorthB1'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 2</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'NorthB2'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 3</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'NorthB3'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600;background:#f8fafc" colspan="2">South PT Care</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 1</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'SouthB1'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 2</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'SouthB2'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;padding-left:20px">Block 3</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'SouthB3'] || ''}</td></tr>
+        <tr><td style="padding:3px 6px;border:1px solid #d1d5db;font-weight:600">Float</td><td style="padding:3px 6px;border:1px solid #d1d5db">${s[p+'Float'] || ''}</td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderAppointmentRows() {
+  var hasAny = false;
+  var rowsHtml = '';
+  [...data.patients].sort(roomSort).forEach(function(p) {
+    if (p.appointments && p.appointments.trim()) {
+      hasAny = true;
+      rowsHtml += '<tr><td style="padding:3px 6px;border-bottom:1px solid #e5e7eb">' + p.room + '</td><td style="padding:3px 6px;border-bottom:1px solid #e5e7eb;font-weight:600">' + p.name + '</td><td style="padding:3px 6px;border-bottom:1px solid #e5e7eb">' + p.appointments + '</td></tr>';
+    }
+  });
+  if (!hasAny) rowsHtml = '<tr><td colspan="3" style="padding:8px;text-align:center;color:var(--text-muted)">No appointments entered. Edit a patient to add appointments.</td></tr>';
+  return rowsHtml;
 }
 
 function renderUnitFsbs() {
