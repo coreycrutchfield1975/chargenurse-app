@@ -168,6 +168,7 @@ let data = {         patients: [
         settings: { nurseName: '', background: 'clinical' }, nextId: 31 };
 let selectedPatientId = null;
 let currentTab = 'overview';
+let currentView = 'dashboard'; // 'dashboard' | 'unit'
 
 function loadData() {
   try {
@@ -310,15 +311,17 @@ function renderPatientList() {
 // ============== NAVIGATION ==============
 function selectPatient(id) {
   selectedPatientId = id;
+  currentView = 'dashboard';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   renderPatientList();
   renderContent();
-  // Update nav to show patient name
   const p = getPatient(id);
   if (p) document.querySelector('.sidebar-header p').textContent = p.name;
 }
 
 function switchTab(tab) {
   currentTab = tab;
+  currentView = 'unit';
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   renderContent();
 }
@@ -411,34 +414,26 @@ function deletePatient(id) {
 // ============== RENDER CONTENT ==============
 function renderContent() {
   const area = document.getElementById('contentArea');
+
+  // Unit View — show data across all patients for the selected tab
+  if (currentView === 'unit') {
+    area.innerHTML = renderUnitView(currentTab);
+    return;
+  }
+
+  // Patient Dashboard — overview of the selected patient
   const p = selectedPatientId ? getPatient(selectedPatientId) : null;
-
-  if (currentTab === 'settings') { renderSettings(); return; }
-
   if (!p) {
     area.innerHTML = `<div class="welcome-screen">
       <div class="big-icon">🏥</div>
       <h2>VA Charge RN Workstation</h2>
-      <p>Select a patient from the sidebar to view their worksheet, or add a new patient to get started.</p>
+      <p>Select a patient from the sidebar to view their worksheet, or click a tab above for a unit-wide view.</p>
       <p style="font-size:13px">${data.patients.length} patient${data.patients.length !== 1 ? 's' : ''} on roster</p>
     </div>`;
     return;
   }
 
-  area.innerHTML = `
-    ${renderPatientHeader(p)}
-    <div class="tab-panel" id="tabOverview" style="display:${currentTab==='overview'||currentTab===undefined?'block':'none'}">${renderOverview(p)}</div>
-    <div class="tab-panel" id="tabBath" style="display:${currentTab==='bath'?'block':'none'}">${renderBath(p)}</div>
-    <div class="tab-panel" id="tabVitals" style="display:${currentTab==='vitals'?'block':'none'}">${renderVitals(p)}</div>
-    <div class="tab-panel" id="tabNeuro" style="display:${currentTab==='neuro'?'block':'none'}">${renderNeuro(p)}</div>
-    <div class="tab-panel" id="tabBm" style="display:${currentTab==='bm'?'block':'none'}">${renderBM(p)}</div>
-    <div class="tab-panel" id="tabSkin" style="display:${currentTab==='skin'?'block':'none'}">${renderSkin(p)}</div>
-    <div class="tab-panel" id="tabWeights" style="display:${currentTab==='weights'?'block':'none'}">${renderWeights(p)}</div>
-    <div class="tab-panel" id="tabPostfall" style="display:${currentTab==='postfall'?'block':'none'}">${renderPostFall(p)}</div>
-    <div class="tab-panel" id="tabOral" style="display:${currentTab==='oral'?'block':'none'}">${renderOral(p)}</div>
-    <div class="tab-panel" id="tabSbar" style="display:${currentTab==='sbar'?'block':'none'}">${renderSBAR(p)}</div>
-    <div class="tab-panel" id="tabTransfer" style="display:${currentTab==='transfer'?'block':'none'}">${renderTransfer(p)}</div>
-  `;
+  area.innerHTML = renderPatientDashboard(p);
 }
 
 function renderPatientHeader(p) {
@@ -1109,6 +1104,7 @@ const THEMES = [
 
 function showSettings() {
   selectedPatientId = null;
+  currentView = 'unit';
   currentTab = 'settings';
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   renderPatientList();
@@ -1243,6 +1239,331 @@ function clearAllData() {
   renderContent();
 }
 
+// ============== PATIENT DASHBOARD ==============
+function renderPatientDashboard(p) {
+  const flags = [];
+  if (p.isolation && p.isolation !== 'None') flags.push(`<span class="badge badge-isolation">🧫 ${p.isolation}</span>`);
+  if (p.fallRisk) flags.push(`<span class="badge badge-fallrisk">⚠️ Fall Risk</span>`);
+  if (p.codeStatus && p.codeStatus !== 'Full Code') flags.push(`<span class="badge badge-dnr">⚖️ ${p.codeStatus}</span>`);
+
+  // Last BM
+  const lastBm = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
+  // Last weight
+  const lastWt = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
+  // Skin assessment completion
+  const skinDays = p.skinAssessments || {};
+  const skinStatus = ['Mon','Tue','Wed','Thu','Fri'].map(d => {
+    const done = skinDays[d] && skinDays[d].trim();
+    return `<span style="display:inline-block;width:28px;text-align:center;font-size:11px;padding:2px 0;border-radius:4px;${done ? 'background:#bbf7d0;color:#166534' : 'background:#e5e7eb;color:#9ca3af'}">${done ? '✓' : '—'}</span>`;
+  }).join('');
+  // Neuro active?
+  const neuroActive = p.neuroChecks && p.neuroChecks.some(c => c.time || c.loc);
+  // Post-fall active?
+  const pfActive = p.postFallVS && p.postFallVS.some(c => c.time || c.bp);
+  // Transfer progress
+  const tc = p.transferChecklist || [];
+  // SBAR
+  const sbarDone = p.sbarObj && (p.sbarObj.situation || p.sbarObj.background);
+
+  return `<div class="dashboard">
+    <div class="card dashboard-header-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:20px;font-weight:700">${p.name}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">Room ${p.room}  •  #${p.last4}</div>
+        </div>
+        <div class="flags" style="display:flex;gap:4px;flex-wrap:wrap">${flags.join('')}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;font-size:13px">
+        <div><span style="color:var(--text-muted)">Diet</span><br><strong>${p.diet || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Allergies</span><br><strong>${p.allergies || 'NKDA'}</strong></div>
+        <div><span style="color:var(--text-muted)">VS Freq</span><br><strong>${p.vitalsFreq || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Bath Days</span><br><strong>${(p.bathDays||[]).join(', ') || '—'} (${p.showerTime||'AM'})</strong></div>
+        <div><span style="color:var(--text-muted)">Isolation</span><br><strong>${p.isolation || 'None'}</strong></div>
+        <div><span style="color:var(--text-muted)">Fall Risk</span><br><strong>${p.fallRisk ? 'Yes' : 'No'}</strong></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px">
+      <div class="card">
+        <div class="card-title" style="font-size:13px">💩 Last BM</div>
+        ${lastBm ? `<div style="font-size:13px"><strong>${lastBm.type}</strong> — ${formatDate(lastBm.time)}${lastBm.notes ? '<br><span style="color:var(--text-muted)">'+lastBm.notes+'</span>' : ''}</div>` : '<div style="color:var(--text-muted);font-size:13px">No BM recorded</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">⚖️ Last Weight</div>
+        ${lastWt ? `<div style="font-size:13px"><strong>${lastWt.weight} lbs</strong> (${lastWt.method}) — ${lastWt.date}</div>` : '<div style="color:var(--text-muted);font-size:13px">No weights recorded</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">🩺 Skin Assessments</div>
+        <div style="display:flex;gap:3px;margin-top:4px">${skinStatus}</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">🧠 Neuro Checks</div>
+        <div style="font-size:13px">${neuroActive ? '<span style="color:#d97706;font-weight:600">● Active</span>' : '<span style="color:var(--text-muted)">Not active</span>'}</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">🆘 Post-Fall Monitoring</div>
+        <div style="font-size:13px">${pfActive ? '<span style="color:#dc2626;font-weight:600">● Active</span>' : '<span style="color:var(--text-muted)">Not active</span>'}</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">📞 SBAR</div>
+        <div style="font-size:13px">${sbarDone ? '✅ Completed' : '<span style="color:var(--text-muted)">Not started</span>'}</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">📦 Transfer</div>
+        <div style="font-size:13px">${tc.length} of 12 items checked${tc.length > 0 ? ' — <span style="color:#16a34a">'+Math.round(tc.length/12*100)+'%</span>' : ''}</div>
+      </div>
+    </div>
+
+    ${p.appointments ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📋 Appointments</div><div style="font-size:13px">${p.appointments}</div></div>` : ''}
+    ${p.notes ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📝 Notes</div><div style="font-size:13px">${p.notes}</div></div>` : ''}
+
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap" class="no-print">
+      <button class="btn btn-primary btn-sm" onclick="showAddPatient('${p.id}')">✏️ Edit Patient</button>
+      <button class="btn btn-secondary btn-sm" onclick="printPatient()">🖨️ Print</button>
+      <button class="btn btn-danger btn-sm" onclick="deletePatient('${p.id}')">🗑️ Remove</button>
+    </div>
+  </div>`;
+}
+
+// ============== UNIT VIEW ==============
+function renderUnitView(tab) {
+  if (tab === 'settings') { renderSettings(); return ''; }
+  switch(tab) {
+    case 'overview': return renderUnitOverview();
+    case 'bath': return renderUnitBath();
+    case 'vitals': return renderUnitVitals();
+    case 'neuro': return renderUnitNeuro();
+    case 'bm': return renderUnitBM();
+    case 'skin': return renderUnitSkin();
+    case 'weights': return renderUnitWeights();
+    case 'postfall': return renderUnitPostFall();
+    case 'oral': return renderUnitOral();
+    case 'sbar': return renderUnitSBAR();
+    case 'transfer': return renderUnitTransfer();
+    default: return '<div class="card"><p>Select a tab above.</p></div>';
+  }
+}
+
+function unitHeader(title, icon) {
+  return `<div class="unit-header"><span style="font-size:18px">${icon}</span> ${title} — Unit View</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${data.patients.length} patients on roster</div>`;
+}
+
+function renderUnitOverview() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const lastBm = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
+    const lastWt = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
+    const neuroActive = p.neuroChecks && p.neuroChecks.some(c => c.time || c.loc);
+    const pfActive = p.postFallVS && p.postFallVS.some(c => c.time || c.bp);
+    const badges = [];
+    if (p.isolation && p.isolation !== 'None') badges.push(`🧫`);
+    if (p.fallRisk) badges.push(`⚠️`);
+    if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push(`⚖️${p.codeStatus}`);
+    return `<tr onclick="selectPatient('${p.id}')" style="cursor:pointer">
+      <td>${p.room}</td>
+      <td>${p.name} ${badges.length ? '<span style="font-size:11px">'+badges.join(' ')+'</span>' : ''}</td>
+      <td>${p.diet || '—'}</td>
+      <td>${p.allergies || 'NKDA'}</td>
+      <td>${p.vitalsFreq || '—'}</td>
+      <td>${lastBm ? lastBm.type : '—'}</td>
+      <td>${lastWt ? lastWt.weight + ' lbs' : '—'}</td>
+      <td>${neuroActive ? '🧠' : ''} ${pfActive ? '🆘' : ''}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="tab-panel">
+    ${unitHeader('Unit Overview','🏥')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Diet</th><th>Allergies</th><th>VS</th><th>Last BM</th><th>Weight</th><th>Active</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+function renderUnitBath() {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today = days[new Date().getDay()];
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const dayChecks = days.map(d => {
+      const on = (p.bathDays || []).includes(d);
+      const isToday = d === today;
+      return `<span style="display:inline-block;width:30px;text-align:center;font-size:11px;padding:3px 0;border-radius:4px;${on ? 'background:#bbf7d0;color:#166534;font-weight:600' : isToday ? 'background:#fef3c7;color:#92400e' : 'background:#e5e7eb;color:#9ca3af'}">${on ? '✓' : isToday ? '✗' : '—'}</span>`;
+    }).join('');
+    return `<tr><td>${p.room}</td><td>${p.name}</td><td>${dayChecks}</td><td>${p.showerTime || 'AM'}</td></tr>`;
+  }).join('');
+  return `<div class="tab-panel">
+    ${unitHeader('Bath Schedule','🚿')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th>${days.map(d => `<th style="text-align:center">${d}${d===today?'<br><span style="font-size:10px;color:#d97706">today</span>':''}</th>`).join('')}<th>Time</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="margin-top:8px;display:flex;gap:12px;font-size:11px;color:var(--text-muted)">
+      <span><span style="display:inline-block;width:12px;height:12px;background:#bbf7d0;border-radius:3px;vertical-align:middle"></span> Scheduled</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#fef3c7;border-radius:3px;vertical-align:middle"></span> Due today</span>
+    </div>
+  </div>`;
+}
+
+function renderUnitVitals() {
+  const rows = [...data.patients].sort(roomSort).map(p => `
+    <tr onclick="selectPatient('${p.id}')" style="cursor:pointer">
+      <td>${p.room}</td><td>${p.name}</td>
+      <td><strong>${p.vitalsFreq || '—'}</strong></td>
+      <td style="font-size:12px">${p.appointments || '—'}</td>
+    </tr>`).join('');
+  return `<div class="tab-panel">${unitHeader('Vital Signs','❤️')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>VS Freq</th><th>Appointments</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitBM() {
+  // Build a list of every BM entry across all patients, most recent first
+  const allBms = [];
+  data.patients.forEach(p => {
+    (p.bmLog || []).forEach(b => allBms.push({ ...b, room: p.room, name: p.name, pid: p.id }));
+  });
+  allBms.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+  const rows = allBms.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No BM entries recorded</td></tr>'
+    : allBms.map(b => `<tr>
+      <td>${b.room}</td>
+      <td onclick="selectPatient('${b.pid}')" style="cursor:pointer;color:var(--primary)">${b.name}</td>
+      <td><strong>${b.type}</strong></td>
+      <td style="font-size:12px">${b.notes || '—'}</td>
+      <td style="font-size:12px">${formatDate(b.time)}</td>
+    </tr>`).join('');
+
+  return `<div class="tab-panel">${unitHeader('Bowel Movement Log','💩')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Type</th><th>Notes</th><th>Time</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitSkin() {
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const sa = p.skinAssessments || {};
+    const cells = days.map(d => {
+      const val = (sa[d] || '').trim();
+      return `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${val ? 'background:#bbf7d0' : 'color:var(--text-muted)'}">${val || '—'}</td>`;
+    }).join('');
+    return `<tr><td>${p.room}</td><td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>${cells}</tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Skin Assessments','🩺')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th>${days.map(d => `<th>${d}</th>`).join('')}
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitWeights() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const w = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td>${w ? '<strong>'+w.weight+' lbs</strong>' : '—'}</td>
+      <td>${w ? w.method : '—'}</td>
+      <td>${w ? w.date : '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Weights','⚖️')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Last Weight</th><th>Method</th><th>Date</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitNeuro() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const checks = p.neuroChecks || [];
+    const active = checks.filter(c => c.time || c.loc);
+    const completed = active.filter(c => c.loc && c.pupils && c.time);
+    const lastTime = active.length ? active[active.length-1].time : '';
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td>${active.length > 0 ? '<span style="color:#d97706;font-weight:600">● Active ('+completed.length+'/'+active.length+')</span>' : '—'}</td>
+      <td>${lastTime || '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Neurological Checks','🧠')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Status</th><th>Last Check</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitPostFall() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const vs = p.postFallVS || [];
+    const active = vs.filter(c => c.time || c.bp);
+    const last = active.length ? active[active.length-1] : null;
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td>${active.length > 0 ? '<span style="color:#dc2626;font-weight:600">● Active ('+active.length+'/8)</span>' : '—'}</td>
+      <td>${last ? last.time : '—'}</td>
+      <td>${last ? (last.bp||'—') : '—'}</td>
+      <td>${last ? (last.pulse||'—') : '—'}</td>
+      <td>${last ? (last.resp||'—') : '—'}</td>
+      <td>${last ? (last.o2||'—') : '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Post-Fall Monitoring','🆘')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Status</th><th>Last Time</th><th>BP</th><th>P</th><th>R</th><th>O2</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitOral() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const oi = p.oralInfo || {};
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td>${oi.dental || '—'}</td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${oi.notes || '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Oral / Dental','🦷')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Dental Type</th><th>Notes</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitSBAR() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const s = p.sbarObj || {};
+    const done = s.situation || s.background;
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td>${done ? '<span style="color:#16a34a;font-weight:600">✅ Done</span>' : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="font-size:12px">${s.faxedTo || '—'}</td>
+      <td style="font-size:12px">${s.receivingNurse || '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('SBAR Report','📞')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Status</th><th>Faxed To</th><th>Receiving RN</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderUnitTransfer() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const tc = p.transferChecklist || [];
+    return `<tr>
+      <td>${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary)">${p.name}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div style="height:6px;flex:1;background:#e5e7eb;border-radius:3px;max-width:100px"><div style="height:6px;width:${Math.round(tc.length/12*100)}%;background:#16a34a;border-radius:3px"></div></div><span style="font-size:12px;font-weight:600">${tc.length}/12</span></div></td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.transferNotes || '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">${unitHeader('Transfer Checklist','📦')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Progress</th><th>Notes</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
 // ============== PRINT ==============
 function printPatient() {
   const p = selectedPatientId ? getPatient(selectedPatientId) : null;
@@ -1251,11 +1572,11 @@ function printPatient() {
   const printWin = window.open('', '_blank', 'width=800,height=600');
   const style = document.querySelector('link[rel="stylesheet"]') ? document.querySelector('link[rel="stylesheet"]').outerHTML : '';
 
-  // Get the content of the currently visible tab
-  const visibleTab = document.querySelector('.tab-panel[style*=\"block\"]');
-  const tabContent = visibleTab ? visibleTab.innerHTML : '';
+  // Get the main content
+  const contentArea = document.getElementById('contentArea');
+  const tabContent = contentArea ? contentArea.innerHTML : '';
 
-  printWin.document.write(`<!DOCTYPE html><html><head><title>${p.name} — ${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}</title>${style}
+  printWin.document.write(`<!DOCTYPE html><html><head><title>${p.name} — Patient Worksheet</title>${style}
     <style>body{padding:20px;font-family:'Segoe UI',sans-serif;color:#1a1a2e}@media print{body{padding:0;margin:0}}
     .print-header{border-bottom:2px solid #2563eb;padding-bottom:10px;margin-bottom:20px}
     .print-header h1{font-size:22px;margin:0}
