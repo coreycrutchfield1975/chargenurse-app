@@ -2125,6 +2125,19 @@ document.getElementById('topNav').addEventListener('click', function(e) {
     switchTab(btn.dataset.tab);
   }
 });
+// Direct assignment fallback — assigns onclick to every tab button directly
+(function() {
+  var buttons = document.querySelectorAll('.nav-tab');
+  for (var i = 0; i < buttons.length; i++) {
+    (function(btn) {
+      btn.onclick = function(ev) {
+        switchTab(btn.dataset.tab);
+        ev.preventDefault();
+        return false;
+      };
+    })(buttons[i]);
+  }
+})();
 
 // Close modal on overlay click
 document.getElementById('addModal').addEventListener('click', function(e) {
