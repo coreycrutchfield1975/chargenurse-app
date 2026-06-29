@@ -222,6 +222,7 @@
 </div>
 
 <script>
+console.log('VA Charge RN: script executing');
 // ============== DATA LAYER ==============
 let data = {         patients: [
           {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
@@ -451,10 +452,12 @@ function selectPatient(id) {
 }
 
 function switchTab(tab) {
-  currentTab = tab;
-  currentView = 'unit';
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  renderContent();
+  try {
+    currentTab = tab;
+    currentView = 'unit';
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    renderContent();
+  } catch(e) { console.error('switchTab error:', e); }
 }
 
 function showAddPatient(patientId) {
@@ -1867,9 +1870,11 @@ function printPatient() {
 }
 
 // ============== INIT ==============
+try {
 loadData();
 renderPatientList();
 renderContent();
+} catch(e) { console.error('Init error:', e); }
 
 // Auth check for login overlay
 if (sessionStorage.getItem('chargenurse_auth') === '1') {
