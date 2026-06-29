@@ -1870,12 +1870,12 @@ function renderUnitBath() {
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const today = days[new Date().getDay()];
   const rows = [...data.patients].sort(roomSort).map(p => {
-    const dayChecks = days.map(d => {
+    const dayCells = days.map(d => {
       const on = (p.bathDays || []).includes(d);
       const isToday = d === today;
-      return `<span style="display:inline-block;width:30px;text-align:center;font-size:11px;padding:3px 0;border-radius:4px;${on ? 'background:#bbf7d0;color:#166534;font-weight:600' : isToday ? 'background:#fef3c7;color:#92400e' : 'background:#e5e7eb;color:#9ca3af'}">${on ? '✓' : isToday ? '✗' : '—'}</span>`;
+      return `<td style="text-align:center;padding:4px 2px;font-size:12px;${on ? 'background:#dcfce7;color:#166534;font-weight:600' : isToday ? 'background:#fef3c7;color:#92400e' : ''}">${on ? '✓' : isToday ? '✗' : '—'}</td>`;
     }).join('');
-    return `<tr><td>${p.room}</td><td>${p.name}</td><td>${dayChecks}</td><td>${p.showerTime || 'AM'}</td></tr>`;
+    return `<tr><td>${p.room}</td><td>${p.name}</td>${dayCells}<td style="text-align:center">${p.showerTime || 'AM'}</td></tr>`;
   }).join('');
   return `<div class="tab-panel">
     ${unitHeader('Bath Schedule','🚿')}
@@ -1894,11 +1894,10 @@ function renderUnitVitals() {
     <tr onclick="selectPatient('${p.id}')" style="cursor:pointer">
       <td>${p.room}</td><td>${p.name}</td>
       <td><strong>${p.vitalsFreq || '—'}</strong></td>
-      <td style="font-size:12px">${p.appointments || '—'}</td>
     </tr>`).join('');
   return `<div class="tab-panel">${unitHeader('Vital Signs','❤️')}
     <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-      <th>Room</th><th>Patient</th><th>VS Freq</th><th>Appointments</th>
+      <th>Room</th><th>Patient</th><th>VS Freq</th>
     </tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
