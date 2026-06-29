@@ -238,6 +238,24 @@
         </select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>PPD (Tuberculosis) Admin Date</label>
+        <input type="date" id="addPpdDate">
+      </div>
+      <div class="form-group">
+        <label>PPD Read Date</label>
+        <input type="date" id="addPpdRead">
+      </div>
+      <div class="form-group">
+        <label>PPD Result</label>
+        <select id="addPpdResult">
+          <option value="">Not read yet</option>
+          <option>Negative</option>
+          <option>Positive</option>
+        </select>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveAddPatient()">Save</button>
@@ -499,6 +517,9 @@ function showAddPatient(patientId) {
     document.getElementById('addSC').value = p.serviceConnection || '';
     document.getElementById('addSiderail').value = p.siderail || '';
     document.getElementById('addMeds').value = p.meds || '';
+    document.getElementById('addPpdDate').value = p.ppdDate || '';
+    document.getElementById('addPpdRead').value = p.ppdRead || '';
+    document.getElementById('addPpdResult').value = p.ppdResult || '';
     document.getElementById('addIsolation').value = p.isolation || 'None';
     document.getElementById('addCodeStatus').value = p.codeStatus || 'Full Code';
     document.getElementById('addAllergies').value = p.allergies || '';
@@ -516,6 +537,9 @@ function showAddPatient(patientId) {
     document.getElementById('addSC').value = '';
     document.getElementById('addSiderail').value = '';
     document.getElementById('addMeds').value = '';
+    document.getElementById('addPpdDate').value = '';
+    document.getElementById('addPpdRead').value = '';
+    document.getElementById('addPpdResult').value = '';
     document.getElementById('addIsolation').value = 'None';
     document.getElementById('addCodeStatus').value = 'Full Code';
     document.getElementById('addAllergies').value = '';
@@ -541,6 +565,9 @@ function saveAddPatient() {
   const serviceConnection = document.getElementById('addSC').value;
   const siderail = document.getElementById('addSiderail').value;
   const meds = document.getElementById('addMeds').value;
+  const ppdDate = document.getElementById('addPpdDate').value;
+  const ppdRead = document.getElementById('addPpdRead').value;
+  const ppdResult = document.getElementById('addPpdResult').value;
   const isolation = document.getElementById('addIsolation').value;
   const codeStatus = document.getElementById('addCodeStatus').value;
   const allergies = document.getElementById('addAllergies').value.trim();
@@ -559,11 +586,11 @@ function saveAddPatient() {
 
   if (editId) {
     const p = getPatient(editId);
-    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
+    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
   } else {
     const newPatient = {
       id: String(data.nextId++),
-      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, isolation, fallRisk, codeStatus, allergies,
+      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, fallRisk, codeStatus, allergies,
       bathDays, showerTime: 'AM', vitalsFreq, appointments: '', fsbsCount, fsbsLog: [],
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
@@ -1470,6 +1497,44 @@ function renderPatientDashboard(p) {
   const tc = p.transferChecklist || [];
   // SBAR
   const sbarDone = p.sbarObj && (p.sbarObj.situation || p.sbarObj.background);
+  // BM alert — 3+ days no BM
+  var bmAlert = '';
+  if (lastBm) {
+    var bmDate = new Date(lastBm.time);
+    var daysSince = Math.floor((new Date() - bmDate) / (1000*60*60*24));
+    if (daysSince >= 3) bmAlert = '<div style="margin-top:6px;padding:4px 8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#dc2626;font-size:12px;font-weight:600">⚠️ '+daysSince+' days since last BM</div>';
+  }
+  // PPD alert — 72h overdue
+  var ppdAlert = ''; var ppdSection = '';
+  if (p.ppdDate) {
+    var ppdAdmin = new Date(p.ppdDate + 'T12:00:00');
+    var ppdDue = new Date(ppdAdmin.getTime() + 72*60*60*1000);
+    var ppdOverdue = !p.ppdRead && new Date() > ppdDue;
+    var dueStr = ppdDue.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    ppdSection = '<div class="card"><div class="card-title" style="font-size:13px">🫁 PPD (Tuberculosis)</div>' +
+      '<div style="font-size:13px">Administered: <strong>' + (p.ppdDate ? p.ppdDate : '—') + '</strong></div>' +
+      '<div style="font-size:13px">Read by: <strong>' + dueStr + '</strong> (72h)' +
+      (p.ppdRead ? '<br>Read: <strong>' + p.ppdRead + '</strong> — Result: <strong>' + (p.ppdResult||'Pending') + '</strong>' : '') +
+      (ppdOverdue ? '<div style="margin-top:6px;padding:4px 8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#dc2626;font-size:12px;font-weight:600">⚠️ PPD overdue — needs reading!</div>' : '') +
+      '</div>';
+  }
+  // FSBS histogram
+  var fsbsHistogram = '';
+  if (p.fsbsCount > 0 && p.fsbsLog && p.fsbsLog.length > 0) {
+    var readings = [...p.fsbsLog].sort(function(a,b){return a.date.localeCompare(b.date) || a.time.localeCompare(b.time);});
+    var maxVal = Math.max.apply(null, readings.map(function(r){return parseInt(r.value)||0;})) || 200;
+    var bars = readings.map(function(r){
+      var val = parseInt(r.value)||0;
+      var pct = Math.min(Math.round(val/maxVal*100), 100);
+      var color = val > 180 || val < 70 ? '#dc2626' : val > 140 ? '#d97706' : '#16a34a';
+      return '<div style="display:flex;align-items:center;gap:4px;margin:2px 0;font-size:11px">' +
+        '<span style="width:80px;flex-shrink:0">'+r.date.slice(5)+' '+r.time+'</span>' +
+        '<div style="flex:1;height:14px;background:#f3f4f6;border-radius:3px;overflow:hidden">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:3px;min-width:4px"></div></div>' +
+        '<span style="width:40px;text-align:right;font-weight:600">'+r.value+'</span></div>';
+    }).join('');
+    fsbsHistogram = '<div style="margin-top:8px;max-height:180px;overflow-y:auto;padding:4px 0;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">📊 All readings (green=normal, amber=borderline, red=critical)</div>'+bars+'</div>';
+  }
 
   return `<div class="dashboard">
     <div class="card dashboard-header-card">
@@ -1499,6 +1564,7 @@ function renderPatientDashboard(p) {
       <div class="card">
         <div class="card-title" style="font-size:13px">💩 Last BM</div>
         ${lastBm ? `<div style="font-size:13px"><strong>${lastBm.type}</strong> — ${formatDate(lastBm.time)}${lastBm.notes ? '<br><span style="color:var(--text-muted)">'+lastBm.notes+'</span>' : ''}</div>` : '<div style="color:var(--text-muted);font-size:13px">No BM recorded</div>'}
+        ${bmAlert}
       </div>
       <div class="card">
         <div class="card-title" style="font-size:13px">🩸 FSBS</div>
@@ -1516,6 +1582,7 @@ function renderPatientDashboard(p) {
               ).join('') || '<span style="color:var(--text-muted)">No readings today</span>'}
             </div>
           </div>
+          ${fsbsHistogram}
         ` : ''}
       </div>
       <div class="card">
@@ -1543,6 +1610,8 @@ function renderPatientDashboard(p) {
         <div style="font-size:13px">${tc.length} of 12 items checked${tc.length > 0 ? ' — <span style="color:#16a34a">'+Math.round(tc.length/12*100)+'%</span>' : ''}</div>
       </div>
     </div>
+
+    ${ppdSection}
 
     ${p.appointments ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📋 Appointments</div><div style="font-size:13px">${p.appointments}</div></div>` : ''}
     ${p.notes ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📝 Notes</div><div style="font-size:13px">${p.notes}</div></div>` : ''}
