@@ -1691,9 +1691,48 @@ function renderClinicView() {
       <td>${p.labsAssigned || '—'}</td>
     </tr>`;
   }).join('');
+  // Build To-Do section
+  var todoItems = [];
+  var today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  data.patients.forEach(function(p){
+    // BM alert
+    var lb = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
+    if (lb) {
+      var daysSince = Math.floor((new Date() - new Date(lb.time)) / (1000*60*60*24));
+      if (daysSince >= 3) todoItems.push({msg:p.room+' '+p.name+' — '+daysSince+' days no BM',type:'bm'});
+    }
+    // PPD overdue
+    if (p.ppdDate && !p.ppdRead) {
+      var ppdDue = new Date(new Date(p.ppdDate+'T12:00:00').getTime() + 72*60*60*1000);
+      if (new Date() > ppdDue) todoItems.push({msg:p.room+' '+p.name+' — PPD reading overdue!',type:'ppd'});
+    }
+    // FSBS incomplete
+    if (p.fsbsCount > 0) {
+      var done = (p.fsbsLog||[]).filter(function(e){return e.date===todayStr();}).length;
+      if (done < p.fsbsCount) todoItems.push({msg:p.room+' '+p.name+' — FSBS '+done+'/'+p.fsbsCount+' done',type:'fsbs'});
+    }
+    // Unfilled assignments
+    if (!p.skinAssigned) todoItems.push({msg:p.room+' '+p.name+' — Skin not assigned',type:'assign'});
+    if (!p.showerAssigned) todoItems.push({msg:p.room+' '+p.name+' — Shower not assigned',type:'assign'});
+    if (!p.vitalsAssigned) todoItems.push({msg:p.room+' '+p.name+' — Vitals not assigned',type:'assign'});
+    if (!p.weightsAssigned) todoItems.push({msg:p.room+' '+p.name+' — Weights not assigned',type:'assign'});
+    if (!p.labsAssigned) todoItems.push({msg:p.room+' '+p.name+' — Labs not assigned',type:'assign'});
+  });
+  var todoHtml = todoItems.length === 0
+    ? '<div style="padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;font-size:13px;font-weight:600">✅ All patients have assignments and no alerts</div>'
+    : '<div class="attn-card" style="border-color:#fecaca">' +
+      '<div class="attn-title" style="color:#dc2626">📋 To-Do — ' + todoItems.length + ' item' + (todoItems.length!==1?'s':'') + '</div>' +
+      todoItems.slice(0,20).map(function(item){
+        var bg = item.type==='ppd'?'#fef2f2':item.type==='bm'?'#fffbeb':'#eff6ff';
+        return '<div style="padding:5px 10px;margin-bottom:3px;border-radius:6px;font-size:12px;background:'+bg+'">' + item.msg + '</div>';
+      }).join('') +
+      (todoItems.length > 20 ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">…and '+(todoItems.length-20)+' more</div>' : '') +
+      '</div>';
+
   return `<div class="tab-panel">
     ${unitHeader('Clinic View','🏥')}
-    <div style="overflow-x:auto"><table class="data-table data-table-sm"><thead><tr>
+    ${todoHtml}
+    <div style="overflow-x:auto;margin-top:12px"><table class="data-table data-table-sm"><thead><tr>
       <th>Room</th><th>Patient</th><th>Diet</th><th>Meds</th><th>Assist</th><th>Toilet</th><th>SC</th><th>🛁</th><th>Last BM</th><th>Wt</th><th>FSBS</th>
       <th>Skin</th><th>Shower</th><th>Vitals</th><th>Weights</th><th>Labs</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
