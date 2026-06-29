@@ -628,6 +628,31 @@ function renderContent() {
 
   // Unit View — show data across all patients for the selected tab
   if (currentView === 'unit') {
+    // If a patient is selected, show per-patient form for personal tabs
+    if (selectedPatientId) {
+      const p = getPatient(selectedPatientId);
+      if (p) {
+        var patientTabs = {
+          overview: renderOverview,
+          bath: renderBath,
+          vitals: renderVitals,
+          fsbs: renderPatientFsbs,
+          neuro: renderNeuro,
+          bm: renderBM,
+          skin: renderSkin,
+          weights: renderWeights,
+          postfall: renderPostFall,
+          oral: renderOral,
+          sbar: renderSBAR,
+          transfer: renderTransfer
+        };
+        var fn = patientTabs[currentTab];
+        if (fn) {
+          area.innerHTML = renderPatientHeader(p) + fn(p);
+          return;
+        }
+      }
+    }
     area.innerHTML = renderUnitView(currentTab);
     return;
   }
@@ -967,6 +992,24 @@ function deleteBmEntry(idx) {
   p.bmLog.splice(idx, 1);
   saveData();
   renderContent();
+}
+
+function renderPatientFsbs(p) {
+  if (!p.fsbsLog) p.fsbsLog = [];
+  const logs = [...p.fsbsLog].filter(e => e.date === todayStr()).sort((a,b) => a.time.localeCompare(b.time));
+  return `<div class="card">
+    <div class="card-title">🩸 FSBS</div>
+    <div style="font-size:13px;margin-bottom:8px">Ordered: <strong>${p.fsbsCount > 0 ? p.fsbsCount+'x/day' : 'Not ordered'}</strong></div>
+    <div class="form-row" style="gap:4px;margin-bottom:8px">
+      <input type="time" id="fsbsTime" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px">
+      <input type="text" id="fsbsValue" placeholder="mg/dL" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px">
+      <button class="btn btn-primary" onclick="addFsbsReading('${p.id}')" style="padding:6px 14px">+ Log</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px">Today's Readings</div>
+    ${logs.length === 0 ? '<div style="color:var(--text-muted);font-size:13px">No readings today</div>' :
+      logs.map(l => '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+l.time+'</span><span><strong>'+l.value+'</strong></span></div>').join('')}
+  </div>`;
 }
 
 function addFsbsReading(pid) {
@@ -1759,7 +1802,7 @@ function renderClinicView() {
     if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push('⚖️');
     return `<tr>
       <td style="padding:2px 4px;font-size:10.5px;font-weight:600;color:var(--primary);cursor:pointer" onclick="selectPatient('${p.id}')">${p.room}</td>
-      <td style="padding:2px 4px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
+      <td style="padding:2px 4px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
       <td style="padding:2px 4px;font-size:10px">${p.diet || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.meds || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.assistance || '—'}</td>
@@ -1782,7 +1825,7 @@ function renderClinicView() {
     <div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px">
       <thead><tr style="background:#f0f4f8">
         <th style="width:38px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Rm</th>
-        <th style="min-width:120px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
+        <th style="width:72px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
         <th style="width:60px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
         <th style="width:42px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
         <th style="width:38px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Asst</th>
