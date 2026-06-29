@@ -1794,8 +1794,29 @@ function renderClinicView() {
     const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
     const bathToday = (p.bathDays || []).includes(today);
     const lastBm = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
-    const lastWt = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
-    const fsbsDue = p.fsbsCount > 0 ? (p.fsbsLog||[]).filter(e => e.date === todayStr()).length + '/' + p.fsbsCount : '';
+    // FSBS — show today's reading times
+    var fsbsTimes = '';
+    if (p.fsbsCount > 0) {
+      var todaysLogs = (p.fsbsLog||[]).filter(function(e) { return e.date === todayStr(); }).sort(function(a,b) { return a.time.localeCompare(b.time); });
+      if (todaysLogs.length > 0) {
+        fsbsTimes = todaysLogs.map(function(l) { return l.time; }).join(', ');
+      } else {
+        fsbsTimes = '<span style="color:#d97706">Due '+p.fsbsCount+'x</span>';
+      }
+    } else {
+      fsbsTimes = '—';
+    }
+    // Skin — check if today's assessment is done
+    var skinDone = p.skinAssessments && p.skinAssessments[today] && p.skinAssessments[today].trim();
+    var skinToday = skinDone ? '<span style="color:#16a34a;font-weight:600">✓</span>' : '<span style="color:#dc2626">✗</span>';
+    // Vitals — yes/no if frequency set
+    var vitalsDue = p.vitalsFreq ? '<span style="color:#16a34a;font-weight:600">✓</span>' : '—';
+    // Weights — yes/no if logged today
+    var wtDue = (p.weights||[]).filter(function(w) { return w.date === todayStr(); }).length > 0
+      ? '<span style="color:#16a34a;font-weight:600">✓</span>' : '—';
+    // Labs — yes/no if has appointments or labs assigned
+    var labsDue = (p.appointments && p.appointments.trim()) || p.labsAssigned
+      ? '<span style="color:#16a34a;font-weight:600">✓</span>' : '—';
     const badges = [];
     if (p.isolation && p.isolation !== 'None') badges.push('🧫');
     if (p.fallRisk) badges.push('⚠️');
@@ -1810,13 +1831,11 @@ function renderClinicView() {
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.serviceConnection || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${bathToday ? '✅' : '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${lastBm ? lastBm.type : '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${lastWt ? lastWt.weight+'lbs' : '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center;font-weight:${fsbsDue ? 600 : 400}">${fsbsDue || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.skinAssigned || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.showerAssigned || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.vitalsAssigned || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.weightsAssigned || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.labsAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${wtDue}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${fsbsTimes}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${skinToday}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${vitalsDue}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${labsDue}</td>
       <td style="padding:2px 4px;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${p.notes || '—'}</td>
     </tr>`;
   }).join('');
@@ -1835,11 +1854,9 @@ function renderClinicView() {
         <th style="width:24px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">🛁</th>
         <th style="width:50px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">BM</th>
         <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wt</th>
-        <th style="width:34px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">FSBS</th>
+        <th style="width:60px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">FSBS</th>
         <th style="width:50px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Skin</th>
-        <th style="width:44px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Shwr</th>
-        <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Vits</th>
-        <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wts</th>
+        <th style="width:30px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">VS</th>
         <th style="width:30px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Labs</th>
         <th style="width:80px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Notes</th>
       </tr></thead>
