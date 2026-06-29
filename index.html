@@ -1758,31 +1758,48 @@ function renderClinicView() {
     if (p.fallRisk) badges.push('⚠️');
     if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push('⚖️');
     return `<tr>
-      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary);font-weight:600">${p.room}</td>
-      <td onclick="selectPatient('${p.id}')" style="cursor:pointer">${p.name}</td>
-      <td>${p.diet || '—'}</td>
-      <td>${p.meds || '—'}</td>
-      <td>${p.assistance || '—'}</td>
-      <td><span style="color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</span></td>
-      <td>${p.serviceConnection || '—'}</td>
-      <td>${bathToday ? '✅' : '—'}</td>
-      <td>${lastBm ? lastBm.type : '—'}</td>
-      <td>${lastWt ? lastWt.weight+' lbs' : '—'}</td>
-      <td>${fsbsDue ? '<span style="font-weight:600">'+fsbsDue+'</span>' : '—'}</td>
-      <td>${p.skinAssigned || '—'}</td>
-      <td>${p.showerAssigned || '—'}</td>
-      <td>${p.vitalsAssigned || '—'}</td>
-      <td>${p.weightsAssigned || '—'}</td>
-      <td>${p.labsAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10.5px;font-weight:600;color:var(--primary);cursor:pointer" onclick="selectPatient('${p.id}')">${p.room}</td>
+      <td style="padding:2px 4px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
+      <td style="padding:2px 4px;font-size:10px">${p.diet || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.meds || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.assistance || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.serviceConnection || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${bathToday ? '✅' : '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${lastBm ? lastBm.type : '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${lastWt ? lastWt.weight+'lbs' : '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center;font-weight:${fsbsDue ? 600 : 400}">${fsbsDue || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.skinAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.showerAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.vitalsAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.weightsAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.labsAssigned || '—'}</td>
     </tr>`;
   }).join('');
 
   return `<div class="tab-panel">
     ${unitHeader('Clinic View','🏥')}
-    <div style="overflow-x:auto"><table class="data-table data-table-sm"><thead><tr>
-      <th>Room</th><th>Patient</th><th>Diet</th><th>Meds</th><th>Assist</th><th>Toilet</th><th>SC</th><th>🛁</th><th>Last BM</th><th>Wt</th><th>FSBS</th>
-      <th>Skin</th><th>Shower</th><th>Vitals</th><th>Weights</th><th>Labs</th>
-    </tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px">
+      <thead><tr style="background:#f0f4f8">
+        <th style="width:38px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Rm</th>
+        <th style="min-width:120px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
+        <th style="width:60px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
+        <th style="width:42px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
+        <th style="width:38px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Asst</th>
+        <th style="width:60px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Toilet</th>
+        <th style="width:32px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">SC</th>
+        <th style="width:24px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">🛁</th>
+        <th style="width:50px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">BM</th>
+        <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wt</th>
+        <th style="width:34px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">FSBS</th>
+        <th style="width:50px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Skin</th>
+        <th style="width:44px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Shwr</th>
+        <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Vits</th>
+        <th style="width:44px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wts</th>
+        <th style="width:36px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Labs</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
   </div>`;
 }
 
@@ -2061,9 +2078,9 @@ function printPatient() {
       '.print-header{border-bottom:2px solid #2563eb;padding-bottom:10px;margin-bottom:20px}' +
       '.print-header h1{font-size:22px;margin:0;color:#1e3a5f}' +
       '.print-header .sub{color:#6b7280;font-size:13px}' +
-      'table{width:100%;border-collapse:collapse;font-size:11px}' +
-      'td,th{padding:4px 6px;border:1px solid #d1d5db;text-align:left}' +
-      'th{background:#f3f4f6;font-size:10px;text-transform:uppercase}' +
+      'table{width:100%;border-collapse:collapse;font-size:10px}' +
+      'td,th{padding:2px 4px;border:1px solid #d1d5db;text-align:left}' +
+      'th{background:#f0f4f8;font-size:8px;text-transform:uppercase;color:#64748b}' +
       '.card{border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin-bottom:12px;break-inside:avoid}' +
       '.card-title{font-size:14px;font-weight:600;color:#2563eb;margin-bottom:8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}' +
       '.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}' +
