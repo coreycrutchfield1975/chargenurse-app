@@ -53,19 +53,19 @@
   <main class="main-content">
     <!-- Top nav tabs -->
     <nav class="top-nav" id="topNav">
-      <button class="nav-tab" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
-      <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
-      <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
-      <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
-      <button class="nav-tab" data-tab="fsbs" onclick="switchTab('fsbs')">🩸 FSBS</button>
-      <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')">🧠 Neuro</button>
-      <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')">💩 BM</button>
-      <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')">🩺 Skin</button>
-      <button class="nav-tab" data-tab="weights" onclick="switchTab('weights')">⚖️ Weights</button>
-      <button class="nav-tab" data-tab="postfall" onclick="switchTab('postfall')">🆘 Post-Fall</button>
-      <button class="nav-tab" data-tab="oral" onclick="switchTab('oral')">🦷 Oral</button>
-      <button class="nav-tab" data-tab="sbar" onclick="switchTab('sbar')">📞 SBAR</button>
-      <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">📦 Transfer</button>
+      <button class="nav-tab" data-tab="clinic">🏥 Clinic</button>
+      <button class="nav-tab" data-tab="overview">📋 Overview</button>
+      <button class="nav-tab" data-tab="bath">🚿 Bath</button>
+      <button class="nav-tab" data-tab="vitals">❤️ Vitals</button>
+      <button class="nav-tab" data-tab="fsbs">🩸 FSBS</button>
+      <button class="nav-tab" data-tab="neuro">🧠 Neuro</button>
+      <button class="nav-tab" data-tab="bm">💩 BM</button>
+      <button class="nav-tab" data-tab="skin">🩺 Skin</button>
+      <button class="nav-tab" data-tab="weights">⚖️ Weights</button>
+      <button class="nav-tab" data-tab="postfall">🆘 Post-Fall</button>
+      <button class="nav-tab" data-tab="oral">🦷 Oral</button>
+      <button class="nav-tab" data-tab="sbar">📞 SBAR</button>
+      <button class="nav-tab" data-tab="transfer">📦 Transfer</button>
       <div class="nav-right">
         <a href="https://clcscheduler.vercel.app" target="_blank" class="btn btn-secondary btn-sm" title="CLC Scheduler">📅 Scheduler</a>
         <button class="btn btn-secondary btn-sm" onclick="showSettings()" title="Settings">⚙️</button>
@@ -1651,31 +1651,45 @@ function renderUnitFsbs() {
 }
 
 function renderUnitOverview() {
+  const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
   const rows = [...data.patients].sort(roomSort).map(p => {
     const lastBm = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
     const lastWt = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
+    const fsbsDue = p.fsbsCount > 0 ? (p.fsbsLog||[]).filter(e => e.date === todayStr()).length + '/' + p.fsbsCount : '';
+    const bathToday = (p.bathDays || []).includes(today);
     const neuroActive = p.neuroChecks && p.neuroChecks.some(c => c.time || c.loc);
     const pfActive = p.postFallVS && p.postFallVS.some(c => c.time || c.bp);
-    const badges = [];
-    if (p.isolation && p.isolation !== 'None') badges.push(`🧫`);
-    if (p.fallRisk) badges.push(`⚠️`);
-    if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push(`⚖️${p.codeStatus}`);
+    const flags = [];
+    if (p.isolation && p.isolation !== 'None') flags.push('🧫');
+    if (p.fallRisk) flags.push('⚠️');
+    if (p.codeStatus && p.codeStatus !== 'Full Code') flags.push('⚖️');
     return `<tr onclick="selectPatient('${p.id}')" style="cursor:pointer">
-      <td>${p.room}</td>
-      <td>${p.name} ${badges.length ? '<span style="font-size:11px">'+badges.join(' ')+'</span>' : ''}</td>
+      <td><strong>${p.room}</strong></td>
+      <td>${p.name} ${flags.length ? '<span style="font-size:11px">'+flags.join(' ')+'</span>' : ''}</td>
       <td>${p.diet || '—'}</td>
-      <td>${p.allergies || 'NKDA'}</td>
+      <td>${p.meds || '—'}</td>
+      <td>${p.assistance || '—'}</td>
+      <td><span style="color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</span></td>
+      <td>${p.serviceConnection || '—'}</td>
       <td>${p.vitalsFreq || '—'}</td>
+      <td>${bathToday ? '✅' : '—'}</td>
       <td>${lastBm ? lastBm.type : '—'}</td>
-      <td>${lastWt ? lastWt.weight + ' lbs' : '—'}</td>
+      <td>${lastWt ? lastWt.weight+' lbs' : '—'}</td>
+      <td>${fsbsDue || '—'}</td>
+      <td>${p.skinAssigned || '—'}</td>
+      <td>${p.showerAssigned || '—'}</td>
+      <td>${p.vitalsAssigned || '—'}</td>
+      <td>${p.weightsAssigned || '—'}</td>
+      <td>${p.labsAssigned || '—'}</td>
       <td>${neuroActive ? '🧠' : ''} ${pfActive ? '🆘' : ''}</td>
     </tr>`;
   }).join('');
 
   return `<div class="tab-panel">
-    ${unitHeader('Unit Overview','🏥')}
-    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-      <th>Room</th><th>Patient</th><th>Diet</th><th>Allergies</th><th>VS</th><th>Last BM</th><th>Weight</th><th>Active</th>
+    ${unitHeader('Unit Overview','📋')}
+    <div style="overflow-x:auto"><table class="data-table data-table-sm"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Diet</th><th>Meds</th><th>Assist</th><th>Toilet</th><th>SC</th><th>VS</th><th>🛁</th><th>BM</th><th>Wt</th><th>FSBS</th>
+      <th>Skin</th><th>Shower</th><th>Vitals</th><th>Weights</th><th>Labs</th><th>Alert</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
   </div>`;
 }
@@ -1909,14 +1923,19 @@ renderContent();
 // Auth check for login overlay
 if (sessionStorage.getItem('chargenurse_auth') === '1') {
   document.getElementById('loginOverlay').style.display = 'none';
+  // Auto-show Clinic view when logged in
+  setTimeout(function() { switchTab('clinic'); }, 50);
 } else {
   setTimeout(function() { document.getElementById('loginPass').focus(); }, 100);
 }
 
-// Tab click event delegation (backup for inline onclick)
+// Tab click event delegation — handles ALL tab clicks
 document.getElementById('topNav').addEventListener('click', function(e) {
   var btn = e.target.closest('.nav-tab');
-  if (btn) switchTab(btn.dataset.tab);
+  if (btn) {
+    e.preventDefault();
+    switchTab(btn.dataset.tab);
+  }
 });
 
 // Close modal on overlay click
