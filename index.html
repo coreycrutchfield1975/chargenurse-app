@@ -1830,7 +1830,7 @@ function renderClinicView() {
       <td style="padding:2px 4px;font-size:10.5px;font-weight:600;color:var(--primary);cursor:pointer" onclick="selectPatient('${p.id}')">${p.room}</td>
       <td style="padding:2px 4px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
       <td style="padding:2px 4px;font-size:10px">${p.diet || '—'}</td>
-      <td style="padding:2px 4px;font-size:10px;text-align:center">${p.meds || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:28px">${p.meds || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.assistance || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.serviceConnection || '—'}</td>
