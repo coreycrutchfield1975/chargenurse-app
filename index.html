@@ -52,21 +52,21 @@
   <!-- Main content -->
   <main class="main-content">
     <!-- Top nav tabs -->
-    <nav class="top-nav" id="topNav">
-      <button class="nav-tab" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
-      <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
-      <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
-      <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
-      <button class="nav-tab" data-tab="fsbs" onclick="switchTab('fsbs')">🩸 FSBS</button>
-      <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')">🧠 Neuro</button>
-      <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')">💩 BM</button>
-      <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')">🩺 Skin</button>
-      <button class="nav-tab" data-tab="weights" onclick="switchTab('weights')">⚖️ Weights</button>
-      <button class="nav-tab" data-tab="postfall" onclick="switchTab('postfall')">🆘 Post-Fall</button>
-      <button class="nav-tab" data-tab="oral" onclick="switchTab('oral')">🦷 Oral</button>
-      <button class="nav-tab" data-tab="sbar" onclick="switchTab('sbar')">📞 SBAR</button>
-      <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">📦 Transfer</button>
-      <button class="nav-tab" data-tab="directives" onclick="switchTab('directives')">📚 Directives</button>
+    <nav class="top-nav" id="topNav" role="tablist">
+      <button class="nav-tab" data-tab="clinic" onclick="switchTab('clinic')" role="tab" aria-controls="contentArea" aria-selected="false">🏥 Clinic</button>
+      <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')" role="tab" aria-controls="contentArea" aria-selected="false">📋 Overview</button>
+      <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')" role="tab" aria-controls="contentArea" aria-selected="false">🚿 Bath</button>
+      <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')" role="tab" aria-controls="contentArea" aria-selected="false">❤️ Vitals</button>
+      <button class="nav-tab" data-tab="fsbs" onclick="switchTab('fsbs')" role="tab" aria-controls="contentArea" aria-selected="false">🩸 FSBS</button>
+      <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')" role="tab" aria-controls="contentArea" aria-selected="false">🧠 Neuro</button>
+      <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')" role="tab" aria-controls="contentArea" aria-selected="false">💩 BM</button>
+      <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')" role="tab" aria-controls="contentArea" aria-selected="false">🩺 Skin</button>
+      <button class="nav-tab" data-tab="weights" onclick="switchTab('weights')" role="tab" aria-controls="contentArea" aria-selected="false">⚖️ Weights</button>
+      <button class="nav-tab" data-tab="postfall" onclick="switchTab('postfall')" role="tab" aria-controls="contentArea" aria-selected="false">🆘 Post-Fall</button>
+      <button class="nav-tab" data-tab="oral" onclick="switchTab('oral')" role="tab" aria-controls="contentArea" aria-selected="false">🦷 Oral</button>
+      <button class="nav-tab" data-tab="sbar" onclick="switchTab('sbar')" role="tab" aria-controls="contentArea" aria-selected="false">📞 SBAR</button>
+      <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')" role="tab" aria-controls="contentArea" aria-selected="false">📦 Transfer</button>
+      <button class="nav-tab" data-tab="directives" onclick="switchTab('directives')" role="tab" aria-controls="contentArea" aria-selected="false">📚 Directives</button>
       <div class="nav-right">
         <a href="https://clcscheduler.vercel.app" target="_blank" class="btn btn-secondary btn-sm" title="CLC Scheduler">📅 Scheduler</a>
         <button class="btn btn-secondary btn-sm" onclick="showSettings()" title="Settings">⚙️</button>
@@ -75,7 +75,7 @@
     </nav>
 
     <!-- Content -->
-    <div class="content-area" id="contentArea">
+    <div class="content-area" id="contentArea" role="tabpanel" aria-live="polite">
       <!-- Rendered by JS based on selected patient/tab -->
     </div>
   </main>
@@ -500,7 +500,11 @@ function switchTab(tab) {
     console.log('Tab clicked:', tab);
     currentTab = tab;
     currentView = 'unit';
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      var isActive = t.dataset.tab === tab;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
     renderContent();
   } catch(e) { console.error('switchTab error:', e); }
 }
