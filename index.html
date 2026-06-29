@@ -214,6 +214,30 @@
         </select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Meds Administration</label>
+        <select id="addMeds" style="font-size:12px">
+          <option value="">Select med admin method...</option>
+          <option>Whole</option>
+          <option>Whole in Applesauce</option>
+          <option>Whole in Chocolate pudding</option>
+          <option>Whole in Vanilla pudding</option>
+          <option>Whole vs Crushed</option>
+          <option>Crushed</option>
+          <option>PEG</option>
+          <option>Whole with Vanilla Ensure</option>
+          <option>Whole with Chocolate Ensure</option>
+          <option>Whole with Strawberry Ensure</option>
+          <option>Crushed in Applesauce</option>
+          <option>Crushed with Chocolate pudding</option>
+          <option>Crushed with Vanilla pudding</option>
+          <option>Crushed with Chocolate Ensure</option>
+          <option>Crushed with Vanilla Ensure</option>
+          <option>Crushed in Strawberry Ensure</option>
+        </select>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveAddPatient()">Save</button>
@@ -434,7 +458,7 @@ function renderPatientList() {
       <div class="room-badge">${p.room}</div>
       <div class="patient-info">
         <div class="patient-name">${p.name}</div>
-        <div class="patient-meta">#${p.last4} | ${p.diet || '—'}</div>
+        <div class="patient-meta">#${p.last4} | ${p.diet || '—'}${p.meds ? ' | 💊 '+p.meds : ''}</div>
         <div class="patient-badges">${badges.join('')}</div>
       </div>
     </div>`;
@@ -474,6 +498,7 @@ function showAddPatient(patientId) {
     document.getElementById('addToilet').value = p.toilet || '';
     document.getElementById('addSC').value = p.serviceConnection || '';
     document.getElementById('addSiderail').value = p.siderail || '';
+    document.getElementById('addMeds').value = p.meds || '';
     document.getElementById('addIsolation').value = p.isolation || 'None';
     document.getElementById('addCodeStatus').value = p.codeStatus || 'Full Code';
     document.getElementById('addAllergies').value = p.allergies || '';
@@ -490,6 +515,7 @@ function showAddPatient(patientId) {
     document.getElementById('addToilet').value = '';
     document.getElementById('addSC').value = '';
     document.getElementById('addSiderail').value = '';
+    document.getElementById('addMeds').value = '';
     document.getElementById('addIsolation').value = 'None';
     document.getElementById('addCodeStatus').value = 'Full Code';
     document.getElementById('addAllergies').value = '';
@@ -514,6 +540,7 @@ function saveAddPatient() {
   const toilet = document.getElementById('addToilet').value;
   const serviceConnection = document.getElementById('addSC').value;
   const siderail = document.getElementById('addSiderail').value;
+  const meds = document.getElementById('addMeds').value;
   const isolation = document.getElementById('addIsolation').value;
   const codeStatus = document.getElementById('addCodeStatus').value;
   const allergies = document.getElementById('addAllergies').value.trim();
@@ -532,11 +559,11 @@ function saveAddPatient() {
 
   if (editId) {
     const p = getPatient(editId);
-    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
+    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
   } else {
     const newPatient = {
       id: String(data.nextId++),
-      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, isolation, fallRisk, codeStatus, allergies,
+      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, isolation, fallRisk, codeStatus, allergies,
       bathDays, showerTime: 'AM', vitalsFreq, appointments: '', fsbsCount, fsbsLog: [],
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
@@ -1459,6 +1486,7 @@ function renderPatientDashboard(p) {
         <div><span style="color:var(--text-muted)">Toilet</span><br><strong>${p.toilet || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">SC</span><br><strong>${p.serviceConnection || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Siderail</span><br><strong>${p.siderail || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Meds</span><br><strong>${p.meds || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Allergies</span><br><strong>${p.allergies || 'NKDA'}</strong></div>
         <div><span style="color:var(--text-muted)">VS Freq</span><br><strong>${p.vitalsFreq || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Bath Days</span><br><strong>${(p.bathDays||[]).join(', ') || '—'} (${p.showerTime||'AM'})</strong></div>
@@ -1579,6 +1607,7 @@ function renderClinicView() {
       <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary);font-weight:600">${p.room}</td>
       <td onclick="selectPatient('${p.id}')" style="cursor:pointer">${p.name}</td>
       <td>${p.diet || '—'}</td>
+      <td>${p.meds || '—'}</td>
       <td>${p.assistance || '—'}</td>
       <td><span style="color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</span></td>
       <td>${p.serviceConnection || '—'}</td>
@@ -1596,7 +1625,7 @@ function renderClinicView() {
   return `<div class="tab-panel">
     ${unitHeader('Clinic View','🏥')}
     <div style="overflow-x:auto"><table class="data-table data-table-sm"><thead><tr>
-      <th>Room</th><th>Patient</th><th>Diet</th><th>Assist</th><th>Toilet</th><th>SC</th><th>🛁</th><th>Last BM</th><th>Wt</th><th>FSBS</th>
+      <th>Room</th><th>Patient</th><th>Diet</th><th>Meds</th><th>Assist</th><th>Toilet</th><th>SC</th><th>🛁</th><th>Last BM</th><th>Wt</th><th>FSBS</th>
       <th>Skin</th><th>Shower</th><th>Vitals</th><th>Weights</th><th>Labs</th>
     </tr></thead><tbody>${rows}</tbody></table></div>
   </div>`;
