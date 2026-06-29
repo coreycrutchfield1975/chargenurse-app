@@ -955,6 +955,10 @@ function renderBM(p) {
           ${BM_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
         </select>
       </div>
+      <div class="form-group" style="flex:0">
+        <label>Date</label>
+        <input type="date" id="bmDate" value="${todayStr()}">
+      </div>
       <div class="form-group">
         <label>Notes (optional)</label>
         <input type="text" id="bmNotes" placeholder="Color, consistency, etc.">
@@ -979,8 +983,9 @@ function addBMEntry() {
   if (!p) return;
   const type = document.getElementById('bmType').value;
   const notes = document.getElementById('bmNotes').value.trim();
+  const bmDate = document.getElementById('bmDate').value || todayStr();
   if (!p.bmLog) p.bmLog = [];
-  p.bmLog.push({ time: new Date().toISOString(), type, notes });
+  p.bmLog.push({ time: new Date(bmDate + 'T' + new Date().toTimeString().slice(0,5)).toISOString(), type, notes });
   document.getElementById('bmNotes').value = '';
   saveData();
   renderContent();
