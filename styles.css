@@ -914,3 +914,18 @@ body[class*="theme-stethoscope"] .patient-card.active {
   font-size: 64px;
   margin-bottom: 16px;
 }
+
+/* Login overlay */
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a0f2e,#2d1b4e,#5b2d8e);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;border-radius:16px;padding:36px 40px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+.login-icon{font-size:44px;margin-bottom:12px}
+.login-title{font-size:22px;font-weight:900;color:#2d1b4e;margin-bottom:4px}
+.login-sub{font-size:13px;color:#6b7280;margin-bottom:20px}
+.login-phi{background:#fef9e7;border:1.5px solid #c9a227;border-radius:8px;padding:10px 14px;font-size:11px;color:#92400e;margin-bottom:20px;text-align:left}
+.login-card input[type=password]{padding:12px 16px;border:2px solid #c9a8e8;border-radius:9px;font-size:16px;width:100%;margin-bottom:12px;font-family:inherit;outline:none;transition:border-color .2s}
+.login-card input[type=password]:focus{border-color:#5b2d8e}
+.login-card .login-enter-btn{width:100%;padding:13px;background:#5b2d8e;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.5px;font-family:inherit}
+.login-card .login-enter-btn:hover{background:#2d1b4e}
+.login-err{display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:700}
+.login-hint{margin-top:16px;font-size:11px;color:#6b7280}
+@media print{.login-overlay{display:none!important}}
