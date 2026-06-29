@@ -1113,8 +1113,7 @@ function showSettings() {
 }
 
 function renderSettings() {
-  const area = document.getElementById('contentArea');
-  area.innerHTML = `<div class="settings-page">
+  return `<div class="settings-page">
     <div class="card">
       <div class="card-title">⚙️ Settings</div>
       <div class="form-group">
@@ -1329,7 +1328,7 @@ function renderPatientDashboard(p) {
 
 // ============== UNIT VIEW ==============
 function renderUnitView(tab) {
-  if (tab === 'settings') { renderSettings(); return ''; }
+  if (tab === 'settings') { return renderSettings(); }
   switch(tab) {
     case 'overview': return renderUnitOverview();
     case 'bath': return renderUnitBath();
