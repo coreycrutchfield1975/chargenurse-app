@@ -53,20 +53,20 @@
   <main class="main-content">
     <!-- Top nav tabs -->
     <nav class="top-nav" id="topNav">
-      <button class="nav-tab" data-tab="clinic">🏥 Clinic</button>
-      <button class="nav-tab" data-tab="overview">📋 Overview</button>
-      <button class="nav-tab" data-tab="bath">🚿 Bath</button>
-      <button class="nav-tab" data-tab="vitals">❤️ Vitals</button>
-      <button class="nav-tab" data-tab="fsbs">🩸 FSBS</button>
-      <button class="nav-tab" data-tab="neuro">🧠 Neuro</button>
-      <button class="nav-tab" data-tab="bm">💩 BM</button>
-      <button class="nav-tab" data-tab="skin">🩺 Skin</button>
-      <button class="nav-tab" data-tab="weights">⚖️ Weights</button>
-      <button class="nav-tab" data-tab="postfall">🆘 Post-Fall</button>
-      <button class="nav-tab" data-tab="oral">🦷 Oral</button>
-      <button class="nav-tab" data-tab="sbar">📞 SBAR</button>
-      <button class="nav-tab" data-tab="transfer">📦 Transfer</button>
-      <button class="nav-tab" data-tab="directives">📚 Directives</button>
+      <button class="nav-tab" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
+      <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
+      <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
+      <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
+      <button class="nav-tab" data-tab="fsbs" onclick="switchTab('fsbs')">🩸 FSBS</button>
+      <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')">🧠 Neuro</button>
+      <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')">💩 BM</button>
+      <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')">🩺 Skin</button>
+      <button class="nav-tab" data-tab="weights" onclick="switchTab('weights')">⚖️ Weights</button>
+      <button class="nav-tab" data-tab="postfall" onclick="switchTab('postfall')">🆘 Post-Fall</button>
+      <button class="nav-tab" data-tab="oral" onclick="switchTab('oral')">🦷 Oral</button>
+      <button class="nav-tab" data-tab="sbar" onclick="switchTab('sbar')">📞 SBAR</button>
+      <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">📦 Transfer</button>
+      <button class="nav-tab" data-tab="directives" onclick="switchTab('directives')">📚 Directives</button>
       <div class="nav-right">
         <a href="https://clcscheduler.vercel.app" target="_blank" class="btn btn-secondary btn-sm" title="CLC Scheduler">📅 Scheduler</a>
         <button class="btn btn-secondary btn-sm" onclick="showSettings()" title="Settings">⚙️</button>
@@ -497,6 +497,7 @@ function selectPatient(id) {
 
 function switchTab(tab) {
   try {
+    console.log('Tab clicked:', tab);
     currentTab = tab;
     currentView = 'unit';
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
