@@ -379,13 +379,8 @@ body[class*="theme-stethoscope"] .patient-card.active {
   flex-wrap: wrap;
 }
 
-/* Tab content panels */
-.tab-panel {
-  display: none;
-}
-.tab-panel.active {
-  display: block;
-}
+/* Tab content panels — no display toggle needed since each tab
+   replaces the entire contentArea; only one panel exists at a time */
 
 /* Card styles */
 .card {
