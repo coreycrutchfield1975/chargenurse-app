@@ -1817,6 +1817,7 @@ function renderClinicView() {
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.vitalsAssigned || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.weightsAssigned || '—'}</td>
       <td style="padding:2px 4px;font-size:10px;text-align:center">${p.labsAssigned || '—'}</td>
+      <td style="padding:2px 4px;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${p.notes || '—'}</td>
     </tr>`;
   }).join('');
 
@@ -1838,8 +1839,9 @@ function renderClinicView() {
         <th style="width:50px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Skin</th>
         <th style="width:44px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Shwr</th>
         <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Vits</th>
-        <th style="width:44px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wts</th>
-        <th style="width:36px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Labs</th>
+        <th style="width:40px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Wts</th>
+        <th style="width:30px;padding:3px 4px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Labs</th>
+        <th style="width:80px;padding:3px 4px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Notes</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
