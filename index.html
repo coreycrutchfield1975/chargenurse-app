@@ -52,9 +52,11 @@
   <main class="main-content">
     <!-- Top nav tabs -->
     <nav class="top-nav" id="topNav">
-      <button class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
+      <button class="nav-tab active" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
+      <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
       <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
       <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
+      <button class="nav-tab" data-tab="fsbs" onclick="switchTab('fsbs')">🩸 FSBS</button>
       <button class="nav-tab" data-tab="neuro" onclick="switchTab('neuro')">🧠 Neuro</button>
       <button class="nav-tab" data-tab="bm" onclick="switchTab('bm')">💩 BM</button>
       <button class="nav-tab" data-tab="skin" onclick="switchTab('skin')">🩺 Skin</button>
@@ -98,16 +100,74 @@
     <div class="form-row">
       <div class="form-group">
         <label>Diet</label>
-        <input type="text" id="addDiet" placeholder="Regular, Renal, etc.">
+        <select id="addDiet">
+          <option value="">Select diet...</option>
+          <option>Regular</option>
+          <option>Soft and Bite Size</option>
+          <option>PEG</option>
+          <option>Minced and Moist</option>
+          <option>Easy to Chew</option>
+          <option>CHO 60/60/60</option>
+          <option>Low NA</option>
+          <option>Low Fat</option>
+          <option>CHO minced</option>
+          <option>Regular CHO</option>
+          <option>FODMAP</option>
+          <option>Puree</option>
+          <option>NPO</option>
+          <option>Liquid</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Assistance</label>
+        <select id="addAssistance">
+          <option value="">Select...</option>
+          <option>1</option>
+          <option>2</option>
+          <option>1-2</option>
+          <option>Total</option>
+          <option>Stand By Assist</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Toilet</label>
+        <select id="addToilet">
+          <option value="">Select...</option>
+          <option>Continent</option>
+          <option>Incontinent</option>
+          <option>Incontinent at times</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Service Connection</label>
+        <select id="addSC">
+          <option value="">Select...</option>
+          <option>NSC</option>
+          <option>0%</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option>
+          <option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Siderail</label>
+        <select id="addSiderail">
+          <option value="">Select...</option>
+          <option>No rails</option>
+          <option>1 rail</option>
+          <option>2 rails</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Isolation</label>
         <select id="addIsolation">
           <option value="None">None</option>
-          <option value="Contact">Contact</option>
-          <option value="Droplet">Droplet</option>
-          <option value="Airborne">Airborne</option>
-          <option value="Contact + Droplet">Contact + Droplet</option>
+          <option>Contact</option>
+          <option>Droplet</option>
+          <option>Airborne</option>
+          <option>Standard</option>
+          <option>Enhanced Precautions</option>
+          <option>Contact + Droplet</option>
         </select>
       </div>
     </div>
@@ -141,6 +201,16 @@
       <div class="form-group">
         <label>Bath Days</label>
         <input type="text" id="addBathDays" placeholder="Mon, Wed, Fri">
+      </div>
+      <div class="form-group">
+        <label>FSBS Times/day</label>
+        <select id="addFsbsCount">
+          <option value="0">None</option>
+          <option value="1">1x daily</option>
+          <option value="2">2x daily</option>
+          <option value="3">3x daily</option>
+          <option value="4">4x daily</option>
+        </select>
       </div>
     </div>
     <div class="modal-actions">
@@ -396,23 +466,33 @@ function showAddPatient(patientId) {
     document.getElementById('addLast4').value = p.last4 || '';
     document.getElementById('addRoom').value = p.room || '';
     document.getElementById('addDiet').value = p.diet || '';
+    document.getElementById('addAssistance').value = p.assistance || '';
+    document.getElementById('addToilet').value = p.toilet || '';
+    document.getElementById('addSC').value = p.serviceConnection || '';
+    document.getElementById('addSiderail').value = p.siderail || '';
     document.getElementById('addIsolation').value = p.isolation || 'None';
     document.getElementById('addCodeStatus').value = p.codeStatus || 'Full Code';
     document.getElementById('addAllergies').value = p.allergies || '';
     document.getElementById('addFallRisk').value = p.fallRisk ? 'true' : 'false';
     document.getElementById('addVitalsFreq').value = p.vitalsFreq || '';
     document.getElementById('addBathDays').value = (p.bathDays || []).join(', ');
+    document.getElementById('addFsbsCount').value = String(p.fsbsCount || 0);
   } else {
     document.getElementById('addName').value = '';
     document.getElementById('addLast4').value = '';
     document.getElementById('addRoom').value = '';
     document.getElementById('addDiet').value = '';
+    document.getElementById('addAssistance').value = '';
+    document.getElementById('addToilet').value = '';
+    document.getElementById('addSC').value = '';
+    document.getElementById('addSiderail').value = '';
     document.getElementById('addIsolation').value = 'None';
     document.getElementById('addCodeStatus').value = 'Full Code';
     document.getElementById('addAllergies').value = '';
     document.getElementById('addFallRisk').value = 'false';
     document.getElementById('addVitalsFreq').value = '';
     document.getElementById('addBathDays').value = '';
+    document.getElementById('addFsbsCount').value = '0';
   }
   document.getElementById('addModal').classList.add('show');
 }
@@ -425,13 +505,18 @@ function saveAddPatient() {
   const name = document.getElementById('addName').value.trim();
   const last4 = document.getElementById('addLast4').value.trim();
   const room = document.getElementById('addRoom').value.trim();
-  const diet = document.getElementById('addDiet').value.trim();
+  const diet = document.getElementById('addDiet').value;
+  const assistance = document.getElementById('addAssistance').value;
+  const toilet = document.getElementById('addToilet').value;
+  const serviceConnection = document.getElementById('addSC').value;
+  const siderail = document.getElementById('addSiderail').value;
   const isolation = document.getElementById('addIsolation').value;
   const codeStatus = document.getElementById('addCodeStatus').value;
   const allergies = document.getElementById('addAllergies').value.trim();
   const fallRisk = document.getElementById('addFallRisk').value === 'true';
   const vitalsFreq = document.getElementById('addVitalsFreq').value.trim();
   const bathDaysStr = document.getElementById('addBathDays').value.trim();
+  const fsbsCount = parseInt(document.getElementById('addFsbsCount').value) || 0;
 
   if (!name || !last4 || !room) {
     alert('Name, Last 4, and Room are required.');
@@ -443,15 +528,16 @@ function saveAddPatient() {
 
   if (editId) {
     const p = getPatient(editId);
-    Object.assign(p, { name, last4, room, diet, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays });
+    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
   } else {
     const newPatient = {
       id: String(data.nextId++),
-      name, last4, room, diet, isolation, fallRisk, codeStatus, allergies,
-      bathDays, showerTime: 'AM', vitalsFreq, appointments: '',
+      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, isolation, fallRisk, codeStatus, allergies,
+      bathDays, showerTime: 'AM', vitalsFreq, appointments: '', fsbsCount, fsbsLog: [],
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
-      sbar: '', transferChecklist: [], notes: ''
+      sbar: '', transferChecklist: [], notes: '',
+      skinAssigned: '', showerAssigned: '', vitalsAssigned: '', weightsAssigned: '', labsAssigned: ''
     };
     data.patients.push(newPatient);
   }
@@ -815,6 +901,20 @@ function deleteBmEntry(idx) {
   const p = getPatient(selectedPatientId);
   if (!p) return;
   p.bmLog.splice(idx, 1);
+  saveData();
+  renderContent();
+}
+
+function addFsbsReading(pid) {
+  const p = getPatient(pid);
+  if (!p) return;
+  const time = document.getElementById('fsbsTime').value;
+  const value = document.getElementById('fsbsValue').value.trim();
+  if (!time || !value) { alert('Enter both time and value.'); return; }
+  if (!p.fsbsLog) p.fsbsLog = [];
+  p.fsbsLog.push({ date: todayStr(), time, value });
+  document.getElementById('fsbsTime').value = '';
+  document.getElementById('fsbsValue').value = '';
   saveData();
   renderContent();
 }
@@ -1351,6 +1451,10 @@ function renderPatientDashboard(p) {
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;font-size:13px">
         <div><span style="color:var(--text-muted)">Diet</span><br><strong>${p.diet || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Assistance</span><br><strong>${p.assistance || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Toilet</span><br><strong>${p.toilet || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">SC</span><br><strong>${p.serviceConnection || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Siderail</span><br><strong>${p.siderail || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Allergies</span><br><strong>${p.allergies || 'NKDA'}</strong></div>
         <div><span style="color:var(--text-muted)">VS Freq</span><br><strong>${p.vitalsFreq || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Bath Days</span><br><strong>${(p.bathDays||[]).join(', ') || '—'} (${p.showerTime||'AM'})</strong></div>
@@ -1363,6 +1467,24 @@ function renderPatientDashboard(p) {
       <div class="card">
         <div class="card-title" style="font-size:13px">💩 Last BM</div>
         ${lastBm ? `<div style="font-size:13px"><strong>${lastBm.type}</strong> — ${formatDate(lastBm.time)}${lastBm.notes ? '<br><span style="color:var(--text-muted)">'+lastBm.notes+'</span>' : ''}</div>` : '<div style="color:var(--text-muted);font-size:13px">No BM recorded</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px">🩸 FSBS</div>
+        <div style="font-size:13px">${p.fsbsCount > 0 ? '<strong>'+p.fsbsCount+'x/day</strong>' : 'Not ordered'}</div>
+        ${p.fsbsCount > 0 ? `
+          <div style="margin-top:6px">
+            <div class="form-row" style="gap:4px;margin-bottom:4px">
+              <input type="time" id="fsbsTime" style="flex:1;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px">
+              <input type="text" id="fsbsValue" placeholder="mg/dL" style="flex:1;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px">
+              <button class="btn btn-primary btn-sm" onclick="addFsbsReading('${p.id}')" style="padding:4px 10px;font-size:11px">+ Log</button>
+            </div>
+            <div style="max-height:100px;overflow-y:auto;font-size:12px">
+              ${(p.fsbsLog||[]).filter(e=>e.date===todayStr()).sort((a,b)=>a.time.localeCompare(b.time)).map(l =>
+                '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)"><span>'+l.time+'</span><span><strong>'+l.value+'</strong></span></div>'
+              ).join('') || '<span style="color:var(--text-muted)">No readings today</span>'}
+            </div>
+          </div>
+        ` : ''}
       </div>
       <div class="card">
         <div class="card-title" style="font-size:13px">⚖️ Last Weight</div>
@@ -1393,6 +1515,17 @@ function renderPatientDashboard(p) {
     ${p.appointments ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📋 Appointments</div><div style="font-size:13px">${p.appointments}</div></div>` : ''}
     ${p.notes ? `<div class="card" style="margin-top:12px"><div class="card-title" style="font-size:13px">📝 Notes</div><div style="font-size:13px">${p.notes}</div></div>` : ''}
 
+    <div class="card" style="margin-top:12px">
+      <div class="card-title" style="font-size:13px">📋 Daily Assignments</div>
+      <div class="form-row">
+        <div class="form-group"><label>Skin</label><input type="text" value="${p.skinAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','skinAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+        <div class="form-group"><label>Shower</label><input type="text" value="${p.showerAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','showerAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+        <div class="form-group"><label>Vitals</label><input type="text" value="${p.vitalsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','vitalsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+        <div class="form-group"><label>Weights</label><input type="text" value="${p.weightsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','weightsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+        <div class="form-group"><label>Labs</label><input type="text" value="${p.labsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','labsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+      </div>
+    </div>
+
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap" class="no-print">
       <button class="btn btn-primary btn-sm" onclick="showAddPatient('${p.id}')">✏️ Edit Patient</button>
       <button class="btn btn-secondary btn-sm" onclick="printPatient()">🖨️ Print</button>
@@ -1405,9 +1538,11 @@ function renderPatientDashboard(p) {
 function renderUnitView(tab) {
   if (tab === 'settings') { return renderSettings(); }
   switch(tab) {
+    case 'clinic': return renderClinicView();
     case 'overview': return renderUnitOverview();
     case 'bath': return renderUnitBath();
     case 'vitals': return renderUnitVitals();
+    case 'fsbs': return renderUnitFsbs();
     case 'neuro': return renderUnitNeuro();
     case 'bm': return renderUnitBM();
     case 'skin': return renderUnitSkin();
@@ -1423,6 +1558,63 @@ function renderUnitView(tab) {
 function unitHeader(title, icon) {
   return `<div class="unit-header"><span style="font-size:18px">${icon}</span> ${title} — Unit View</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${data.patients.length} patients on roster</div>`;
+}
+
+function renderClinicView() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+    const bathToday = (p.bathDays || []).includes(today);
+    const lastBm = p.bmLog && p.bmLog.length ? p.bmLog[p.bmLog.length - 1] : null;
+    const lastWt = p.weights && p.weights.length ? p.weights[p.weights.length - 1] : null;
+    const fsbsDue = p.fsbsCount > 0 ? (p.fsbsLog||[]).filter(e => e.date === todayStr()).length + '/' + p.fsbsCount : '';
+    const badges = [];
+    if (p.isolation && p.isolation !== 'None') badges.push('🧫');
+    if (p.fallRisk) badges.push('⚠️');
+    if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push('⚖️');
+    return `<tr>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer;color:var(--primary);font-weight:600">${p.room}</td>
+      <td onclick="selectPatient('${p.id}')" style="cursor:pointer">${p.name}</td>
+      <td>${p.diet || '—'}</td>
+      <td>${p.assistance || '—'}</td>
+      <td><span style="color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</span></td>
+      <td>${p.serviceConnection || '—'}</td>
+      <td>${bathToday ? '✅' : '—'}</td>
+      <td>${lastBm ? lastBm.type : '—'}</td>
+      <td>${lastWt ? lastWt.weight+' lbs' : '—'}</td>
+      <td>${fsbsDue ? '<span style="font-weight:600">'+fsbsDue+'</span>' : '—'}</td>
+      <td>${p.skinAssigned || '—'}</td>
+      <td>${p.showerAssigned || '—'}</td>
+      <td>${p.vitalsAssigned || '—'}</td>
+      <td>${p.weightsAssigned || '—'}</td>
+      <td>${p.labsAssigned || '—'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tab-panel">
+    ${unitHeader('Clinic View','🏥')}
+    <div style="overflow-x:auto"><table class="data-table data-table-sm"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Diet</th><th>Assist</th><th>Toilet</th><th>SC</th><th>🛁</th><th>Last BM</th><th>Wt</th><th>FSBS</th>
+      <th>Skin</th><th>Shower</th><th>Vitals</th><th>Weights</th><th>Labs</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+function renderUnitFsbs() {
+  const rows = [...data.patients].sort(roomSort).map(p => {
+    if (!p.fsbsCount || p.fsbsCount === 0) return '';
+    const logs = (p.fsbsLog || []).filter(e => e.date === todayStr()).sort((a,b) => a.time.localeCompare(b.time));
+    const readings = logs.map(l => `<span style="display:inline-block;margin:1px 4px 1px 0;padding:1px 6px;border-radius:4px;background:#fef3c7;font-size:11px">${l.time} ${l.value}</span>`).join('');
+    return `<tr onclick="selectPatient('${p.id}')" style="cursor:pointer">
+      <td>${p.room}</td>
+      <td>${p.name}</td>
+      <td><strong>${p.fsbsCount}x/day</strong></td>
+      <td>${readings || '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${logs.length}/${p.fsbsCount}</td>
+    </tr>`;
+  }).filter(Boolean).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No patients with FSBS ordered</td></tr>';
+  return `<div class="tab-panel">${unitHeader('FSBS Log','🩸')}
+    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+      <th>Room</th><th>Patient</th><th>Ordered</th><th>Today's Readings</th><th>Done</th>
+    </tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderUnitOverview() {

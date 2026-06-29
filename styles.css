@@ -72,19 +72,19 @@ body.theme-sky {
 
 /* === CUSTOM NURSE BACKGROUNDS === */
 body.theme-blue-gloves {
-  background: #f0f4f8 url('backgrounds/blue gloves pink heart.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/blue gloves pink heart.png') center/75vh auto fixed no-repeat;
 }
 body.theme-blue-heart {
-  background: #f0f4f8 url('backgrounds/blue heart.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/blue heart.png') center/75vh auto fixed no-repeat;
 }
 body.theme-pink-bg {
-  background: #fdf2f8 url('backgrounds/pink background.png') center/160px auto fixed no-repeat;
+  background: #fdf2f8 url('backgrounds/pink background.png') center/75vh auto fixed no-repeat;
 }
 body.theme-pink-heart {
-  background: #fdf2f8 url('backgrounds/pink heart and background.png') center/160px auto fixed no-repeat;
+  background: #fdf2f8 url('backgrounds/pink heart and background.png') center/75vh auto fixed no-repeat;
 }
 body.theme-stethoscope {
-  background: #eef2ff url('backgrounds/stethoscope and blue ribbon.png') center/160px auto fixed no-repeat;
+  background: #eef2ff url('backgrounds/stethoscope and blue ribbon.png') center/75vh auto fixed no-repeat;
 }
 
 /* === GENERATED PATTERN BACKGROUNDS === */
@@ -99,19 +99,19 @@ body.theme-caduceus {
 }
 /* === PATRIOTIC BACKGROUNDS === */
 body.theme-patriotic-flag {
-  background: #f0f4f8 url('backgrounds/patriotic-flag.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/patriotic-flag.png') center/75vh auto fixed no-repeat;
 }
 body.theme-patriotic-stethoscope {
-  background: #f0f4f8 url('backgrounds/patriotic-stethoscope.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/patriotic-stethoscope.png') center/75vh auto fixed no-repeat;
 }
 body.theme-patriotic-heart {
-  background: #fdf2f8 url('backgrounds/patriotic-heart.png') center/160px auto fixed no-repeat;
+  background: #fdf2f8 url('backgrounds/patriotic-heart.png') center/75vh auto fixed no-repeat;
 }
 body.theme-patriotic-watercolor {
-  background: #f0f4f8 url('backgrounds/patriotic-watercolor.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/patriotic-watercolor.png') center/75vh auto fixed no-repeat;
 }
 body.theme-patriotic-hospital {
-  background: #f0f4f8 url('backgrounds/patriotic-hospital.png') center/160px auto fixed no-repeat;
+  background: #f0f4f8 url('backgrounds/patriotic-hospital.png') center/75vh auto fixed no-repeat;
 }
 body.theme-gold-stars {
   background: url('backgrounds/gold-stars-pattern.svg') center/cover fixed no-repeat;
@@ -928,4 +928,6 @@ body[class*="theme-stethoscope"] .patient-card.active {
 .login-card .login-enter-btn:hover{background:#2d1b4e}
 .login-err{display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:700}
 .login-hint{margin-top:16px;font-size:11px;color:#6b7280}
+.data-table-sm td,.data-table-sm th{font-size:11px;padding:4px 6px}
+.data-table-sm td{white-space:nowrap}
 @media print{.login-overlay{display:none!important}}
