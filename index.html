@@ -217,6 +217,16 @@
     </div>
     <div class="form-row">
       <div class="form-group" style="flex:2">
+        <label>Physician / Provider</label>
+        <input type="text" id="addPhysician" list="physicianList" placeholder="McCain, Chang, or type other...">
+        <datalist id="physicianList">
+          <option value="McCain">
+          <option value="Chang">
+        </datalist>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
         <label>Meds Administration</label>
         <select id="addMeds" style="font-size:12px">
           <option value="">Select med admin...</option>
@@ -533,6 +543,7 @@ function showAddPatient(patientId) {
     document.getElementById('addVitalsFreq').value = p.vitalsFreq || '';
     document.getElementById('addBathDays').value = (p.bathDays || []).join(', ');
     document.getElementById('addFsbsCount').value = String(p.fsbsCount || 0);
+    document.getElementById('addPhysician').value = p.physician || '';
   } else {
     document.getElementById('addName').value = '';
     document.getElementById('addLast4').value = '';
@@ -553,6 +564,7 @@ function showAddPatient(patientId) {
     document.getElementById('addVitalsFreq').value = '';
     document.getElementById('addBathDays').value = '';
     document.getElementById('addFsbsCount').value = '0';
+    document.getElementById('addPhysician').value = '';
   }
   document.getElementById('addModal').classList.add('show');
 }
@@ -581,6 +593,7 @@ function saveAddPatient() {
   const vitalsFreq = document.getElementById('addVitalsFreq').value.trim();
   const bathDaysStr = document.getElementById('addBathDays').value.trim();
   const fsbsCount = parseInt(document.getElementById('addFsbsCount').value) || 0;
+  const physician = document.getElementById('addPhysician').value.trim();
 
   if (!name || !last4 || !room) {
     alert('Name, Last 4, and Room are required.');
@@ -592,11 +605,11 @@ function saveAddPatient() {
 
   if (editId) {
     const p = getPatient(editId);
-    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount });
+    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount, physician });
   } else {
     const newPatient = {
       id: String(data.nextId++),
-      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, fallRisk, codeStatus, allergies,
+      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, fallRisk, codeStatus, allergies, physician,
       bathDays, showerTime: 'AM', vitalsFreq, appointments: '', fsbsCount, fsbsLog: [],
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
