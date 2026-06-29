@@ -53,7 +53,7 @@
   <main class="main-content">
     <!-- Top nav tabs -->
     <nav class="top-nav" id="topNav">
-      <button class="nav-tab active" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
+      <button class="nav-tab" data-tab="clinic" onclick="switchTab('clinic')">🏥 Clinic</button>
       <button class="nav-tab" data-tab="overview" onclick="switchTab('overview')">📋 Overview</button>
       <button class="nav-tab" data-tab="bath" onclick="switchTab('bath')">🚿 Bath</button>
       <button class="nav-tab" data-tab="vitals" onclick="switchTab('vitals')">❤️ Vitals</button>
@@ -1883,6 +1883,12 @@ if (sessionStorage.getItem('chargenurse_auth') === '1') {
 } else {
   setTimeout(function() { document.getElementById('loginPass').focus(); }, 100);
 }
+
+// Tab click event delegation (backup for inline onclick)
+document.getElementById('topNav').addEventListener('click', function(e) {
+  var btn = e.target.closest('.nav-tab');
+  if (btn) switchTab(btn.dataset.tab);
+});
 
 // Close modal on overlay click
 document.getElementById('addModal').addEventListener('click', function(e) {
