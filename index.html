@@ -66,6 +66,7 @@
       <button class="nav-tab" data-tab="oral">🦷 Oral</button>
       <button class="nav-tab" data-tab="sbar">📞 SBAR</button>
       <button class="nav-tab" data-tab="transfer">📦 Transfer</button>
+      <button class="nav-tab" data-tab="directives">📚 Directives</button>
       <div class="nav-right">
         <a href="https://clcscheduler.vercel.app" target="_blank" class="btn btn-secondary btn-sm" title="CLC Scheduler">📅 Scheduler</a>
         <button class="btn btn-secondary btn-sm" onclick="showSettings()" title="Settings">⚙️</button>
@@ -1652,6 +1653,7 @@ function renderUnitView(tab) {
     case 'oral': return renderUnitOral();
     case 'sbar': return renderUnitSBAR();
     case 'transfer': return renderUnitTransfer();
+    case 'directives': return renderDirectives();
     default: return '<div class="card"><p>Select a tab above.</p></div>';
   }
 }
@@ -1659,6 +1661,84 @@ function renderUnitView(tab) {
 function unitHeader(title, icon) {
   return `<div class="unit-header"><span style="font-size:18px">${icon}</span> ${title} — Unit View</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${data.patients.length} patients on roster</div>`;
+}
+
+function loadUploadedFiles() {
+  try { return JSON.parse(localStorage.getItem('cn_directives_files') || '[]'); } catch(e) { return []; }
+}
+function saveUploadedFiles(files) {
+  localStorage.setItem('cn_directives_files', JSON.stringify(files));
+}
+
+function renderDirectives() {
+  var uploads = loadUploadedFiles();
+  var uploadList = uploads.length === 0
+    ? '<div style="color:var(--text-muted);font-size:13px">No files uploaded yet.</div>'
+    : uploads.map(function(f,i){
+        var icon = f.name.match(/\.pdf$/i) ? '📄' : f.name.match(/\.(doc|docx)$/i) ? '📝' : f.name.match(/\.(xls|xlsx)$/i) ? '📊' : f.name.match(/\.(png|jpg|jpeg|gif)$/i) ? '🖼️' : '📎';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:13px">' +
+          '<span>' + icon + '</span>' +
+          '<a href="' + f.data + '" download="' + f.name + '" style="flex:1;color:var(--primary);text-decoration:none">' + f.name + '</a>' +
+          '<span style="font-size:11px;color:var(--text-muted)">' + (f.size ? Math.round(f.size/1024) + ' KB' : '') + '</span>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteUploadedFile(' + i + ')" style="padding:2px 8px;font-size:11px">🗑️</button>' +
+        '</div>';
+      }).join('');
+
+  return '<div class="tab-panel">' +
+    '<div class="unit-header"><span style="font-size:18px">📚</span> Directives & References</div>' +
+    '<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">VA CLC policies, directives, and uploaded files</div>' +
+
+    '<div class="card"><div class="card-title" style="font-size:13px">📤 Upload Files</div>' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+    '<input type="file" id="directiveFileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt" style="flex:1;padding:6px;font-size:13px">' +
+    '<button class="btn btn-primary btn-sm" onclick="uploadDirectiveFile()">📤 Upload</button>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Files stored in browser (PDF, Word, Excel, images, text). Max ~5MB total.</div>' +
+    '</div>' +
+
+    '<div class="card"><div class="card-title" style="font-size:13px">📎 Uploaded Files (' + uploads.length + ')</div>' +
+    uploadList +
+    '</div>' +
+
+    '<div class="card"><div class="card-title" style="font-size:13px">📋 Key VA CLC Directives</div>' +
+    '<div style="font-size:13px;line-height:1.6">' +
+    '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="https://www.va.gov/vhapublications/ViewPublication.asp?pub_ID=11496" target="_blank" style="color:var(--primary);text-decoration:none"><strong>VHA Directive 1142(1)</strong> — Veterans Health Administration Community Living Center (CLC) Quality Measures</a><br><span style="font-size:11px;color:var(--text-muted)">CLC quality measures, oversight, and reporting requirements</span></div>' +
+    '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="https://www.va.gov/vhapublications/ViewPublication.asp?pub_ID=9733" target="_blank" style="color:var(--primary);text-decoration:none"><strong>VHA Directive 1140.11</strong> — Uniform Geriatrics and Extended Care Services</a><br><span style="font-size:11px;color:var(--text-muted)">GEC service requirements including CLC, respite, and home-based care</span></div>' +
+    '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="https://www.va.gov/vhapublications/ViewPublication.asp?pub_ID=11433" target="_blank" style="color:var(--primary);text-decoration:none"><strong>VHA Directive 1900</strong> — VA National Standards of Practice</a><br><span style="font-size:11px;color:var(--text-muted)">National standards for licensed/credentialed VA health care occupations</span></div>' +
+    '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="https://www.va.gov/geriatrics/pages/VA_Community_Living_Centers.asp" target="_blank" style="color:var(--primary);text-decoration:none"><strong>VA CLC Overview</strong> — Community Living Centers (VA Nursing Homes)</a><br><span style="font-size:11px;color:var(--text-muted)">Official VA page: eligibility, copays, services, locations</span></div>' +
+    '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="https://www.gao.gov/products/gao-22-104027" target="_blank" style="color:var(--primary);text-decoration:none"><strong>GAO Report GAO-22-104027</strong> — CLC Oversight & Quality of Care</a><br><span style="font-size:11px;color:var(--text-muted)">Government Accountability Office review of CLC quality oversight</span></div>' +
+    '<div style="padding:6px 0"><a href="https://www.va.gov/standardsofpractice/" target="_blank" style="color:var(--primary);text-decoration:none"><strong>VA National Standards of Practice Portal</strong></a><br><span style="font-size:11px;color:var(--text-muted)">All published VA standards of practice, searchable by discipline</span></div>' +
+    '</div></div>' +
+    '</div>';
+}
+
+function uploadDirectiveFile() {
+  var input = document.getElementById('directiveFileInput');
+  if (!input.files || !input.files.length) { alert('Select a file first.'); return; }
+  var files = loadUploadedFiles();
+  var remaining = 0;
+  for (var i = 0; i < input.files.length; i++) {
+    (function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        files.push({ name: file.name, size: file.size, type: file.type, data: e.target.result });
+        remaining++;
+        if (remaining === input.files.length) {
+          saveUploadedFiles(files);
+          renderContent();
+        }
+      };
+      reader.readAsDataURL(file);
+    })(input.files[i]);
+  }
+  remaining = input.files.length;
+  if (remaining === 0) return;
+}
+function deleteUploadedFile(idx) {
+  var files = loadUploadedFiles();
+  files.splice(idx, 1);
+  saveUploadedFiles(files);
+  renderContent();
 }
 
 function renderClinicView() {
