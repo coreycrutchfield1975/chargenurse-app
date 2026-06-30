@@ -1882,11 +1882,11 @@ function renderClinicView() {
     if (p.codeStatus && p.codeStatus !== 'Full Code') badges.push('⚖️');
     return `<tr>
       <td style="padding:1px 3px;font-size:10px;font-weight:600;color:var(--primary);cursor:pointer" onclick="selectPatient('${p.id}')">${p.room}</td>
-      <td style="padding:1px 3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
+      <td style="padding:1px 3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
       <td style="padding:1px 3px;font-size:9.5px">${p.diet || '—'}</td>
-      <td style="padding:1px 3px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:24px">${p.meds || '—'}</td>
-      <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance || '—'}</td>
-      <td style="padding:1px 3px;font-size:9.5px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:35px">${p.meds || '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance ? p.assistance.replace('Stand by Assist','SBA') : '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet ? p.toilet.replace('Incontinent at times','Inc@X').replace('Incontinent','Inc').replace('Continent','Cont') : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.serviceConnection || '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${bathToday ? '✅' : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${lastBm ? lastBm.type : '—'}</td>
@@ -1904,11 +1904,11 @@ function renderClinicView() {
     <div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:10.5px">
       <thead><tr style="background:#f0f4f8">
         <th style="width:30px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Rm</th>
-        <th style="width:65px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
-        <th style="width:45px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
-        <th style="width:24px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
+        <th style="width:85px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
+        <th style="width:65px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
+        <th style="width:35px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
         <th style="width:30px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Asst</th>
-        <th style="width:40px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Toilet</th>
+        <th style="width:50px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Toilet</th>
         <th style="width:26px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">SC</th>
         <th style="width:20px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">🛁</th>
         <th style="width:40px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">BM</th>
