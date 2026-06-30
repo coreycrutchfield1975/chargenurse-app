@@ -1885,7 +1885,7 @@ function renderClinicView() {
       <td style="padding:1px 3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
       <td style="padding:1px 3px;font-size:9.5px">${p.diet || '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:35px">${p.meds || '—'}</td>
-      <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance ? p.assistance.replace('Stand by Assist','SBA') : '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance ? p.assistance.replace('Stand By Assist','SBA').replace('Stand by Assist','SBA') : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet ? p.toilet.replace('Incontinent at times','Inc@X').replace('Incontinent','Inc').replace('Continent','Cont') : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.serviceConnection || '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${bathToday ? '✅' : '—'}</td>
