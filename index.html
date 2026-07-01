@@ -226,6 +226,16 @@
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group">
+        <label>Specialty</label>
+        <select id="addSpecialty">
+          <option value="">Select...</option>
+          <option>LTC</option>
+          <option>SSR</option>
+          <option>EOL</option>
+          <option>Resp</option>
+        </select>
+      </div>
       <div class="form-group" style="flex:2">
         <label>Meds Administration</label>
         <select id="addMeds" style="font-size:12px">
@@ -544,6 +554,7 @@ function showAddPatient(patientId) {
     document.getElementById('addBathDays').value = (p.bathDays || []).join(', ');
     document.getElementById('addFsbsCount').value = String(p.fsbsCount || 0);
     document.getElementById('addPhysician').value = p.physician || '';
+    document.getElementById('addSpecialty').value = p.specialty || '';
   } else {
     document.getElementById('addName').value = '';
     document.getElementById('addLast4').value = '';
@@ -565,6 +576,7 @@ function showAddPatient(patientId) {
     document.getElementById('addBathDays').value = '';
     document.getElementById('addFsbsCount').value = '0';
     document.getElementById('addPhysician').value = '';
+    document.getElementById('addSpecialty').value = '';
   }
   document.getElementById('addModal').classList.add('show');
 }
@@ -594,6 +606,7 @@ function saveAddPatient() {
   const bathDaysStr = document.getElementById('addBathDays').value.trim();
   const fsbsCount = parseInt(document.getElementById('addFsbsCount').value) || 0;
   const physician = document.getElementById('addPhysician').value.trim();
+  const specialty = document.getElementById('addSpecialty').value;
 
   if (!name || !last4 || !room) {
     alert('Name, Last 4, and Room are required.');
@@ -605,11 +618,11 @@ function saveAddPatient() {
 
   if (editId) {
     const p = getPatient(editId);
-    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount, physician });
+    Object.assign(p, { name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, codeStatus, allergies, fallRisk, vitalsFreq, bathDays, fsbsCount, physician, specialty });
   } else {
     const newPatient = {
       id: String(data.nextId++),
-      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, fallRisk, codeStatus, allergies, physician,
+      name, last4, room, diet, assistance, toilet, serviceConnection, siderail, meds, ppdDate, ppdRead, ppdResult, isolation, fallRisk, codeStatus, allergies, physician, specialty,
       bathDays, showerTime: 'AM', vitalsFreq, appointments: '', fsbsCount, fsbsLog: [],
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
@@ -1655,6 +1668,7 @@ function renderPatientDashboard(p) {
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;font-size:13px">
         <div><span style="color:var(--text-muted)">Diet</span><br><strong>${p.diet || '—'}</strong></div>
+        <div><span style="color:var(--text-muted)">Specialty</span><br><strong>${p.specialty || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Assistance</span><br><strong>${p.assistance || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">Toilet</span><br><strong>${p.toilet || '—'}</strong></div>
         <div><span style="color:var(--text-muted)">SC</span><br><strong>${p.serviceConnection || '—'}</strong></div>
@@ -1884,9 +1898,16 @@ function renderClinicView() {
       <td style="padding:1px 3px;font-size:10px;font-weight:600;color:var(--primary);cursor:pointer" onclick="selectPatient('${p.id}')">${p.room}</td>
       <td style="padding:1px 3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px;cursor:pointer" onclick="selectPatient('${p.id}')">${p.name}</td>
       <td style="padding:1px 3px;font-size:9.5px">${p.diet || '—'}</td>
+<<<<<<< HEAD
       <td style="padding:1px 3px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:35px">${p.meds || '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance ? p.assistance.replace('Stand By Assist','SBA').replace('Stand by Assist','SBA') : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet ? p.toilet.replace('Incontinent at times','Inc@X').replace('Incontinent','Inc').replace('Continent','Cont') : '—'}</td>
+=======
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center;font-weight:600">${p.specialty || '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:24px">${p.meds || '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.assistance || '—'}</td>
+      <td style="padding:1px 3px;font-size:9.5px;text-align:center;color:${p.toilet==='Incontinent'?'#dc2626':p.toilet==='Incontinent at times'?'#d97706':'#16a34a'}">${p.toilet || '—'}</td>
+>>>>>>> 32b9564 (Add Specialty column (LTC/SSR/EOL/Resp) to modal, Clinic view, and patient dashboard)
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${p.serviceConnection || '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${bathToday ? '✅' : '—'}</td>
       <td style="padding:1px 3px;font-size:9.5px;text-align:center">${lastBm ? lastBm.type : '—'}</td>
@@ -1904,9 +1925,16 @@ function renderClinicView() {
     <div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:10.5px">
       <thead><tr style="background:#f0f4f8">
         <th style="width:30px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Rm</th>
+<<<<<<< HEAD
         <th style="width:85px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
         <th style="width:65px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
         <th style="width:35px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
+=======
+        <th style="width:65px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Patient</th>
+        <th style="width:45px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Diet</th>
+        <th style="width:30px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Spc</th>
+        <th style="width:24px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Meds</th>
+>>>>>>> 32b9564 (Add Specialty column (LTC/SSR/EOL/Resp) to modal, Clinic view, and patient dashboard)
         <th style="width:30px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Asst</th>
         <th style="width:50px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">Toilet</th>
         <th style="width:26px;padding:2px 3px;text-align:center;font-size:9px;text-transform:uppercase;color:#64748b;letter-spacing:0.3px">SC</th>
