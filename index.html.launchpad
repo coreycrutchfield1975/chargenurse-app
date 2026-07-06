@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA Charge RN · Launchpad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: #eaf0f6;
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
+    background-attachment: fixed;
+    transition: background 0.8s ease;
+    display: flex; flex-direction: column;
+  }
+  /* theme swatch backgrounds */
+  body.theme-blue   { background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 40%, #1a2540 70%, #0e1a2e 100%); }
+  body.theme-purple { background: linear-gradient(135deg, #0a0e1a 0%, #1a1040 40%, #2a1050 70%, #0f0a1e 100%); }
+  body.theme-green  { background: linear-gradient(135deg, #0a1a12 0%, #0f2a1e 40%, #1a3a2a 70%, #0e1a14 100%); }
+  body.theme-red    { background: linear-gradient(135deg, #1a0a0a 0%, #2a1018 40%, #3a1420 70%, #1a0e0e 100%); }
+  body.theme-gold   { background: linear-gradient(135deg, #1a1408 0%, #2a2010 40%, #3a2a14 70%, #1a180a 100%); }
+  body.theme-clinical { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
+
+  body.locked #app-main, body.locked #lock-btn, body.locked #ql-dock { display: none !important; }
+  body.locked #lock-overlay { display: flex !important; }
+
+  /* ── Pattern overlay ─────────────────────────────────────────── */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(ellipse at 20% 30%, rgba(212,160,23,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(91,43,142,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.02) 0%, transparent 40%);
+  }
+
+  /* ── Hero banner ──────────────────────────────────────────────── */
+  .hero { position: relative; z-index: 1; color: #fff; }
+  .hero::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #d4a017, #ff7a18, #d4a017, transparent);
+  }
+  .hero-inner {
+    width: 100%; max-width: 1080px; margin: 0 auto;
+    padding: 14px 24px 12px;
+    display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;
+  }
+  .hero-text h1 {
+    margin: 0; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #ffe1a3, #ff7a18);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+  }
+  .hero-text .tagline { margin: 5px 0 0; font-size: 14px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+  .hero-meta { margin-left: auto; text-align: right; text-shadow: 0 1px 5px rgba(0,0,0,0.85); }
+  .greeting { font-size: 17px; font-weight: 700; color: #ffd27a; }
+  .clock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .date { font-size: 12px; color: rgba(255,255,255,0.8); }
+  .greet-emoji { display: inline-block; animation: greet-pop 0.6s ease both; }
+  .greet-name {
+    background: linear-gradient(90deg, #ffe1a3 0%, #ff9d2f 50%, #ffe1a3 100%);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
+  }
+  .greet-wave { display: inline-block; transform-origin: 70% 80%; animation: wave 2.6s ease-in-out infinite; }
+  @keyframes shimmer { to { background-position: 200% center; } }
+  @keyframes wave { 0%,60%,100% { transform: rotate(0); } 10% { transform: rotate(16deg); } 20% { transform: rotate(-8deg); } 30% { transform: rotate(16deg); } 40% { transform: rotate(-4deg); } 50% { transform: rotate(10deg); } }
+  @keyframes greet-pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .anim-in .greeting { animation: fadeSlideIn 0.6s ease both; }
+  .anim-in .clock   { animation: fadeSlideIn 0.6s ease 0.10s both; }
+  .anim-in .date    { animation: fadeSlideIn 0.6s ease 0.18s both; }
+  @media (prefers-reduced-motion: reduce) {
+    .greet-wave, .greet-emoji, .greet-name, .anim-in .greeting, .anim-in .clock, .anim-in .date { animation: none; }
+  }
+
+  /* ── Theme swatches ──────────────────────────────────────────── */
+  .theme-swatches {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: 12px; padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,0.12);
+  }
+  .theme-swatches .swatch {
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2); transition: transform 0.15s, border-color 0.15s;
+  }
+  .theme-swatches .swatch:hover { transform: scale(1.25); border-color: rgba(255,255,255,0.6); }
+  .theme-swatches .swatch.active { border-color: #ffd27a; box-shadow: 0 0 10px rgba(212,160,23,0.5); }
+  .theme-swatches .swatch[data-theme="clinical"] { background: linear-gradient(135deg, #0a0e1a, #1a1040); }
+  .theme-swatches .swatch[data-theme="blue"]     { background: linear-gradient(135deg, #0a1628, #1a2540); }
+  .theme-swatches .swatch[data-theme="purple"]   { background: linear-gradient(135deg, #0a0e1a, #2a1050); }
+  .theme-swatches .swatch[data-theme="green"]    { background: linear-gradient(135deg, #0a1a12, #1a3a2a); }
+  .theme-swatches .swatch[data-theme="red"]      { background: linear-gradient(135deg, #1a0a0a, #3a1420); }
+  .theme-swatches .swatch[data-theme="gold"]     { background: linear-gradient(135deg, #1a1408, #3a2a14); }
+
+  /* ── Lock button ─────────────────────────────────────────────── */
+  .lock-btn {
+    position: fixed; top: 14px; right: 16px; z-index: 900;
+    background: rgba(14,24,34,0.55); color: #ffd27a; border: 1px solid rgba(212,160,23,0.45);
+    border-radius: 9px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .lock-btn:hover { background: rgba(20,32,46,0.8); }
+
+  /* ── Reminder ticker ─────────────────────────────────────────── */
+  .ticker { display: flex; align-items: stretch; overflow: hidden; z-index: 1; position: relative;
+    background: linear-gradient(90deg, rgba(212,160,23,0.20), rgba(20,32,46,0.55));
+    border-top: 1px solid rgba(212,160,23,0.35); border-bottom: 1px solid rgba(212,160,23,0.35);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+  .ticker-label { flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+    background: linear-gradient(90deg, #e0b94d, #d4a017); color: #1a1206;
+    font-weight: 800; font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase;
+    padding: 0 14px; }
+  .ticker-viewport { flex: 1; overflow: hidden; }
+  .ticker-track { display: inline-block; white-space: nowrap; padding: 10px 0 10px 100%;
+    font-size: 15px; font-weight: 600; color: #fbe6b8;
+    animation: ticker-scroll linear infinite; }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+  @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+  .tick-item { padding: 0 6px; }
+  .tick-sep { color: rgba(212,160,23,0.7); padding: 0 4px; }
+  .tick-due { color: #cdd8e4; font-weight: 500; font-size: 13px; }
+  .tick-item.overdue { color: #ff9b8c; }
+  .tick-item.overdue .tick-due { color: #ff9b8c; }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; padding-left: 12px; } }
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  main { position: relative; z-index: 1; padding: 16px 24px 80px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); max-width: 1080px; margin: 0 auto; width: 100%; }
+  .cols { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: #b9c6d6; margin: 0 0 14px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  /* ── App tiles ───────────────────────────────────────────────── */
+  .grid { display: flex; flex-direction: column; gap: 13px; }
+  .card {
+    position: relative; display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
+    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+    border-radius: 14px; padding: 15px 18px 15px 20px;
+    text-decoration: none; color: inherit;
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s, background 0.14s;
+    overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(42,56,78,0.74), rgba(20,32,46,0.80));
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.48), 0 0 20px color-mix(in srgb, var(--accent) 38%, transparent);
+  }
+  .card-icon {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--accent) 40%, transparent), rgba(10,16,24,0.55));
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .card-body { min-width: 0; }
+  .card-title { font-size: 15.5px; font-weight: 700; margin: 0 0 3px; color: #eef2f7; letter-spacing: 0.2px; }
+  .card-desc { font-size: 12.5px; color: #9fb0c2; line-height: 1.4; }
+  .card-open { font-size: 11.5px; font-weight: 700; margin-top: 8px; letter-spacing: 0.3px; color: color-mix(in srgb, var(--accent) 75%, #fff); }
+
+  /* ── Glass panel ─────────────────────────────────────────────── */
+  .panel {
+    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
+    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+    border: 1px solid rgba(255,255,255,0.10); border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
+    padding: 16px 18px; margin-bottom: 16px;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .panel-title { font-weight: 700; font-size: 15px; color: #eef2f7; }
+  .panel-count { font-size: 11px; color: #9fb0c2; font-weight: 600; }
+
+  input, textarea, select, button { font-family: inherit; }
+  .fld {
+    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
+    color: #eaf0f6; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none;
+  }
+  .fld:focus { border-color: #5b9bf0; box-shadow: 0 0 0 2px rgba(91,155,240,0.2); }
+  .fld::placeholder { color: #6f8298; }
+  .btn-primary {
+    background: #2f6fb0; color: #fff; border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-primary:hover { background: #3a7ec4; }
+
+  /* ── To-Do ───────────────────────────────────────────────────── */
+  .todo-add { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .todo-add #todo-input { flex: 1 1 150px; min-width: 130px; }
+  .todo-add #todo-due { width: 140px; }
+  .todo-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
+  .todo-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px;
+    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07);
+  }
+  .todo-item.overdue { border-color: rgba(255,122,90,0.45); background: rgba(255,80,60,0.08); }
+  .todo-cb { width: 17px; height: 17px; accent-color: #34c47a; cursor: pointer; flex-shrink: 0; }
+  .todo-main { flex: 1; min-width: 0; }
+  .todo-text { font-size: 13.5px; color: #e7edf4; word-break: break-word; }
+  .todo-due { font-size: 11px; color: #9fb0c2; margin-top: 2px; }
+  .todo-due.overdue { color: #ff8a7a; font-weight: 700; }
+  .todo-item.done .todo-text { text-decoration: line-through; color: #7d8b9c; }
+  .todo-item.done { opacity: 0.6; }
+  .todo-del { background: none; border: none; color: #7d8b9c; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .todo-del:hover { color: #ff8a7a; }
+  .panel-empty { font-size: 12.5px; color: #8294a8; padding: 4px 2px; }
+
+  /* ── Passcode lock overlay ───────────────────────────────────── */
+  #lock-overlay {
+    position: fixed; inset: 0; z-index: 2000; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(8,14,20,0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  body.locked #lock-overlay { display: flex !important; }
+  .lock-card {
+    width: 100%; max-width: 380px; text-align: center;
+    background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
+    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+  }
+  .lock-card .lock-icon { font-size: 44px; margin-bottom: 4px; }
+  .lock-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
+  .lock-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
+  .lock-card .fld { width: 100%; margin-bottom: 10px; text-align: center; font-size: 16px; letter-spacing: 2px; }
+  .lock-card .btn-primary { width: 100%; padding: 10px; font-size: 14px; }
+  .lock-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
+  .lock-reset { display: inline-block; margin-top: 14px; font-size: 11px; color: #7d8b9c; cursor: pointer; text-decoration: underline; }
+  .lock-intro { font-size: 12px; color: #7d8b9c; margin-bottom: 16px; }
+
+  /* ── Quick Launch dock ───────────────────────────────────────── */
+  #ql-dock {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+    background: rgba(26,34,50,0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+    padding: 10px 10px 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    min-width: 150px; max-width: 220px;
+  }
+  .ql-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; gap: 4px;
+    cursor: grab; user-select: none; touch-action: none; padding: 2px 0;
+  }
+  .ql-grip { letter-spacing: -1px; opacity: 0.7; }
+  #ql-dock.ql-dragging { cursor: grabbing; opacity: 0.92; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+  #ql-dock.ql-dragging .ql-label { cursor: grabbing; }
+  .ql-btn {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px;
+    cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s; text-align: left;
+  }
+  .ql-btn:hover { opacity: 0.88; transform: translateX(-2px); }
+  .ql-btn:active { transform: scale(0.97); }
+  .ql-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .ql-btn .ql-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  footer { text-align: center; color: #97a4b3; font-size: 11px; padding: 24px 0 0; }
+
+  @media (max-width: 820px) {
+    .cols { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero-meta { margin-left: 0; text-align: left; width: 100%; }
+    .hero-text h1 { font-size: 24px; }
+    .theme-swatches { margin-left: 0; padding-left: 0; border-left: none; margin-top: 6px; }
+    main { padding: 12px 14px 80px; }
+  }
+</style>
+</head>
+<body class="locked theme-clinical">
+
+<!-- ── Passcode lock overlay ──────────────────────────────────────── -->
+<div id="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-icon">🏥</div>
+    <h2>VA Charge RN Launchpad</h2>
+    <p>Clinical Launchpad · Community Living Center</p>
+
+    <!-- Setup view -->
+    <div id="lock-setup" style="display:none">
+      <p class="lock-intro">Set a passcode to protect your launchpad (min 4 characters).</p>
+      <input id="setup-pw" class="fld" type="password" placeholder="New passcode" autocomplete="new-password">
+      <input id="setup-pw2" class="fld" type="password" placeholder="Confirm passcode" autocomplete="new-password">
+      <div class="lock-err" id="setup-err"></div>
+      <button class="btn-primary" id="setup-btn">🔐 Set Passcode &amp; Enter</button>
+    </div>
+
+    <!-- Login view -->
+    <div id="lock-login" style="display:none">
+      <p class="lock-intro">Enter your passcode to unlock the launchpad.</p>
+      <input id="login-pw" class="fld" type="password" placeholder="Passcode" autocomplete="current-password">
+      <div class="lock-err" id="login-err"></div>
+      <button class="btn-primary" id="login-btn">🔓 Unlock</button>
+      <span class="lock-reset" id="reset-link">Forgot passcode? Reset (clears saved data)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Lock button ───────────────────────────────────────────────── -->
+<button class="lock-btn" id="lock-btn" title="Lock launchpad">🔒 Lock</button>
+
+<!-- ── Hero banner ────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>🏥 Charge RN Launchpad</h1>
+      <p class="tagline">Your clinical workstation command center</p>
+    </div>
+    <div class="hero-meta">
+      <div class="greeting" id="greeting">Welcome</div>
+      <div class="clock" id="clock">--:--</div>
+      <div class="date" id="date"></div>
+      <div style="display:flex;align-items:center;margin-top:6px;justify-content:flex-end;">
+        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Theme</span>
+        <div class="theme-swatches" id="themeSwatches">
+          <span class="swatch active" data-theme="clinical" title="Default Dark"></span>
+          <span class="swatch" data-theme="blue" title="Navy Blue"></span>
+          <span class="swatch" data-theme="purple" title="Royal Purple"></span>
+          <span class="swatch" data-theme="green" title="Forest Green"></span>
+          <span class="swatch" data-theme="red" title="Deep Red"></span>
+          <span class="swatch" data-theme="gold" title="Warm Gold"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Scrolling reminder ticker ──────────────────────────────────── -->
+<div class="ticker" id="ticker">
+  <div class="ticker-label">📌 Reminders</div>
+  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading reminders...</div></div>
+</div>
+
+<!-- ── Main content ──────────────────────────────────────────────── -->
+<main id="app-main">
+  <div class="cols">
+    <!-- Left column: App tiles -->
+    <section class="apps-area">
+      <p class="section-label">Your tools</p>
+      <div class="grid" id="app-grid"></div>
+    </section>
+
+    <!-- Right column: To-Do list -->
+    <section class="todo-area">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">✅ To-Do &amp; Follow-ups</span>
+          <span class="panel-count" id="todo-count"></span>
+        </div>
+        <form class="todo-add" id="todo-form">
+          <input class="fld" id="todo-input" placeholder="Add a task or follow-up…" autocomplete="off" maxlength="200">
+          <input class="fld" id="todo-due" type="date" title="Optional due date">
+          <button class="btn-primary" type="submit">Add</button>
+        </form>
+        <ul class="todo-list" id="todo-list"></ul>
+        <div class="panel-empty" id="todo-empty">No tasks yet — add your first above.</div>
+      </div>
+    </section>
+  </div>
+
+  <footer id="footer"></footer>
+</main>
+
+<!-- ── Quick Launch dock ──────────────────────────────────────────── -->
+<div id="ql-dock">
+  <div class="ql-label" id="ql-handle" title="Drag to move">
+    <span class="ql-grip">⠿</span> Quick Launch
+  </div>
+  <div id="ql-buttons"></div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════════════════════════
+     Launchpad configuration — edit your apps, name, and quick links
+     ══════════════════════════════════════════════════════════════════ */
+
+  const APPS = [
+    { name: 'Morning Report',     desc: 'Daily inpatient census & report',     icon: '📋', color: '#5b9bf0', url: 'https://clc-morning-report.vercel.app' },
+    { name: 'CLC Scheduler',      desc: 'Appointment scheduling (PHI)',        icon: '📅', color: '#e0b94d', url: 'https://clcscheduler.vercel.app' },
+    { name: 'Charge RN',          desc: 'VA Charge RN Workstation (PHI)',      icon: '⚕️', color: '#5b2d8e', url: 'https://chargenurse-app.vercel.app' },
+  ];
+
+  const USER_NAME = 'Corey';
+
+  // Default quick launch links
+  const QL_DEFAULTS = [
+    { label: 'Pandora',  url: 'https://www.pandora.com',  color: '#224b7a', icon: '🎵' },
+    { label: 'Facebook', url: 'https://www.facebook.com', color: '#1877f2', icon: '📘' },
+    { label: 'Outlook',  url: 'https://outlook.office.com', color: '#0078d4', icon: '📧' },
+  ];
+
+  // localStorage keys
+  const PW_KEY = 'lp_pwHash';
+  const SESS_KEY = 'lp_session';
+  const TODO_KEY = 'lp_todos';
+  const QL_KEY = 'lp_quicklinks';
+  const POS_KEY = 'lp_qlPos';
+  const THEME_KEY = 'lp_theme';
+
+  /* ── DOM helpers ──────────────────────────────────────────────── */
+  const $ = function (id) { return document.getElementById(id); };
+  const esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /* ── SHA-256 passcode hashing ────────────────────────────────── */
+  function simpleHash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+    return 'f:' + (h >>> 0).toString(16);
+  }
+
+  async function hashPw(pw) {
+    if (window.crypto && crypto.subtle) {
+      try {
+        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp|' + pw));
+        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      } catch (_) { /* fallback */ }
+    }
+    return simpleHash('lp|' + pw);
+  }
+
+  /* ── Passcode lock ───────────────────────────────────────────── */
+  function showLock(which) {
+    document.body.className = 'locked';
+    var bodyClasses = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
+    document.body.className = 'locked' + (bodyClasses ? ' ' + bodyClasses : '');
+    $('lock-setup').style.display = which === 'setup' ? 'block' : 'none';
+    $('lock-login').style.display = which === 'login' ? 'block' : 'none';
+    setTimeout(function () {
+      var el = which === 'setup' ? $('setup-pw') : $('login-pw');
+      if (el) el.focus();
+    }, 60);
+  }
+
+  function enterApp() {
+    document.body.classList.remove('locked');
+    var meta = document.querySelector('.hero-meta');
+    if (meta) { meta.classList.remove('anim-in'); void meta.offsetWidth; meta.classList.add('anim-in'); }
+    renderTodos();
+    renderDock();
+  }
+
+  function initLock() {
+    var hasPw = !!localStorage.getItem(PW_KEY);
+    var hasSess = !!sessionStorage.getItem(SESS_KEY);
+    if (!hasPw) { showLock('setup'); }
+    else if (!hasSess) { showLock('login'); }
+    else { enterApp(); }
+  }
+
+  async function doSetup() {
+    var pw = $('setup-pw').value, pw2 = $('setup-pw2').value, err = $('setup-err');
+    err.textContent = '';
+    if (pw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; return; }
+    if (pw !== pw2) { err.textContent = 'Passcodes do not match.'; return; }
+    localStorage.setItem(PW_KEY, await hashPw(pw));
+    sessionStorage.setItem(SESS_KEY, '1');
+    $('setup-pw').value = '';
+    $('setup-pw2').value = '';
+    enterApp();
+  }
+
+  async function doLogin() {
+    var pw = $('login-pw').value, err = $('login-err');
+    err.textContent = '';
+    if (await hashPw(pw) === localStorage.getItem(PW_KEY)) {
+      sessionStorage.setItem(SESS_KEY, '1');
+      $('login-pw').value = '';
+      enterApp();
+    } else {
+      err.textContent = 'Incorrect passcode.';
+      $('login-pw').value = '';
+      $('login-pw').focus();
+    }
+  }
+
+  $('setup-btn').addEventListener('click', doSetup);
+  $('login-btn').addEventListener('click', doLogin);
+  $('setup-pw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSetup(); });
+  $('login-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  $('lock-btn').addEventListener('click', function () {
+    sessionStorage.removeItem(SESS_KEY);
+    var theme = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
+    showLock('login');
+    // Preserve the theme class
+    document.body.className = 'locked ' + theme;
+  });
+  $('reset-link').addEventListener('click', function () {
+    if (confirm('Reset passcode? This permanently clears your saved data on this device.')) {
+      localStorage.removeItem(PW_KEY);
+      localStorage.removeItem(TODO_KEY);
+      sessionStorage.removeItem(SESS_KEY);
+      showLock('setup');
+    }
+  });
+
+  /* ── Theme swatches ──────────────────────────────────────────── */
+  function applyTheme(theme) {
+    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'clinical';
+    document.body.className = document.body.className
+      .split(' ').filter(function (c) { return !c.startsWith('theme-'); }).join(' ') + ' theme-' + theme;
+    localStorage.setItem(THEME_KEY, theme);
+    // update swatch active state
+    var swatches = document.querySelectorAll('.swatch');
+    for (var i = 0; i < swatches.length; i++) {
+      swatches[i].classList.toggle('active', swatches[i].dataset.theme === theme);
+    }
+  }
+
+  // Add click listeners to swatches
+  document.addEventListener('DOMContentLoaded', function () {
+    applyTheme();
+    var swatches = document.querySelectorAll('.swatch');
+    for (var i = 0; i < swatches.length; i++) {
+      swatches[i].addEventListener('click', function () {
+        applyTheme(this.dataset.theme);
+      });
+    }
+  });
+
+  // Also handle clicks on swatches via delegation
+  document.getElementById('themeSwatches').addEventListener('click', function (e) {
+    var swatch = e.target.closest('.swatch');
+    if (swatch) applyTheme(swatch.dataset.theme);
+  });
+
+  /* ── Render app tiles ────────────────────────────────────────── */
+  // Note: The "Charge RN" tile opens in a NEW tab (target="_blank")
+  $('app-grid').innerHTML = APPS.map(function (a) {
+    var live = a.url && a.url !== '#';
+    return '<a class="card" style="--accent:' + a.color + '" href="' + esc(a.url) + '" ' +
+      (live ? 'target="_blank" rel="noopener"' : 'onclick="return false"') + '>' +
+      '<div class="card-icon">' + a.icon + '</div>' +
+      '<div class="card-body">' +
+      '<div class="card-title">' + esc(a.name) + '</div>' +
+      '<div class="card-desc">' + esc(a.desc) + '</div>' +
+      '<div class="card-open">' + (live ? 'Open →' : 'Link not set yet') + '</div>' +
+      '</div></a>';
+  }).join('');
+
+  /* ── To-Do & Follow-ups ──────────────────────────────────────── */
+  var todos = [];
+
+  function loadTodos() {
+    try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; }
+    catch (_e) { todos = []; }
+  }
+
+  function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
+
+  function renderTodos() {
+    loadTodos();
+    var today = todayStr();
+    var sorted = [...todos].sort(function (a, b) {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
+      return ad < bd ? -1 : ad > bd ? 1 : 0;
+    });
+    var list = $('todo-list');
+    list.innerHTML = sorted.map(function (t) {
+      var overdue = t.due && !t.done && t.due < today;
+      var dueHtml = '';
+      if (t.due) {
+        var d = new Date(t.due + 'T00:00:00');
+        var lbl = (overdue ? 'Overdue · ' : 'Due ') + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        dueHtml = '<div class="todo-due ' + (overdue ? 'overdue' : '') + '">' + lbl + '</div>';
+      }
+      return '<li class="todo-item ' + (t.done ? 'done' : '') + ' ' + (overdue ? 'overdue' : '') + '" data-id="' + t.id + '">' +
+        '<input type="checkbox" class="todo-cb" ' + (t.done ? 'checked' : '') + '>' +
+        '<div class="todo-main"><div class="todo-text">' + esc(t.text) + '</div>' + dueHtml + '</div>' +
+        '<button class="todo-del" title="Delete">✕</button></li>';
+    }).join('');
+    var open = todos.filter(function (t) { return !t.done; }).length;
+    $('todo-count').textContent = todos.length ? open + ' open · ' + todos.length + ' total' : '';
+    $('todo-empty').style.display = todos.length ? 'none' : 'block';
+    renderTicker();
+  }
+
+  $('todo-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = $('todo-input').value.trim();
+    if (!text) return;
+    todos.push({
+      id: Date.now() + '' + Math.floor(performance.now()),
+      text: text,
+      due: $('todo-due').value || '',
+      done: false
+    });
+    saveTodos();
+    renderTodos();
+    $('todo-input').value = '';
+    $('todo-due').value = '';
+    $('todo-input').focus();
+  });
+
+  $('todo-list').addEventListener('click', function (e) {
+    var li = e.target.closest('.todo-item');
+    if (!li) return;
+    var id = li.dataset.id;
+    var t = todos.find(function (x) { return x.id === id; });
+    if (!t) return;
+    if (e.target.classList.contains('todo-cb')) {
+      t.done = !t.done;
+      saveTodos();
+      renderTodos();
+    } else if (e.target.classList.contains('todo-del')) {
+      todos = todos.filter(function (x) { return x.id !== id; });
+      saveTodos();
+      renderTodos();
+    }
+  });
+
+  /* ── Scrolling reminder ticker ───────────────────────────────── */
+  function renderTicker() {
+    var today = todayStr();
+    var openTodos = [...todos].filter(function (t) { return !t.done; }).sort(function (a, b) {
+      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
+      return ad < bd ? -1 : ad > bd ? 1 : 0;
+    });
+    var track = $('ticker-track');
+    if (!openTodos.length) {
+      track.style.animation = 'none';
+      track.style.paddingLeft = '20px';
+      track.innerHTML = '<span class="tick-item">All clear — no open to-dos right now. ✨</span>';
+      return;
+    }
+    var items = openTodos.map(function (t) {
+      var overdue = t.due && t.due < today;
+      var due = '';
+      if (t.due) {
+        var d = new Date(t.due + 'T00:00:00');
+        due = ' <span class="tick-due">(' + (overdue ? 'overdue · ' : 'due ') +
+          d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')</span>';
+      }
+      return '<span class="tick-item ' + (overdue ? 'overdue' : '') + '">' +
+        (overdue ? '⚠️ ' : '• ') + esc(t.text) + due + '</span>';
+    });
+    track.innerHTML = items.join('<span class="tick-sep">◆</span>') +
+      '<span class="tick-sep">◆</span>' + items.join('<span class="tick-sep">◆</span>');
+    track.style.paddingLeft = '100%';
+    track.style.animation = 'none';
+    void track.offsetWidth;
+    var dur = Math.max(14, Math.round(track.scrollWidth / 70));
+    track.style.animation = 'ticker-scroll ' + dur + 's linear infinite';
+  }
+
+  /* ── Greeting + live clock ───────────────────────────────────── */
+  var lastPeriod = '';
+
+  function tick() {
+    var now = new Date(), h = now.getHours();
+    var period = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    if (period !== lastPeriod) {
+      lastPeriod = period;
+      var emoji = period === 'morning' ? '🌅' : period === 'afternoon' ? '☀️' : '🌙';
+      $('greeting').innerHTML =
+        '<span class="greet-emoji">' + emoji + '</span> Good ' + period + ', ' +
+        '<span class="greet-name">' + esc(USER_NAME) + '</span> <span class="greet-wave">👋</span>';
+    }
+    $('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    $('date').textContent = now.toLocaleDateString([], {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+    $('footer').textContent = 'VA Charge RN Launchpad · ' + now.getFullYear();
+  }
+  tick();
+  setInterval(tick, 15000);
+
+  /* ── Customizable Quick Launch ───────────────────────────────── */
+  var qlLinks = [];
+
+  function loadQL() {
+    try {
+      var s = JSON.parse(localStorage.getItem(QL_KEY));
+      qlLinks = Array.isArray(s) ? s : QL_DEFAULTS.slice();
+    } catch (_e) { qlLinks = QL_DEFAULTS.slice(); }
+  }
+
+  function saveQL() { localStorage.setItem(QL_KEY, JSON.stringify(qlLinks)); }
+
+  function qlOpen(url) {
+    var w = 1024, h = 768;
+    var left = Math.round(window.screenX + window.outerWidth - w - 20);
+    var top = Math.round(window.screenY + 60);
+    window.open(url, '_blank', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
+  }
+
+  function renderDock() {
+    loadQL();
+    $('ql-buttons').innerHTML = qlLinks.map(function (l, i) {
+      return '<button class="ql-btn" style="background:' + (l.color || '#5b9bf0') + '" data-i="' + i + '">' +
+        '<span class="ql-icon">' + (l.icon || '🔗') + '</span> <span class="ql-name">' + esc(l.label) + '</span></button>';
+    }).join('');
+  }
+
+  $('ql-buttons').addEventListener('click', function (e) {
+    var btn = e.target.closest('.ql-btn');
+    if (!btn) return;
+    var l = qlLinks[+btn.dataset.i];
+    if (l) qlOpen(l.url);
+  });
+
+  /* ── Draggable dock with saved position ──────────────────────── */
+  (function () {
+    var dock = $('ql-dock'), handle = $('ql-handle');
+
+    function clamp(left, top) {
+      var maxLeft = window.innerWidth - dock.offsetWidth;
+      var maxTop = window.innerHeight - dock.offsetHeight;
+      return { left: Math.max(0, Math.min(left, maxLeft)), top: Math.max(0, Math.min(top, maxTop)) };
+    }
+
+    function applyPos(left, top) {
+      var p = clamp(left, top);
+      dock.style.left = p.left + 'px';
+      dock.style.top = p.top + 'px';
+      dock.style.right = 'auto';
+      dock.style.bottom = 'auto';
+    }
+
+    try {
+      var s = JSON.parse(localStorage.getItem(POS_KEY));
+      if (s && typeof s.left === 'number') applyPos(s.left, s.top);
+    } catch (_e) { /* ignore */ }
+
+    var sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
+
+    handle.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      var r = dock.getBoundingClientRect();
+      sl = r.left;
+      st = r.top;
+      sx = e.clientX;
+      sy = e.clientY;
+      dock.classList.add('ql-dragging');
+      handle.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    handle.addEventListener('pointermove', function (e) {
+      if (dragging) applyPos(sl + (e.clientX - sx), st + (e.clientY - sy));
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      dock.classList.remove('ql-dragging');
+      var r = dock.getBoundingClientRect();
+      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); }
+      catch (_e) { /* ignore */ }
+    }
+
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
+    window.addEventListener('resize', function () {
+      var r = dock.getBoundingClientRect();
+      applyPos(r.left, r.top);
+    });
+  })();
+
+  /* ── Start ───────────────────────────────────────────────────── */
+  // Apply saved theme before initialising the lock screen
+  var savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme) {
+    document.body.classList.add('theme-' + savedTheme);
+  }
+  initLock();
+</script>
+</body>
+</html>
