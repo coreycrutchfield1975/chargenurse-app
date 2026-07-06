@@ -3,26 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CLC Workstation</title>
-<link rel="icon" href="logo.png">
+<title>VA Charge RN · Launchpad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
 <style>
-  * { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
   body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color: #eaf0f6;
-    min-height: 100vh;
-    background:
-      linear-gradient(180deg, rgba(14,24,34,0.45) 0%, rgba(14,24,34,0.80) 62%, rgba(14,24,34,0.93) 100%),
-      url("logo.png") center top / cover no-repeat fixed;
-    background-color: #0e1822; /* fallback */
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
+    transition: background 0.8s ease;
+    display: flex; flex-direction: column;
   }
-  body.locked #main, body.locked #ql-dock, body.locked #lock-btn { display: none !important; }
+  /* theme swatch backgrounds */
+  body.theme-blue   { background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 40%, #1a2540 70%, #0e1a2e 100%); }
 
-  /* ── Hero banner (dragon image) ──────────────────────────────── */
-  .hero { position: relative; color: #fff; }
+  body.theme-green  { background: linear-gradient(135deg, #0a1a12 0%, #0f2a1e 40%, #1a3a2a 70%, #0e1a14 100%); }
+  body.theme-red    { background: linear-gradient(135deg, #1a0a0a 0%, #2a1018 40%, #3a1420 70%, #1a0e0e 100%); }
+  body.theme-gold   { background: linear-gradient(135deg, #1a1408 0%, #2a2010 40%, #3a2a14 70%, #1a180a 100%); }
+
+
+
+
+    .theme-swatches .swatch[data-theme="outdoor1"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="outdoor1"]::after { content:'🎣'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="outdoor2"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="outdoor2"]::after { content:'🏔️'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="outdoor3"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="outdoor3"]::after { content:'🐾'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="outdoor4"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="outdoor4"]::after { content:'🐕'; position:absolute; font-size:10px; top:2px; left:4px; }
+body.theme-custom {
+    background: linear-gradient(180deg, rgba(14,24,34,0.35) 0%, rgba(14,24,34,0.70) 55%, rgba(14,24,34,0.92) 100%), var(--custom-bg, linear-gradient(135deg, #1a1a2e, #2a1a3a)) center center / cover no-repeat fixed;
+  }
+
+  body.locked #app-main, body.locked #lock-btn, body.locked #ql-dock { display: none !important; }
+  body.locked #lock-overlay { display: flex !important; }
+
+  /* ── Pattern overlay ─────────────────────────────────────────── */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(ellipse at 20% 30%, rgba(212,160,23,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(91,43,142,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.02) 0%, transparent 40%);
+  }
+
+  /* ── Hero banner ──────────────────────────────────────────────── */
+  .hero { position: relative; z-index: 1; color: #fff; }
   .hero::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
     background: linear-gradient(90deg, transparent, #d4a017, #ff7a18, #d4a017, transparent);
   }
   .hero-inner {
@@ -41,7 +70,6 @@
   .greeting { font-size: 17px; font-weight: 700; color: #ffd27a; }
   .clock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .date { font-size: 12px; color: rgba(255,255,255,0.8); }
-  /* animated greeting bits */
   .greet-emoji { display: inline-block; animation: greet-pop 0.6s ease both; }
   .greet-name {
     background: linear-gradient(90deg, #ffe1a3 0%, #ff9d2f 50%, #ffe1a3 100%);
@@ -59,6 +87,35 @@
   @media (prefers-reduced-motion: reduce) {
     .greet-wave, .greet-emoji, .greet-name, .anim-in .greeting, .anim-in .clock, .anim-in .date { animation: none; }
   }
+
+  /* ── Theme swatches ──────────────────────────────────────────── */
+  .theme-swatches {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: 12px; padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,0.12);
+  }
+  .theme-swatches .swatch {
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2); transition: transform 0.15s, border-color 0.15s;
+  }
+  .theme-swatches .swatch:hover { transform: scale(1.25); border-color: rgba(255,255,255,0.6); }
+  .theme-swatches .swatch.active { border-color: #ffd27a; box-shadow: 0 0 10px rgba(212,160,23,0.5); }
+  .theme-swatches .swatch[data-theme="clinical"] { background: linear-gradient(135deg, #0a0e1a, #1a1040); }
+  .theme-swatches .swatch[data-theme="blue"]     { background: linear-gradient(135deg, #0a1628, #1a2540); }
+  .theme-swatches .swatch[data-theme="purple"]   { background: linear-gradient(135deg, #0a0e1a, #2a1050); }
+  .theme-swatches .swatch[data-theme="green"]    { background: linear-gradient(135deg, #0a1a12, #1a3a2a); }
+  .theme-swatches .swatch[data-theme="red"]      { background: linear-gradient(135deg, #1a0a0a, #3a1420); }
+  .theme-swatches .swatch[data-theme="gold"]     { background: linear-gradient(135deg, #1a1408, #3a2a14); }
+  .theme-swatches .swatch[data-theme="medical1"] { background: linear-gradient(135deg, #0a0e1a, #1a2540); position:relative; }
+  .theme-swatches .swatch[data-theme="medical1"]::after { content:'🩺'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="medical2"] { background: linear-gradient(135deg, #0a0e1a, #2a1a40); position:relative; }
+  .theme-swatches .swatch[data-theme="medical2"]::after { content:'💊'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="medical3"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="medical3"]::after { content:'🔬'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="custom"]   { background: linear-gradient(135deg, #1a1a2e, #2a1a3a); position:relative; }
+  .theme-swatches .swatch[data-theme="custom"]::after { content:'📷'; position:absolute; font-size:8px; top:3px; left:3px; }
+
+  /* ── Lock button ─────────────────────────────────────────────── */
   .lock-btn {
     position: fixed; top: 14px; right: 16px; z-index: 900;
     background: rgba(14,24,34,0.55); color: #ffd27a; border: 1px solid rgba(212,160,23,0.45);
@@ -68,7 +125,7 @@
   .lock-btn:hover { background: rgba(20,32,46,0.8); }
 
   /* ── Reminder ticker ─────────────────────────────────────────── */
-  .ticker { display: flex; align-items: stretch; overflow: hidden;
+  .ticker { display: flex; align-items: stretch; overflow: hidden; z-index: 1; position: relative;
     background: linear-gradient(90deg, rgba(212,160,23,0.20), rgba(20,32,46,0.55));
     border-top: 1px solid rgba(212,160,23,0.35); border-bottom: 1px solid rgba(212,160,23,0.35);
     box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
@@ -90,16 +147,15 @@
   @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; padding-left: 12px; } }
 
   /* ── Layout ──────────────────────────────────────────────────── */
-  main { padding: 16px 20px 16px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); }
-  .todo-area { margin-top: auto; padding-top: 22px; }   /* push To-Do to the bottom */
-  .todo-area .panel { margin-bottom: 0; }
+  main { position: relative; z-index: 1; padding: 16px 24px 80px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); max-width: 1080px; margin: 0 auto; width: 100%; }
+  .cols { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
   .section-label {
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
     color: #b9c6d6; margin: 0 0 14px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
   }
 
   /* ── App tiles ───────────────────────────────────────────────── */
-  .grid { display: flex; flex-direction: column; gap: 13px; width: 300px; max-width: 100%; }
+  .grid { display: flex; flex-direction: column; gap: 13px; }
   .card {
     position: relative; display: flex; align-items: center; gap: 14px;
     background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
@@ -112,7 +168,7 @@
     overflow: hidden;
   }
   .card::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
     background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
     box-shadow: 0 0 12px var(--accent);
   }
@@ -134,7 +190,7 @@
   .card-desc { font-size: 12.5px; color: #9fb0c2; line-height: 1.4; }
   .card-open { font-size: 11.5px; font-weight: 700; margin-top: 8px; letter-spacing: 0.3px; color: color-mix(in srgb, var(--accent) 75%, #fff); }
 
-  /* ── Glass panel (To-Do) ─────────────────────────────────────── */
+  /* ── Glass panel ─────────────────────────────────────────────── */
   .panel {
     background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
     -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
@@ -146,7 +202,7 @@
   .panel-title { font-weight: 700; font-size: 15px; color: #eef2f7; }
   .panel-count { font-size: 11px; color: #9fb0c2; font-weight: 600; }
 
-  input, textarea, select { font-family: inherit; }
+  input, textarea, select, button { font-family: inherit; }
   .fld {
     background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
     color: #eaf0f6; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none;
@@ -159,10 +215,11 @@
   }
   .btn-primary:hover { background: #3a7ec4; }
 
-  /* To-Do */
+  /* ── To-Do ───────────────────────────────────────────────────── */
   .todo-add { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .todo-add #todo-input { flex: 1 1 150px; min-width: 130px; }
-  .todo-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; max-height: 30vh; overflow-y: auto; }
+  .todo-add #todo-due { width: 140px; }
+  .todo-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
   .todo-item {
     display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px;
     background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07);
@@ -179,40 +236,57 @@
   .todo-del:hover { color: #ff8a7a; }
   .panel-empty { font-size: 12.5px; color: #8294a8; padding: 4px 2px; }
 
-  footer { text-align: center; color: #97a4b3; font-size: 11px; padding: 24px 0 0; max-width: 1080px; margin: 0 auto; }
-
-  /* ── Passcode lock ───────────────────────────────────────────── */
-  #lock {
+  /* ── Passcode lock overlay ───────────────────────────────────── */
+  #lock-overlay {
     position: fixed; inset: 0; z-index: 2000; display: none;
     align-items: center; justify-content: center; padding: 20px;
-    background: rgba(8,14,20,0.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    background: rgba(8,14,20,0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   }
-  body.locked #lock { display: flex; }
+  body.locked #lock-overlay { display: flex !important; }
   .lock-card {
-    width: 100%; max-width: 360px; text-align: center;
+    width: 100%; max-width: 380px; text-align: center;
     background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
-    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 28px 26px;
+    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
     box-shadow: 0 12px 50px rgba(0,0,0,0.6);
   }
-  .lock-card .dragon { font-size: 40px; }
+  .lock-card .lock-icon { font-size: 44px; margin-bottom: 4px; }
   .lock-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
   .lock-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
   .lock-card .fld { width: 100%; margin-bottom: 10px; text-align: center; font-size: 16px; letter-spacing: 2px; }
   .lock-card .btn-primary { width: 100%; padding: 10px; font-size: 14px; }
   .lock-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
   .lock-reset { display: inline-block; margin-top: 14px; font-size: 11px; color: #7d8b9c; cursor: pointer; text-decoration: underline; }
+  .lock-intro { font-size: 12px; color: #7d8b9c; margin-bottom: 16px; }
 
   /* ── Quick Launch dock ───────────────────────────────────────── */
-  #ql-dock { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: stretch; gap: 6px; background: #1a2a3a; border-radius: 12px; padding: 10px 10px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); min-width: 150px; max-width: 220px; }
-  .ql-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; gap: 4px; cursor: grab; user-select: none; touch-action: none; padding: 2px 0; }
+  #ql-dock {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+    background: rgba(26,34,50,0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+    padding: 10px 10px 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    min-width: 150px; max-width: 220px;
+  }
+  .ql-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; gap: 4px;
+    cursor: grab; user-select: none; touch-action: none; padding: 2px 0;
+  }
   .ql-grip { letter-spacing: -1px; opacity: 0.7; }
   #ql-dock.ql-dragging { cursor: grabbing; opacity: 0.92; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
   #ql-dock.ql-dragging .ql-label { cursor: grabbing; }
-  .ql-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; transition: opacity 0.15s, transform 0.1s; text-align: left; }
+  .ql-btn {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px;
+    cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s; text-align: left;
+  }
   .ql-btn:hover { opacity: 0.88; transform: translateX(-2px); }
   .ql-btn:active { transform: scale(0.97); }
   .ql-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
   .ql-btn .ql-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  footer { text-align: center; color: #97a4b3; font-size: 11px; padding: 24px 0 0; }
 
   @media (max-width: 820px) {
     .cols { grid-template-columns: 1fr; }
@@ -220,78 +294,112 @@
   @media (max-width: 640px) {
     .hero-meta { margin-left: 0; text-align: left; width: 100%; }
     .hero-text h1 { font-size: 24px; }
+    .theme-swatches { margin-left: 0; padding-left: 0; border-left: none; margin-top: 6px; }
+    main { padding: 12px 14px 80px; }
   }
+
+
+
+
 </style>
 </head>
-<body class="locked">
+<body class="locked theme-clinical">
 
-  <!-- ── Passcode lock ──────────────────────────────────────────── -->
-  <div id="lock">
-    <div class="lock-card">
-      <div class="dragon">🐉</div>
-      <!-- Setup view: new user creates profile -->
-      <div id="lock-setup" style="display:none">
-        <h2>Set up your profile</h2>
-        <p>First time? Enter your name and create a passcode.</p>
-        <input id="setup-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-        <input id="setup-pw"  class="fld" type="password" placeholder="New passcode (min 4)" autocomplete="new-password">
-        <input id="setup-pw2" class="fld" type="password" placeholder="Confirm passcode" autocomplete="new-password">
-        <div class="lock-err" id="setup-err"></div>
-        <button class="btn-primary" id="setup-btn">🔐 Create profile &amp; enter</button>
-        <span class="lock-reset" id="setup-back" style="display:block;margin-top:10px">← Back to sign in</span>
+<!-- ── Passcode lock overlay ──────────────────────────────────────── -->
+<div id="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-icon">🏥</div>
+    <!-- Setup view: new user creates profile -->
+    <div id="lock-setup" style="display:none">
+      <h2>Set up your profile</h2>
+      <p>First time? Enter your name and create a passcode.</p>
+      <input id="setup-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
+      <input id="setup-pw"  class="fld" type="password" placeholder="New passcode (min 4)" autocomplete="new-password">
+      <input id="setup-pw2" class="fld" type="password" placeholder="Confirm passcode" autocomplete="new-password">
+      <div class="lock-err" id="setup-err"></div>
+      <button class="btn-primary" id="setup-btn">🔐 Create profile &amp; enter</button>
+      <span class="lock-reset" id="setup-back" style="display:block;margin-top:10px">← Back to sign in</span>
+    </div>
+    <!-- Login view: returning user -->
+    <div id="lock-login" style="display:none">
+      <h2>Sign in</h2>
+      <p id="login-prompt">Enter your name and passcode.</p>
+      <input id="login-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
+      <input id="login-pw" class="fld" type="password" placeholder="Passcode" autocomplete="current-password">
+      <div class="lock-err" id="login-err"></div>
+      <button class="btn-primary" id="login-btn">🔓 Sign in</button>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px">
+        <span class="lock-reset" id="login-newuser">🆕 First time? Set up profile</span>
+        <span class="lock-reset" id="admin-link">🔑 Admin access</span>
       </div>
-      <!-- Login view: returning user -->
-      <div id="lock-login" style="display:none">
-        <h2>Sign in</h2>
-        <p id="login-prompt">Enter your name and passcode.</p>
-        <input id="login-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-        <input id="login-pw" class="fld" type="password" placeholder="Passcode" autocomplete="current-password">
-        <div class="lock-err" id="login-err"></div>
-        <button class="btn-primary" id="login-btn">🔓 Sign in</button>
-        <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px">
-          <span class="lock-reset" id="login-newuser">🆕 First time? Set up profile</span>
-          <span class="lock-reset" id="admin-link">🔑 Admin access</span>
+      <div id="admin-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
+        <p style="font-size:11px;color:#9fb0c2;margin:0 0 8px">Enter admin passcode to unlock any account.</p>
+        <input id="admin-pw" class="fld" type="password" placeholder="Admin passcode" autocomplete="off" style="letter-spacing:2px">
+        <button class="btn-primary" id="admin-btn" style="font-size:12px;padding:8px">🔑 Admin unlock</button>
+        <span class="lock-reset" id="admin-cancel" style="display:block;margin-top:6px">Cancel</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Lock button ───────────────────────────────────────────────── -->
+<button class="lock-btn" id="lock-btn" title="Lock launchpad">🔒 Lock</button>
+
+<!-- ── Hero banner ────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>🏥 Charge RN Launchpad</h1>
+      <p class="tagline">Your clinical workstation command center</p>
+    </div>
+    <div class="hero-meta">
+      <div class="greeting" id="greeting">Welcome</div>
+      <div class="clock" id="clock">--:--</div>
+      <div class="date" id="date"></div>
+      <div style="display:flex;align-items:center;margin-top:6px;justify-content:flex-end;">
+        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Theme</span>
+        <div class="theme-swatches" id="themeSwatches">
+          <span class="swatch active" data-theme="clinical" title="Default Dark"></span>
+          <span class="swatch" data-theme="blue" title="Navy Blue"></span>
+          <span class="swatch" data-theme="purple" title="Royal Purple"></span>
+          <span class="swatch" data-theme="green" title="Forest Green"></span>
+          <span class="swatch" data-theme="red" title="Deep Red"></span>
+          <span class="swatch" data-theme="gold" title="Warm Gold"></span>
+          <span class="swatch" data-theme="medical1" title="Medical Flatlay"></span>
+          <span class="swatch" data-theme="medical2" title="Stethoscope"></span>
+          <span class="swatch" data-theme="medical3" title="Medical Background"></span>
+          <span class="swatch" data-theme="outdoor1" title="Fishing 🎣"></span>
+          <span class="swatch" data-theme="outdoor2" title="Mountain 🏔️"></span>
+          <span class="swatch" data-theme="outdoor3" title="Pets 🐾"></span>
+          <span class="swatch" data-theme="outdoor4" title="Animals 🐕"></span>
+
+
         </div>
-        <div id="admin-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
-          <p style="font-size:11px;color:#9fb0c2;margin:0 0 8px">Enter admin passcode to unlock any account.</p>
-          <input id="admin-pw" class="fld" type="password" placeholder="Admin passcode" autocomplete="off" style="letter-spacing:2px">
-          <button class="btn-primary" id="admin-btn" style="font-size:12px;padding:8px">🔑 Admin unlock</button>
-          <span class="lock-reset" id="admin-cancel" style="display:block;margin-top:6px">Cancel</span>
+        <div style="display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.12)">
+          <label for="bgUpload" style="font-size:10px;color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap">📁 Upload</label>
+          <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
         </div>
       </div>
     </div>
   </div>
+</header>
 
-  <button id="lock-btn" title="Lock workstation">🔒 Lock</button>
+<!-- ── Scrolling reminder ticker ──────────────────────────────────── -->
+<div class="ticker" id="ticker">
+  <div class="ticker-label">📌 Reminders</div>
+  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading reminders...</div></div>
+</div>
 
-  <header class="hero">
-    <div class="hero-inner">
-      <div class="hero-text">
-        <h1>CLC Workstation</h1>
-        <p class="tagline">Your one-stop launchpad for everything you do at work</p>
-      </div>
-      <div class="hero-meta">
-        <div class="greeting" id="greeting">Welcome</div>
-        <div class="clock" id="clock">--:--</div>
-        <div class="date" id="date"></div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ── Scrolling reminder ticker (streams your open to-dos) ────── -->
-  <div class="ticker" id="ticker">
-    <div class="ticker-label">📌 Reminders</div>
-    <div class="ticker-viewport"><div class="ticker-track" id="ticker-track"></div></div>
-  </div>
-
-  <main id="main">
-    <!-- App tiles, hugging the left -->
+<!-- ── Main content ──────────────────────────────────────────────── -->
+<main id="app-main">
+  <div class="cols">
+    <!-- Left column: App tiles -->
     <section class="apps-area">
-      <p class="section-label">Your apps</p>
+      <p class="section-label">Your tools</p>
       <div class="grid" id="app-grid"></div>
     </section>
 
-    <!-- To-Do entry + list, pinned to the bottom -->
+    <!-- Right column: To-Do list -->
     <section class="todo-area">
       <div class="panel">
         <div class="panel-head">
@@ -307,22 +415,24 @@
         <div class="panel-empty" id="todo-empty">No tasks yet — add your first above.</div>
       </div>
     </section>
-
-    <footer id="footer"></footer>
-  </main>
-
-  <!-- ── Quick Launch dock ──────────────────────────────────────── -->
-  <div id="ql-dock">
-    <div class="ql-label" id="ql-handle" title="Drag to move">
-      <span class="ql-grip">⠿</span> Quick Launch
-    </div>
-    <div id="ql-buttons"></div>
   </div>
 
+  <footer id="footer"></footer>
+</main>
+
+<!-- ── Quick Launch dock ──────────────────────────────────────────── -->
+<div id="ql-dock">
+  <div class="ql-label" id="ql-handle" title="Drag to move">
+    <span class="ql-grip">⠿</span> Quick Launch
+  </div>
+  <div id="ql-buttons"></div>
+</div>
+
 <script>
-  /* ════════════════════════════════════════════════════════════════
-     EDIT YOUR APPS HERE — change names, links, icons, or colors.
-     ════════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════════
+     Launchpad configuration — edit your apps, name, and quick links
+     ══════════════════════════════════════════════════════════════════ */
+
   const APPS = [
     { name: "Morning Report",     desc: "Daily inpatient census & report (incl. SW directory)", icon: "📋", color: "#5b9bf0", url: "https://clc-morning-report.vercel.app" },
     { name: "CLC Scheduler",      desc: "Appointment scheduling (PHI)",                         icon: "📅", color: "#e0b94d", url: "https://clcscheduler.vercel.app" },
@@ -331,8 +441,8 @@
   ];
 
   // User database key in localStorage
-  const USERS_KEY = 'ws_users';
-  const ACTIVE_KEY = 'ws_active';
+  const USERS_KEY = 'lp_users';
+  const ACTIVE_KEY = 'lp_active';
 
   /* ── User management ─────────────────────────────────────────── */
   function loadUsers() {
@@ -347,63 +457,86 @@
     else sessionStorage.removeItem(ACTIVE_KEY);
   }
 
+  // Default quick launch links
+  const QL_DEFAULTS = [
+    { label: 'Pandora',          url: 'https://www.pandora.com',          color: '#224b7a', icon: '🎵' },
+    { label: 'Outlook Mail',     url: 'https://outlook.office.com/mail',  color: '#0078d4', icon: '📧' },
+    { label: 'Microsoft Teams',  url: 'https://teams.microsoft.com',      color: '#6264a7', icon: '💬' },
+    { label: 'Facebook',         url: 'https://www.facebook.com',         color: '#1877f2', icon: '📘' },
+  ];
+
   // localStorage keys
-  const TODO_KEY = 'ws_todos',
-        QL_KEY = 'ws_quicklinks', POS_KEY = 'quickLaunchPos';
+  const TODO_KEY = 'lp_todos';
+  const QL_KEY = 'lp_quicklinks';
+  const POS_KEY = 'lp_qlPos';
+  const THEME_KEY = 'lp_theme';
 
-  const $ = id => document.getElementById(id);
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function todayStr() { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  /* ── DOM helpers ──────────────────────────────────────────────── */
+  const $ = function (id) { return document.getElementById(id); };
+  const esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
 
-  /* ── Passcode lock ──────────────────────────────────────────── */
+  /* ── SHA-256 passcode hashing ────────────────────────────────── */
+  function simpleHash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+    return 'f:' + (h >>> 0).toString(16);
+  }
+
   async function hashPw(pw) {
     if (window.crypto && crypto.subtle) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('clcws|' + pw));
-      return 'h:' + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+      try {
+        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp|' + pw));
+        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      } catch (_) { /* fallback */ }
     }
-    // fallback for insecure contexts (e.g. http preview); prod is https → uses SHA-256
-    let h = 0; const s = 'clcws|' + pw;
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return 'f:' + h.toString(16);
+    return simpleHash('lp|' + pw);
   }
 
   async function hashAdminPw(pw) {
-    // Separate salt for admin so user passcodes can't match it accidentally
     if (window.crypto && crypto.subtle) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('clc-admin|' + pw));
-      return 'h:' + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+      try {
+        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp-admin|' + pw));
+        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      } catch (_) { /* fallback */ }
     }
-    let h = 0; const s = 'clc-admin|' + pw;
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return 'f:' + h.toString(16);
+    return simpleHash('lp-admin|' + pw);
   }
 
-  // Admin passcode: CHANGE THIS to your desired master code
+  // Admin passcode — change this to your desired master code
   const ADMIN_PASSCODE = 'CLC-Admin-2024';
 
+  /* ── Passcode lock ───────────────────────────────────────────── */
   function showLock(which) {
     document.body.classList.add('locked');
+    var bodyClasses = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
+    document.body.className = 'locked' + (bodyClasses ? ' ' + bodyClasses : '');
     $('lock-setup').style.display = which === 'setup' ? 'block' : 'none';
     $('lock-login').style.display = which === 'login' ? 'block' : 'none';
     $('admin-panel').style.display = 'none';
     $('setup-err').textContent = '';
     $('login-err').textContent = '';
-    setTimeout(() => {
-      const el = which === 'setup' ? $('setup-name') : $('login-name');
+    setTimeout(function () {
+      var el = which === 'setup' ? $('setup-name') : $('login-name');
       if (el) el.focus();
     }, 60);
   }
 
   function initLock() {
-    const users = loadUsers();
-    const activeUser = getActiveUser();
-    // If there's an active session, skip lock
+    var users = loadUsers();
+    var activeUser = getActiveUser();
     if (activeUser && users[activeUser]) {
       enterApp(activeUser);
       return;
     }
-    // Check if any users exist on this device
-    const userCount = Object.keys(users).length;
+    var userCount = Object.keys(users).length;
     if (userCount === 0) {
       showLock('setup');
     } else {
@@ -414,25 +547,24 @@
   function enterApp(name) {
     setActiveUser(name);
     document.body.classList.remove('locked');
-    const meta = document.querySelector('.hero-meta');
+    var meta = document.querySelector('.hero-meta');
     if (meta) { meta.classList.remove('anim-in'); void meta.offsetWidth; meta.classList.add('anim-in'); }
     renderTodos();
     renderDock();
-    // Refresh greeting to use logged-in name
-    lastPeriod = '';
+    lastGreeting = '';
     tick();
   }
 
   async function doSetup() {
-    const name = $('setup-name').value.trim();
-    const pw = $('setup-pw').value, pw2 = $('setup-pw2').value, err = $('setup-err');
+    var name = $('setup-name').value.trim();
+    var pw = $('setup-pw').value, pw2 = $('setup-pw2').value, err = $('setup-err');
     err.textContent = '';
     if (!name) { err.textContent = 'Please enter your name.'; $('setup-name').focus(); return; }
     if (pw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; $('setup-pw').focus(); return; }
     if (pw !== pw2) { err.textContent = 'Passcodes do not match.'; $('setup-pw').focus(); return; }
-    const users = loadUsers();
+    var users = loadUsers();
     if (users[name]) {
-      err.textContent = `"${name}" already exists. Use "Sign in" or pick a different name.`;
+      err.textContent = '"' + name + '" already exists. Use "Sign in" or pick a different name.';
       return;
     }
     users[name] = await hashPw(pw);
@@ -442,13 +574,13 @@
   }
 
   async function doLogin() {
-    const name = $('login-name').value.trim();
-    const pw = $('login-pw').value, err = $('login-err');
+    var name = $('login-name').value.trim();
+    var pw = $('login-pw').value, err = $('login-err');
     err.textContent = '';
     if (!name) { err.textContent = 'Please enter your name.'; $('login-name').focus(); return; }
-    const users = loadUsers();
+    var users = loadUsers();
     if (!users[name]) {
-      err.textContent = `No profile found for "${name}". First time? Use "Set up profile" below.`;
+      err.textContent = 'No profile found for "' + name + '". First time? Use "Set up profile" below.';
       return;
     }
     if (await hashPw(pw) === users[name]) {
@@ -462,37 +594,33 @@
   }
 
   async function doAdminUnlock() {
-    const pw = $('admin-pw').value, err = $('login-err');
+    var pw = $('admin-pw').value, err = $('login-err');
     err.textContent = '';
-    const adminHash = await hashAdminPw(ADMIN_PASSCODE);
+    var adminHash = await hashAdminPw(ADMIN_PASSCODE);
     if (await hashAdminPw(pw) !== adminHash) {
       err.textContent = 'Incorrect admin passcode.';
       $('admin-pw').value = '';
       $('admin-pw').focus();
       return;
     }
-    // Admin authenticated — show user list
-    const users = loadUsers();
-    const names = Object.keys(users);
+    var users = loadUsers();
+    var names = Object.keys(users);
     if (names.length === 0) {
       err.textContent = 'No user profiles exist. Set up a profile first.';
       $('admin-pw').value = '';
       showLock('setup');
       return;
     }
-    // Let admin pick a user or create a new one
-    const choice = prompt('Admin Unlock\n\nExisting users: ' + names.join(', ') + '\n\nType a name to log in as (or leave blank to cancel):');
+    var choice = prompt('Admin Unlock\n\nExisting users: ' + names.join(', ') + '\n\nType a name to log in as (or leave blank to cancel):');
     if (!choice) { $('admin-pw').value = ''; err.textContent = ''; return; }
-    const targetName = choice.trim();
+    var targetName = choice.trim();
     if (!targetName) { $('admin-pw').value = ''; return; }
-    // If user exists, log in as them
     if (users[targetName]) {
       $('admin-pw').value = '';
       enterApp(targetName);
       return;
     }
-    // Create new user with a temporary passcode
-    const tempPw = prompt('New user "' + targetName + '" — set a temporary passcode for them (min 4 chars):');
+    var tempPw = prompt('New user "' + targetName + '" — set a temporary passcode for them (min 4 chars):');
     if (!tempPw || tempPw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; return; }
     users[targetName] = await hashPw(tempPw);
     saveUsers(users);
@@ -500,224 +628,364 @@
     enterApp(targetName);
   }
 
-  // ── Event listeners ─────────────────────────────────────────────
   $('setup-btn').addEventListener('click', doSetup);
   $('login-btn').addEventListener('click', doLogin);
   $('admin-btn').addEventListener('click', doAdminUnlock);
-
-  $('setup-pw2').addEventListener('keydown', e => { if (e.key === 'Enter') doSetup(); });
-  $('login-pw').addEventListener('keydown', e => {
+  $('setup-pw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSetup(); });
+  $('login-pw').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-      // If admin panel is visible, do admin unlock instead
       if ($('admin-panel').style.display === 'block') { doAdminUnlock(); return; }
       doLogin();
     }
   });
-  $('admin-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doAdminUnlock(); });
-
-  $('lock-btn').addEventListener('click', () => {
+  $('admin-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doAdminUnlock(); });
+  $('lock-btn').addEventListener('click', function () {
     setActiveUser(null);
+    var theme = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
     initLock();
+    document.body.className = 'locked ' + theme;
   });
-
-  // Navigation between setup and login
-  $('login-newuser').addEventListener('click', () => showLock('setup'));
-  $('setup-back').addEventListener('click', () => showLock('login'));
-
-  // Admin panel toggle
-  $('admin-link').addEventListener('click', () => {
+  $('login-newuser').addEventListener('click', function () { showLock('setup'); });
+  $('setup-back').addEventListener('click', function () { showLock('login'); });
+  $('admin-link').addEventListener('click', function () {
     $('admin-panel').style.display = 'block';
     $('admin-pw').value = '';
-    setTimeout(() => $('admin-pw').focus(), 60);
+    setTimeout(function () { $('admin-pw').focus(); }, 60);
   });
-  $('admin-cancel').addEventListener('click', () => {
+  $('admin-cancel').addEventListener('click', function () {
     $('admin-panel').style.display = 'none';
     $('admin-pw').value = '';
     $('login-err').textContent = '';
   });
 
-  /* ── Render app tiles ───────────────────────────────────────── */
-  $('app-grid').innerHTML = APPS.map(a => {
-    const live = a.url && a.url !== '#';
-    return `
-      <a class="card" style="--accent:${a.color}" href="${esc(a.url)}" ${live ? 'target="_blank" rel="noopener"' : 'onclick="return false"'}>
-        <div class="card-icon">${a.icon}</div>
-        <div class="card-body">
-          <div class="card-title">${esc(a.name)}</div>
-          <div class="card-desc">${esc(a.desc)}</div>
-          <div class="card-open">${live ? 'Open →' : 'Link not set yet'}</div>
-        </div>
-      </a>`;
+  /* ── Theme swatches ──────────────────────────────────────────── */
+  function applyTheme(theme) {
+    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'clinical';
+    document.body.className = document.body.className
+      .split(' ').filter(function (c) { return !c.startsWith('theme-'); }).join(' ') + ' theme-' + theme;
+    localStorage.setItem(THEME_KEY, theme);
+    // re-apply custom bg if it exists
+    var savedBg = localStorage.getItem('custom_bg');
+    if (savedBg) {
+      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
+    }
+    // update swatch active state
+    var swatches = document.querySelectorAll('.swatch');
+    for (var i = 0; i < swatches.length; i++) {
+      swatches[i].classList.toggle('active', swatches[i].dataset.theme === theme);
+    }
+  }
+
+  function handleBgUpload(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      localStorage.setItem('custom_bg', dataUrl);
+      document.body.style.setProperty('--custom-bg', 'url(' + dataUrl + ')');
+      applyTheme('custom');
+      event.target.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Add click listeners to swatches
+  // Load theme
+  applyTheme();
+  // Load custom background
+  var savedBg = localStorage.getItem('custom_bg');
+  if (savedBg) {
+    document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
+    // If custom background exists, ensure it's applied
+    if (localStorage.getItem(THEME_KEY) === 'custom') {
+      applyTheme('custom');
+    } else {
+      // Still apply the custom background CSS variable even on gradient themes
+      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
+    }
+  }
+
+  // Handle clicks on swatches via delegation
+  document.getElementById('themeSwatches').addEventListener('click', function (e) {
+    var swatch = e.target.closest('.swatch');
+    if (swatch) applyTheme(swatch.dataset.theme);
+  });
+
+  /* ── Render app tiles ────────────────────────────────────────── */
+  // Note: The "Charge RN" tile opens in a NEW tab (target="_blank")
+  $('app-grid').innerHTML = APPS.map(function (a) {
+    var live = a.url && a.url !== '#';
+    return '<a class="card" style="--accent:' + a.color + '" href="' + esc(a.url) + '" ' +
+      (live ? 'target="_blank" rel="noopener"' : 'onclick="return false"') + '>' +
+      '<div class="card-icon">' + a.icon + '</div>' +
+      '<div class="card-body">' +
+      '<div class="card-title">' + esc(a.name) + '</div>' +
+      '<div class="card-desc">' + esc(a.desc) + '</div>' +
+      '<div class="card-open">' + (live ? 'Open →' : 'Link not set yet') + '</div>' +
+      '</div></a>';
   }).join('');
 
-  /* ── To-Do & Follow-ups ─────────────────────────────────────── */
-  let todos = [];
-  function loadTodos() { try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; } catch { todos = []; } }
+  /* ── To-Do & Follow-ups ──────────────────────────────────────── */
+  var todos = [];
+
+  function loadTodos() {
+    try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; }
+    catch (_e) { todos = []; }
+  }
+
   function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
 
   function renderTodos() {
     loadTodos();
-    const today = todayStr();
-    const sorted = [...todos].sort((a, b) => {
-      if (a.done !== b.done) return a.done ? 1 : -1;        // open first
-      const ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
-      return ad < bd ? -1 : ad > bd ? 1 : 0;                // soonest due first
+    var today = todayStr();
+    var sorted = [...todos].sort(function (a, b) {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
+      return ad < bd ? -1 : ad > bd ? 1 : 0;
     });
-    const list = $('todo-list');
-    list.innerHTML = sorted.map(t => {
-      const overdue = t.due && !t.done && t.due < today;
-      let dueHtml = '';
+    var list = $('todo-list');
+    list.innerHTML = sorted.map(function (t) {
+      var overdue = t.due && !t.done && t.due < today;
+      var dueHtml = '';
       if (t.due) {
-        const d = new Date(t.due + 'T00:00:00');
-        const lbl = (overdue ? 'Overdue · ' : 'Due ') + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        dueHtml = `<div class="todo-due ${overdue ? 'overdue' : ''}">${lbl}</div>`;
+        var d = new Date(t.due + 'T00:00:00');
+        var lbl = (overdue ? 'Overdue · ' : 'Due ') + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        dueHtml = '<div class="todo-due ' + (overdue ? 'overdue' : '') + '">' + lbl + '</div>';
       }
-      return `<li class="todo-item ${t.done ? 'done' : ''} ${overdue ? 'overdue' : ''}" data-id="${t.id}">
-        <input type="checkbox" class="todo-cb" ${t.done ? 'checked' : ''}>
-        <div class="todo-main"><div class="todo-text">${esc(t.text)}</div>${dueHtml}</div>
-        <button class="todo-del" title="Delete">✕</button>
-      </li>`;
+      return '<li class="todo-item ' + (t.done ? 'done' : '') + ' ' + (overdue ? 'overdue' : '') + '" data-id="' + t.id + '">' +
+        '<input type="checkbox" class="todo-cb" ' + (t.done ? 'checked' : '') + '>' +
+        '<div class="todo-main"><div class="todo-text">' + esc(t.text) + '</div>' + dueHtml + '</div>' +
+        '<button class="todo-del" title="Delete">✕</button></li>';
     }).join('');
-    const open = todos.filter(t => !t.done).length;
-    $('todo-count').textContent = todos.length ? `${open} open · ${todos.length} total` : '';
+    var open = todos.filter(function (t) { return !t.done; }).length;
+    $('todo-count').textContent = todos.length ? open + ' open · ' + todos.length + ' total' : '';
     $('todo-empty').style.display = todos.length ? 'none' : 'block';
     renderTicker();
   }
 
-  /* ── Scrolling reminder ticker ──────────────────────────────── */
+  $('todo-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = $('todo-input').value.trim();
+    if (!text) return;
+    todos.push({
+      id: Date.now() + '' + Math.floor(performance.now()),
+      text: text,
+      due: $('todo-due').value || '',
+      done: false
+    });
+    saveTodos();
+    renderTodos();
+    $('todo-input').value = '';
+    $('todo-due').value = '';
+    $('todo-input').focus();
+  });
+
+  $('todo-list').addEventListener('click', function (e) {
+    var li = e.target.closest('.todo-item');
+    if (!li) return;
+    var id = li.dataset.id;
+    var t = todos.find(function (x) { return x.id === id; });
+    if (!t) return;
+    if (e.target.classList.contains('todo-cb')) {
+      t.done = !t.done;
+      saveTodos();
+      renderTodos();
+    } else if (e.target.classList.contains('todo-del')) {
+      todos = todos.filter(function (x) { return x.id !== id; });
+      saveTodos();
+      renderTodos();
+    }
+  });
+
+  /* ── Scrolling reminder ticker ───────────────────────────────── */
   function renderTicker() {
-    const today = todayStr();
-    const openTodos = [...todos].filter(t => !t.done).sort((a, b) => {
-      const ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
+    var today = todayStr();
+    var openTodos = [...todos].filter(function (t) { return !t.done; }).sort(function (a, b) {
+      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
       return ad < bd ? -1 : ad > bd ? 1 : 0;
     });
-    const track = $('ticker-track');
+    var track = $('ticker-track');
     if (!openTodos.length) {
       track.style.animation = 'none';
       track.style.paddingLeft = '20px';
       track.innerHTML = '<span class="tick-item">All clear — no open to-dos right now. ✨</span>';
       return;
     }
-    const items = openTodos.map(t => {
-      const overdue = t.due && t.due < today;
-      let due = '';
+    var items = openTodos.map(function (t) {
+      var overdue = t.due && t.due < today;
+      var due = '';
       if (t.due) {
-        const d = new Date(t.due + 'T00:00:00');
-        due = ` <span class="tick-due">(${overdue ? 'overdue · ' : 'due '}${d.toLocaleDateString([], { month: 'short', day: 'numeric' })})</span>`;
+        var d = new Date(t.due + 'T00:00:00');
+        due = ' <span class="tick-due">(' + (overdue ? 'overdue · ' : 'due ') +
+          d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')</span>';
       }
-      return `<span class="tick-item ${overdue ? 'overdue' : ''}">${overdue ? '⚠️ ' : '• '}${esc(t.text)}${due}</span>`;
+      return '<span class="tick-item ' + (overdue ? 'overdue' : '') + '">' +
+        (overdue ? '⚠️ ' : '• ') + esc(t.text) + due + '</span>';
     });
-    // duplicate the run so the scroll loop reads continuously
     track.innerHTML = items.join('<span class="tick-sep">◆</span>') +
       '<span class="tick-sep">◆</span>' + items.join('<span class="tick-sep">◆</span>');
     track.style.paddingLeft = '100%';
-    // pace the scroll to content length (~60px/sec), so more items = longer loop, steady speed
     track.style.animation = 'none';
-    void track.offsetWidth;                       // reflow so the restart takes
-    const dur = Math.max(14, Math.round(track.scrollWidth / 70));
-    track.style.animation = `ticker-scroll ${dur}s linear infinite`;
+    void track.offsetWidth;
+    var dur = Math.max(14, Math.round(track.scrollWidth / 70));
+    track.style.animation = 'ticker-scroll ' + dur + 's linear infinite';
   }
 
-  $('todo-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const text = $('todo-input').value.trim();
-    if (!text) return;
-    todos.push({ id: Date.now() + '' + Math.floor(performance.now()), text, due: $('todo-due').value || '', done: false });
-    saveTodos(); renderTodos();
-    $('todo-input').value = ''; $('todo-due').value = ''; $('todo-input').focus();
-  });
+  /* ── Greeting + live clock ───────────────────────────────────── */
+  var lastGreeting = '';
 
-  $('todo-list').addEventListener('click', e => {
-    const li = e.target.closest('.todo-item'); if (!li) return;
-    const id = li.dataset.id, t = todos.find(x => x.id === id); if (!t) return;
-    if (e.target.classList.contains('todo-cb')) { t.done = !t.done; saveTodos(); renderTodos(); }
-    else if (e.target.classList.contains('todo-del')) { todos = todos.filter(x => x.id !== id); saveTodos(); renderTodos(); }
-  });
-
-  /* ── Greeting + live clock ──────────────────────────────────── */
-  let lastPeriod = '';
   function tick() {
-    const now = new Date(), h = now.getHours();
-    const period = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
-    const userName = getActiveUser() || 'Nurse';
-    if (period !== lastPeriod) {                       // rebuild only when it changes (don't restart animations)
-      lastPeriod = period;
-      const emoji = period === 'morning' ? '🌅' : period === 'afternoon' ? '☀️' : '🌙';
+    var now = new Date(), h = now.getHours();
+    var dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+    
+    // Inspiring daily rotation based on day of year
+    var greetings = [
+      'YOU ARE A HERO 🦸', 'NURSES ROCK THE WORLD 🌍', 'ROCKSTAR STATUS ⭐',
+      'ABSOLUTE LEGEND 🏆', 'SUPERCHARGE THE DAY ⚡', 'BOSS ENERGY 💪',
+      'MAKING MOVES 🔥', 'CHANGE THE GAME 🎯', 'UNSTOPPABLE FORCE 🚀',
+      'POWER UP 💥', 'LEAD THE CHARGE ⚔️', 'DIFFERENCE MAKER 🌟',
+      'FUEL THE FIRE 🔥', 'RISE AND GRIND 💪', 'CRUSH IT TODAY 📈',
+      'KING/QUEEN ENERGY 👑', 'LEGENDARY AHEAD 🏅', 'GO GET IT 🎯',
+      'BRIGHTEST IN THE ROOM 💡', 'WORTH IT ALL 🏔️', 'BUILT FOR THIS 🧱',
+      'SHOW UP AND SHINE ✨', 'NEXT LEVEL GRIT 💎', 'OWN THE DAY 💪',
+      'BE THE DIFFERENCE 🌟', 'STRENGTH WITHIN 🦁', 'KEEP GOING 🏃',
+      'WARRIOR MINDSET 🏹', 'SMASH THE GOALS 📋', 'HEART OF A LION 🦁',
+      'FEARLESS FOCUS 🎯', 'DAILY VICTORY 🏆', 'YOUR TIME NOW ⏰',
+      'ABSOLUTE BEAST 🐻', 'NURSE SUPREME 👩‍⚕️', 'PURE MAGIC ✨',
+      'BORN TO SHINE ☀️', 'UNBREAKABLE SPIRIT 🌪️', 'TROPHY CASE 🏆',
+      'LEAD WITH HEART ❤️', 'IRON WILL 🔩', 'SKY IS THE LIMIT ✈️',
+      'PHENOMENAL VIBES 🌊', 'CHAMPIONSHIP DAY 🏆', 'ON FIRE 🔥',
+      'ELEVATE YOUR GAME 📈', 'WILD SUCCESS 🌿', 'DREAM BIG 😤',
+      'FORCE OF NATURE 🌪️', 'ALL EYES ON YOU 👀', 'TOP OF YOUR GAME 📊',
+      'NO DAYS OFF 💪', 'LEGACY BUILDER 🏛️', 'SERVE WITH GRACE 🕊️',
+      'MAGNET FOR SUCCESS 🧲', 'CHANGE AGENT 🔄', 'INSPIRE GREATNESS 🌋',
+      'BOSS MOVES ONLY 💼', 'HEALING HANDS ✋', 'BEACON OF HOPE 🔦',
+      'LIGHT THE WAY 🔥', 'YOUR MOMENT 🕐', 'GRACE UNDER FIRE 🪖',
+      'UNSHAKEABLE 🏔️', 'IMPACT PLAYER 🎮', 'HEART OF GOLD 🌟',
+      'STEADY HANDS 👐', 'CALM IN THE STORM ⛈️', 'PURPOSE DRIVEN 🎯',
+      'FEARLESS NURSE 🏥', 'YOU GOT THIS 👊', 'RADIATE CONFIDENCE 🌟',
+      'BRILLIANT MOVE ♟️', 'POWERHOUSE 🔋', 'GENEROSITY OF SPIRIT 🌺',
+      'BRAVE AND BOLD 💪', 'VITAL FORCE 🩺', 'RESILIENT SPIRIT 🌱',
+      'MAGNETIC ENERGY 🧲', 'STAR PERFORMER ⭐', 'KINDHEARTED ❤️',
+      'FOCUSED FIRE 🔥', 'BALANCE AND GRACE 🧘', 'TOTAL BADASS 😎',
+    ];
+    var greetIdx = dayOfYear % greetings.length;
+    var greetingText = greetings[greetIdx];
+    
+    if (greetingText !== lastGreeting) {
+      lastGreeting = greetingText;
       $('greeting').innerHTML =
-        `<span class="greet-emoji">${emoji}</span> Good ${period}, ` +
-        `<span class="greet-name">${esc(userName)}</span> <span class="greet-wave">👋</span>`;
+        '<span class="greet-emoji">🔥</span> ' + greetingText +
+        ' <span class="greet-name">' + esc(getActiveUser() || 'Nurse') + '</span> <span class="greet-wave">👊</span>';
     }
     $('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    $('date').textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    $('footer').textContent = 'CLC Workstation · ' + now.getFullYear();
+    $('date').textContent = now.toLocaleDateString([], {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+    $('footer').textContent = 'VA Charge RN Launchpad · ' + now.getFullYear();
   }
-  tick(); setInterval(tick, 15000);
+  tick();
+  setInterval(tick, 15000);
 
-  /* ── Customizable Quick Launch ──────────────────────────────── */
-  const QL_DEFAULTS = [
-    { label: 'Pandora',          url: 'https://www.pandora.com',          color: '#224b7a', icon: '🎵' },
-    { label: 'Outlook Mail',     url: 'https://outlook.office.com/mail',  color: '#0078d4', icon: '📧' },
-    { label: 'Microsoft Teams',  url: 'https://teams.microsoft.com',      color: '#6264a7', icon: '💬' },
-    { label: 'Facebook',         url: 'https://www.facebook.com',         color: '#1877f2', icon: '📘' },
-  ];
-  const QL_PALETTE = ['#5b9bf0', '#e0b94d', '#a87bff', '#3a8f6f', '#c0566a', '#7c83ff'];
-  let qlLinks = [];
-  function loadQL() { try { const s = JSON.parse(localStorage.getItem(QL_KEY)); qlLinks = Array.isArray(s) ? s : QL_DEFAULTS.slice(); } catch { qlLinks = QL_DEFAULTS.slice(); } }
+  /* ── Customizable Quick Launch ───────────────────────────────── */
+  var qlLinks = [];
+
+  function loadQL() {
+    try {
+      var s = JSON.parse(localStorage.getItem(QL_KEY));
+      qlLinks = Array.isArray(s) ? s : QL_DEFAULTS.slice();
+    } catch (_e) { qlLinks = QL_DEFAULTS.slice(); }
+  }
+
   function saveQL() { localStorage.setItem(QL_KEY, JSON.stringify(qlLinks)); }
-  function normUrl(u) { u = u.trim(); if (!u) return ''; return /^https?:\/\//i.test(u) ? u : 'https://' + u; }
 
   function qlOpen(url) {
-    const w = 1024, h = 768;
-    const left = Math.round(window.screenX + window.outerWidth - w - 20), top = Math.round(window.screenY + 60);
+    var w = 1024, h = 768;
+    var left = Math.round(window.screenX + window.outerWidth - w - 20);
+    var top = Math.round(window.screenY + 60);
     window.open(url, '_blank', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
   }
 
   function renderDock() {
     loadQL();
-    $('ql-buttons').innerHTML = qlLinks.map((l, i) =>
-      `<button class="ql-btn" style="background:${l.color || QL_PALETTE[i % QL_PALETTE.length]}" data-i="${i}">
-        <span class="ql-icon">${l.icon || '🔗'}</span> <span class="ql-name">${esc(l.label)}</span>
-      </button>`).join('');
+    $('ql-buttons').innerHTML = qlLinks.map(function (l, i) {
+      return '<button class="ql-btn" style="background:' + (l.color || '#5b9bf0') + '" data-i="' + i + '">' +
+        '<span class="ql-icon">' + (l.icon || '🔗') + '</span> <span class="ql-name">' + esc(l.label) + '</span></button>';
+    }).join('');
   }
 
-  $('ql-buttons').addEventListener('click', e => {
-    const btn = e.target.closest('.ql-btn'); if (!btn) return;
-    const l = qlLinks[+btn.dataset.i]; if (l) qlOpen(l.url);
+  $('ql-buttons').addEventListener('click', function (e) {
+    var btn = e.target.closest('.ql-btn');
+    if (!btn) return;
+    var l = qlLinks[+btn.dataset.i];
+    if (l) qlOpen(l.url);
   });
 
-  /* ── Draggable dock with saved position ─────────────────────── */
+  /* ── Draggable dock with saved position ──────────────────────── */
   (function () {
-    const dock = $('ql-dock'), handle = $('ql-handle');
+    var dock = $('ql-dock'), handle = $('ql-handle');
+
     function clamp(left, top) {
-      const maxLeft = window.innerWidth - dock.offsetWidth, maxTop = window.innerHeight - dock.offsetHeight;
+      var maxLeft = window.innerWidth - dock.offsetWidth;
+      var maxTop = window.innerHeight - dock.offsetHeight;
       return { left: Math.max(0, Math.min(left, maxLeft)), top: Math.max(0, Math.min(top, maxTop)) };
     }
+
     function applyPos(left, top) {
-      const p = clamp(left, top);
-      dock.style.left = p.left + 'px'; dock.style.top = p.top + 'px';
-      dock.style.right = 'auto'; dock.style.bottom = 'auto';
+      var p = clamp(left, top);
+      dock.style.left = p.left + 'px';
+      dock.style.top = p.top + 'px';
+      dock.style.right = 'auto';
+      dock.style.bottom = 'auto';
     }
-    try { const s = JSON.parse(localStorage.getItem(POS_KEY)); if (s && typeof s.left === 'number') applyPos(s.left, s.top); } catch {}
-    let sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
-    handle.addEventListener('pointerdown', e => {
+
+    try {
+      var s = JSON.parse(localStorage.getItem(POS_KEY));
+      if (s && typeof s.left === 'number') applyPos(s.left, s.top);
+    } catch (_e) { /* ignore */ }
+
+    var sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
+
+    handle.addEventListener('pointerdown', function (e) {
       dragging = true;
-      const r = dock.getBoundingClientRect();
-      sl = r.left; st = r.top; sx = e.clientX; sy = e.clientY;
-      dock.classList.add('ql-dragging'); handle.setPointerCapture(e.pointerId); e.preventDefault();
+      var r = dock.getBoundingClientRect();
+      sl = r.left;
+      st = r.top;
+      sx = e.clientX;
+      sy = e.clientY;
+      dock.classList.add('ql-dragging');
+      handle.setPointerCapture(e.pointerId);
+      e.preventDefault();
     });
-    handle.addEventListener('pointermove', e => { if (dragging) applyPos(sl + (e.clientX - sx), st + (e.clientY - sy)); });
-    function end() {
+
+    handle.addEventListener('pointermove', function (e) {
+      if (dragging) applyPos(sl + (e.clientX - sx), st + (e.clientY - sy));
+    });
+
+    function endDrag() {
       if (!dragging) return;
-      dragging = false; dock.classList.remove('ql-dragging');
-      const r = dock.getBoundingClientRect();
-      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); } catch {}
+      dragging = false;
+      dock.classList.remove('ql-dragging');
+      var r = dock.getBoundingClientRect();
+      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); }
+      catch (_e) { /* ignore */ }
     }
-    handle.addEventListener('pointerup', end);
-    handle.addEventListener('pointercancel', end);
-    window.addEventListener('resize', () => { const r = dock.getBoundingClientRect(); applyPos(r.left, r.top); });
+
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
+    window.addEventListener('resize', function () {
+      var r = dock.getBoundingClientRect();
+      applyPos(r.left, r.top);
+    });
   })();
 
-  /* ── Start ──────────────────────────────────────────────────── */
+  /* ── Start ───────────────────────────────────────────────────── */
+  // Apply saved theme before initialising the lock screen
+  var savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme) {
+    document.body.classList.add('theme-' + savedTheme);
+  }
   initLock();
 </script>
 </body>
