@@ -2786,6 +2786,20 @@ document.getElementById('topNav').addEventListener('click', function(e) {
 document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) closeAddModal();
 });
+
+// URL hash routing — open specific tab on load
+if (window.location.hash) {
+  var tab = window.location.hash.replace('#', '');
+  if (tab) {
+    // Wait for auth to complete then switch
+    var interval = setInterval(function() {
+      if (window.getComputedStyle(document.getElementById('loginOverlay')).display === 'none') {
+        clearInterval(interval);
+        setTimeout(function() { switchTab(tab); }, 100);
+      }
+    }, 200);
+  }
+}
 </script>
 </body>
 </html>
