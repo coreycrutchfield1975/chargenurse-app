@@ -14,32 +14,29 @@
     transition: background 0.8s ease;
     display: flex; flex-direction: column;
   }
-  /* theme swatch backgrounds */
-  body.theme-blue     { background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 40%, #1a2540 70%, #0e1a2e 100%); }
-  body.theme-purple   { background: linear-gradient(135deg, #1a0a2e 0%, #2a1050 40%, #3a1860 70%, #0f0a1e 100%); }
-  body.theme-green    { background: linear-gradient(135deg, #0a1a12 0%, #0f2a1e 40%, #1a3a2a 70%, #0e1a14 100%); }
-  body.theme-red      { background: linear-gradient(135deg, #1a0a0a 0%, #2a1018 40%, #3a1420 70%, #1a0e0e 100%); }
-  body.theme-gold     { background: linear-gradient(180deg, rgba(14,24,34,0.35) 0%, rgba(14,24,34,0.70) 55%, rgba(14,24,34,0.92) 100%), url('chatgpt-animal-image.png') center center / cover no-repeat fixed; }
-  body.theme-clinical { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
-  body.theme-medical1 { background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #0f1f3a 70%, #0a0e1a 100%); }
-  body.theme-medical2 { background: linear-gradient(135deg, #1a0a2e 0%, #2a1a4a 40%, #1a1040 70%, #0a0e1a 100%); }
-  body.theme-medical3 { background: linear-gradient(135deg, #0a1a1a 0%, #1a2a2a 40%, #0f1f2a 70%, #0a0e1a 100%); }
-  body.theme-outdoor1 { background: linear-gradient(135deg, #0a141a 0%, #1a2a3a 40%, #2a3a4a 70%, #0a0e1a 100%); }
-  body.theme-outdoor2 { background: linear-gradient(135deg, #0a1a14 0%, #1a2a24 40%, #2a3a34 70%, #0a0e1a 100%); }
-  body.theme-outdoor3 { background: linear-gradient(135deg, #1a1410 0%, #2a2420 40%, #3a3430 70%, #0a0e1a 100%); }
-  body.theme-outdoor4 { background: linear-gradient(135deg, #1a0a0e 0%, #2a1a1e 40%, #3a2a2e 70%, #0a0e1a 100%); }
+  /* theme swatch backgrounds — image overlay themes */
+  body.theme-default { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
+  body.theme-sunset  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-clickerhappy-584420.jpg') center center / cover no-repeat fixed; }
+  body.theme-mist    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-lukasz-szabo-1178620274-28542760.jpg') center center / cover no-repeat fixed; }
+  body.theme-forest  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-magda-ehlers-pexels-12131409.jpg') center center / cover no-repeat fixed; }
+  body.theme-ember   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-molnartamasphotography-15100929.jpg') center center / cover no-repeat fixed; }
+  body.theme-shade   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-florian-suss-269098632-13606075.jpg') center center / cover no-repeat fixed; }
+  body.theme-pine    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-andreas-schnabl-1775843-38298475.jpg') center center / cover no-repeat fixed; }
 
-
-
-
-    .theme-swatches .swatch[data-theme="outdoor1"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="outdoor1"]::after { content:'🎣'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="outdoor2"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="outdoor2"]::after { content:'🏔️'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="outdoor3"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="outdoor3"]::after { content:'🐾'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="outdoor4"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="outdoor4"]::after { content:'🐕'; position:absolute; font-size:10px; top:2px; left:4px; }
+    .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
+  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
+  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
+  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
+  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
+  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
 body.theme-custom {
     background: linear-gradient(180deg, rgba(14,24,34,0.35) 0%, rgba(14,24,34,0.70) 55%, rgba(14,24,34,0.92) 100%), var(--custom-bg, linear-gradient(135deg, #1a1a2e, #2a1a3a)) center center / cover no-repeat fixed;
   }
@@ -108,18 +105,20 @@ body.theme-custom {
   }
   .theme-swatches .swatch:hover { transform: scale(1.25); border-color: rgba(255,255,255,0.6); }
   .theme-swatches .swatch.active { border-color: #ffd27a; box-shadow: 0 0 10px rgba(212,160,23,0.5); }
-  .theme-swatches .swatch[data-theme="clinical"] { background: linear-gradient(135deg, #0a0e1a, #1a1040); }
-  .theme-swatches .swatch[data-theme="blue"]     { background: linear-gradient(135deg, #0a1628, #1a2540); }
-  .theme-swatches .swatch[data-theme="purple"]   { background: linear-gradient(135deg, #0a0e1a, #2a1050); }
-  .theme-swatches .swatch[data-theme="green"]    { background: linear-gradient(135deg, #0a1a12, #1a3a2a); }
-  .theme-swatches .swatch[data-theme="red"]      { background: linear-gradient(135deg, #1a0a0a, #3a1420); }
-  .theme-swatches .swatch[data-theme="gold"]     { background: linear-gradient(135deg, #1a1408, #3a2a14); }
-  .theme-swatches .swatch[data-theme="medical1"] { background: linear-gradient(135deg, #0a0e1a, #1a2540); position:relative; }
-  .theme-swatches .swatch[data-theme="medical1"]::after { content:'🩺'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="medical2"] { background: linear-gradient(135deg, #0a0e1a, #2a1a40); position:relative; }
-  .theme-swatches .swatch[data-theme="medical2"]::after { content:'💊'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="medical3"] { background: linear-gradient(135deg, #0a0e1a, #1a2a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="medical3"]::after { content:'🔬'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
+  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
+  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
+  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
+  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
+  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
+  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
   .theme-swatches .swatch[data-theme="custom"]   { background: linear-gradient(135deg, #1a1a2e, #2a1a3a); position:relative; }
   .theme-swatches .swatch[data-theme="custom"]::after { content:'📷'; position:absolute; font-size:8px; top:3px; left:3px; }
 
@@ -351,7 +350,7 @@ body.theme-custom {
 
 </style>
 </head>
-<body class="locked theme-clinical">
+<body class="locked theme-default">
 
 <!-- ── Passcode lock overlay ──────────────────────────────────────── -->
 <div id="lock-overlay">
@@ -407,21 +406,13 @@ body.theme-custom {
       <div style="display:flex;align-items:center;margin-top:6px;justify-content:flex-end;">
         <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Theme</span>
         <div class="theme-swatches" id="themeSwatches">
-          <span class="swatch active" data-theme="clinical" title="Default Dark"></span>
-          <span class="swatch" data-theme="blue" title="Navy Blue"></span>
-          <span class="swatch" data-theme="purple" title="Royal Purple"></span>
-          <span class="swatch" data-theme="green" title="Forest Green"></span>
-          <span class="swatch" data-theme="red" title="Deep Red"></span>
-          <span class="swatch" data-theme="gold" title="Warm Gold"></span>
-          <span class="swatch" data-theme="medical1" title="Medical Flatlay"></span>
-          <span class="swatch" data-theme="medical2" title="Stethoscope"></span>
-          <span class="swatch" data-theme="medical3" title="Medical Background"></span>
-          <span class="swatch" data-theme="outdoor1" title="Fishing 🎣"></span>
-          <span class="swatch" data-theme="outdoor2" title="Mountain 🏔️"></span>
-          <span class="swatch" data-theme="outdoor3" title="Pets 🐾"></span>
-          <span class="swatch" data-theme="outdoor4" title="Animals 🐕"></span>
-
-
+          <span class="swatch active" data-theme="default" title="Dragon 🐉"></span>
+          <span class="swatch" data-theme="sunset" title="Sunset 🌅"></span>
+          <span class="swatch" data-theme="mist" title="Mist 🌫️"></span>
+          <span class="swatch" data-theme="forest" title="Forest 🌲"></span>
+          <span class="swatch" data-theme="ember" title="Ember 🔥"></span>
+          <span class="swatch" data-theme="shade" title="Shade 🌿"></span>
+          <span class="swatch" data-theme="pine" title="Pine 🌲"></span>
         </div>
         <div style="display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.12)">
           <label for="bgUpload" style="font-size:10px;color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap">📁 Upload</label>
@@ -492,7 +483,7 @@ body.theme-custom {
      ══════════════════════════════════════════════════════════════════ */
 
   const APPS = [
-    { name: "Morning Report",     desc: "RN Morning Report — roster, assignments, appointments", icon: "📋", color: "#5b9bf0", url: "/charge-rn.html#morningreport" },
+    { name: "Morning Report",     desc: "RN Morning Report — roster, assignments, appointments", icon: "📋", color: "#5b9bf0", url: "https://clc-morning-report.vercel.app" },
     { name: "CLC Scheduler",      desc: "Appointment scheduling (PHI)",                         icon: "📅", color: "#e0b94d", url: "https://clcscheduler.vercel.app" },
     { name: "Charge RN",          desc: "VA Charge RN Workstation (PHI)",                       icon: "⚕️", color: "#5b2d8e", url: "/charge-rn.html" },
     { name: "Resource Directory", desc: "Community resources & referrals",                      icon: "📚", color: "#a87bff", url: "https://jjp-resource-directory.vercel.app" },
@@ -719,7 +710,7 @@ body.theme-custom {
 
   /* ── Theme swatches ──────────────────────────────────────────── */
   function applyTheme(theme) {
-    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'clinical';
+    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'default';
     document.body.className = document.body.className
       .split(' ').filter(function (c) { return !c.startsWith('theme-'); }).join(' ') + ' theme-' + theme;
     localStorage.setItem(THEME_KEY, theme);
