@@ -4676,6 +4676,14 @@ if (sessionStorage.getItem('chargenurse_auth') === '1') {
   setTimeout(function() { document.getElementById('loginPass').focus(); }, 100);
 }
 
+// Event delegation for login (Chromebook-safe, inline onclick/onkeydown may drop)
+document.getElementById('loginOverlay').addEventListener('click', function(e) {
+  if (e.target.classList.contains('login-enter-btn')) { doLogin(); }
+});
+document.getElementById('loginOverlay').addEventListener('keydown', function(e) {
+  if (e.target.id === 'loginPass' && e.key === 'Enter') { doLogin(); }
+});
+
 // Delegated click for nav tabs
 document.getElementById('sidebarTabs').addEventListener('click', function(e) {
   var btn = e.target.closest('.sidebar-tab');
