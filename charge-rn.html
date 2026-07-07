@@ -1019,12 +1019,33 @@ body.theme-night .patient-card.active {
 
 /* ===== PRINT STYLES ===== */
 @media print {
-  body { background: white !important; overflow: visible !important; }
+  body { background: white !important; overflow: visible !important; color: #000 !important; }
   .sidebar, .sidebar-tabs, .no-print, .search-box, .ward-filters,
   .sidebar-illustration, .daily-greeting { display: none !important; }
-  .main-content { width: 100% !important; }
+  .main-content { width: 100% !important; margin-left: 0 !important; }
   .content-area { padding: 0 !important; }
   .card { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
+
+  /* Morning Report handoff sheet */
+  .mr-actions, .mr-badge, .mr-name-prompt { display: none !important; }
+  .mr-handoff-header { display: block !important; text-align: center; margin-bottom: 18px; }
+  .mr-handoff-header h1 { font-size: 20px; margin: 0 0 2px; color: #1a0f2e; }
+  .mr-handoff-header .subtitle { font-size: 12px; color: #555; margin: 0; }
+  .mr-print-section { margin-bottom: 24px; page-break-inside: avoid; }
+  .mr-print-section-title { font-size: 14px; font-weight: 700; color: #1a0f2e; border-bottom: 2px solid #1a0f2e; padding-bottom: 4px; margin-bottom: 8px; }
+  .mr-print-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+  .mr-print-table th { background: #1a0f2e !important; color: #ffd27a !important; padding: 3px 5px; text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .mr-print-table td { padding: 2px 5px; border: 1px solid #bbb; font-size: 9px; color: #000; }
+  .mr-print-table tr:nth-child(even) { background: #f5f5f5; }
+  .mr-signatures { margin-top: 30px; display: flex; justify-content: space-between; gap: 20px; page-break-inside: avoid; }
+  .mr-signature-box { flex: 1; }
+  .mr-signature-box .label { font-size: 11px; font-weight: 600; color: #333; margin-bottom: 4px; }
+  .mr-signature-box .line { border-top: 1px solid #333; margin-top: 32px; padding-top: 3px; font-size: 10px; color: #666; }
+  .mr-assign-grid { display: flex; gap: 20px; }
+  .mr-assign-col { flex: 1; }
+  .mr-assign-col h4 { font-size: 12px; color: #1a0f2e; margin: 0 0 6px; }
+  .mr-assign-col .content { font-size: 10px; color: #000; white-space: pre-wrap; border: 1px solid #bbb; padding: 8px; min-height: 60px; background: #fafafa; }
+  .appt-add-row { display: none !important; }
 }
 
 /* ===== SCROLLBAR ===== */
@@ -4731,21 +4752,31 @@ function renderMrDashboard(nurse) {
   var ltc=0,ssr=0,eol=0,resp=0;
   roster.forEach(function(p){var s=(p.specialty||'').toUpperCase();if(s==='LTC')ltc++;else if(s==='SSR')ssr++;else if(s==='EOL')eol++;else if(s==='RESP')resp++;});
   var today = new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'});
-  var html = '<div class="tab-panel"><h3 style="margin:0 0 4px">📋 Morning Report — <span style="color:var(--primary)">' + escHtml(nurse) + '</span></h3><div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">' + today + ' — ' + roster.length + ' patients</div>' +
-    '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">' +
+  var todayShort = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var shift = new Date().getHours() < 12 ? 'Night → Day' : 'Day → Night';
+  var html = '<div class="tab-panel">' +
+    /* ── Print-only handoff header ── */
+    '<div class="mr-handoff-header" style="display:none">' +
+    '<h1>CLC Morning Report — Handoff Sheet</h1>' +
+    '<p class="subtitle">' + escHtml(nurse) + ' · ' + todayShort + ' · Shift: ' + shift + ' · ' + roster.length + ' patients</p>' +
+    '</div>' +
+    /* ── Screen header ── */
+    '<h3 style="margin:0 0 4px" class="no-print">📋 Morning Report — <span style="color:var(--primary)">' + escHtml(nurse) + '</span></h3>' +
+    '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px" class="no-print">' + today + ' — ' + roster.length + ' patients</div>' +
+    '<div class="no-print" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">' +
     '  <span class="mr-badge" style="background:#2980b9;padding:2px 10px;border-radius:10px;font-weight:500;font-size:11px;color:#fff">LTC: <strong>' + ltc + '</strong></span>' +
     '  <span class="mr-badge" style="background:#27ae60;padding:2px 10px;border-radius:10px;font-weight:500;font-size:11px;color:#fff">SSR: <strong>' + ssr + '</strong></span>' +
     '  <span class="mr-badge" style="background:#e67e22;padding:2px 10px;border-radius:10px;font-weight:500;font-size:11px;color:#fff">Resp: <strong>' + resp + '</strong></span>' +
     '  <span class="mr-badge" style="background:#8e44ad;padding:2px 10px;border-radius:10px;font-weight:500;font-size:11px;color:#fff">EOL: <strong>' + eol + '</strong></span>' +
     '  <span class="mr-badge" style="background:var(--primary);padding:2px 10px;border-radius:10px;font-weight:500;font-size:11px;color:#fff">Total: <strong>' + roster.length + '</strong></span></div>' +
-    '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">' +
+    '<div class="mr-actions" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">' +
     '<button class="btn btn-primary btn-sm" onclick="showMrAddPatient()">+ Add Patient</button>' +
     '<button class="btn btn-secondary btn-sm" onclick="mrExportExcel()">⬇ Export</button>' +
     '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'mrImportFile\').click()">⬆ Import</button>' +
     '<input type="file" id="mrImportFile" accept=".csv" style="display:none" onchange="mrImportExcel(event)">' +
     '<button class="btn btn-secondary btn-sm" onclick="mrPrint()">🖨️ Print</button>' +
     '<span style="font-size:11px;color:var(--text-muted);cursor:pointer;padding:4px 8px" onclick="mrChangeName()">Switch nurse</span></div>' +
-    '<div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px">' +
+    '<div class="mr-print-section"><div class="mr-print-section-title" style="font-size:14px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:4px;margin-bottom:8px">📋 Patient Roster</div><div style="overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px">' +
     '<thead><tr style="background:var(--primary);color:#fff">' +
     '<th style="width:30px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase">Rm</th>' +
     '<th style="width:90px;padding:2px 3px;text-align:left;font-size:9px;text-transform:uppercase">Name</th>' +
@@ -4778,13 +4809,15 @@ function renderMrDashboard(nurse) {
         '<td style="padding:2px;text-align:center"><span style="cursor:pointer;color:#dc2626;font-size:12px" onclick="mrRemovePatient(' + i + ')">✕</span></td></tr>';
     });
   }
-  html += '</tbody></table></div>';
-  html += '<div style="margin-top:20px;font-size:16px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:4px">📋 Shift Assignments</div>' +
-    '<div style="display:flex;gap:20px;margin-top:10px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><div style="font-weight:700;font-size:13px;color:var(--text-muted);margin-bottom:6px">☀️ Day Shift</div><div id="mrDayAsn" contenteditable="true" style="background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px;min-height:80px;white-space:pre-wrap">' + escHtml(asn.day||'—') + '</div></div>' +
-    '<div style="flex:1;min-width:200px"><div style="font-weight:700;font-size:13px;color:var(--text-muted);margin-bottom:6px">🌙 Night Shift</div><div id="mrNightAsn" contenteditable="true" style="background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px;min-height:80px;white-space:pre-wrap">' + escHtml(asn.night||'—') + '</div></div></div>' +
-    '<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="mrSaveAssignments()">Save Assignments</button><span id="mrAsnSaved" style="font-size:11px;color:#16a34a;margin-left:8px;display:none">✓ Saved</span>';
-  html += '<div style="margin-top:24px;font-size:16px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:4px">📅 Appointments</div>' +
-    '<div style="margin-top:8px;overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:var(--primary);color:#fff"><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Time</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Patient</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Location</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Notes</th><th style="width:20px;padding:2px 6px;text-align:center;"></th></tr></thead><tbody>';
+  html += '</tbody></table></div></div>' +
+    /* ── Print section: Shift Assignments ── */
+    '<div class="mr-print-section">' +
+    '<div class="mr-print-section-title" style="font-size:14px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:4px;margin-bottom:8px">📋 Shift Assignments</div>' +
+    '<div class="mr-assign-grid" style="display:flex;gap:20px;margin-top:10px;flex-wrap:wrap"><div class="mr-assign-col" style="flex:1;min-width:200px"><div style="font-weight:700;font-size:13px;color:var(--text-muted);margin-bottom:6px">☀️ Day Shift</div><div id="mrDayAsn" contenteditable="true" style="background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px;min-height:80px;white-space:pre-wrap">' + escHtml(asn.day||'—') + '</div></div>' +
+    '<div class="mr-assign-col" style="flex:1;min-width:200px"><div style="font-weight:700;font-size:13px;color:var(--text-muted);margin-bottom:6px">🌙 Night Shift</div><div id="mrNightAsn" contenteditable="true" style="background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px;min-height:80px;white-space:pre-wrap">' + escHtml(asn.night||'—') + '</div></div></div>' +
+    '<button class="btn btn-primary btn-sm no-print" style="margin-top:8px" onclick="mrSaveAssignments()">Save Assignments</button><span id="mrAsnSaved" style="font-size:11px;color:#16a34a;margin-left:8px;display:none">✓ Saved</span></div>';
+  html += '<div class="mr-print-section"><div class="mr-print-section-title" style="font-size:14px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:4px;margin-bottom:8px">📅 Appointments</div>' +
+    '<div style="margin-top:8px;overflow-x:auto"><table class="data-table-sm" style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:var(--primary);color:#fff"><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Time</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Patient</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Location</th><th style="padding:2px 6px;text-align:left;font-size:9px;text-transform:uppercase">Notes</th><th style="width:20px;padding:2px 6px;text-align:center;"></th></tr></thead><tbody>' +
   if (appts.length===0) { html += '<tr><td colspan="5" style="text-align:center;padding:12px;color:var(--text-muted)">No appointments.</td></tr>'; }
   else {
     appts.sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
@@ -4792,7 +4825,12 @@ function renderMrDashboard(nurse) {
       html += '<tr><td style="padding:2px 6px;font-size:10px;font-weight:600">' + escHtml(a.time||'—') + '</td><td style="padding:2px 6px;font-size:10px">' + escHtml(a.patient||'—') + '</td><td style="padding:2px 6px;font-size:10px">' + escHtml(a.location||'—') + '</td><td style="padding:2px 6px;font-size:10px">' + escHtml(a.notes||'') + '</td><td style="padding:2px;text-align:center"><span style="cursor:pointer;color:#dc2626;font-size:12px" onclick="mrRemoveAppt(' + i + ')">✕</span></td></tr>';
     });
   }
-  html += '<tr><td colspan="5" style="padding:8px;background:var(--card-bg)"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="mrApptTime" placeholder="Time" style="width:60px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptPatient" placeholder="Patient" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptLocation" placeholder="Location" style="width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptNotes" placeholder="Notes" style="width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><button class="btn btn-primary btn-sm" onclick="mrAddAppt()">Add</button></div></td></tr></tbody></table></div></div>';
+  html += '<tr class="appt-add-row"><td colspan="5" style="padding:8px;background:var(--card-bg)"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="mrApptTime" placeholder="Time" style="width:60px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptPatient" placeholder="Patient" style="width:100px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptLocation" placeholder="Location" style="width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><input id="mrApptNotes" placeholder="Notes" style="width:120px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px"><button class="btn btn-primary btn-sm" onclick="mrAddAppt()">Add</button></div></td></tr></tbody></table></div></div>' +
+    /* ── Print-only signature lines ── */
+    '<div class="mr-signatures" style="display:none">' +
+    '<div class="mr-signature-box"><div class="label">Report given by (Day/Night Nurse):</div><div class="line">Signature</div></div>' +
+    '<div class="mr-signature-box"><div class="label">Report received by (Oncoming Nurse):</div><div class="line">Signature</div></div>' +
+    '</div></div>';
   return html;
 }
 
