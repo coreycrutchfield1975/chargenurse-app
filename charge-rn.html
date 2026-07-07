@@ -4966,7 +4966,7 @@ function mrPrint() { window.print(); }
 function closeMrModal() { var el=document.getElementById('mrModal'); if(el) el.remove(); }
 
 // URL hash routing
-if(window.location.hash){var ht=window.location.hash.replace('#','');if(ht){var iv=setInterval(function(){if(document.getElementById('appContent')){clearInterval(iv);setTimeout(function(){switchTab(ht);},200);}},300);}}
+if(window.location.hash){var ht=window.location.hash.replace('#','');if(ht){var iv=setInterval(function(){if(document.getElementById('contentArea')){clearInterval(iv);setTimeout(function(){switchTab(ht);},200);}},300);}}
 </script>
 
 <div id="alertBar" class="alert-floating" style="display:none" onclick="toggleAlertBar()">
