@@ -4798,7 +4798,7 @@ function renderMrDashboard(nurse) {
 
 function showMrAddPatient() {
   var existing = (typeof data !== 'undefined' && data.patients) ? data.patients.map(function(p) {
-    return '<li style="cursor:pointer;padding:4px 8px;border-radius:4px" onclick="mrAddExisting(' + p.id + ')" onmouseover="this.style.background=\\'var(--hover-bg)\\'" onmouseout="this.style.background=\\'\\'">' + escHtml(p.room) + ' — ' + escHtml(p.name) + '</li>';
+    return '<li style="cursor:pointer;padding:4px 8px;border-radius:4px" onclick="mrAddExisting(' + p.id + ')" onmouseover="this.style.background=\'var(--hover-bg)\'" onmouseout="this.style.background=\'\'">' + escHtml(p.room) + ' — ' + escHtml(p.name) + '</li>';
   }).join('') : '';
   var form = '<div class="modal-overlay" id="mrModal" onclick="if(event.target===this)closeMrModal()">' +
     '<div class="modal" style="max-width:500px">' +
