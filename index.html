@@ -156,7 +156,47 @@ body.theme-custom {
 
   /* ── Layout ──────────────────────────────────────────────────── */
   main { position: relative; z-index: 1; padding: 16px 24px 80px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); max-width: 1080px; margin: 0 auto; width: 100%; }
-  .cols { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  .cols { display: grid; gap: 20px; align-items: start; }
+  .cols.layout-left  { grid-template-columns: 300px 1fr; }
+  .cols.layout-right { grid-template-columns: 1fr 300px; }
+  .cols.layout-right .apps-area { order: 2; }
+  .cols.layout-right .todo-area { order: 1; }
+  .cols.layout-top    { grid-template-columns: 1fr; }
+  .cols.layout-bottom { grid-template-columns: 1fr; }
+  .cols.layout-bottom .apps-area { order: 2; }
+  .cols.layout-bottom .todo-area { order: 1; }
+  .cols.layout-float { display: block; position: relative; min-height: 400px; }
+  .cols.layout-float .apps-area, .cols.layout-float .todo-area {
+    position: fixed; z-index: 100; width: 300px; cursor: grab; user-select: none;
+    background: linear-gradient(135deg, rgba(34,46,64,0.88), rgba(16,26,38,0.92));
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-radius: 12px; padding: 10px 14px 14px;
+    border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    touch-action: none; max-height: calc(100vh - 80px); overflow-y: auto;
+  }
+  .cols.layout-float .apps-area { left: 20px; top: 160px; }
+  .cols.layout-float .todo-area { right: 20px; top: 160px; }
+  .cols.layout-float .section-label { cursor: move; display: flex; align-items: center; gap: 6px; }
+  .cols.layout-float .section-label::before { content: '⠿'; font-size: 14px; opacity: 0.5; }
+  .cols.layout-float .section-label:hover { color: #ffd27a; }
+  .cols.layout-float .panel-head { cursor: move; display: flex; }
+  .cols.layout-float .panel-head::before { content: '⠿'; font-size: 14px; opacity: 0.5; margin-right: 6px; }
+  .cols.layout-float .panel-head:hover { color: #ffd27a; }
+  .cols.layout-float .panel { background: none; border: none; padding: 0; }
+  .cols.layout-float #app-main { min-height: calc(100vh - 118px); }
+  .cols.layout-float + footer { display: none; }
+  .layout-picker { display: flex; gap: 4px; align-items: center; margin-left: 8px; padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.12); }
+  .layout-picker .lay-btn {
+    width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(14,24,34,0.5); display: flex; flex-wrap: wrap; padding: 2px; gap: 1px; transition: transform 0.15s, border-color 0.15s;
+  }
+  .layout-picker .lay-btn:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.6); }
+  .layout-picker .lay-btn.active { border-color: #ffd27a; box-shadow: 0 0 8px rgba(212,160,23,0.5); }
+  .layout-picker .lay-btn i { display: block; background: rgba(255,255,255,0.25); border-radius: 1px; }
+  .lay-left i:nth-child(1) { width:8px; height:14px; }  .lay-left i:nth-child(2) { width:4px; height:14px; }
+  .lay-right i:nth-child(1) { width:4px; height:14px; } .lay-right i:nth-child(2) { width:8px; height:14px; }
+  .lay-top i { width:100%; height:6px; }
+  .lay-bottom i:nth-child(1) { width:100%; height:6px; } .lay-bottom i:nth-child(2) { width:100%; height:6px; }
   .section-label {
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
     color: #b9c6d6; margin: 0 0 14px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
@@ -388,6 +428,16 @@ body.theme-custom {
           <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
         </div>
       </div>
+      <div style="display:flex;align-items:center;margin-top:4px;justify-content:flex-end;">
+        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Layout</span>
+        <div class="layout-picker" id="layoutPicker">
+          <span class="lay-btn lay-left active" data-layout="left" title="Tiles left / Todo right"><i></i><i></i></span>
+          <span class="lay-btn lay-right" data-layout="right" title="Todo left / Tiles right"><i></i><i></i></span>
+          <span class="lay-btn lay-top" data-layout="top" title="Tiles on top"><i></i></span>
+          <span class="lay-btn lay-bottom" data-layout="bottom" title="Todo on top"><i></i><i></i></span>
+          <span class="lay-btn" data-layout="float" title="Floating panels (drag anywhere)" style="font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5)">⊞</span>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -478,6 +528,7 @@ body.theme-custom {
   const QL_KEY = 'lp_quicklinks';
   const POS_KEY = 'lp_qlPos';
   const THEME_KEY = 'lp_theme';
+  const LAYOUT_KEY = 'lp_layout';
 
   /* ── DOM helpers ──────────────────────────────────────────────── */
   const $ = function (id) { return document.getElementById(id); };
@@ -988,6 +1039,77 @@ body.theme-custom {
     });
   })();
 
+  /* ── Layout picker ──────────────────────────────────────────── */
+  var FLOAT_POS_KEY = 'lp_floatPos';
+  var floatDragging = false;
+
+  function applyLayout(layout) {
+    if (!layout) layout = localStorage.getItem(LAYOUT_KEY) || 'left';
+    var cols = document.querySelector('.cols');
+    if (!cols) return;
+    cols.className = 'cols layout-' + layout;
+    localStorage.setItem(LAYOUT_KEY, layout);
+    var btns = document.querySelectorAll('.lay-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('active', btns[i].dataset.layout === layout);
+    }
+    if (layout === 'float') { initFloatMode(); }
+  }
+
+  function initFloatMode() {
+    var apps = document.querySelector('.apps-area');
+    var todo = document.querySelector('.todo-area');
+    if (!apps || !todo) return;
+    try { var pos = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)); if (pos) {
+      if (pos.appsLeft) apps.style.left = pos.appsLeft + 'px';
+      if (pos.appsTop) apps.style.top = pos.appsTop + 'px';
+      if (pos.todoLeft) todo.style.left = pos.todoLeft + 'px';
+      if (pos.todoTop) todo.style.top = pos.todoTop + 'px';
+      if (pos.todoRight) todo.style.right = pos.todoRight + 'px';
+    } } catch (_e) {}
+    makeDraggable(apps, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.appsLeft=l; p.appsTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
+    makeDraggable(todo, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.todoLeft=l; p.todoTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
+  }
+
+  function makeDraggable(el, onMove) {
+    var handle = el.querySelector('.section-label') || el.querySelector('.panel-head');
+    if (!handle) return;
+    handle.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('.lay-btn, .swatch, button, input, select, textarea, a')) return;
+      floatDragging = true;
+      var r = el.getBoundingClientRect();
+      var sx = e.clientX, sy = e.clientY;
+      var sl = el.offsetLeft, st = el.offsetTop;
+      el.classList.add('ql-dragging');
+      handle.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      function onMoveHandler(ev) {
+        if (!floatDragging) return;
+        var nl = sl + (ev.clientX - sx);
+        var nt = st + (ev.clientY - sy);
+        var maxL = window.innerWidth - el.offsetWidth - 10;
+        var maxT = window.innerHeight - el.offsetHeight - 10;
+        nl = Math.max(5, Math.min(nl, maxL));
+        nt = Math.max(60, Math.min(nt, maxT));
+        el.style.left = nl + 'px'; el.style.top = nt + 'px'; el.style.right = 'auto';
+        if (onMove) onMove(nl, nt);
+      }
+      function endHandler() {
+        floatDragging = false; el.classList.remove('ql-dragging');
+        handle.removeEventListener('pointermove', onMoveHandler);
+        handle.removeEventListener('pointerup', endHandler);
+        handle.removeEventListener('pointercancel', endHandler);
+      }
+      handle.addEventListener('pointermove', onMoveHandler);
+      handle.addEventListener('pointerup', endHandler);
+      handle.addEventListener('pointercancel', endHandler);
+    });
+  }
+  document.getElementById('layoutPicker').addEventListener('click', function (e) {
+    var btn = e.target.closest('.lay-btn');
+    if (btn) applyLayout(btn.dataset.layout);
+  });
+
   /* ── Start ───────────────────────────────────────────────────── */
   // Apply saved theme before initialising the lock screen
   var savedTheme = localStorage.getItem(THEME_KEY);
@@ -995,6 +1117,8 @@ body.theme-custom {
     document.body.classList.add('theme-' + savedTheme);
   }
   initLock();
+  // Apply saved layout after lock screen
+  applyLayout();
 </script>
 </body>
 </html>
