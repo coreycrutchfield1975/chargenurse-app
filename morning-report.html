@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morning Report · Handoff Sheet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: #eaf0f6;
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
+    display: flex; flex-direction: column;
+  }
+
+  /* ── Login overlay ── */
+  #loginOverlay {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
+  }
+  #loginOverlay.hidden { display: none !important; }
+  .login-card {
+    width: 100%; max-width: 380px; text-align: center;
+    background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
+    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+  }
+  .login-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
+  .login-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
+  .login-card input { 
+    width: 100%; padding: 10px; margin-bottom: 10px; text-align: center; font-size: 16px;
+    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
+    color: #eaf0f6; border-radius: 8px; outline: none;
+  }
+  .login-card input:focus { border-color: #d4a017; box-shadow: 0 0 0 2px rgba(212,160,23,0.2); }
+  .login-card button {
+    width: 100%; padding: 10px; font-size: 14px; font-weight: 700;
+    background: #d4a017; color: #1a1206; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .login-card button:hover { background: #e0b94d; }
+  .login-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
+
+  /* ── Header ── */
+  #header {
+    background: linear-gradient(90deg, rgba(20,32,46,0.92), rgba(14,24,34,0.96));
+    border-bottom: 1px solid rgba(212,160,23,0.3);
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  #header h1 { margin: 0; font-size: 20px; color: #ffe1a3; }
+  #header .sub { font-size: 12px; color: #9fb0c2; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .header-actions button, .header-actions select {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(10,16,24,0.55); color: #eaf0f6; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .header-actions button:hover { background: rgba(30,42,60,0.7); }
+  .btn-gold { background: #d4a017 !important; color: #1a1206 !important; border-color: #d4a017 !important; }
+  .btn-gold:hover { background: #e0b94d !important; }
+  .btn-danger { color: #ff8a7a !important; }
+
+  /* ── Summary bar ── */
+  #summary {
+    display: flex; gap: 8px; padding: 8px 24px; flex-wrap: wrap;
+    background: rgba(14,24,34,0.4); border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .sum-badge {
+    padding: 2px 10px; border-radius: 10px; font-weight: 500; font-size: 11px; color: #fff;
+  }
+
+  /* ── Main content ── */
+  #main {
+    padding: 16px 24px 40px; max-width: 1100px; margin: 0 auto; width: 100%; flex: 1;
+  }
+  .section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 16px; font-weight: 700; color: #ffe1a3;
+    border-bottom: 2px solid #d4a017; padding-bottom: 4px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: rgba(20,32,46,0.8); color: #ffe1a3; padding: 6px 8px;
+    text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  tbody td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #eaf0f6; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .empty-row td { text-align: center; padding: 20px; color: #6f8298; font-style: italic; }
+
+  /* ── Assignments display ── */
+  .assign-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+  .assign-col { flex: 1; min-width: 200px; }
+  .assign-col h3 { font-size: 13px; color: #9fb0c2; margin: 0 0 6px; }
+  .assign-content {
+    background: rgba(10,16,24,0.4); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 10px; font-size: 13px; min-height: 60px; white-space: pre-wrap;
+    color: #eaf0f6;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8,14,20,0.7); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  }
+  .modal-overlay.hidden { display: none !important; }
+  .modal {
+    width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+    background: linear-gradient(135deg, rgba(26,34,50,0.98), rgba(16,26,38,0.98));
+    border: 1px solid rgba(212,160,23,0.3); border-radius: 14px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6); padding: 20px 24px;
+  }
+  .modal h2 { margin: 0 0 14px; font-size: 17px; color: #ffe1a3; }
+  .modal label { display: block; font-size: 11px; color: #9fb0c2; margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; padding: 7px 10px; margin-bottom: 10px;
+    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.12);
+    color: #eaf0f6; border-radius: 6px; font-size: 13px; outline: none;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: #d4a017; }
+  .modal textarea { resize: vertical; min-height: 40px; }
+  .modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .modal-actions button { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .modal-actions .btn-cancel { background: rgba(255,255,255,0.08); color: #9fb0c2; }
+  .modal-actions .btn-cancel:hover { background: rgba(255,255,255,0.12); }
+  .modal-actions .btn-save { background: #d4a017; color: #1a1206; }
+  .modal-actions .btn-save:hover { background: #e0b94d; }
+  .modal-actions .btn-delete { background: rgba(220,38,38,0.2); color: #ff8a7a; }
+
+  /* ── Print styles ── */
+  @media print {
+    body { background: white !important; color: #000 !important; }
+    #loginOverlay, #header, #summary, .no-print, .modal-overlay { display: none !important; }
+    #main { padding: 0 !important; max-width: 100% !important; }
+    .section { margin-bottom: 16px; page-break-inside: avoid; }
+    .section-title { color: #1a0f2e !important; border-bottom-color: #1a0f2e !important; }
+    table { font-size: 9px; }
+    thead th { background: #1a0f2e !important; color: #ffd27a !important; padding: 3px 5px; font-size: 8px; }
+    tbody td { padding: 2px 5px; border: 1px solid #bbb; color: #000; font-size: 9px; }
+    tbody tr:nth-child(even) { background: #f5f5f5; }
+    tbody tr:hover { background: inherit; }
+    .assign-content { background: #fafafa; border: 1px solid #bbb; color: #000; min-height: 50px; font-size: 10px; }
+    .assign-col h3 { color: #333; }
+    #printHeader { display: block !important; text-align: center; margin-bottom: 16px; }
+    #printHeader h1 { font-size: 18px; margin: 0; color: #1a0f2e; }
+    #printHeader p { font-size: 11px; color: #555; margin: 2px 0 0; }
+    #signatures { display: flex !important; justify-content: space-between; gap: 20px; margin-top: 24px; page-break-inside: avoid; }
+    .sig-box { flex: 1; }
+    .sig-box .label { font-size: 10px; font-weight: 600; color: #333; }
+    .sig-box .line { border-top: 1px solid #333; margin-top: 28px; padding-top: 2px; font-size: 10px; color: #666; }
+  }
+  #printHeader { display: none; }
+  #signatures { display: none; }
+
+  @media (max-width: 640px) {
+    #header { padding: 10px 14px; }
+    #header h1 { font-size: 16px; }
+    #main { padding: 10px 14px 40px; }
+    .modal { margin: 10px; padding: 14px 16px; }
+    .modal .form-row { grid-template-columns: 1fr; }
+    .assign-grid { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Login overlay ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <h2>📋 Morning Report</h2>
+    <p>Handoff Sheet · Charge Nurse</p>
+    <input id="loginPass" type="password" placeholder="Enter passcode" autocomplete="current-password">
+    <div class="login-err" id="loginErr"></div>
+    <button onclick="doLogin()">🔓 Access Report</button>
+    <p style="margin-top:14px;font-size:10px;color:#6f8298">Authorized VA staff only</p>
+  </div>
+</div>
+
+<!-- ── Header ── -->
+<div id="header" class="no-print">
+  <div>
+    <h1>📋 Morning Report</h1>
+    <div class="sub">
+      <span id="headerNurse"></span> · <span id="headerDate"></span>
+      · <span id="headerShift"></span>
+      · <span id="headerCount"></span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <select id="nurseSelect" onchange="switchNurse()"></select>
+    <button onclick="showAddPatient()">+ Add Patient</button>
+    <button onclick="showAssignModal()">📋 Assignments</button>
+    <button onclick="showAddAppt()">📅 Appointment</button>
+    <button class="btn-gold" onclick="window.print()">🖨️ Print</button>
+    <button class="btn-danger" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<!-- ── Summary bar ── -->
+<div id="summary" class="no-print">
+  <span class="sum-badge" style="background:#2980b9">LTC: <strong id="sLTC">0</strong></span>
+  <span class="sum-badge" style="background:#27ae60">SSR: <strong id="sSSR">0</strong></span>
+  <span class="sum-badge" style="background:#e67e22">Resp: <strong id="sResp">0</strong></span>
+  <span class="sum-badge" style="background:#8e44ad">EOL: <strong id="sEOL">0</strong></span>
+  <span class="sum-badge" style="background:rgba(255,255,255,0.12)">Total: <strong id="sTotal">0</strong></span>
+</div>
+
+<!-- ── Main content ── -->
+<div id="main">
+
+  <!-- Print-only header -->
+  <div id="printHeader">
+    <h1>Morning Report — Handoff Sheet</h1>
+    <p><span id="phNurse"></span> · <span id="phDate"></span> · <span id="phShift"></span> · <span id="phCount"></span></p>
+  </div>
+
+  <!-- Section 1: Patient Roster -->
+  <div class="section">
+    <div class="section-title">
+      <span>👥 Patient Census</span>
+      <button class="no-print" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddPatient()">+ Add</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">Rm</th>
+            <th>Name</th>
+            <th style="width:50px">Code</th>
+            <th style="width:40px">Meds</th>
+            <th style="width:55px">Diet</th>
+            <th style="width:40px">Asst</th>
+            <th style="width:40px">Toilet</th>
+            <th style="width:32px">FSBS</th>
+            <th style="width:30px">Wt</th>
+            <th style="width:50px">Spec</th>
+            <th>Notes</th>
+            <th class="no-print" style="width:30px"></th>
+          </tr>
+        </thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 2: Shift Assignments -->
+  <div class="section">
+    <div class="section-title">
+      <span>📋 Shift Assignments</span>
+      <button class="no-print" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAssignModal()">✏️ Edit</button>
+    </div>
+    <div class="assign-grid">
+      <div class="assign-col">
+        <h3>☀️ Day Shift</h3>
+        <div class="assign-content" id="dayAssign">—</div>
+      </div>
+      <div class="assign-col">
+        <h3>🌙 Night Shift</h3>
+        <div class="assign-content" id="nightAssign">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Appointments -->
+  <div class="section">
+    <div class="section-title">
+      <span>📅 Appointments</span>
+      <button class="no-print" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddAppt()">+ Add</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px">Time</th>
+            <th style="width:150px">Patient</th>
+            <th style="width:120px">Location</th>
+            <th>Notes</th>
+            <th class="no-print" style="width:30px"></th>
+          </tr>
+        </thead>
+        <tbody id="apptBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Print-only signature lines -->
+  <div id="signatures">
+    <div class="sig-box">
+      <div class="label">Report given by (offgoing nurse):</div>
+      <div class="line">Signature / Date</div>
+    </div>
+    <div class="sig-box">
+      <div class="label">Report received by (oncoming nurse):</div>
+      <div class="line">Signature / Date</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Modal container ── -->
+<div id="modalContainer" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   Morning Report — Handoff Sheet
+   ══════════════════════════════════════════════════════ */
+var PASSCODE = 'CLC-Admin-2024';
+var MR_ROSTER_KEY = 'mr_roster';
+var MR_ASN_KEY = 'mr_assignments';
+var MR_APPT_KEY = 'mr_appts';
+var MR_NURSE_KEY = 'mr_nurse';
+
+/* ── Helpers ── */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+function getData(key, def) {
+  try { var d=JSON.parse(localStorage.getItem(key)); return d!==null?d:def; } catch(e) { return def; }
+}
+function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function todayStr() {
+  var d=new Date(); return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'});
+}
+function todayShort() {
+  var d=new Date(); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function shiftGuess() {
+  var h=new Date().getHours(); return h<12 ? 'Night → Day' : 'Day → Night';
+}
+
+/* ── Auth ── */
+function doLogin() {
+  var p = $('loginPass').value;
+  if (!p) return;
+  if (p === PASSCODE) {
+    sessionStorage.setItem('mr_auth','1');
+    $('loginOverlay').classList.add('hidden');
+    $('loginPass').value = '';
+    $('loginErr').textContent = '';
+    init();
+  } else {
+    $('loginErr').textContent = 'Incorrect passcode.';
+    $('loginPass').select();
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('mr_auth');
+  $('loginOverlay').classList.remove('hidden');
+}
+
+/* ── Init ── */
+function init() {
+  loadNurses();
+  var saved = localStorage.getItem(MR_NURSE_KEY);
+  if (saved && nurses.indexOf(saved) >= 0) {
+    $('nurseSelect').value = saved;
+  }
+  selectNurse();
+}
+
+/* ── Nurse management ── */
+var nurses = [];
+
+function loadNurses() {
+  nurses = [];
+  // Scan localStorage for mr_roster_* keys
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key.indexOf(MR_ROSTER_KEY + '_') === 0) {
+      var name = key.substring(MR_ROSTER_KEY.length + 1);
+      if (nurses.indexOf(name) < 0) nurses.push(name);
+    }
+  }
+  // Also check mr_nurse saved name
+  var saved = localStorage.getItem(MR_NURSE_KEY);
+  if (saved && nurses.indexOf(saved) < 0) {
+    // Create empty roster for this nurse
+    setData(MR_ROSTER_KEY + '_' + saved, []);
+    setData(MR_ASN_KEY + '_' + saved, {day:'',night:''});
+    setData(MR_APPT_KEY + '_' + saved, []);
+    nurses.push(saved);
+  }
+  // If no nurses, add a default
+  if (nurses.length === 0) {
+    var name = prompt('Enter your name to get started:');
+    if (name && name.trim()) {
+      name = name.trim();
+      setData(MR_ROSTER_KEY + '_' + name, []);
+      setData(MR_ASN_KEY + '_' + name, {day:'',night:''});
+      setData(MR_APPT_KEY + '_' + name, []);
+      localStorage.setItem(MR_NURSE_KEY, name);
+      nurses.push(name);
+    } else {
+      name = 'Nurse';
+      setData(MR_ROSTER_KEY + '_' + name, []);
+      setData(MR_ASN_KEY + '_' + name, {day:'',night:''});
+      setData(MR_APPT_KEY + '_' + name, []);
+      localStorage.setItem(MR_NURSE_KEY, name);
+      nurses.push(name);
+    }
+  }
+  // Populate select
+  var sel = $('nurseSelect');
+  sel.innerHTML = nurses.map(function(n) {
+    return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+  }).join('');
+}
+
+function selectNurse() {
+  var name = $('nurseSelect').value;
+  if (!name && nurses.length) name = nurses[0];
+  if (!name) return;
+  localStorage.setItem(MR_NURSE_KEY, name);
+  render();
+}
+
+function switchNurse() {
+  selectNurse();
+}
+
+/* ── Render ── */
+function render() {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  if (!nurse && nurses.length) nurse = nurses[0];
+  if (!nurse) { $('rosterBody').innerHTML = '<tr class="empty-row"><td colspan="12">No nurse selected.</td></tr>'; return; }
+
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  var asn = getData(MR_ASN_KEY + '_' + nurse, {day:'',night:''});
+  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
+
+  // Header
+  $('headerNurse').textContent = nurse;
+  $('headerDate').textContent = todayStr();
+  $('headerShift').textContent = shiftGuess();
+  $('headerCount').textContent = roster.length + ' patients';
+  $('phNurse').textContent = nurse;
+  $('phDate').textContent = todayShort();
+  $('phShift').textContent = shiftGuess();
+  $('phCount').textContent = roster.length + ' patients';
+
+  // Summary
+  var ltc=0,ssr=0,eol=0,resp=0;
+  roster.forEach(function(p) {
+    var s = (p.specialty||'').toUpperCase();
+    if (s==='LTC') ltc++; else if (s==='SSR') ssr++; else if (s==='EOL') eol++; else if (s==='RESP') resp++;
+  });
+  $('sLTC').textContent = ltc;
+  $('sSSR').textContent = ssr;
+  $('sEOL').textContent = eol;
+  $('sResp').textContent = resp;
+  $('sTotal').textContent = roster.length;
+
+  // Roster table
+  if (roster.length === 0) {
+    $('rosterBody').innerHTML = '<tr class="empty-row"><td colspan="12">No patients. Click "+ Add" to start.</td></tr>';
+  } else {
+    roster.sort(function(a,b){return a.room.localeCompare(b.room,undefined,{numeric:true});});
+    var rhtml = '';
+    roster.forEach(function(p,i){
+      var sc = '';
+      var sp = (p.specialty||'').toUpperCase();
+      if (sp==='LTC') sc = 'border-left:3px solid #2980b9';
+      else if (sp==='SSR'||sp==='RESP') sc = 'border-left:3px solid #27ae60';
+      else if (sp==='EOL') sc = 'border-left:3px solid #8e44ad';
+      rhtml += '<tr style="' + sc + '">' +
+        '<td style="font-weight:600;color:#ffd27a">' + esc(p.room) + '</td>' +
+        '<td>' + esc(p.name) + '</td>' +
+        '<td style="text-align:center">' + esc(p.codeStatus||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.meds||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.diet||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.assistance||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.toilet||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.fsbs||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.weight||'—') + '</td>' +
+        '<td style="text-align:center;font-size:10px">' + esc(p.specialty||'—') + '</td>' +
+        '<td style="font-size:11px;white-space:pre-wrap">' + esc(p.notes||'') + '</td>' +
+        '<td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editPatient(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deletePatient(' + i + ')" title="Remove">✕</button></td></tr>';
+    });
+    $('rosterBody').innerHTML = rhtml;
+  }
+
+  // Assignments
+  $('dayAssign').textContent = asn.day || '—';
+  $('nightAssign').textContent = asn.night || '—';
+
+  // Appointments
+  if (appts.length === 0) {
+    $('apptBody').innerHTML = '<tr class="empty-row"><td colspan="5">No appointments. Click "+ Add" to schedule.</td></tr>';
+  } else {
+    appts.sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+    var ahtml = '';
+    appts.forEach(function(a,i){
+      ahtml += '<tr><td style="font-weight:600">' + esc(a.time||'—') + '</td><td>' + esc(a.patient||'—') + '</td><td>' + esc(a.location||'—') + '</td><td style="font-size:11px">' + esc(a.notes||'') + '</td><td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editAppt(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deleteAppt(' + i + ')" title="Remove">✕</button></td></tr>';
+    });
+    $('apptBody').innerHTML = ahtml;
+  }
+}
+
+/* ── Modal ── */
+function showModal(html) {
+  $('modalContent').innerHTML = html;
+  $('modalContainer').classList.remove('hidden');
+}
+function closeModal() {
+  $('modalContainer').classList.add('hidden');
+}
+
+/* ── Patient CRUD ── */
+function showAddPatient() {
+  showModal(
+    '<h2>+ Add Patient</h2>' +
+    '<div class="form-row">' +
+    '<div><label>Room</label><input id="mRoom" placeholder="101A"></div>' +
+    '<div><label>Name</label><input id="mName" placeholder="Last, First"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Code Status</label><select id="mCode"><option value="">—</option><option>Full Code</option><option>DNR</option><option>DNI</option><option>Full/DNI</option></select></div>' +
+    '<div><label>Meds</label><input id="mMeds" placeholder="e.g., PO, PEG, C/AS"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Diet</label><input id="mDiet" placeholder="Reg, Cho, Puree..."></div>' +
+    '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option></select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option><option>Bedpan</option><option>BRP</option></select></div>' +
+    '<div><label>FSBS</label><input id="mFsbs" placeholder="AC/HS, QID..."></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Weight</label><input id="mWt" placeholder="lbs/kg"></div>' +
+    '<div><label>Specialty</label><select id="mSpec"><option value="">—</option><option>LTC</option><option>SSR</option><option>EOL</option><option>Resp</option></select></div>' +
+    '</div>' +
+    '<label>Notes</label><textarea id="mNotes" rows="3"></textarea>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewPatient()">Add Patient</button></div>'
+  );
+  setTimeout(function(){ $('mRoom').focus(); }, 100);
+}
+
+function saveNewPatient() {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  var room = $('mRoom').value.trim();
+  var name = $('mName').value.trim();
+  if (!room || !name) { alert('Room and Name are required.'); return; }
+  roster.push({
+    id: Date.now(),
+    room: room,
+    name: name,
+    codeStatus: $('mCode').value,
+    meds: $('mMeds').value.trim(),
+    diet: $('mDiet').value.trim(),
+    assistance: $('mAsst').value,
+    toilet: $('mToilet').value,
+    fsbs: $('mFsbs').value.trim(),
+    weight: $('mWt').value.trim(),
+    specialty: $('mSpec').value,
+    notes: $('mNotes').value.trim()
+  });
+  setData(MR_ROSTER_KEY + '_' + nurse, roster);
+  closeModal();
+  render();
+}
+
+function editPatient(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  var p = roster[idx];
+  if (!p) return;
+  showModal(
+    '<h2>✏️ Edit Patient</h2>' +
+    '<div class="form-row">' +
+    '<div><label>Room</label><input id="mRoom" value="' + esc(p.room) + '"></div>' +
+    '<div><label>Name</label><input id="mName" value="' + esc(p.name) + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Code Status</label><select id="mCode">' + optsSel(p.codeStatus, ['','Full Code','DNR','DNI','Full/DNI']) + '</select></div>' +
+    '<div><label>Meds</label><input id="mMeds" value="' + esc(p.meds||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Diet</label><input id="mDiet" value="' + esc(p.diet||'') + '"></div>' +
+    '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','Ind','SBA','Min','Mod','Max','Dep']) + '</select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Ind','SBA','Min','Mod','Max','Dep','Bedpan','BRP']) + '</select></div>' +
+    '<div><label>FSBS</label><input id="mFsbs" value="' + esc(p.fsbs||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Weight</label><input id="mWt" value="' + esc(p.weight||'') + '"></div>' +
+    '<div><label>Specialty</label><select id="mSpec">' + optsSel(p.specialty, ['','LTC','SSR','EOL','Resp']) + '</select></div>' +
+    '</div>' +
+    '<label>Notes</label><textarea id="mNotes" rows="3">' + esc(p.notes||'') + '</textarea>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEditPatient(' + idx + ')">Save</button></div>'
+  );
+}
+
+function optsSel(val, opts) {
+  return opts.map(function(o) {
+    var sel = (o.toLowerCase() === (val||'').toLowerCase()) ? ' selected' : '';
+    return '<option value="' + esc(o) + '"' + sel + '>' + (o||'—') + '</option>';
+  }).join('');
+}
+
+function saveEditPatient(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  var p = roster[idx];
+  if (!p) return;
+  p.room = $('mRoom').value.trim();
+  p.name = $('mName').value.trim();
+  p.codeStatus = $('mCode').value;
+  p.meds = $('mMeds').value.trim();
+  p.diet = $('mDiet').value.trim();
+  p.assistance = $('mAsst').value;
+  p.toilet = $('mToilet').value;
+  p.fsbs = $('mFsbs').value.trim();
+  p.weight = $('mWt').value.trim();
+  p.specialty = $('mSpec').value;
+  p.notes = $('mNotes').value.trim();
+  setData(MR_ROSTER_KEY + '_' + nurse, roster);
+  closeModal();
+  render();
+}
+
+function deletePatient(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  var p = roster[idx];
+  if (!p) return;
+  if (!confirm('Remove ' + (p.name || 'this patient') + ' from the roster?')) return;
+  roster.splice(idx, 1);
+  setData(MR_ROSTER_KEY + '_' + nurse, roster);
+  render();
+}
+
+/* ── Assignments ── */
+function showAssignModal() {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var asn = getData(MR_ASN_KEY + '_' + nurse, {day:'',night:''});
+  showModal(
+    '<h2>📋 Shift Assignments</h2>' +
+    '<label>☀️ Day Shift</label><textarea id="mDay" rows="4">' + esc(asn.day||'') + '</textarea>' +
+    '<label>🌙 Night Shift</label><textarea id="mNight" rows="4">' + esc(asn.night||'') + '</textarea>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAssignments()">Save</button></div>'
+  );
+}
+
+function saveAssignments() {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  setData(MR_ASN_KEY + '_' + nurse, {
+    day: $('mDay').value,
+    night: $('mNight').value
+  });
+  closeModal();
+  render();
+}
+
+/* ── Appointments ── */
+function showAddAppt() {
+  showModal(
+    '<h2>+ Add Appointment</h2>' +
+    '<div class="form-row">' +
+    '<div><label>Time</label><input id="mTime" placeholder="e.g., 10:00 AM"></div>' +
+    '<div><label>Patient</label><input id="mPatient" placeholder="Patient name"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Location</label><input id="mLoc" placeholder="e.g., PT Gym, Radiology"></div>' +
+    '<div><label>Notes</label><input id="mNotes" placeholder="Optional notes"></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewAppt()">Add Appointment</button></div>'
+  );
+  setTimeout(function(){ $('mTime').focus(); }, 100);
+}
+
+function saveNewAppt() {
+  var t = $('mTime').value.trim();
+  if (!t) { alert('Time is required.'); return; }
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
+  appts.push({
+    time: t,
+    patient: $('mPatient').value.trim(),
+    location: $('mLoc').value.trim(),
+    notes: $('mNotes').value.trim()
+  });
+  setData(MR_APPT_KEY + '_' + nurse, appts);
+  closeModal();
+  render();
+}
+
+function editAppt(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
+  var a = appts[idx];
+  if (!a) return;
+  showModal(
+    '<h2>✏️ Edit Appointment</h2>' +
+    '<div class="form-row">' +
+    '<div><label>Time</label><input id="mTime" value="' + esc(a.time||'') + '"></div>' +
+    '<div><label>Patient</label><input id="mPatient" value="' + esc(a.patient||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Location</label><input id="mLoc" value="' + esc(a.location||'') + '"></div>' +
+    '<div><label>Notes</label><input id="mNotes" value="' + esc(a.notes||'') + '"></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-delete" onclick="deleteApptConfirm(' + idx + ')">Delete</button><button class="btn-save" onclick="saveEditAppt(' + idx + ')">Save</button></div>'
+  );
+}
+
+function saveEditAppt(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
+  var a = appts[idx];
+  if (!a) return;
+  a.time = $('mTime').value.trim();
+  a.patient = $('mPatient').value.trim();
+  a.location = $('mLoc').value.trim();
+  a.notes = $('mNotes').value.trim();
+  setData(MR_APPT_KEY + '_' + nurse, appts);
+  closeModal();
+  render();
+}
+
+function deleteAppt(idx) {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
+  if (!appts[idx]) return;
+  if (!confirm('Remove this appointment?')) return;
+  appts.splice(idx, 1);
+  setData(MR_APPT_KEY + '_' + nurse, appts);
+  render();
+}
+
+function deleteApptConfirm(idx) {
+  deleteAppt(idx);
+}
+
+/* ── Start ── */
+// Auth check
+if (sessionStorage.getItem('mr_auth') === '1') {
+  $('loginOverlay').classList.add('hidden');
+  init();
+} else {
+  setTimeout(function(){ $('loginPass').focus(); }, 100);
+}
+</script>
+</body>
+</html>
