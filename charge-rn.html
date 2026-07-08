@@ -85,6 +85,32 @@ body.theme-night .sidebar-tab.active {
 body.theme-night .patient-card {
   color: #cbd5e1;
 }
+body.theme-midnight {
+  background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 40%, #1a2540 70%, #0e1a2e 100%);
+  --text: #eaf0f6; --text-muted: #9fb0c2; --card: rgba(14,24,34,0.7); --border: rgba(255,255,255,0.08);
+  --bg: rgba(255,255,255,0.03); --hover-bg: rgba(255,255,255,0.06); --primary: #5b9bf0;
+}
+body.theme-midnight input, body.theme-midnight textarea, body.theme-midnight select {
+  background: rgba(10,16,24,0.55) !important; color: #eaf0f6 !important; border-color: rgba(255,255,255,0.12) !important;
+}
+body.theme-midnight input::placeholder { color: #6f8298 !important; }
+body.theme-midnight .data-table td, body.theme-midnight .data-table th { color: #eaf0f6; border-color: rgba(255,255,255,0.06); }
+body.theme-midnight .card { background: var(--card); border-color: var(--border); }
+body.theme-midnight .sidebar-tab { color: #cbd5e1; }
+body.theme-midnight .sidebar-tab.active { background: rgba(91,155,240,0.2); color: #5b9bf0; }
+body.theme-charcoal {
+  background: linear-gradient(135deg, #1a1410 0%, #2a2420 40%, #3a3430 70%, #1a1410 100%);
+  --text: #eaf0f6; --text-muted: #9fb0c2; --card: rgba(34,30,26,0.7); --border: rgba(255,255,255,0.08);
+  --bg: rgba(255,255,255,0.03); --hover-bg: rgba(255,255,255,0.06); --primary: #d4a017;
+}
+body.theme-charcoal input, body.theme-charcoal textarea, body.theme-charcoal select {
+  background: rgba(10,16,24,0.55) !important; color: #eaf0f6 !important; border-color: rgba(255,255,255,0.12) !important;
+}
+body.theme-charcoal input::placeholder { color: #6f8298 !important; }
+body.theme-charcoal .data-table td, body.theme-charcoal .data-table th { color: #eaf0f6; border-color: rgba(255,255,255,0.06); }
+body.theme-charcoal .card { background: var(--card); border-color: var(--border); }
+body.theme-charcoal .sidebar-tab { color: #cbd5e1; }
+body.theme-charcoal .sidebar-tab.active { background: rgba(212,160,23,0.2); color: #ffd27a; }
 body.theme-night .patient-card.active {
   background: #1e3a5f;
   color: #f1f5f9;
@@ -659,6 +685,8 @@ body.theme-night .patient-card.active {
 .theme-swatch.rose { background: linear-gradient(135deg, #fce7f3, #fff1f2); }
 .theme-swatch.warmth { background: linear-gradient(135deg, #fef9c3, #fef3c7); }
 .theme-swatch.night { background: linear-gradient(135deg, #1e293b, #334155); }
+.theme-swatch.midnight { background: linear-gradient(135deg, #0a1628, #1a2540); }
+.theme-swatch.charcoal { background: linear-gradient(135deg, #1a1410, #3a3430); }
 
 /* Data management */
 .data-actions {
@@ -2682,7 +2710,9 @@ const THEMES = [
   { id: 'slate', label: 'Slate', icon: '🪨' },
   { id: 'rose', label: 'Rose', icon: '🌹' },
   { id: 'warmth', label: 'Warmth', icon: '☀️' },
-  { id: 'night', label: 'Night Mode', icon: '🌙' },
+  { id: 'night', label: 'Night', icon: '🌙' },
+  { id: 'midnight', label: 'Midnight', icon: '🌌' },
+  { id: 'charcoal', label: 'Charcoal', icon: '🖤' },
 ]
 
 function showSettings() {
@@ -3623,7 +3653,13 @@ function renderWelcome() {
     {id:'forest',c:'#dcfce7'},
     {id:'lavender',c:'#f3e8ff'},
     {id:'sunset',c:'#fef3c7'},
-    {id:'night',c:'#1e293b'}
+    {id:'mint',c:'#ccfbf1'},
+    {id:'slate',c:'#e2e8f0'},
+    {id:'rose',c:'#fce7f3'},
+    {id:'warmth',c:'#fef9c3'},
+    {id:'night',c:'#334155'},
+    {id:'midnight',c:'#0f1f3a'},
+    {id:'charcoal',c:'#2a2420'}
   ];
 
   var miniThemeHtml = miniThemes.map(function(t){
