@@ -486,6 +486,7 @@ body.theme-custom {
     { name: "Morning Report",     desc: "RN Morning Report — census, assignments, appointments", icon: "📋", color: "#5b9bf0", url: "/morning-report.html" },
     { name: "CLC Scheduler",      desc: "Appointment scheduling (PHI)",                         icon: "📅", color: "#e0b94d", url: "https://clcscheduler.vercel.app" },
     { name: "Charge RN",          desc: "VA Charge RN Workstation (PHI)",                       icon: "⚕️", color: "#5b2d8e", url: "/charge-rn.html" },
+    { name: "Morning Report",    desc: "Daily census, staff & appointments",                  icon: "📋", color: "#d4a853", url: "/morning-report.html" },
     { name: "Resource Directory", desc: "Community resources & referrals",                      icon: "📚", color: "#a87bff", url: "https://jjp-resource-directory.vercel.app" },
     { name: "Treatment Sheets",   desc: "Monthly treatment & wound care records",                icon: "🩹", color: "#34c47a", url: "/treatment-sheets.html" },
   ];
@@ -732,10 +733,23 @@ body.theme-custom {
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function(e) {
-      var dataUrl = e.target.result;
-      localStorage.setItem('custom_bg', dataUrl);
-      document.body.style.setProperty('--custom-bg', 'url(' + dataUrl + ')');
-      applyTheme('custom');
+      // Scale image down to max 1920px wide for background use
+      var img = new Image();
+      img.onload = function() {
+        var MAX_W = 1920, MAX_H = 1200;
+        var w = img.width, h = img.height;
+        if (w > MAX_W) { h = h * MAX_W / w; w = MAX_W; }
+        if (h > MAX_H) { w = w * MAX_H / h; h = MAX_H; }
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        var dataUrl = c.toDataURL('image/jpeg', 0.85);
+        localStorage.setItem('custom_bg', dataUrl);
+        document.body.style.setProperty('--custom-bg', 'url(' + dataUrl + ')');
+        applyTheme('custom');
+      };
+      img.src = e.target.result;
       event.target.value = '';
     };
     reader.readAsDataURL(file);
