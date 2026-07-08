@@ -561,16 +561,16 @@ function showAddPatient() {
     '<div><label>Provider</label><input id="mProvider" placeholder="McCain, Chang" list="providerList"></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Meds</label><input id="mMeds" placeholder="e.g., PO, PEG, C/AS"></div>' +
-    '<div><label>Diet</label><input id="mDiet" placeholder="Reg, Cho, Puree..."></div>' +
+    '<div><label>Meds</label><select id="mMeds"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
+    '<div><label>Diet</label><select id="mDiet"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option></select></div>' +
-    '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option><option>Bedpan</option><option>BRP</option></select></div>' +
+    '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
+    '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Cont</option><option>Inc</option><option>Inc @ X\'s</option></select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>FSBS</label><input id="mFsbs" placeholder="AC/HS, QID..."></div>' +
-    '<div><label>Weight</label><input id="mWt" placeholder="lbs/kg"></div>' +
+    '<div><label>Weight</label><select id="mWt"><option value="">—</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Standing</option><option>Ceiling</option><option>Bed</option></select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Specialty</label><select id="mSpec"><option value="">—</option><option>LTC</option><option>SSR</option><option>EOL</option><option>Resp</option></select></div>' +
@@ -622,16 +622,16 @@ function editPatient(idx) {
     '<div><label>Provider</label><input id="mProvider" value="' + esc(p.provider||'') + '" list="providerList"></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Meds</label><input id="mMeds" value="' + esc(p.meds||'') + '"></div>' +
-    '<div><label>Diet</label><input id="mDiet" value="' + esc(p.diet||'') + '"></div>' +
+    '<div><label>Meds</label><select id="mMeds">' + optsSel(p.meds, ['','SBA','1','2','1-2']) + '</select></div>' +
+    '<div><label>Diet</label><select id="mDiet">' + optsSel(p.diet, ['','SBA','1','2','1-2']) + '</select></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','Ind','SBA','Min','Mod','Max','Dep']) + '</select></div>' +
-    '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Ind','SBA','Min','Mod','Max','Dep','Bedpan','BRP']) + '</select></div>' +
+    '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','SBA','1','2','1-2']) + '</select></div>' +
+    '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Cont','Inc','Inc @ X\'s']) + '</select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>FSBS</label><input id="mFsbs" value="' + esc(p.fsbs||'') + '"></div>' +
-    '<div><label>Weight</label><input id="mWt" value="' + esc(p.weight||'') + '"></div>' +
+    '<div><label>Weight</label><select id="mWt">' + optsSel(p.weight, ['','Daily','Weekly','Monthly','Standing','Ceiling','Bed']) + '</select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Specialty</label><select id="mSpec">' + optsSel(p.specialty, ['','LTC','SSR','EOL','Resp']) + '</select></div>' +
