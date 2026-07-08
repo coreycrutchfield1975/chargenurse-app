@@ -69,15 +69,26 @@
   #sheetView { display: none; }
   #sheetView.active { display: block; }
   .patient-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-  .patient-card {
+  .patient-card { 
     background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
     border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; cursor: pointer;
-    transition: transform 0.12s, border-color 0.12s;
+    transition: transform 0.12s, border-color 0.12s; position: relative; overflow: hidden;
   }
   .patient-card:hover { transform: translateY(-2px); border-color: #d4a017; }
   .patient-card .name { font-size: 15px; font-weight: 700; color: #ffe1a3; }
   .patient-card .info { font-size: 12px; color: #9fb0c2; margin-top: 4px; }
   .patient-card .count { font-size: 11px; color: #6f8298; margin-top: 6px; }
+  .patient-card .type-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    padding: 2px 10px; border-radius: 10px; margin-bottom: 6px;
+  }
+  .patient-card .type-badge.licensed { background: rgba(91,59,142,0.3); color: #c4a0ff; border: 1px solid rgba(91,59,142,0.5); }
+  .patient-card .type-badge.non-licensed { background: rgba(52,196,122,0.2); color: #6ee7a0; border: 1px solid rgba(52,196,122,0.4); }
+  .patient-card .type-stripe {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  }
+  .patient-card .type-stripe.licensed { background: linear-gradient(180deg, #7c3aed, #5b2d8e); }
+  .patient-card .type-stripe.non-licensed { background: linear-gradient(180deg, #34c47a, #1a8a4a); }
   .patient-card .del {
     float: right; color: #ff8a7a; cursor: pointer; font-size: 16px; background: none; border: none;
   }
@@ -180,6 +191,24 @@
   }
   #printHeader { display: none; }
 
+  /* ── Sheet type title bar ── */
+  #sheetTypeBar {
+    padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px;
+  }
+  #sheetTypeBar.licensed { background: linear-gradient(135deg, rgba(91,59,142,0.35), rgba(60,30,100,0.5)); border: 1px solid rgba(91,59,142,0.4); }
+  #sheetTypeBar.non-licensed { background: linear-gradient(135deg, rgba(52,196,122,0.2), rgba(26,138,74,0.35)); border: 1px solid rgba(52,196,122,0.3); }
+  #sheetTypeBar .icon { font-size: 36px; line-height: 1; }
+  #sheetTypeBar .info h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  #sheetTypeBar.licensed .info h2 { color: #c4a0ff; }
+  #sheetTypeBar.non-licensed .info h2 { color: #6ee7a0; }
+  #sheetTypeBar .info p { margin: 2px 0 0; font-size: 11px; color: #9fb0c2; }
+  @media print {
+    #sheetTypeBar { padding: 10px 14px; border: 2px solid #000 !important; background: #f8f8f8 !important; }
+    #sheetTypeBar .info h2 { font-size: 18px; }
+    #sheetTypeBar.licensed .info h2 { color: #5b2d8e !important; }
+    #sheetTypeBar.non-licensed .info h2 { color: #1a8a4a !important; }
+  }
+
   @media (max-width: 640px) {
     #header { padding: 8px 12px; }
     #header h1 { font-size: 15px; }
@@ -211,6 +240,9 @@
   <div class="header-actions">
     <select id="nurseSelect" onchange="switchNurse()"></select>
     <button id="backBtn" style="display:none" onclick="showPatientList()">← Patients</button>
+    <button onclick="exportCSV()">⬇ Export</button>
+    <button onclick="document.getElementById('importFile').click()">⬆ Import</button>
+    <input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(event)">
     <button class="btn-gold" onclick="window.print()">🖨️ Print</button>
     <button onclick="logout()">Logout</button>
   </div>
@@ -236,6 +268,13 @@
 
   <!-- Sheet view -->
   <div id="sheetView">
+    <div id="sheetTypeBar">
+      <div class="icon" id="stIcon">🩺</div>
+      <div class="info">
+        <h2 id="stTitle">LICENSED TREATMENT RECORD</h2>
+        <p id="stSub">Monthly treatment &amp; wound care documentation</p>
+      </div>
+    </div>
     <div id="patientInfo">
       <span class="label">Veteran:</span><span class="val" id="piName">—</span>
       <span class="label">Room:</span><span class="val" id="piRoom">—</span>
@@ -371,8 +410,12 @@ function showPatientList() {
   grid.innerHTML = keys.sort().map(function(id) {
     var p = patients[id];
     var txCount = (p.treatments||[]).length;
+    var type = p.sheetType === 'non-licensed' ? 'non-licensed' : 'licensed';
+    var typeLabel = type === 'licensed' ? '🩺 LICENSED' : '🫂 NON-LICENSED';
     return '<div class="patient-card" onclick="openSheet(\'' + esc(id) + '\')">' +
+      '<div class="type-stripe ' + type + '"></div>' +
       '<button class="del no-print" onclick="event.stopPropagation();deletePatient(\'' + esc(id) + '\')">✕</button>' +
+      '<div class="type-badge ' + type + '">' + typeLabel + '</div>' +
       '<div class="name">' + esc(p.name||'?') + '</div>' +
       '<div class="info">Rm ' + esc(p.room||'—') + ' · ' + esc(p.northSouth||'—') + ' · ' + esc(p.provider||'—') + '</div>' +
       '<div class="count">' + txCount + ' treatment' + (txCount!==1?'s':'') + ' · ' + esc(p.month||'?') + ' ' + esc(p.year||'') + '</div></div>';
@@ -393,6 +436,9 @@ function showAddPatient() {
   var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   showModal(
     '<h2>+ Add Patient</h2>' +
+    '<div class="form-row">' +
+    '<div class="full" style="margin-bottom:4px"><label>Sheet Type</label><select id="mType" style="font-size:14px;font-weight:700;padding:10px"><option value="licensed">🩺 Licensed Treatment Record</option><option value="non-licensed">🫂 Non-Licensed Treatment Record</option></select></div>' +
+    '</div>' +
     '<div class="form-row">' +
     '<div class="full"><label>Veteran Name</label><input id="mName" placeholder="Last, First"></div>' +
     '</div>' +
@@ -423,6 +469,7 @@ function saveNewPatient() {
   var patients = getPatients();
   var id = Date.now() + '';
   patients[id] = {
+    sheetType: $('mType').value,
     name: name,
     room: $('mRoom').value.trim(),
     northSouth: $('mNs').value,
@@ -455,6 +502,9 @@ function editPatientInfo() {
   showModal(
     '<h2>✏️ Patient Info</h2>' +
     '<div class="form-row">' +
+    '<div class="full" style="margin-bottom:4px"><label>Sheet Type</label><select id="mType" style="font-size:14px;font-weight:700;padding:10px">' + optsSel(p.sheetType||'licensed', ['licensed','non-licensed']) + '</select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
     '<div class="full"><label>Veteran Name</label><input id="mName" value="' + esc(p.name) + '"></div>' +
     '</div>' +
     '<div class="form-row">' +
@@ -481,6 +531,7 @@ function saveEditPatient() {
   var patients = getPatients();
   var p = patients[currentPatientId];
   if (!p) return;
+  p.sheetType = $('mType').value;
   p.name = $('mName').value.trim();
   p.room = $('mRoom').value.trim();
   p.northSouth = $('mNs').value;
@@ -507,6 +558,16 @@ function renderSheet() {
   var patients = getPatients();
   var p = patients[currentPatientId];
   if (!p) { showPatientList(); return; }
+
+  // Sheet type bar
+  var type = p.sheetType === 'non-licensed' ? 'non-licensed' : 'licensed';
+  var typeIcon = type === 'licensed' ? '🩺' : '🫂';
+  var typeTitle = type === 'licensed' ? 'LICENSED TREATMENT RECORD' : 'NON-LICENSED TREATMENT RECORD';
+  var typeSub = type === 'licensed' ? 'Monthly treatment &amp; wound care documentation · Licensed Staff (RN/LPN)' : 'Monthly treatment &amp; wound care documentation · Non-Licensed Staff (CNA/PCT)';
+  $('sheetTypeBar').className = type;
+  $('stIcon').textContent = typeIcon;
+  $('stTitle').textContent = typeTitle;
+  $('stSub').innerHTML = typeSub;
 
   // Patient info bar
   $('piName').textContent = p.name||'—';
@@ -671,6 +732,113 @@ function showModal(html) {
 }
 function closeModal() {
   $('modalContainer').classList.add('hidden');
+}
+
+/* ── CSV Export/Import ── */
+function exportCSV() {
+  var patients = getPatients();
+  var keys = Object.keys(patients);
+  if (!keys.length) { alert('No patients to export.'); return; }
+  var csv = 'SheetType,Name,Room,NorthSouth,Allergies,NKA,Provider,Month,Year,TreatmentDesc,Shift,OrderStart,OrderStop,Days\n';
+  keys.forEach(function(id) {
+    var p = patients[id];
+    var txs = p.treatments || [];
+    if (txs.length === 0) {
+      csv += '"' + (p.sheetType||'licensed') + '","' + (p.name||'') + '","' + (p.room||'') + '","' + (p.northSouth||'') + '","' + (p.allergies||'') + '","' + (p.nka?'Yes':'') + '","' + (p.provider||'') + '","' + (p.month||'') + '","' + (p.year||'') + '","","","",""\n';
+    } else {
+      txs.forEach(function(tx) {
+        var days = '';
+        if (tx.days) {
+          var dayNums = Object.keys(tx.days).filter(function(d){return tx.days[d];}).sort(function(a,b){return a-b;});
+          days = dayNums.join(';');
+        }
+        csv += '"' + (p.sheetType||'licensed') + '","' + (p.name||'') + '","' + (p.room||'') + '","' + (p.northSouth||'') + '","' + (p.allergies||'') + '","' + (p.nka?'Yes':'') + '","' + (p.provider||'') + '","' + (p.month||'') + '","' + (p.year||'') + '","' + (tx.desc||'') + '","' + (tx.shift||'') + '","' + (tx.start||'') + '","' + (tx.stop||'') + '","' + days + '"\n';
+      });
+    }
+  });
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Treatment_Sheets_' + currentNurse + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function importCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split('\n').filter(function(l){return l.trim();});
+    if (lines.length < 2) { alert('Empty file.'); return; }
+    var patients = getPatients();
+    // Track which patient we're on - first column (Name) + SheetType is the key
+    var currentPatient = null;
+    var header = lines[0].split(',').map(function(c){return c.replace(/^"|"$/g,'').trim();});
+    for (var i=1; i<lines.length; i++) {
+      var cols = lines[i].split(',').map(function(c){return c.replace(/^"|"$/g,'').trim();});
+      if (cols.length < 4) continue;
+      var sheetType = cols[0]||'licensed';
+      var name = cols[1];
+      var room = cols[2];
+      // Check if this is a new patient or same patient
+      var patientKey = name + '|' + room + '|' + sheetType;
+      if (!currentPatient || currentPatient.key !== patientKey) {
+        // Find existing or create new
+        var found = null;
+        Object.keys(patients).forEach(function(id) {
+          var p = patients[id];
+          if (p.name === name && p.room === room && (p.sheetType||'licensed') === sheetType) found = id;
+        });
+        if (found) {
+          currentPatient = {id: found, key: patientKey};
+        } else {
+          var newId = Date.now() + i + '';
+          patients[newId] = {
+            sheetType: sheetType,
+            name: name || 'Imported',
+            room: room || '',
+            northSouth: cols[3]||'',
+            allergies: cols[4]||'',
+            nka: cols[5]==='Yes',
+            provider: cols[6]||'',
+            month: cols[7]||'',
+            year: cols[8]||'',
+            treatments: []
+          };
+          currentPatient = {id: newId, key: patientKey};
+        }
+      }
+      // Add treatment if description exists
+      var desc = cols[9];
+      if (desc && currentPatient) {
+        var p = patients[currentPatient.id];
+        if (p) {
+          if (!p.treatments) p.treatments = [];
+          var tx = {
+            desc: desc,
+            shift: cols[10]||'Day',
+            start: cols[11]||'',
+            stop: cols[12]||'',
+            days: {}
+          };
+          // Parse days
+          if (cols[13]) {
+            cols[13].split(';').forEach(function(d) {
+              var day = parseInt(d.trim());
+              if (day > 0 && day < 32) tx.days[day] = true;
+            });
+          }
+          p.treatments.push(tx);
+        }
+      }
+    }
+    setPatients(patients);
+    event.target.value = '';
+    showPatientList();
+    alert('Import complete.');
+  };
+  reader.readAsText(file);
 }
 
 /* ── Start ── */
