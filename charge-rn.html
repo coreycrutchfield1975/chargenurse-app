@@ -1342,7 +1342,6 @@ body.theme-night .patient-card.active {
       <button class="sidebar-tab" data-tab="transfer" onclick="switchTab('transfer')" role="tab"><span class="tab-icon">📦</span> Transfer</button>
       <button class="sidebar-tab" data-tab="admission" onclick="switchTab('admission')" role="tab"><span class="tab-icon">📋</span> Admission</button>
       <button class="sidebar-tab" data-tab="cnatasks" onclick="switchTab('cnatasks')" role="tab"><span class="tab-icon">🧑‍⚕️</span> CNA Tasks</button>
-      <button class="sidebar-tab" data-tab="morningreport" onclick="switchTab('morningreport')" role="tab"><span class="tab-icon">📋</span> Morning Rpt</button>
       <button class="sidebar-tab" data-tab="appointments" onclick="switchTab('appointments')" role="tab"><span class="tab-icon">📅</span> Appointments</button>
       <button class="sidebar-tab" data-tab="directives" onclick="switchTab('directives')" role="tab"><span class="tab-icon">📚</span> Directives</button>
       <button class="sidebar-tab" data-tab="monthly" onclick="switchTab('monthly')" role="tab"><span class="tab-icon">📊</span> Monthly</button>
@@ -3111,7 +3110,6 @@ function renderUnitView(tab) {
     case 'directives': return renderDirectives();
     case 'admission': return renderUnitAdmission();
     case 'cnatasks': return renderUnitCnaTasks();
-    case 'morningreport': return renderMorningReport();
     case 'appointments': return renderUnitAppointments();
     case 'monthly': return renderMonthlyReport();
     case 'labs': return renderUnitLabs();
