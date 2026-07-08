@@ -1341,7 +1341,6 @@ body.theme-night .patient-card.active {
       <button class="sidebar-tab" data-tab="sbar" onclick="switchTab('sbar')" role="tab"><span class="tab-icon">📞</span> SBAR</button>
       <button class="sidebar-tab" data-tab="transfer" onclick="switchTab('transfer')" role="tab"><span class="tab-icon">📦</span> Transfer</button>
       <button class="sidebar-tab" data-tab="admission" onclick="switchTab('admission')" role="tab"><span class="tab-icon">📋</span> Admission</button>
-      <button class="sidebar-tab" data-tab="cnatasks" onclick="switchTab('cnatasks')" role="tab"><span class="tab-icon">🧑‍⚕️</span> CNA Tasks</button>
       <button class="sidebar-tab" data-tab="appointments" onclick="switchTab('appointments')" role="tab"><span class="tab-icon">📅</span> Appointments</button>
       <button class="sidebar-tab" data-tab="directives" onclick="switchTab('directives')" role="tab"><span class="tab-icon">📚</span> Directives</button>
       <button class="sidebar-tab" data-tab="monthly" onclick="switchTab('monthly')" role="tab"><span class="tab-icon">📊</span> Monthly</button>
@@ -2016,7 +2015,6 @@ function renderContent() {
           adls: renderADLs,
           appointments: renderAppointments,
           labs: renderLabs,
-          cnatasks: renderCnaTasksPatient
         };
         var fn = patientTabs[currentTab];
         if (fn) {
@@ -3069,7 +3067,6 @@ function renderUnitView(tab) {
     case 'transfer': return renderUnitTransfer();
     case 'directives': return renderDirectives();
     case 'admission': return renderUnitAdmission();
-    case 'cnatasks': return renderUnitCnaTasks();
     case 'appointments': return renderUnitAppointments();
     case 'monthly': return renderMonthlyReport();
     case 'labs': return renderUnitLabs();
@@ -3553,7 +3550,7 @@ function printPatient() {
   // Determine title
   var title = 'VA Charge RN Workstation';
   if (currentView === 'unit') {
-    var tabNames = {overview:'Unit Overview',bath:'Bath Schedule',vitals:'Vitals',fsbs:'Blood Sugar Log',neuro:'Neuro Checks',bm:'BM Log',skin:'Skin Assessments',weights:'Weight Log',postfall:'Post-Fall',oral:'Oral Care',sbar:'SBAR',transfer:'Transfer',directives:'Directives',admission:'Admission Assessment',cnatasks:'CNA Tasks',appointments:'Appointments',monthly:'Monthly Report',labs:'Labs',census:'Census',adls:'ADLs',report:'Shift Report',clinic:'Clinic View'};
+    var tabNames = {overview:'Unit Overview',bath:'Bath Schedule',vitals:'Vitals',fsbs:'Blood Sugar Log',neuro:'Neuro Checks',bm:'BM Log',skin:'Skin Assessments',weights:'Weight Log',postfall:'Post-Fall',oral:'Oral Care',sbar:'SBAR',transfer:'Transfer',directives:'Directives',admission:'Admission Assessment',appointments:'Appointments',monthly:'Monthly Report',labs:'Labs',census:'Census',adls:'ADLs',report:'Shift Report',clinic:'Clinic View'};
     title = (tabNames[currentTab] || currentTab) + ' — Unit View';
   } else if (selectedPatientId) {
     var p = getPatient(selectedPatientId);
