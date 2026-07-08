@@ -126,6 +126,7 @@
   .modal textarea { resize: vertical; min-height: 40px; }
   .modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .modal .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .modal .form-group { display: flex; flex-direction: column; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
   .modal-actions button { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; }
   .modal-actions .btn-cancel { background: rgba(255,255,255,0.08); color: #9fb0c2; }
@@ -330,6 +331,24 @@ var MR_NURSE_KEY = 'mr_nurse';
 function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
 
+function renderAssign(a) {
+  if (!a || typeof a !== 'object') return '—';
+  var lines = [];
+  if (a.charge) lines.push('Charge: ' + a.charge);
+  if (a.northMeds) lines.push('N Meds: ' + a.northMeds);
+  if (a.southMeds) lines.push('S Meds: ' + a.southMeds);
+  if (a.northB1 || a.northB2 || a.northB3) {
+    var nBlocks = [a.northB1, a.northB2, a.northB3].filter(Boolean).join(', ');
+    if (nBlocks) lines.push('N Care: ' + nBlocks);
+  }
+  if (a.southB1 || a.southB2 || a.southB3) {
+    var sBlocks = [a.southB1, a.southB2, a.southB3].filter(Boolean).join(', ');
+    if (sBlocks) lines.push('S Care: ' + sBlocks);
+  }
+  if (a.float) lines.push('Float: ' + a.float);
+  return lines.length ? lines.join('<br>') : '—';
+}
+
 function getData(key, def) {
   try { var d=JSON.parse(localStorage.getItem(key)); return d!==null?d:def; } catch(e) { return def; }
 }
@@ -394,7 +413,7 @@ function loadNurses() {
   if (saved && nurses.indexOf(saved) < 0) {
     // Create empty roster for this nurse
     setData(MR_ROSTER_KEY + '_' + saved, []);
-    setData(MR_ASN_KEY + '_' + saved, {day:'',night:''});
+    setData(MR_ASN_KEY + '_' + saved, {day:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''},night:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''}});
     setData(MR_APPT_KEY + '_' + saved, []);
     nurses.push(saved);
   }
@@ -404,14 +423,14 @@ function loadNurses() {
     if (name && name.trim()) {
       name = name.trim();
       setData(MR_ROSTER_KEY + '_' + name, []);
-      setData(MR_ASN_KEY + '_' + name, {day:'',night:''});
+      setData(MR_ASN_KEY + '_' + name, {day:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''},night:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''}});
       setData(MR_APPT_KEY + '_' + name, []);
       localStorage.setItem(MR_NURSE_KEY, name);
       nurses.push(name);
     } else {
       name = 'Nurse';
       setData(MR_ROSTER_KEY + '_' + name, []);
-      setData(MR_ASN_KEY + '_' + name, {day:'',night:''});
+      setData(MR_ASN_KEY + '_' + name, {day:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''},night:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''}});
       setData(MR_APPT_KEY + '_' + name, []);
       localStorage.setItem(MR_NURSE_KEY, name);
       nurses.push(name);
@@ -499,8 +518,10 @@ function render() {
   }
 
   // Assignments
-  $('dayAssign').textContent = asn.day || '—';
-  $('nightAssign').textContent = asn.night || '—';
+  var day = typeof asn.day === 'string' ? asn.day : renderAssign(asn.day);
+  var night = typeof asn.night === 'string' ? asn.night : renderAssign(asn.night);
+  $('dayAssign').innerHTML = day || '—';
+  $('nightAssign').innerHTML = night || '—';
 
   // Appointments
   if (appts.length === 0) {
@@ -659,20 +680,86 @@ function deletePatient(idx) {
 /* ── Assignments ── */
 function showAssignModal() {
   var nurse = localStorage.getItem(MR_NURSE_KEY);
-  var asn = getData(MR_ASN_KEY + '_' + nurse, {day:'',night:''});
+  var asn = getData(MR_ASN_KEY + '_' + nurse, {day:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''},night:{charge:'',northMeds:'',southMeds:'',northB1:'',northB2:'',northB3:'',southB1:'',southB2:'',southB3:'',float:''}});
+  // Migrate old format {day:'string',night:'string'} to new format
+  if (typeof asn.day === 'string') { asn.day = {charge:asn.day}; }
+  if (typeof asn.night === 'string') { asn.night = {charge:asn.night}; }
   showModal(
     '<h2>📋 Shift Assignments</h2>' +
-    '<label>☀️ Day Shift</label><textarea id="mDay" rows="4">' + esc(asn.day||'') + '</textarea>' +
-    '<label>🌙 Night Shift</label><textarea id="mNight" rows="4">' + esc(asn.night||'') + '</textarea>' +
-    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAssignments()">Save</button></div>'
+    '<div style="margin-bottom:12px">' +
+    '<div style="font-size:14px;font-weight:700;color:#ffe1a3;margin-bottom:8px">☀️ Day Shift</div>' +
+    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Charge Nurse</label><input id="mDayCharge" value="' + esc(asn.day.charge||'') + '"></div></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>North Meds</label><input id="mDayNorthMeds" value="' + esc(asn.day.northMeds||'') + '"></div>' +
+    '<div class="form-group"><label>South Meds</label><input id="mDaySouthMeds" value="' + esc(asn.day.southMeds||'') + '"></div>' +
+    '</div>' +
+    '<div style="font-size:11px;font-weight:600;color:#9fb0c2;margin:6px 0 4px">North PT Care</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Block 1</label><input id="mDayNorthB1" value="' + esc(asn.day.northB1||'') + '"></div>' +
+    '<div class="form-group"><label>Block 2</label><input id="mDayNorthB2" value="' + esc(asn.day.northB2||'') + '"></div>' +
+    '<div class="form-group"><label>Block 3</label><input id="mDayNorthB3" value="' + esc(asn.day.northB3||'') + '"></div>' +
+    '</div>' +
+    '<div style="font-size:11px;font-weight:600;color:#9fb0c2;margin:6px 0 4px">South PT Care</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Block 1</label><input id="mDaySouthB1" value="' + esc(asn.day.southB1||'') + '"></div>' +
+    '<div class="form-group"><label>Block 2</label><input id="mDaySouthB2" value="' + esc(asn.day.southB2||'') + '"></div>' +
+    '<div class="form-group"><label>Block 3</label><input id="mDaySouthB3" value="' + esc(asn.day.southB3||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Float</label><input id="mDayFloat" value="' + esc(asn.day.float||'') + '"></div></div>' +
+    '</div>' +
+    '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:12px 0">' +
+    '<div style="margin-bottom:12px">' +
+    '<div style="font-size:14px;font-weight:700;color:#ffe1a3;margin-bottom:8px">🌙 Night Shift</div>' +
+    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Charge Nurse</label><input id="mNightCharge" value="' + esc(asn.night.charge||'') + '"></div></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>North Meds</label><input id="mNightNorthMeds" value="' + esc(asn.night.northMeds||'') + '"></div>' +
+    '<div class="form-group"><label>South Meds</label><input id="mNightSouthMeds" value="' + esc(asn.night.southMeds||'') + '"></div>' +
+    '</div>' +
+    '<div style="font-size:11px;font-weight:600;color:#9fb0c2;margin:6px 0 4px">North PT Care</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Block 1</label><input id="mNightNorthB1" value="' + esc(asn.night.northB1||'') + '"></div>' +
+    '<div class="form-group"><label>Block 2</label><input id="mNightNorthB2" value="' + esc(asn.night.northB2||'') + '"></div>' +
+    '<div class="form-group"><label>Block 3</label><input id="mNightNorthB3" value="' + esc(asn.night.northB3||'') + '"></div>' +
+    '</div>' +
+    '<div style="font-size:11px;font-weight:600;color:#9fb0c2;margin:6px 0 4px">South PT Care</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Block 1</label><input id="mNightSouthB1" value="' + esc(asn.night.southB1||'') + '"></div>' +
+    '<div class="form-group"><label>Block 2</label><input id="mNightSouthB2" value="' + esc(asn.night.southB2||'') + '"></div>' +
+    '<div class="form-group"><label>Block 3</label><input id="mNightSouthB3" value="' + esc(asn.night.southB3||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Float</label><input id="mNightFloat" value="' + esc(asn.night.float||'') + '"></div></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAssignments()">Save Assignments</button></div>'
   );
 }
 
 function saveAssignments() {
   var nurse = localStorage.getItem(MR_NURSE_KEY);
   setData(MR_ASN_KEY + '_' + nurse, {
-    day: $('mDay').value,
-    night: $('mNight').value
+    day: {
+      charge: $('mDayCharge').value.trim(),
+      northMeds: $('mDayNorthMeds').value.trim(),
+      southMeds: $('mDaySouthMeds').value.trim(),
+      northB1: $('mDayNorthB1').value.trim(),
+      northB2: $('mDayNorthB2').value.trim(),
+      northB3: $('mDayNorthB3').value.trim(),
+      southB1: $('mDaySouthB1').value.trim(),
+      southB2: $('mDaySouthB2').value.trim(),
+      southB3: $('mDaySouthB3').value.trim(),
+      float: $('mDayFloat').value.trim()
+    },
+    night: {
+      charge: $('mNightCharge').value.trim(),
+      northMeds: $('mNightNorthMeds').value.trim(),
+      southMeds: $('mNightSouthMeds').value.trim(),
+      northB1: $('mNightNorthB1').value.trim(),
+      northB2: $('mNightNorthB2').value.trim(),
+      northB3: $('mNightNorthB3').value.trim(),
+      southB1: $('mNightSouthB1').value.trim(),
+      southB2: $('mNightSouthB2').value.trim(),
+      southB3: $('mNightSouthB3').value.trim(),
+      float: $('mNightFloat').value.trim()
+    }
   });
   closeModal();
   render();
