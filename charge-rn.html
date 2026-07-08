@@ -2751,46 +2751,6 @@ function renderSettings() {
         <input type="text" value="${s.nurseName || ''}" onchange="updateSetting('nurseName',this.value)" placeholder="e.g., Brooks, RN">
       </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
-      <div class="card-title" style="font-size:14px">📋 Day Shift Assignments</div>
-      <div class="form-row"><div class="form-group"><label>Charge Nurse</label><input type="text" value="${s.assignDayCharge||''}" onchange="updateSetting('assignDayCharge',this.value)"></div></div>
-      <div class="form-row">
-        <div class="form-group"><label>North Meds</label><input type="text" value="${s.assignDayNorthMeds||''}" onchange="updateSetting('assignDayNorthMeds',this.value)"></div>
-        <div class="form-group"><label>South Meds</label><input type="text" value="${s.assignDaySouthMeds||''}" onchange="updateSetting('assignDaySouthMeds',this.value)"></div>
-      </div>
-      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">North PT Care</div>
-      <div class="form-row">
-        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignDayNorthB1||''}" onchange="updateSetting('assignDayNorthB1',this.value)"></div>
-        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignDayNorthB2||''}" onchange="updateSetting('assignDayNorthB2',this.value)"></div>
-        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignDayNorthB3||''}" onchange="updateSetting('assignDayNorthB3',this.value)"></div>
-      </div>
-      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">South PT Care</div>
-      <div class="form-row">
-        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignDaySouthB1||''}" onchange="updateSetting('assignDaySouthB1',this.value)"></div>
-        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignDaySouthB2||''}" onchange="updateSetting('assignDaySouthB2',this.value)"></div>
-        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignDaySouthB3||''}" onchange="updateSetting('assignDaySouthB3',this.value)"></div>
-      </div>
-      <div class="form-row"><div class="form-group"><label>Float</label><input type="text" autocomplete="off" value="${s.assignDayFloat||''}" onchange="updateSetting('assignDayFloat',this.value)"></div></div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
-      <div class="card-title" style="font-size:14px">🌙 Night Shift Assignments</div>
-      <div class="form-row"><div class="form-group"><label>Charge Nurse</label><input type="text" value="${s.assignNightCharge||''}" onchange="updateSetting('assignNightCharge',this.value)"></div></div>
-      <div class="form-row">
-        <div class="form-group"><label>North Meds</label><input type="text" value="${s.assignNightNorthMeds||''}" onchange="updateSetting('assignNightNorthMeds',this.value)"></div>
-        <div class="form-group"><label>South Meds</label><input type="text" value="${s.assignNightSouthMeds||''}" onchange="updateSetting('assignNightSouthMeds',this.value)"></div>
-      </div>
-      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">North PT Care</div>
-      <div class="form-row">
-        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignNightNorthB1||''}" onchange="updateSetting('assignNightNorthB1',this.value)"></div>
-        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignNightNorthB2||''}" onchange="updateSetting('assignNightNorthB2',this.value)"></div>
-        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignNightNorthB3||''}" onchange="updateSetting('assignNightNorthB3',this.value)"></div>
-      </div>
-      <div style="font-size:12px;font-weight:600;margin:8px 0 4px;color:var(--text-muted)">South PT Care</div>
-      <div class="form-row">
-        <div class="form-group"><label>Block 1</label><input type="text" value="${s.assignNightSouthB1||''}" onchange="updateSetting('assignNightSouthB1',this.value)"></div>
-        <div class="form-group"><label>Block 2</label><input type="text" value="${s.assignNightSouthB2||''}" onchange="updateSetting('assignNightSouthB2',this.value)"></div>
-        <div class="form-group"><label>Block 3</label><input type="text" value="${s.assignNightSouthB3||''}" onchange="updateSetting('assignNightSouthB3',this.value)"></div>
-      </div>
-      <div class="form-row"><div class="form-group"><label>Float</label><input type="text" value="${s.assignNightFloat||''}" autocomplete="off" onchange="updateSetting('assignNightFloat',this.value)"></div></div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
       <div style="font-size:14px;font-weight:600;margin-bottom:10px">🎨 Choose Your Background Theme</div>
       <div class="theme-grid">
         ${THEMES.map(t => `
