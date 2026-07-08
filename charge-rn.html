@@ -1328,7 +1328,6 @@ body.theme-night .patient-card.active {
     <!-- Sidebar tabs -->
     <div class="sidebar-tabs" id="sidebarTabs" role="tablist">
       <div class="sidebar-tabs-label">📋 Tabs</div>
-      <button class="sidebar-tab" data-tab="report" onclick="switchTab('report')" role="tab"><span class="tab-icon">📄</span> Report</button>
       <button class="sidebar-tab" data-tab="overview" onclick="switchTab('overview')" role="tab"><span class="tab-icon">📋</span> Overview</button>
       <button class="sidebar-tab" data-tab="bath" onclick="switchTab('bath')" role="tab"><span class="tab-icon">🛁</span> Bath</button>
       <button class="sidebar-tab" data-tab="vitals" onclick="switchTab('vitals')" role="tab"><span class="tab-icon">❤️</span> Vitals</button>
@@ -3118,7 +3117,6 @@ function renderUnitView(tab) {
     case 'labs': return renderUnitLabs();
     case 'census': return renderCensus();
     case 'adls': return renderUnitADLs();
-    case 'report': return renderUnitReport();
     case 'clinic': return renderClinicView();
     default: return renderUnitOverview();
   }
