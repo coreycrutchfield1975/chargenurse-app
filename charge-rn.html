@@ -3579,6 +3579,35 @@ function getGreeting() {
   return GREETINGS[day % GREETINGS.length];
 }
 
+// ============== DUE TODAY ==============
+function getDueTodayHtml() {
+  var today = new Date().toISOString().slice(0,10);
+  var daysOfWeek = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  var dayName = daysOfWeek[new Date().getDay()];
+  var items = [];
+  data.patients.forEach(function(p){
+    // Labs due today or overdue
+    if (p.labsDue) {
+      if (p.labsDue === today) items.push({room:p.room,name:p.name,icon:'🔬',text:'Labs due today'});
+      else if (p.labsDue < today) items.push({room:p.room,name:p.name,icon:'🔬',text:'Labs overdue (' + p.labsDue + ')'});
+    }
+    // Bath day today
+    if (p.bathDays) {
+      var days = p.bathDays.toLowerCase().split(/[,\s]+/);
+      if (days.indexOf(dayName) >= 0) items.push({room:p.room,name:p.name,icon:'🛁',text:'Bath day'});
+    }
+  });
+  items.sort(function(a,b){return a.room.localeCompare(b.room,undefined,{numeric:true});});
+  if (!items.length) return '<div style="font-size:12px;color:#6f8298;padding:8px 0">No items due today — all clear ✨</div>';
+  return items.map(function(i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04)">' +
+      '<span style="font-weight:600;color:#ffd27a;min-width:36px">' + i.room + '</span>' +
+      '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + i.name.split(',')[0] + '</span>' +
+      '<span>' + i.icon + '</span>' +
+      '<span style="color:#9fb0c2;font-size:11px">' + i.text + '</span></div>';
+  }).join('');
+}
+
 // ============== WELCOME / HOME SCREEN ==============
 function renderWelcome() {
   var patientCount = data.patients.length;
@@ -3626,6 +3655,12 @@ function renderWelcome() {
       '<div class="stat-card"><div class="num" style="color:#27ae60">' + ssrCount + '</div><div class="lbl">SSR</div></div>' +
       '<div class="stat-card"><div class="num" style="color:#e67e22">' + respCount + '</div><div class="lbl">Respites</div></div>' +
       '<div class="stat-card"><div class="num" style="color:#8e44ad">' + eolCount + '</div><div class="lbl">EOL</div></div>' +
+    '</div>' +
+
+    '<!-- Due Today -->' +
+    '<div class="due-today">' +
+      '<div style="font-size:13px;font-weight:700;color:#ffe1a3;margin:16px 0 8px;border-bottom:1px solid rgba(212,160,23,0.3);padding-bottom:4px">⚡ Due Today</div>' +
+      getDueTodayHtml() +
     '</div>' +
 
     '<div style="text-align:center;margin-top:12px">' +
