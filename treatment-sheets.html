@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treatment Sheets · CLC</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩹</text></svg>">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: #eaf0f6;
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
+    display: flex; flex-direction: column;
+  }
+
+  /* ── Login ── */
+  #loginOverlay {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0a0e1a, #111827, #1a1040, #0f0a1e);
+  }
+  #loginOverlay.hidden { display: none !important; }
+  .login-card {
+    max-width: 380px; width: 100%; text-align: center;
+    background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
+    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+  }
+  .login-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
+  .login-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
+  .login-card input {
+    width: 100%; padding: 10px; margin-bottom: 10px; text-align: center; font-size: 16px;
+    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
+    color: #eaf0f6; border-radius: 8px; outline: none;
+  }
+  .login-card input:focus { border-color: #d4a017; }
+  .login-card button {
+    width: 100%; padding: 10px; font-size: 14px; font-weight: 700;
+    background: #d4a017; color: #1a1206; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .login-card button:hover { background: #e0b94d; }
+  .login-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
+
+  /* ── Header ── */
+  #header {
+    background: linear-gradient(90deg, rgba(20,32,46,0.92), rgba(14,24,34,0.96));
+    border-bottom: 1px solid rgba(212,160,23,0.3);
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  #header h1 { margin: 0; font-size: 18px; color: #ffe1a3; }
+  #header .sub { font-size: 11px; color: #9fb0c2; }
+  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .header-actions button, .header-actions select {
+    padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(10,16,24,0.55); color: #eaf0f6; font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .header-actions button:hover { background: rgba(30,42,60,0.7); }
+  .btn-gold { background: #d4a017 !important; color: #1a1206 !important; border-color: #d4a017 !important; }
+  .btn-gold:hover { background: #e0b94d !important; }
+
+  /* ── Main ── */
+  #main { padding: 14px 20px; flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+  /* ── Patient list ── */
+  #patientList { display: block; }
+  #patientList.hidden { display: none; }
+  #sheetView { display: none; }
+  #sheetView.active { display: block; }
+  .patient-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .patient-card {
+    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  .patient-card:hover { transform: translateY(-2px); border-color: #d4a017; }
+  .patient-card .name { font-size: 15px; font-weight: 700; color: #ffe1a3; }
+  .patient-card .info { font-size: 12px; color: #9fb0c2; margin-top: 4px; }
+  .patient-card .count { font-size: 11px; color: #6f8298; margin-top: 6px; }
+  .patient-card .del {
+    float: right; color: #ff8a7a; cursor: pointer; font-size: 16px; background: none; border: none;
+  }
+  .section-title {
+    font-size: 16px; font-weight: 700; color: #ffe1a3;
+    border-bottom: 2px solid #d4a017; padding-bottom: 4px; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Patient info bar ── */
+  #patientInfo {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px;
+    background: rgba(14,24,34,0.5); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; margin-bottom: 14px; font-size: 12px; align-items: center;
+  }
+  #patientInfo .label { color: #9fb0c2; font-weight: 600; }
+  #patientInfo .val { color: #eaf0f6; margin-right: 12px; }
+  #patientInfo .val.nka { color: #34c47a; }
+
+  /* ── Treatment grid ── */
+  .grid-wrap { overflow-x: auto; }
+  .grid-wrap table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 700px; }
+  .grid-wrap thead th {
+    background: rgba(20,32,46,0.8); color: #ffe1a3; padding: 5px 4px; font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.3px; text-align: center; white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .grid-wrap thead th.tx-desc { text-align: left; padding-left: 8px; min-width: 140px; }
+  .grid-wrap thead th.day-cell { width: 26px; }
+  .grid-wrap thead th.day-cell.weekend { color: #ff8a7a; }
+  .grid-wrap thead th.day-cell.today { background: rgba(212,160,23,0.25); color: #ffe1a3; }
+  .grid-wrap tbody td { padding: 3px 4px; border: 1px solid rgba(255,255,255,0.06); text-align: center; font-size: 10px; vertical-align: middle; }
+  .grid-wrap tbody td.tx-desc { text-align: left; font-weight: 600; color: #eaf0f6; white-space: nowrap; padding-left: 8px; }
+  .grid-wrap tbody td.tx-shift { font-size: 9px; color: #9fb0c2; }
+  .grid-wrap tbody td.tx-dates { font-size: 9px; color: #9fb0c2; }
+  .grid-wrap tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .grid-wrap .day-cell {
+    cursor: pointer; font-size: 13px; transition: background 0.1s; user-select: none;
+  }
+  .grid-wrap .day-cell.done { background: rgba(52,196,122,0.25); color: #34c47a; }
+  .grid-wrap .day-cell.today { box-shadow: inset 0 0 0 2px rgba(212,160,23,0.4); }
+  .grid-wrap .day-cell:hover { background: rgba(212,160,23,0.15); }
+  .no-tx { text-align: center; padding: 30px; color: #6f8298; font-style: italic; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8,14,20,0.7); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  }
+  .modal-overlay.hidden { display: none !important; }
+  .modal {
+    width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+    background: linear-gradient(135deg, rgba(26,34,50,0.98), rgba(16,26,38,0.98));
+    border: 1px solid rgba(212,160,23,0.3); border-radius: 14px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6); padding: 18px 22px;
+  }
+  .modal h2 { margin: 0 0 12px; font-size: 17px; color: #ffe1a3; }
+  .modal label { display: block; font-size: 10px; color: #9fb0c2; margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; padding: 7px 9px; margin-bottom: 8px;
+    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.12);
+    color: #eaf0f6; border-radius: 6px; font-size: 13px; outline: none;
+  }
+  .modal input:focus, .modal select:focus { border-color: #d4a017; }
+  .modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .modal .full { grid-column: 1 / -1; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .modal-actions button { padding: 7px 14px; border-radius: 6px; border: none; font-weight: 600; font-size: 12px; cursor: pointer; }
+  .modal-actions .btn-cancel { background: rgba(255,255,255,0.08); color: #9fb0c2; }
+  .modal-actions .btn-cancel:hover { background: rgba(255,255,255,0.12); }
+  .modal-actions .btn-save { background: #d4a017; color: #1a1206; }
+  .modal-actions .btn-save:hover { background: #e0b94d; }
+  .modal-actions .btn-delete { background: rgba(220,38,38,0.2); color: #ff8a7a; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: white !important; color: #000 !important; }
+    #loginOverlay, #header, #patientList, .header-actions, .no-print, .modal-overlay { display: none !important; }
+    #sheetView { display: block !important; }
+    #main { padding: 0 !important; max-width: 100% !important; }
+    #patientInfo { border: 1px solid #ccc; background: #fafafa; padding: 8px 12px; }
+    #patientInfo .label { color: #333; }
+    #patientInfo .val { color: #000; }
+    #printHeader { display: block !important; text-align: center; margin-bottom: 10px; }
+    #printHeader h1 { font-size: 16px; margin: 0; color: #1a0f2e; }
+    #printHeader p { font-size: 10px; color: #555; margin: 2px 0 0; }
+    .grid-wrap table { font-size: 9px; min-width: auto; }
+    .grid-wrap thead th { background: #1a0f2e !important; color: #ffd27a !important; padding: 3px 3px; font-size: 7px; }
+    .grid-wrap thead th.day-cell { width: 18px; }
+    .grid-wrap thead th.day-cell.weekend { color: #ff8a7a; }
+    .grid-wrap tbody td { padding: 2px 3px; border: 1px solid #bbb; color: #000; font-size: 8px; }
+    .grid-wrap tbody td.tx-desc { color: #000; }
+    .grid-wrap tbody td.tx-shift { color: #555; }
+    .grid-wrap tbody td.tx-dates { color: #555; }
+    .grid-wrap .day-cell.done { background: #d4edda !important; color: #155724 !important; }
+    .grid-wrap .day-cell { cursor: default; }
+    @page { margin: 0.4in; }
+  }
+  #printHeader { display: none; }
+
+  @media (max-width: 640px) {
+    #header { padding: 8px 12px; }
+    #header h1 { font-size: 15px; }
+    #main { padding: 10px 12px; }
+    .patient-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <h2>🩹 Treatment Sheets</h2>
+    <p>CLC Monthly Treatment Record</p>
+    <input id="loginPass" type="password" placeholder="Enter passcode">
+    <div class="login-err" id="loginErr"></div>
+    <button onclick="doLogin()">🔓 Access</button>
+    <p style="margin-top:14px;font-size:10px;color:#6f8298">Authorized VA staff only</p>
+  </div>
+</div>
+
+<!-- ── Header ── -->
+<div id="header" class="no-print">
+  <div>
+    <h1>🩹 Treatment Sheets</h1>
+    <div class="sub"><span id="hNurse"></span></div>
+  </div>
+  <div class="header-actions">
+    <select id="nurseSelect" onchange="switchNurse()"></select>
+    <button id="backBtn" style="display:none" onclick="showPatientList()">← Patients</button>
+    <button class="btn-gold" onclick="window.print()">🖨️ Print</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div id="main">
+
+  <!-- Print header -->
+  <div id="printHeader">
+    <h1>CLC Treatment Record</h1>
+    <p id="phInfo"></p>
+  </div>
+
+  <!-- Patient list -->
+  <div id="patientList">
+    <div class="section-title">
+      <span>👤 Patients</span>
+      <button class="no-print" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddPatient()">+ Add Patient</button>
+    </div>
+    <div class="patient-grid" id="patientGrid"></div>
+  </div>
+
+  <!-- Sheet view -->
+  <div id="sheetView">
+    <div id="patientInfo">
+      <span class="label">Veteran:</span><span class="val" id="piName">—</span>
+      <span class="label">Room:</span><span class="val" id="piRoom">—</span>
+      <span class="label">N/S:</span><span class="val" id="piNs">—</span>
+      <span class="label">Allergies:</span><span class="val" id="piAllergies">—</span>
+      <span class="label">NKA:</span><span class="val nka" id="piNka">☐</span>
+      <span class="label">Provider:</span><span class="val" id="piProvider">—</span>
+      <span class="label">Month:</span><span class="val" id="piMonthYear">—</span>
+    </div>
+    <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" class="no-print">
+      <button style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddTx()">+ Add Treatment</button>
+      <button style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="editPatientInfo()">✏️ Patient Info</button>
+      <span style="font-size:10px;color:#9fb0c2">Click a day cell to mark treatment done</span>
+    </div>
+    <div class="grid-wrap">
+      <table>
+        <thead id="gridHead"></thead>
+        <tbody id="gridBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Modal container ── -->
+<div id="modalContainer" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- ── Provider datalist ── -->
+<datalist id="providerList">
+  <option value="McCain">
+  <option value="Chang">
+</datalist>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   Treatment Sheets — Monthly Treatment Record
+   ══════════════════════════════════════════════════════ */
+var PASSCODE = 'CLC-Admin-2024';
+var DATA_KEY = 'ts_data';
+
+var nurses = [];
+var currentNurse = '';
+var currentPatientId = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+function getData(def) {
+  try { var d=JSON.parse(localStorage.getItem(DATA_KEY)); return d||def; } catch(e) { return def; }
+}
+function setData(val) { localStorage.setItem(DATA_KEY, JSON.stringify(val)); }
+
+function todayStr() {
+  var d=new Date(); return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'});
+}
+function daysInMonth(m,y) { return new Date(y,m,0).getDate(); }
+
+/* ── Auth ── */
+function doLogin() {
+  var p = $('loginPass').value;
+  if (!p) return;
+  if (p === PASSCODE) {
+    sessionStorage.setItem('ts_auth','1');
+    $('loginOverlay').classList.add('hidden');
+    $('loginPass').value = '';
+    $('loginErr').textContent = '';
+    init();
+  } else {
+    $('loginErr').textContent = 'Incorrect passcode.';
+    $('loginPass').select();
+  }
+}
+function logout() {
+  sessionStorage.removeItem('ts_auth');
+  $('loginOverlay').classList.remove('hidden');
+}
+
+/* ── Init ── */
+function init() {
+  loadNurses();
+  showPatientList();
+}
+
+function loadNurses() {
+  var data = getData({});
+  nurses = Object.keys(data).sort();
+  var sel = $('nurseSelect');
+  sel.innerHTML = nurses.length ? nurses.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('') : '<option value="">— Select nurse —</option>';
+  var saved = localStorage.getItem('ts_nurse');
+  if (saved && nurses.indexOf(saved)>=0) { sel.value = saved; }
+  selectNurse();
+}
+
+function selectNurse() {
+  currentNurse = $('nurseSelect').value;
+  if (currentNurse) localStorage.setItem('ts_nurse', currentNurse);
+  $('hNurse').textContent = currentNurse ? 'Nurse: ' + currentNurse : '';
+  showPatientList();
+}
+
+function switchNurse() { selectNurse(); }
+
+/* ── Data access ── */
+function getPatients() {
+  var data = getData({});
+  return data[currentNurse] || {};
+}
+function setPatients(patients) {
+  var data = getData({});
+  data[currentNurse] = patients;
+  setData(data);
+}
+
+/* ── Patient list ── */
+function showPatientList() {
+  currentPatientId = null;
+  $('patientList').classList.remove('hidden');
+  $('sheetView').classList.remove('active');
+  $('backBtn').style.display = 'none';
+  $('phInfo').textContent = '';
+
+  var patients = getPatients();
+  var keys = Object.keys(patients);
+  var grid = $('patientGrid');
+
+  if (keys.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#6f8298">No patients yet. Click "+ Add Patient" to start.</div>';
+    return;
+  }
+
+  grid.innerHTML = keys.sort().map(function(id) {
+    var p = patients[id];
+    var txCount = (p.treatments||[]).length;
+    return '<div class="patient-card" onclick="openSheet(\'' + esc(id) + '\')">' +
+      '<button class="del no-print" onclick="event.stopPropagation();deletePatient(\'' + esc(id) + '\')">✕</button>' +
+      '<div class="name">' + esc(p.name||'?') + '</div>' +
+      '<div class="info">Rm ' + esc(p.room||'—') + ' · ' + esc(p.northSouth||'—') + ' · ' + esc(p.provider||'—') + '</div>' +
+      '<div class="count">' + txCount + ' treatment' + (txCount!==1?'s':'') + ' · ' + esc(p.month||'?') + ' ' + esc(p.year||'') + '</div></div>';
+  }).join('');
+}
+
+function openSheet(id) {
+  currentPatientId = id;
+  $('patientList').classList.add('hidden');
+  $('sheetView').classList.add('active');
+  $('backBtn').style.display = '';
+  renderSheet();
+}
+
+/* ── Patient CRUD ── */
+function showAddPatient() {
+  var now = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  showModal(
+    '<h2>+ Add Patient</h2>' +
+    '<div class="form-row">' +
+    '<div class="full"><label>Veteran Name</label><input id="mName" placeholder="Last, First"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Room / Bed</label><input id="mRoom" placeholder="101A"></div>' +
+    '<div><label>North / South</label><select id="mNs"><option>South</option><option>North</option></select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Allergies</label><input id="mAllergies" placeholder="List allergies"></div>' +
+    '<div><label>NKA</label><select id="mNka"><option value="">No</option><option value="yes">Yes</option></select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Provider</label><input id="mProvider" placeholder="McCain, Chang" list="providerList"></div>' +
+    '<div><label>Month</label><select id="mMonth">' + months.map(function(m,i){return '<option'+(i===now.getMonth()?' selected':'')+'>'+m+'</option>';}).join('') + '</select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Year</label><select id="mYear">' + (function(){var y=now.getFullYear(),s='';for(var i=y-1;i<=y+1;i++){s+='<option'+(i===y?' selected':'')+'>'+i+'</option>';}return s;})() + '</select></div>' +
+    '<div></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewPatient()">Add Patient</button></div>'
+  );
+  setTimeout(function(){ $('mName').focus(); }, 100);
+}
+
+function saveNewPatient() {
+  var name = $('mName').value.trim();
+  if (!name) { alert('Veteran name is required.'); return; }
+  var patients = getPatients();
+  var id = Date.now() + '';
+  patients[id] = {
+    name: name,
+    room: $('mRoom').value.trim(),
+    northSouth: $('mNs').value,
+    allergies: $('mAllergies').value.trim(),
+    nka: $('mNka').value === 'yes',
+    provider: $('mProvider').value.trim(),
+    month: $('mMonth').value,
+    year: $('mYear').value,
+    treatments: []
+  };
+  setPatients(patients);
+  closeModal();
+  showPatientList();
+}
+
+function deletePatient(id) {
+  if (!confirm('Remove this patient and all their treatment data?')) return;
+  var patients = getPatients();
+  delete patients[id];
+  setPatients(patients);
+  showPatientList();
+}
+
+function editPatientInfo() {
+  if (!currentPatientId) return;
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  showModal(
+    '<h2>✏️ Patient Info</h2>' +
+    '<div class="form-row">' +
+    '<div class="full"><label>Veteran Name</label><input id="mName" value="' + esc(p.name) + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Room / Bed</label><input id="mRoom" value="' + esc(p.room||'') + '"></div>' +
+    '<div><label>North / South</label><select id="mNs">' + optsSel(p.northSouth||'South',['North','South']) + '</select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Allergies</label><input id="mAllergies" value="' + esc(p.allergies||'') + '"></div>' +
+    '<div><label>NKA</label><select id="mNka">' + optsSel(p.nka?'yes':'',['yes']) + '<option value="">No</option></select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Provider</label><input id="mProvider" value="' + esc(p.provider||'') + '" list="providerList"></div>' +
+    '<div><label>Month</label><select id="mMonth">' + months.map(function(m){return '<option'+(m===p.month?' selected':'')+'>'+m+'</option>';}).join('') + '</select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Year</label><select id="mYear">' + (function(){var y=new Date().getFullYear(),s='';for(var i=y-1;i<=y+1;i++){s+='<option'+(i==(parseInt(p.year)||y)?' selected':'')+'>'+i+'</option>';}return s;})() + '</select></div>' +
+    '<div></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEditPatient()">Save</button></div>'
+  );
+}
+
+function saveEditPatient() {
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  p.name = $('mName').value.trim();
+  p.room = $('mRoom').value.trim();
+  p.northSouth = $('mNs').value;
+  p.allergies = $('mAllergies').value.trim();
+  p.nka = $('mNka').value === 'yes';
+  p.provider = $('mProvider').value.trim();
+  p.month = $('mMonth').value;
+  p.year = $('mYear').value;
+  setPatients(patients);
+  closeModal();
+  renderSheet();
+}
+
+function optsSel(val, opts) {
+  return opts.map(function(o) {
+    var sel = (o.toLowerCase() === (val||'').toLowerCase()) ? ' selected' : '';
+    return '<option value="' + esc(o) + '"' + sel + '>' + esc(o) + '</option>';
+  }).join('');
+}
+
+/* ── Render sheet ── */
+function renderSheet() {
+  if (!currentPatientId) return;
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) { showPatientList(); return; }
+
+  // Patient info bar
+  $('piName').textContent = p.name||'—';
+  $('piRoom').textContent = p.room||'—';
+  $('piNs').textContent = p.northSouth||'—';
+  $('piAllergies').textContent = p.allergies||'—';
+  $('piNka').textContent = p.nka ? '✓' : '☐';
+  $('piProvider').textContent = p.provider||'—';
+  $('piMonthYear').textContent = (p.month||'?') + ' ' + (p.year||'');
+
+  $('phInfo').textContent = p.name + ' · Rm ' + (p.room||'—') + ' · ' + (p.month||'') + ' ' + (p.year||'');
+
+  // Month length
+  var months = {January:1,February:2,March:3,April:4,May:5,June:6,July:7,August:8,September:9,October:10,November:11,December:12};
+  var mi = months[p.month];
+  var yr = parseInt(p.year) || new Date().getFullYear();
+  var dim = mi ? daysInMonth(mi, yr) : 31;
+
+  // Today
+  var now = new Date();
+  var today = now.getDate();
+  var curMonth = now.getMonth() + 1;
+  var curYear = now.getFullYear();
+
+  // Build header
+  var hhtml = '<tr><th class="tx-desc" style="width:120px">Treatment</th><th style="width:50px">Shift</th><th style="width:70px">Order Start</th><th style="width:70px">Order Stop</th>';
+  for (var d = 1; d <= dim; d++) {
+    var dayDate = new Date(yr, mi-1, d);
+    var isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
+    var isToday = (d === today && mi === curMonth && yr === curYear);
+    hhtml += '<th class="day-cell' + (isWeekend ? ' weekend' : '') + (isToday ? ' today' : '') + '">' + d + '</th>';
+  }
+  hhtml += '<th class="no-print" style="width:30px"></th></tr>';
+  $('gridHead').innerHTML = hhtml;
+
+  // Body
+  var txs = p.treatments || [];
+  if (txs.length === 0) {
+    $('gridBody').innerHTML = '<tr><td colspan="' + (5 + dim) + '" class="no-tx">No treatments added. Click "+ Add Treatment" to start.</td></tr>';
+    return;
+  }
+
+  var bhtml = '';
+  txs.forEach(function(tx, i) {
+    bhtml += '<tr>' +
+      '<td class="tx-desc">' + esc(tx.desc) + '</td>' +
+      '<td class="tx-shift">' + esc(tx.shift||'') + '</td>' +
+      '<td class="tx-dates">' + esc(tx.start||'') + '</td>' +
+      '<td class="tx-dates">' + esc(tx.stop||'') + '</td>';
+    for (var d = 1; d <= dim; d++) {
+      var dayDate = new Date(yr, mi-1, d);
+      var isToday = (d === today && mi === curMonth && yr === curYear);
+      var done = tx.days && tx.days[d];
+      bhtml += '<td class="day-cell' + (done?' done':'') + (isToday?' today':'') + '" onclick="toggleDay(' + i + ',' + d + ')" title="Click to toggle">' + (done?'✓':'') + '</td>';
+    }
+    bhtml += '<td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:13px" onclick="editTx(' + i + ')" title="Edit">✏️</button></td></tr>';
+  });
+  $('gridBody').innerHTML = bhtml;
+}
+
+/* ── Day toggle ── */
+function toggleDay(txIdx, day) {
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  var tx = p.treatments[txIdx];
+  if (!tx) return;
+  if (!tx.days) tx.days = {};
+  tx.days[day] = !tx.days[day];
+  setPatients(patients);
+  renderSheet();
+}
+
+/* ── Treatment CRUD ── */
+function showAddTx() {
+  showModal(
+    '<h2>+ Add Treatment</h2>' +
+    '<div class="full"><label>Treatment / Wound Care Description</label><input id="mDesc" placeholder="e.g., Left heel dressing"></div>' +
+    '<div class="form-row">' +
+    '<div><label>Order Start</label><input id="mStart" type="date"></div>' +
+    '<div><label>Order Stop</label><input id="mStop" type="date"></div>' +
+    '</div>' +
+    '<div class="form-row-3">' +
+    '<div><label>Shift</label><select id="mShift"><option>Day</option><option>Night</option><option>PRN</option><option>n/a</option></select></div>' +
+    '<div></div><div></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewTx()">Add Treatment</button></div>'
+  );
+  setTimeout(function(){ $('mDesc').focus(); }, 100);
+}
+
+function saveNewTx() {
+  var desc = $('mDesc').value.trim();
+  if (!desc) { alert('Description is required.'); return; }
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  if (!p.treatments) p.treatments = [];
+  p.treatments.push({
+    desc: desc,
+    start: $('mStart').value,
+    stop: $('mStop').value,
+    shift: $('mShift').value,
+    days: {}
+  });
+  setPatients(patients);
+  closeModal();
+  renderSheet();
+}
+
+function editTx(idx) {
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  var tx = p.treatments[idx];
+  if (!tx) return;
+  showModal(
+    '<h2>✏️ Edit Treatment</h2>' +
+    '<div class="full"><label>Treatment / Wound Care Description</label><input id="mDesc" value="' + esc(tx.desc) + '"></div>' +
+    '<div class="form-row">' +
+    '<div><label>Order Start</label><input id="mStart" type="date" value="' + esc(tx.start||'') + '"></div>' +
+    '<div><label>Order Stop</label><input id="mStop" type="date" value="' + esc(tx.stop||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row-3">' +
+    '<div><label>Shift</label><select id="mShift">' + optsSel(tx.shift,['Day','Night','PRN','n/a']) + '</select></div>' +
+    '<div></div><div></div>' +
+    '</div>' +
+    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-delete" onclick="deleteTx(' + idx + ')">Delete</button><button class="btn-save" onclick="saveEditTx(' + idx + ')">Save</button></div>'
+  );
+}
+
+function saveEditTx(idx) {
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  var tx = p.treatments[idx];
+  if (!tx) return;
+  tx.desc = $('mDesc').value.trim();
+  tx.start = $('mStart').value;
+  tx.stop = $('mStop').value;
+  tx.shift = $('mShift').value;
+  setPatients(patients);
+  closeModal();
+  renderSheet();
+}
+
+function deleteTx(idx) {
+  if (!confirm('Delete this treatment?')) return;
+  var patients = getPatients();
+  var p = patients[currentPatientId];
+  if (!p) return;
+  p.treatments.splice(idx, 1);
+  setPatients(patients);
+  closeModal();
+  renderSheet();
+}
+
+/* ── Modal ── */
+function showModal(html) {
+  $('modalContent').innerHTML = html;
+  $('modalContainer').classList.remove('hidden');
+}
+function closeModal() {
+  $('modalContainer').classList.add('hidden');
+}
+
+/* ── Start ── */
+if (sessionStorage.getItem('ts_auth') === '1') {
+  $('loginOverlay').classList.add('hidden');
+  init();
+} else {
+  setTimeout(function(){ $('loginPass').focus(); }, 100);
+}
+</script>
+</body>
+</html>
