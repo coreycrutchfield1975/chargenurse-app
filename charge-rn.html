@@ -3582,10 +3582,10 @@ function getGreeting() {
 // ============== WELCOME / HOME SCREEN ==============
 function renderWelcome() {
   var patientCount = data.patients.length;
-  var fallRiskCount = data.patients.filter(function(p){return p.fallRisk;}).length;
-  var alertCount = data.patients.filter(function(p){
-    return p.isolation && p.isolation !== 'None';
-  }).length;
+  var ltcCount = data.patients.filter(function(p){return (p.specialty||'').toUpperCase()==='LTC';}).length;
+  var ssrCount = data.patients.filter(function(p){return (p.specialty||'').toUpperCase()==='SSR';}).length;
+  var eolCount = data.patients.filter(function(p){return (p.specialty||'').toUpperCase()==='EOL';}).length;
+  var respCount = data.patients.filter(function(p){return (p.specialty||'').toUpperCase()==='RESP';}).length;
   var greeting = getGreeting();
 
   var miniThemes = [
@@ -3621,9 +3621,11 @@ function renderWelcome() {
     '</div>' +
 
     '<div class="welcome-stats">' +
-      '<div class="stat-card"><div class="num">' + patientCount + '</div><div class="lbl">Patients</div></div>' +
-      '<div class="stat-card"><div class="num">' + fallRiskCount + '</div><div class="lbl">Fall Risk</div></div>' +
-      '<div class="stat-card"><div class="num">' + alertCount + '</div><div class="lbl">Alerts/Isolation</div></div>' +
+      '<div class="stat-card"><div class="num">' + patientCount + '</div><div class="lbl">Total</div></div>' +
+      '<div class="stat-card"><div class="num" style="color:#2980b9">' + ltcCount + '</div><div class="lbl">LTC</div></div>' +
+      '<div class="stat-card"><div class="num" style="color:#27ae60">' + ssrCount + '</div><div class="lbl">SSR</div></div>' +
+      '<div class="stat-card"><div class="num" style="color:#e67e22">' + respCount + '</div><div class="lbl">Respites</div></div>' +
+      '<div class="stat-card"><div class="num" style="color:#8e44ad">' + eolCount + '</div><div class="lbl">EOL</div></div>' +
     '</div>' +
 
     '<div style="text-align:center;margin-top:12px">' +
