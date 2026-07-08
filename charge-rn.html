@@ -1721,6 +1721,8 @@ function doLogin() {
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('loginPass').value = '';
     document.getElementById('loginErr').style.display = 'none';
+    // Re-check URL hash routing after login
+    if(window.location.hash){var ht=window.location.hash.replace('#','');if(ht){switchTab(ht);}}
   } else {
     document.getElementById('loginErr').style.display = 'block';
     document.getElementById('loginPass').select();
@@ -4695,6 +4697,8 @@ if (sessionStorage.getItem('chargenurse_auth') === '1') {
   renderPatientList();
   renderContent();
   setTimeout(function() { renderPatientList(); renderContent(); }, 50);
+  // Check URL hash routing after auto-login
+  if(window.location.hash){var ht=window.location.hash.replace('#','');if(ht){setTimeout(function(){switchTab(ht);},200);}}
 } else {
   setTimeout(function() { document.getElementById('loginPass').focus(); }, 100);
 }
