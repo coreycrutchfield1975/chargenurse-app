@@ -199,6 +199,9 @@
     <button onclick="showAddPatient()">+ Add Patient</button>
     <button onclick="showAssignModal()">📋 Assignments</button>
     <button onclick="showAddAppt()">📅 Appointment</button>
+    <button onclick="exportCSV()">⬇ Export</button>
+    <button onclick="document.getElementById('importFile').click()">⬆ Import</button>
+    <input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(event)">
     <button class="btn-gold" onclick="window.print()">🖨️ Print</button>
     <button class="btn-danger" onclick="logout()">Logout</button>
   </div>
@@ -280,10 +283,10 @@
       <table>
         <thead>
           <tr>
-            <th style="width:70px">Time</th>
-            <th style="width:150px">Patient</th>
+            <th style="width:80px">Leave Time</th>
+            <th style="width:80px">Appt Time</th>
             <th style="width:120px">Location</th>
-            <th>Notes</th>
+            <th style="width:120px">With Who</th>
             <th class="no-print" style="width:30px"></th>
           </tr>
         </thead>
@@ -527,10 +530,10 @@ function render() {
   if (appts.length === 0) {
     $('apptBody').innerHTML = '<tr class="empty-row"><td colspan="5">No appointments. Click "+ Add" to schedule.</td></tr>';
   } else {
-    appts.sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+    appts.sort(function(a,b){return (a.leaveTime||'').localeCompare(b.leaveTime||'');});
     var ahtml = '';
     appts.forEach(function(a,i){
-      ahtml += '<tr><td style="font-weight:600">' + esc(a.time||'—') + '</td><td>' + esc(a.patient||'—') + '</td><td>' + esc(a.location||'—') + '</td><td style="font-size:11px">' + esc(a.notes||'') + '</td><td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editAppt(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deleteAppt(' + i + ')" title="Remove">✕</button></td></tr>';
+      ahtml += '<tr><td style="font-weight:600">' + esc(a.leaveTime||'—') + '</td><td>' + esc(a.apptTime||'—') + '</td><td>' + esc(a.location||'—') + '</td><td>' + esc(a.withWho||'—') + '</td><td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editAppt(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deleteAppt(' + i + ')" title="Remove">✕</button></td></tr>';
     });
     $('apptBody').innerHTML = ahtml;
   }
@@ -770,28 +773,28 @@ function showAddAppt() {
   showModal(
     '<h2>+ Add Appointment</h2>' +
     '<div class="form-row">' +
-    '<div><label>Time</label><input id="mTime" placeholder="e.g., 10:00 AM"></div>' +
-    '<div><label>Patient</label><input id="mPatient" placeholder="Patient name"></div>' +
+    '<div><label>Leave Time</label><input id="mLeaveTime" placeholder="e.g., 9:30 AM"></div>' +
+    '<div><label>Appt Time</label><input id="mApptTime" placeholder="e.g., 10:00 AM"></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Location</label><input id="mLoc" placeholder="e.g., PT Gym, Radiology"></div>' +
-    '<div><label>Notes</label><input id="mNotes" placeholder="Optional notes"></div>' +
+    '<div><label>With Who</label><input id="mWithWho" placeholder="e.g., PT, Dietitian"></div>' +
     '</div>' +
     '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewAppt()">Add Appointment</button></div>'
   );
-  setTimeout(function(){ $('mTime').focus(); }, 100);
+  setTimeout(function(){ $('mLeaveTime').focus(); }, 100);
 }
 
 function saveNewAppt() {
-  var t = $('mTime').value.trim();
-  if (!t) { alert('Time is required.'); return; }
+  var t = $('mLeaveTime').value.trim();
+  if (!t) { alert('Leave Time is required.'); return; }
   var nurse = localStorage.getItem(MR_NURSE_KEY);
   var appts = getData(MR_APPT_KEY + '_' + nurse, []);
   appts.push({
-    time: t,
-    patient: $('mPatient').value.trim(),
+    leaveTime: t,
+    apptTime: $('mApptTime').value.trim(),
     location: $('mLoc').value.trim(),
-    notes: $('mNotes').value.trim()
+    withWho: $('mWithWho').value.trim()
   });
   setData(MR_APPT_KEY + '_' + nurse, appts);
   closeModal();
@@ -806,12 +809,12 @@ function editAppt(idx) {
   showModal(
     '<h2>✏️ Edit Appointment</h2>' +
     '<div class="form-row">' +
-    '<div><label>Time</label><input id="mTime" value="' + esc(a.time||'') + '"></div>' +
-    '<div><label>Patient</label><input id="mPatient" value="' + esc(a.patient||'') + '"></div>' +
+    '<div><label>Leave Time</label><input id="mLeaveTime" value="' + esc(a.leaveTime||'') + '"></div>' +
+    '<div><label>Appt Time</label><input id="mApptTime" value="' + esc(a.apptTime||'') + '"></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Location</label><input id="mLoc" value="' + esc(a.location||'') + '"></div>' +
-    '<div><label>Notes</label><input id="mNotes" value="' + esc(a.notes||'') + '"></div>' +
+    '<div><label>With Who</label><input id="mWithWho" value="' + esc(a.withWho||'') + '"></div>' +
     '</div>' +
     '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-delete" onclick="deleteApptConfirm(' + idx + ')">Delete</button><button class="btn-save" onclick="saveEditAppt(' + idx + ')">Save</button></div>'
   );
@@ -822,10 +825,10 @@ function saveEditAppt(idx) {
   var appts = getData(MR_APPT_KEY + '_' + nurse, []);
   var a = appts[idx];
   if (!a) return;
-  a.time = $('mTime').value.trim();
-  a.patient = $('mPatient').value.trim();
+  a.leaveTime = $('mLeaveTime').value.trim();
+  a.apptTime = $('mApptTime').value.trim();
   a.location = $('mLoc').value.trim();
-  a.notes = $('mNotes').value.trim();
+  a.withWho = $('mWithWho').value.trim();
   setData(MR_APPT_KEY + '_' + nurse, appts);
   closeModal();
   render();
@@ -843,6 +846,59 @@ function deleteAppt(idx) {
 
 function deleteApptConfirm(idx) {
   deleteAppt(idx);
+}
+
+/* ── CSV Export/Import ── */
+function exportCSV() {
+  var nurse = localStorage.getItem(MR_NURSE_KEY);
+  var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+  if (!roster.length) { alert('No patients to export.'); return; }
+  var csv = 'Room,Specialty,Code,Name,Provider,Meds,Diet,Asst,Toilet,FSBS,Wt,Notes\n';
+  roster.forEach(function(p){
+    csv += '"' + (p.room||'') + '","' + (p.specialty||'') + '","' + (p.codeStatus||'') + '","' + (p.name||'') + '","' + (p.provider||'') + '","' + (p.meds||'') + '","' + (p.diet||'') + '","' + (p.assistance||'') + '","' + (p.toilet||'') + '","' + (p.fsbs||'') + '","' + (p.weight||'') + '","' + (p.notes||'') + '"\n';
+  });
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Morning_Report_' + nurse + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function importCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split('\n').filter(function(l){return l.trim();});
+    if (lines.length < 2) { alert('Empty file.'); return; }
+    var nurse = localStorage.getItem(MR_NURSE_KEY);
+    var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
+    for (var i=1; i<lines.length; i++) {
+      var cols = lines[i].split(',').map(function(c){return c.replace(/^"|"$/g,'').trim();});
+      if (cols.length>=4 && cols[0] && cols[3]) {
+        roster.push({
+          id: Date.now()+i,
+          room: cols[0],
+          specialty: cols[1]||'',
+          codeStatus: cols[2]||'',
+          name: cols[3],
+          provider: cols[4]||'',
+          meds: cols[5]||'',
+          diet: cols[6]||'',
+          assistance: cols[7]||'',
+          toilet: cols[8]||'',
+          fsbs: cols[9]||'',
+          weight: cols[10]||'',
+          notes: cols[11]||''
+        });
+      }
+    }
+    setData(MR_ROSTER_KEY + '_' + nurse, roster);
+    event.target.value = '';
+    render();
+  };
+  reader.readAsText(file);
 }
 
 /* ── Start ── */
