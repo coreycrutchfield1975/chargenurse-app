@@ -357,22 +357,52 @@ function logout() {
 /* ── Init ── */
 function init() {
   loadNurses();
-  showPatientList();
+}
+
+function ensureNurse() {
+  if (!currentNurse || currentNurse === '') {
+    var name = prompt('Enter your name to get started:');
+    if (name && name.trim()) {
+      currentNurse = name.trim();
+      // Save empty data for this nurse
+      var data = getData({});
+      if (!data[currentNurse]) data[currentNurse] = {};
+      setData(data);
+      localStorage.setItem('ts_nurse', currentNurse);
+      loadNurses();
+    }
+  }
+  if (!currentNurse) currentNurse = 'Nurse';
+  return currentNurse;
 }
 
 function loadNurses() {
   var data = getData({});
-  nurses = Object.keys(data).sort();
+  nurses = Object.keys(data).filter(function(k){return k;}).sort();
   var sel = $('nurseSelect');
   sel.innerHTML = nurses.length ? nurses.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('') : '<option value="">— Select nurse —</option>';
   var saved = localStorage.getItem('ts_nurse');
-  if (saved && nurses.indexOf(saved)>=0) { sel.value = saved; }
-  selectNurse();
+  if (saved && nurses.indexOf(saved)>=0) {
+    sel.value = saved;
+    currentNurse = saved;
+  } else if (nurses.length) {
+    sel.value = nurses[0];
+    currentNurse = nurses[0];
+  } else {
+    currentNurse = '';
+  }
+  $('hNurse').textContent = currentNurse ? 'Nurse: ' + currentNurse : '';
+  ensureNurse();
+  showPatientList();
 }
 
 function selectNurse() {
   currentNurse = $('nurseSelect').value;
-  if (currentNurse) localStorage.setItem('ts_nurse', currentNurse);
+  if (currentNurse) {
+    localStorage.setItem('ts_nurse', currentNurse);
+  } else {
+    ensureNurse();
+  }
   $('hNurse').textContent = currentNurse ? 'Nurse: ' + currentNurse : '';
   showPatientList();
 }
