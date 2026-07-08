@@ -3623,7 +3623,8 @@ function getDueTodayHtml() {
     }
     // Bath day today
     if (p.bathDays) {
-      var days = p.bathDays.toLowerCase().split(/[,\s]+/);
+      var bathStr = Array.isArray(p.bathDays) ? p.bathDays.join(',') : p.bathDays;
+      var days = bathStr.toLowerCase().split(/[,\s]+/);
       if (days.indexOf(dayName) >= 0) items.push({room:p.room,name:p.name,icon:'🛁',text:'Bath day'});
     }
   });
