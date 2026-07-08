@@ -513,7 +513,7 @@ function render() {
         '<td style="text-align:center;font-size:11px">' + esc(p.assistance||'—') + '</td>' +
         '<td style="text-align:center;font-size:11px">' + esc(p.toilet||'—') + '</td>' +
         '<td style="text-align:center;font-size:11px">' + esc(p.fsbs||'—') + '</td>' +
-        '<td style="text-align:center;font-size:11px">' + esc(p.weight||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.weight||(p.wtFreq ? p.wtFreq + (p.wtMethod ? '/' + p.wtMethod : '') : '—')) + '</td>' +
         '<td style="font-size:11px;white-space:pre-wrap">' + esc(p.notes||'') + '</td>' +
         '<td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editPatient(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deletePatient(' + i + ')" title="Remove">✕</button></td></tr>';
     });
@@ -568,9 +568,10 @@ function showAddPatient() {
     '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
     '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Cont</option><option>Inc</option><option>Inc @ X\'s</option></select></div>' +
     '</div>' +
-    '<div class="form-row">' +
+    '<div class="form-row-3">' +
     '<div><label>FSBS</label><input id="mFsbs" placeholder="AC/HS, QID..."></div>' +
-    '<div><label>Weight</label><select id="mWt"><option value="">—</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Standing</option><option>Ceiling</option><option>Bed</option></select></div>' +
+    '<div><label>Wt Freq</label><select id="mWtFreq"><option value="">—</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>' +
+    '<div><label>Wt Method</label><select id="mWtMethod"><option value="">—</option><option>Standing</option><option>Ceiling</option><option>Bed</option></select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Specialty</label><select id="mSpec"><option value="">—</option><option>LTC</option><option>SSR</option><option>EOL</option><option>Resp</option></select></div>' +
@@ -597,7 +598,8 @@ function saveNewPatient() {
     assistance: $('mAsst').value,
     toilet: $('mToilet').value,
     fsbs: $('mFsbs').value.trim(),
-    weight: $('mWt').value.trim(),
+    wtFreq: $('mWtFreq').value,
+    wtMethod: $('mWtMethod').value,
     specialty: $('mSpec').value,
     notes: $('mNotes').value.trim()
   });
@@ -629,9 +631,10 @@ function editPatient(idx) {
     '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','SBA','1','2','1-2']) + '</select></div>' +
     '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Cont','Inc','Inc @ X\'s']) + '</select></div>' +
     '</div>' +
-    '<div class="form-row">' +
+    '<div class="form-row-3">' +
     '<div><label>FSBS</label><input id="mFsbs" value="' + esc(p.fsbs||'') + '"></div>' +
-    '<div><label>Weight</label><select id="mWt">' + optsSel(p.weight, ['','Daily','Weekly','Monthly','Standing','Ceiling','Bed']) + '</select></div>' +
+    '<div><label>Wt Freq</label><select id="mWtFreq">' + optsSel(p.wtFreq, ['','Daily','Weekly','Monthly']) + '</select></div>' +
+    '<div><label>Wt Method</label><select id="mWtMethod">' + optsSel(p.wtMethod, ['','Standing','Ceiling','Bed']) + '</select></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Specialty</label><select id="mSpec">' + optsSel(p.specialty, ['','LTC','SSR','EOL','Resp']) + '</select></div>' +
@@ -661,7 +664,8 @@ function saveEditPatient(idx) {
   p.assistance = $('mAsst').value;
   p.toilet = $('mToilet').value;
   p.fsbs = $('mFsbs').value.trim();
-  p.weight = $('mWt').value.trim();
+  p.wtFreq = $('mWtFreq').value;
+  p.wtMethod = $('mWtMethod').value;
   p.specialty = $('mSpec').value;
   p.notes = $('mNotes').value.trim();
   setData(MR_ROSTER_KEY + '_' + nurse, roster);
@@ -853,9 +857,9 @@ function exportCSV() {
   var nurse = localStorage.getItem(MR_NURSE_KEY);
   var roster = getData(MR_ROSTER_KEY + '_' + nurse, []);
   if (!roster.length) { alert('No patients to export.'); return; }
-  var csv = 'Room,Specialty,Code,Name,Provider,Meds,Diet,Asst,Toilet,FSBS,Wt,Notes\n';
+  var csv = 'Room,Specialty,Code,Name,Provider,Meds,Diet,Asst,Toilet,FSBS,Wt Freq,Wt Method,Notes\n';
   roster.forEach(function(p){
-    csv += '"' + (p.room||'') + '","' + (p.specialty||'') + '","' + (p.codeStatus||'') + '","' + (p.name||'') + '","' + (p.provider||'') + '","' + (p.meds||'') + '","' + (p.diet||'') + '","' + (p.assistance||'') + '","' + (p.toilet||'') + '","' + (p.fsbs||'') + '","' + (p.weight||'') + '","' + (p.notes||'') + '"\n';
+    csv += '"' + (p.room||'') + '","' + (p.specialty||'') + '","' + (p.codeStatus||'') + '","' + (p.name||'') + '","' + (p.provider||'') + '","' + (p.meds||'') + '","' + (p.diet||'') + '","' + (p.assistance||'') + '","' + (p.toilet||'') + '","' + (p.fsbs||'') + '","' + (p.wtFreq||'') + '","' + (p.wtMethod||'') + '","' + (p.notes||'') + '"\n';
   });
   var blob = new Blob([csv], {type:'text/csv'});
   var a = document.createElement('a');
@@ -889,8 +893,9 @@ function importCSV(event) {
           assistance: cols[7]||'',
           toilet: cols[8]||'',
           fsbs: cols[9]||'',
-          weight: cols[10]||'',
-          notes: cols[11]||''
+          wtFreq: cols[10]||'',
+          wtMethod: cols[11]||'',
+          notes: cols[12]||''
         });
       }
     }
