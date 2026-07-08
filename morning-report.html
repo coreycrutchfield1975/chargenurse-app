@@ -561,11 +561,11 @@ function showAddPatient() {
     '<div><label>Provider</label><input id="mProvider" placeholder="McCain, Chang" list="providerList"></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Meds</label><select id="mMeds"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
-    '<div><label>Diet</label><select id="mDiet"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
+    '<div><label>Meds</label><select id="mMeds"><option value="">—</option><option>Whole</option><option>W/AS</option><option>W/CP</option><option>W/VP</option><option>W/Cr</option><option>Crush</option><option>PEG</option><option>W/VE</option><option>W/CE</option><option>W/SE</option><option>C/AS</option><option>C/CP</option><option>C/VP</option><option>C/CE</option><option>C/VE</option><option>C/SE</option></select></div>' +
+    '<div><label>Diet</label><select id="mDiet"><option value="">—</option><option>Regular</option><option>Soft and Bite Size</option><option>PEG</option><option>Minced and Moist</option><option>Easy to Chew</option><option>CHO 60/60/60</option><option>Low NA</option><option>Low Fat</option><option>CHO minced</option><option>Regular CHO</option><option>FODMAP</option><option>Puree</option><option>NPO</option><option>Liquid</option></select></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>SBA</option><option>1</option><option>2</option><option>1-2</option></select></div>' +
+    '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>1</option><option>2</option><option>1-2</option><option>Total</option><option>Stand By Assist</option></select></div>' +
     '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Cont</option><option>Inc</option><option>Inc @ X\'s</option></select></div>' +
     '</div>' +
     '<div class="form-row-3">' +
@@ -624,11 +624,11 @@ function editPatient(idx) {
     '<div><label>Provider</label><input id="mProvider" value="' + esc(p.provider||'') + '" list="providerList"></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Meds</label><select id="mMeds">' + optsSel(p.meds, ['','SBA','1','2','1-2']) + '</select></div>' +
-    '<div><label>Diet</label><select id="mDiet">' + optsSel(p.diet, ['','SBA','1','2','1-2']) + '</select></div>' +
+    '<div><label>Meds</label><select id="mMeds">' + optsSel(p.meds, ['','Whole','W/AS','W/CP','W/VP','W/Cr','Crush','PEG','W/VE','W/CE','W/SE','C/AS','C/CP','C/VP','C/CE','C/VE','C/SE']) + '</select></div>' +
+    '<div><label>Diet</label><select id="mDiet">' + optsSel(p.diet, ['','Regular','Soft and Bite Size','PEG','Minced and Moist','Easy to Chew','CHO 60/60/60','Low NA','Low Fat','CHO minced','Regular CHO','FODMAP','Puree','NPO','Liquid']) + '</select></div>' +
     '</div>' +
     '<div class="form-row">' +
-    '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','SBA','1','2','1-2']) + '</select></div>' +
+    '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','1','2','1-2','Total','Stand By Assist']) + '</select></div>' +
     '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Cont','Inc','Inc @ X\'s']) + '</select></div>' +
     '</div>' +
     '<div class="form-row-3">' +
