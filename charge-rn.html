@@ -1327,9 +1327,12 @@ body.theme-night .patient-card.active {
           <div class="nurse-badge" id="nurseBadge">Unassigned</div>
           <div class="patient-count" id="patientCount">0 patients</div>
         </div>
-        <button class="btn btn-sm" onclick="goHome()" title="Home" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;font-size:14px;border-radius:6px;cursor:pointer">🏠</button>
-        <button class="btn btn-sm" onclick="window.print()" title="Print" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;font-size:14px;border-radius:6px;cursor:pointer">🖨️</button>
-        <button class="btn btn-sm btn-lock" onclick="doLogout()" title="Lock" id="lockBtn" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;font-size:14px;border-radius:6px;cursor:pointer">🔓</button>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px">
+          <button class="btn btn-sm" onclick="window.location.href='/'" title="Launchpad" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:3px 8px;font-size:11px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:3px">🏠 Launchpad</button>
+          <button class="btn btn-sm" onclick="goHome()" title="Home" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:3px 8px;font-size:11px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:3px">📋 Home</button>
+          <button class="btn btn-sm" onclick="window.print()" title="Print" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:3px 8px;font-size:11px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:3px">🖨️ Print</button>
+          <button class="btn btn-sm btn-lock" onclick="doLogout()" title="Lock" id="lockBtn" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:3px 8px;font-size:11px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:3px">🔓 Lock</button>
+        </div>
       </div>
     </div>
     <div class="sidebar-body">
