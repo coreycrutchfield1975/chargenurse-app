@@ -1967,7 +1967,7 @@ function saveAddPatient() {
       bmLog: [], neuroChecks: [], skinAssessments: { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '' },
       weights: [], postFallVS: [], oralInfo: { dental: '', notes: '' },
       sbar: '', transferChecklist: [], notes: '',
-      skinAssigned: '', showerAssigned: '', vitalsAssigned: '', weightsAssigned: '', labsAssigned: ''
+      skinAssigned: '', showerAssigned: '', vitalsAssigned: '', weightsAssigned: ''
     };
     data.patients.push(newPatient);
   }
@@ -3036,7 +3036,7 @@ function renderPatientDashboard(p) {
         <div class="form-group"><label>Shower</label><input type="text" value="${p.showerAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','showerAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
         <div class="form-group"><label>Vitals</label><input type="text" value="${p.vitalsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','vitalsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
         <div class="form-group"><label>Weights</label><input type="text" value="${p.weightsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','weightsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
-        <div class="form-group"><label>Labs</label><input type="text" value="${p.labsAssigned||''}" placeholder="Staff initials" onchange="updateField('${p.id}','labsAssigned',this.value)" style="font-size:12px;padding:4px 8px"></div>
+        <div class="form-group"><label>Labs Due</label><input type="date" value="${p.labsDue||''}" onchange="updateField('${p.id}','labsDue',this.value)" style="font-size:12px;padding:4px 8px"></div>
       </div>
     </div>
 
@@ -3341,7 +3341,7 @@ function renderUnitOverview() {
       <td>${p.showerAssigned || '—'}</td>
       <td>${p.vitalsAssigned || '—'}</td>
       <td>${p.weightsAssigned || '—'}</td>
-      <td>${p.labsAssigned || '—'}</td>
+      <td>${p.labsDue || '—'}</td>
       <td>${neuroActive ? '🧠' : ''} ${pfActive ? '🆘' : ''}</td>
     </tr>`;
   }).join('');
@@ -3984,46 +3984,9 @@ function renderAppointments(p) {
 
 // ============== LABS ==============
 function renderLabs(p) {
-  if (!p.labs) p.labs = [];
-  return '<div class="card"><div class="card-title">🔬 Lab Results</div>' +
-    '<div class="form-row" style="gap:6px">' +
-      '<div class="form-group"><label>Date</label><input type="date" id="labDate" value="' + todayStr() + '"></div>' +
-      '<div class="form-group"><label>Lab Name</label><input type="text" id="labName" placeholder="e.g., CBC, BMP"></div>' +
-      '<div class="form-group"><label>Result</label><input type="text" id="labResult" placeholder="e.g., WBC 8.5"></div>' +
-      '<div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addLab(\'' + p.id + '\')">+ Add</button></div>' +
-    '</div>' +
-    '<hr style="border:none;border-top:1px solid var(--border);margin:12px 0">' +
-    '<table class="data-table labs-table">' +
-      '<thead><tr><th>Date</th><th>Lab</th><th>Result</th><th></th></tr></thead><tbody>' +
-      (p.labs.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No lab results recorded</td></tr>' :
-      [...p.labs].reverse().map(function(l, i){
-        var idx = p.labs.length - 1 - i;
-        return '<tr><td>' + l.date + '</td><td><strong>' + l.name + '</strong></td><td>' + l.result + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteLab(\'' + p.id + '\',' + idx + ')">🗑️</button></td></tr>';
-      }).join('')) +
-      '</tbody></table></div>';
-}
-
-function addLab(pid) {
-  var p = getPatient(pid);
-  if (!p) return;
-  if (!p.labs) p.labs = [];
-  var date = document.getElementById('labDate').value;
-  var name = document.getElementById('labName').value.trim();
-  var result = document.getElementById('labResult').value.trim();
-  if (!name || !result) { alert('Enter lab name and result.'); return; }
-  p.labs.push({ date: date || todayStr(), name: name, result: result });
-  document.getElementById('labName').value = '';
-  document.getElementById('labResult').value = '';
-  saveData();
-  renderContent();
-}
-
-function deleteLab(pid, idx) {
-  var p = getPatient(pid);
-  if (!p || !p.labs) return;
-  p.labs.splice(idx, 1);
-  saveData();
-  renderContent();
+  return '<div class="card"><div class="card-title">🔬 Labs Due</div>' +
+    '<div class="form-group"><label>Next lab draw due date</label><input type="date" id="labsDueDate" value="' + (p.labsDue||'') + '" onchange="updateField(\'' + p.id + '\',\'labsDue\',this.value)" style="font-size:14px;padding:8px 10px"></div>' +
+    '<div style="margin-top:8px;font-size:12px;color:var(--text-muted)">Set a date when this patient needs lab work. The Labs tab will show all upcoming lab draws.</div></div>';
 }
 
 // ============== CNA TASKS ==============
@@ -4271,24 +4234,41 @@ function renderUnitAppointments() {
 
 // ============== UNIT LABS VIEW ==============
 function renderUnitLabs() {
-  var allLabs = [];
-  data.patients.forEach(function(p){
-    (p.labs || []).forEach(function(l){
-      allLabs.push({ date: l.date, name: l.name, result: l.result, room: p.room, nameStr: p.name, pid: p.id });
-    });
-  });
-  allLabs.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var today = new Date();
+  var todayStr2 = today.toISOString().slice(0,10);
+  var rows = [...data.patients].sort(roomSort).map(function(p){
+    var due = p.labsDue || '';
+    var overdue = due && due < todayStr2;
+    var soon = due && !overdue && due <= getFutureDate(7);
+    var cls = overdue ? ' style="color:#ff8a7a;font-weight:600"' : soon ? ' style="color:#ffd27a;font-weight:600"' : '';
+    return '<tr onclick="selectPatient(\'' + p.id + '\')" style="cursor:pointer">' +
+      '<td>' + p.room + '</td><td>' + p.name + '</td>' +
+      '<td' + cls + '>' + (due || '—') + '</td>' +
+      (due ? '<td>' + (overdue ? '⚠️ Overdue' : soon ? '⚡ Due soon' : '✓ On track') + '</td>' : '<td>—</td>') +
+      '<td style="text-align:center"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();setLabsDue(\'' + p.id + '\')">Set Due Date</button></td></tr>';
+  }).join('');
 
-  var tableRows = allLabs.length === 0
-    ? '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No lab results recorded</td></tr>'
-    : allLabs.map(function(l){
-        return '<tr><td>' + l.date + '</td><td><strong>' + l.name + '</strong></td><td>' + l.result + '</td><td>' + l.room + '</td><td onclick="selectPatient(\'' + l.pid + '\')" style="cursor:pointer;color:var(--primary)">' + l.nameStr + '</td></tr>';
-      }).join('');
-
-  return '<div class="tab-panel">' + unitHeader('Labs','🔬') +
+  return '<div class="tab-panel">' + unitHeader('Upcoming Lab Draws','🔬') +
     '<div style="overflow-x:auto"><table class="data-table"><thead><tr>' +
-      '<th>Date</th><th>Lab</th><th>Result</th><th>Room</th><th>Patient</th>' +
-    '</tr></thead><tbody>' + tableRows + '</tbody></table></div></div>';
+      '<th>Room</th><th>Patient</th><th>Due Date</th><th>Status</th><th style="width:100px"></th>' +
+    '</tr></thead><tbody>' +
+    (rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No patients. Add patients to see lab tracking.</td></tr>') +
+    '</tbody></table></div></div>';
+}
+
+function getFutureDate(days) {
+  var d = new Date(); d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
+function setLabsDue(pid) {
+  var p = getPatient(pid);
+  if (!p) return;
+  var date = prompt('Enter due date for lab draw (YYYY-MM-DD):', p.labsDue || '');
+  if (date === null) return;
+  p.labsDue = date.trim();
+  saveData();
+  renderContent();
 }
 
 // ============== UNIT ADLs VIEW ==============
