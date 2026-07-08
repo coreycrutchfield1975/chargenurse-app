@@ -232,17 +232,18 @@
         <thead>
           <tr>
             <th style="width:36px">Rm</th>
+            <th style="width:30px">Spc</th>
+            <th style="width:44px">Code</th>
             <th>Name</th>
-            <th style="width:50px">Code</th>
+            <th style="width:55px">Provider</th>
             <th style="width:40px">Meds</th>
-            <th style="width:55px">Diet</th>
-            <th style="width:40px">Asst</th>
-            <th style="width:40px">Toilet</th>
-            <th style="width:32px">FSBS</th>
-            <th style="width:30px">Wt</th>
-            <th style="width:50px">Spec</th>
+            <th style="width:50px">Diet</th>
+            <th style="width:36px">Asst</th>
+            <th style="width:36px">Toilet</th>
+            <th style="width:30px">FSBS</th>
+            <th style="width:28px">Wt</th>
             <th>Notes</th>
-            <th class="no-print" style="width:30px"></th>
+            <th class="no-print" style="width:36px"></th>
           </tr>
         </thead>
         <tbody id="rosterBody"></tbody>
@@ -303,6 +304,12 @@
   </div>
 
 </div>
+
+<!-- ── Provider datalist ── -->
+<datalist id="providerList">
+  <option value="McCain">
+  <option value="Chang">
+</datalist>
 
 <!-- ── Modal container ── -->
 <div id="modalContainer" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
@@ -463,7 +470,7 @@ function render() {
 
   // Roster table
   if (roster.length === 0) {
-    $('rosterBody').innerHTML = '<tr class="empty-row"><td colspan="12">No patients. Click "+ Add" to start.</td></tr>';
+    $('rosterBody').innerHTML = '<tr class="empty-row"><td colspan="13">No patients. Click "+ Add" to start.</td></tr>';
   } else {
     roster.sort(function(a,b){return a.room.localeCompare(b.room,undefined,{numeric:true});});
     var rhtml = '';
@@ -475,15 +482,16 @@ function render() {
       else if (sp==='EOL') sc = 'border-left:3px solid #8e44ad';
       rhtml += '<tr style="' + sc + '">' +
         '<td style="font-weight:600;color:#ffd27a">' + esc(p.room) + '</td>' +
-        '<td>' + esc(p.name) + '</td>' +
-        '<td style="text-align:center">' + esc(p.codeStatus||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.meds||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.diet||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.assistance||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.toilet||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.fsbs||'—') + '</td>' +
-        '<td style="text-align:center">' + esc(p.weight||'—') + '</td>' +
         '<td style="text-align:center;font-size:10px">' + esc(p.specialty||'—') + '</td>' +
+        '<td style="text-align:center">' + esc(p.codeStatus||'—') + '</td>' +
+        '<td>' + esc(p.name) + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.provider||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.meds||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.diet||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.assistance||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.toilet||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.fsbs||'—') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + esc(p.weight||'—') + '</td>' +
         '<td style="font-size:11px;white-space:pre-wrap">' + esc(p.notes||'') + '</td>' +
         '<td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editPatient(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deletePatient(' + i + ')" title="Remove">✕</button></td></tr>';
     });
@@ -526,20 +534,22 @@ function showAddPatient() {
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Code Status</label><select id="mCode"><option value="">—</option><option>Full Code</option><option>DNR</option><option>DNI</option><option>Full/DNI</option></select></div>' +
+    '<div><label>Provider</label><input id="mProvider" placeholder="McCain, Chang" list="providerList"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
     '<div><label>Meds</label><input id="mMeds" placeholder="e.g., PO, PEG, C/AS"></div>' +
-    '</div>' +
-    '<div class="form-row">' +
     '<div><label>Diet</label><input id="mDiet" placeholder="Reg, Cho, Puree..."></div>' +
+    '</div>' +
+    '<div class="form-row">' +
     '<div><label>Assistance</label><select id="mAsst"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option></select></div>' +
-    '</div>' +
-    '<div class="form-row">' +
     '<div><label>Toilet</label><select id="mToilet"><option value="">—</option><option>Ind</option><option>SBA</option><option>Min</option><option>Mod</option><option>Max</option><option>Dep</option><option>Bedpan</option><option>BRP</option></select></div>' +
-    '<div><label>FSBS</label><input id="mFsbs" placeholder="AC/HS, QID..."></div>' +
     '</div>' +
     '<div class="form-row">' +
+    '<div><label>FSBS</label><input id="mFsbs" placeholder="AC/HS, QID..."></div>' +
     '<div><label>Weight</label><input id="mWt" placeholder="lbs/kg"></div>' +
-    '<div><label>Specialty</label><select id="mSpec"><option value="">—</option><option>LTC</option><option>SSR</option><option>EOL</option><option>Resp</option></select></div>' +
     '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Specialty</label><select id="mSpec"><option value="">—</option><option>LTC</option><option>SSR</option><option>EOL</option><option>Resp</option></select></div>' +
     '<label>Notes</label><textarea id="mNotes" rows="3"></textarea>' +
     '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewPatient()">Add Patient</button></div>'
   );
@@ -557,6 +567,7 @@ function saveNewPatient() {
     room: room,
     name: name,
     codeStatus: $('mCode').value,
+    provider: $('mProvider').value.trim(),
     meds: $('mMeds').value.trim(),
     diet: $('mDiet').value.trim(),
     assistance: $('mAsst').value,
@@ -584,20 +595,22 @@ function editPatient(idx) {
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Code Status</label><select id="mCode">' + optsSel(p.codeStatus, ['','Full Code','DNR','DNI','Full/DNI']) + '</select></div>' +
+    '<div><label>Provider</label><input id="mProvider" value="' + esc(p.provider||'') + '" list="providerList"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
     '<div><label>Meds</label><input id="mMeds" value="' + esc(p.meds||'') + '"></div>' +
-    '</div>' +
-    '<div class="form-row">' +
     '<div><label>Diet</label><input id="mDiet" value="' + esc(p.diet||'') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
     '<div><label>Assistance</label><select id="mAsst">' + optsSel(p.assistance, ['','Ind','SBA','Min','Mod','Max','Dep']) + '</select></div>' +
-    '</div>' +
-    '<div class="form-row">' +
     '<div><label>Toilet</label><select id="mToilet">' + optsSel(p.toilet, ['','Ind','SBA','Min','Mod','Max','Dep','Bedpan','BRP']) + '</select></div>' +
-    '<div><label>FSBS</label><input id="mFsbs" value="' + esc(p.fsbs||'') + '"></div>' +
     '</div>' +
     '<div class="form-row">' +
+    '<div><label>FSBS</label><input id="mFsbs" value="' + esc(p.fsbs||'') + '"></div>' +
     '<div><label>Weight</label><input id="mWt" value="' + esc(p.weight||'') + '"></div>' +
-    '<div><label>Specialty</label><select id="mSpec">' + optsSel(p.specialty, ['','LTC','SSR','EOL','Resp']) + '</select></div>' +
     '</div>' +
+    '<div class="form-row">' +
+    '<div><label>Specialty</label><select id="mSpec">' + optsSel(p.specialty, ['','LTC','SSR','EOL','Resp']) + '</select></div>' +
     '<label>Notes</label><textarea id="mNotes" rows="3">' + esc(p.notes||'') + '</textarea>' +
     '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEditPatient(' + idx + ')">Save</button></div>'
   );
@@ -618,6 +631,7 @@ function saveEditPatient(idx) {
   p.room = $('mRoom').value.trim();
   p.name = $('mName').value.trim();
   p.codeStatus = $('mCode').value;
+  p.provider = $('mProvider').value.trim();
   p.meds = $('mMeds').value.trim();
   p.diet = $('mDiet').value.trim();
   p.assistance = $('mAsst').value;
