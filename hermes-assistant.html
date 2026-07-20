@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Hermes — Voice Assistant</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0e17;
+  --card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --text:#e8edf5;
+  --muted:#7a8ba3;
+  --gold:#d4a853;
+  --gold-dim:#c9952e;
+  --accent:#6366f1;
+  --accent-dim:#4f46e5;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#3b82f6;
+}
+
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  min-height:100dvh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+/* ── Animated background ── */
+.bg-orbs{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.bg-orbs span{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(80px);
+  opacity:0.15;
+  animation:orbFloat 20s ease-in-out infinite;
+}
+.bg-orbs span:nth-child(1){
+  width:600px;height:600px;
+  background:var(--gold);
+  top:-10%;left:-10%;
+  animation-delay:0s;
+}
+.bg-orbs span:nth-child(2){
+  width:500px;height:500px;
+  background:var(--accent);
+  bottom:-15%;right:-10%;
+  animation-delay:-7s;
+}
+.bg-orbs span:nth-child(3){
+  width:400px;height:400px;
+  background:var(--blue);
+  bottom:30%;left:-5%;
+  animation-delay:-14s;
+}
+.bg-orbs span:nth-child(4){
+  width:300px;height:300px;
+  background:var(--green);
+  top:20%;right:5%;
+  animation-delay:-5s;
+  opacity:0.08;
+}
+
+@keyframes orbFloat{
+  0%,100%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(50px,-80px) scale(1.1)}
+  50%{transform:translate(-30px,60px) scale(0.9)}
+  75%{transform:translate(40px,40px) scale(1.05)}
+}
+
+/* ── Grid overlay ── */
+.grid-lines{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(212,168,83,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(212,168,83,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+}
+
+/* ── Particles ── */
+.particles{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+.particle{
+  position:absolute;
+  width:3px;height:3px;
+  background:var(--gold);
+  border-radius:50%;
+  opacity:0;
+  animation:particleFloat 6s ease-in-out infinite;
+}
+@keyframes particleFloat{
+  0%{opacity:0;transform:translateY(0) scale(0)}
+  10%{opacity:0.6;transform:translateY(-20px) scale(1)}
+  90%{opacity:0.3;transform:translateY(-90vh) scale(0.5)}
+  100%{opacity:0;transform:translateY(-100vh) scale(0)}
+}
+
+/* ── Main container ── */
+.container{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:420px;
+  padding:24px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:24px;
+}
+
+/* ── Header ── */
+.header{
+  text-align:center;
+  width:100%;
+}
+.hermes-logo{
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:0.8;
+}
+.hermes-tagline{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+  letter-spacing:1px;
+}
+.status-dot{
+  display:inline-block;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--green);
+  margin-right:6px;
+  vertical-align:middle;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.4)}
+  50%{opacity:0.7;box-shadow:0 0 0 6px rgba(34,197,94,0)}
+}
+
+/* ── Orb animation ── */
+.orb-container{
+  position:relative;
+  width:200px;height:200px;
+  margin:8px 0;
+}
+.orb-ring{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:1.5px solid rgba(212,168,83,0.15);
+  animation:spin 12s linear infinite;
+}
+.orb-ring:nth-child(2){
+  inset:15px;
+  border-color:rgba(99,102,241,0.12);
+  animation-duration:8s;
+  animation-direction:reverse;
+}
+.orb-ring:nth-child(3){
+  inset:30px;
+  border-color:rgba(59,130,246,0.1);
+  animation-duration:6s;
+}
+.orb-ring:nth-child(4){
+  inset:45px;
+  border-color:rgba(34,197,94,0.08);
+  animation-duration:4s;
+  animation-direction:reverse;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.orb-core{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:70px;height:70px;
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,rgba(212,168,83,0.25),rgba(99,102,241,0.15),transparent);
+  box-shadow:0 0 60px rgba(212,168,83,0.15),0 0 120px rgba(99,102,241,0.08);
+  animation:corePulse 3s ease-in-out infinite;
+}
+.orb-core.listening{
+  animation:listening 0.6s ease-in-out infinite alternate;
+  box-shadow:0 0 80px rgba(99,102,241,0.4),0 0 160px rgba(212,168,83,0.2);
+}
+@keyframes corePulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8}
+  50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}
+}
+@keyframes listening{
+  from{transform:translate(-50%,-50%) scale(1);box-shadow:0 0 60px rgba(99,102,241,0.3)}
+  to{transform:translate(-50%,-50%) scale(1.15);box-shadow:0 0 100px rgba(99,102,241,0.6),0 0 200px rgba(212,168,83,0.3)}
+}
+.orb-icon{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:28px;
+  z-index:2;
+}
+
+/* ── Transcription ── */
+.transcript-area{
+  width:100%;
+  min-height:70px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 18px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.transcript-text{
+  font-size:15px;
+  line-height:1.6;
+  color:var(--text);
+  text-align:center;
+}
+.transcript-text .placeholder{
+  color:var(--muted);
+  font-size:13px;
+  font-style:italic;
+}
+.transcript-text .listening-blip{
+  display:inline-block;
+  width:6px;height:16px;
+  background:var(--accent);
+  animation:blink 0.8s infinite;
+  vertical-align:middle;
+  margin-left:2px;
+}
+@keyframes blink{50%{opacity:0}}
+
+/* ── Response ── */
+.response-area{
+  width:100%;
+  min-height:50px;
+  background:linear-gradient(135deg,rgba(212,168,83,0.05),rgba(99,102,241,0.05));
+  border:1px solid rgba(212,168,83,0.12);
+  border-radius:16px;
+  padding:16px 18px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  display:none;
+}
+.response-text{
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text);
+  text-align:center;
+}
+
+/* ── Wave visualizer ── */
+.wave-container{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  height:30px;
+  width:100%;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+.wave-container.active{opacity:1}
+.wave-bar{
+  width:5px;
+  border-radius:3px;
+  background:linear-gradient(180deg,var(--gold),var(--accent));
+  animation:wave 0.8s ease-in-out infinite;
+}
+.wave-bar:nth-child(1){height:12px;animation-delay:0s}
+.wave-bar:nth-child(2){height:20px;animation-delay:0.1s}
+.wave-bar:nth-child(3){height:28px;animation-delay:0.2s}
+.wave-bar:nth-child(4){height:24px;animation-delay:0.3s}
+.wave-bar:nth-child(5){height:18px;animation-delay:0.4s}
+.wave-bar:nth-child(6){height:26px;animation-delay:0.35s}
+.wave-bar:nth-child(7){height:14px;animation-delay:0.15s}
+@keyframes wave{
+  0%,100%{transform:scaleY(0.6)}
+  50%{transform:scaleY(1)}
+}
+
+/* ── Button ── */
+.mic-btn{
+  width:76px;height:76px;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg,rgba(212,168,83,0.2),rgba(99,102,241,0.2));
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1.5px solid rgba(212,168,83,0.25);
+  cursor:pointer;
+  font-size:30px;
+  transition:all 0.3s;
+  position:relative;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+}
+.mic-btn:active{transform:scale(0.92)}
+.mic-btn.listening{
+  background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(212,168,83,0.25));
+  border-color:var(--accent);
+  box-shadow:0 0 30px rgba(99,102,241,0.3),0 0 60px rgba(212,168,83,0.15);
+  animation:btnPulse 1.5s ease-in-out infinite;
+}
+@keyframes btnPulse{
+  0%,100%{box-shadow:0 0 20px rgba(99,102,241,0.2)}
+  50%{box-shadow:0 0 40px rgba(99,102,241,0.4),0 0 80px rgba(212,168,83,0.15)}
+}
+.mic-btn .btn-label{
+  position:absolute;
+  bottom:-22px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+/* ── Quick actions ── */
+.quick-actions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  width:100%;
+  margin-top:4px;
+}
+.qaction{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.qaction:active{transform:scale(0.95);background:rgba(255,255,255,0.07)}
+.qaction-icon{font-size:20px;margin-bottom:4px}
+.qaction-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.3px}
+
+/* ── Command history ── */
+.history{
+  width:100%;
+  max-height:120px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.05) transparent;
+}
+.history::-webkit-scrollbar{width:3px}
+.history::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+.history-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  font-size:12px;
+  color:var(--muted);
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.history-item:last-child{border:none}
+.history-item .hi-icon{font-size:12px;opacity:0.6}
+.history-item .hi-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Voice support note ── */
+.voice-note{
+  font-size:11px;
+  color:var(--muted);
+  text-align:center;
+  margin-top:4px;
+  opacity:0.6;
+}
+
+/* ── Command modal ── */
+.command-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(10,14,23,0.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.command-overlay.active{display:flex}
+.command-modal{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:24px;
+  max-width:380px;
+  width:100%;
+  max-height:80vh;
+  overflow-y:auto;
+}
+.command-modal h3{
+  font-size:16px;
+  font-weight:700;
+  color:var(--gold);
+  margin-bottom:16px;
+  text-align:center;
+}
+.command-group{
+  margin-bottom:14px;
+}
+.command-group h4{
+  font-size:11px;
+  font-weight:600;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-bottom:6px;
+}
+.cmd-chip{
+  display:inline-block;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:8px;
+  padding:4px 10px;
+  font-size:11px;
+  color:var(--muted);
+  margin:2px;
+}
+.cmd-chip .key{
+  color:var(--gold);
+  font-weight:600;
+}
+.close-cmds{
+  display:block;
+  margin:16px auto 0;
+  background:linear-gradient(135deg,rgba(212,168,83,0.15),rgba(99,102,241,0.15));
+  border:1px solid rgba(212,168,83,0.2);
+  border-radius:10px;
+  padding:8px 24px;
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <span></span><span></span><span></span><span></span>
+</div>
+<div class="grid-lines"></div>
+<div class="particles" id="particles"></div>
+
+<!-- COMMAND HELP OVERLAY -->
+<div class="command-overlay" id="cmdOverlay">
+  <div class="command-modal">
+    <h3>🤖 Hermes Commands</h3>
+    <div class="command-group">
+      <h4>🌐 Web</h4>
+      <span class="cmd-chip">"search for <span class="key">topic</span>"</span>
+      <span class="cmd-chip">"open <span class="key">site name</span>"</span>
+      <span class="cmd-chip">"what's the weather"</span>
+      <span class="cmd-chip">"tell me about <span class="key">topic</span>"</span>
+    </div>
+    <div class="command-group">
+      <h4>📋 Your Apps</h4>
+      <span class="cmd-chip">"open charge rn"</span>
+      <span class="cmd-chip">"open morning report"</span>
+      <span class="cmd-chip">"open scheduler"</span>
+      <span class="cmd-chip">"open landing page"</span>
+    </div>
+    <div class="command-group">
+      <h4>🙋 General</h4>
+      <span class="cmd-chip">"hello" / "hi"</span>
+      <span class="cmd-chip">"what can you do"</span>
+      <span class="cmd-chip">"help" / "commands"</span>
+      <span class="cmd-chip">"thank you"</span>
+    </div>
+    <div class="command-group">
+      <h4>⚙️ Controls</h4>
+      <span class="cmd-chip">tap mic or say <span class="key">"hey hermes"</span></span>
+      <span class="cmd-chip">tap again or say <span class="key">"stop"</span></span>
+    </div>
+    <button class="close-cmds" onclick="closeCmds()">Got it</button>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="hermes-logo">
+      <span class="status-dot"></span> Hermes
+    </div>
+    <div class="hermes-tagline">Voice • Agent • Intelligence</div>
+  </div>
+
+  <!-- Orb -->
+  <div class="orb-container">
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-core" id="orbCore"><div class="orb-icon">🧠</div></div>
+  </div>
+
+  <!-- Wave visualization -->
+  <div class="wave-container" id="waveContainer">
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div>
+  </div>
+
+  <!-- Transcription -->
+  <div class="transcript-area">
+    <div class="transcript-text" id="transcript">
+      <span class="placeholder">Tap the mic or say "Hey Hermes"</span>
+    </div>
+  </div>
+
+  <!-- Response -->
+  <div class="response-area" id="responseArea">
+    <div class="response-text" id="responseText"></div>
+  </div>
+
+  <!-- Mic button -->
+  <button class="mic-btn" id="micBtn" onclick="toggleMic()">
+    🎤
+    <span class="btn-label">tap to speak</span>
+  </button>
+
+  <!-- Quick actions -->
+  <div class="quick-actions">
+    <div class="qaction" onclick="quickCmd('search')">
+      <div class="qaction-icon">🔍</div>
+      <div class="qaction-label">Search</div>
+    </div>
+    <div class="qaction" onclick="quickCmd('apps')">
+      <div class="qaction-icon">📱</div>
+      <div class="qaction-label">My Apps</div>
+    </div>
+    <div class="qaction" onclick="showCmds()">
+      <div class="qaction-icon">📋</div>
+      <div class="qaction-label">Commands</div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history" id="history"></div>
+
+  <!-- Voice note -->
+  <div class="voice-note">🔊 Say "Hey Hermes" hands-free</div>
+</div>
+
+<script>
+// ── Particles ──
+(function(){
+  var p=document.getElementById('particles');
+  for(var i=0;i<25;i++){
+    var dot=document.createElement('div');
+    dot.className='particle';
+    dot.style.left=Math.random()*100+'%';
+    dot.style.animationDelay=Math.random()*6+'s';
+    dot.style.animationDuration=(4+Math.random()*4)+'s';
+    p.appendChild(dot);
+  }
+})();
+
+// ── Text to Speech ──
+function speak(text){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);
+  u.rate=1.05;u.pitch=1.1;u.volume=1;
+  u.lang='en-US';
+  window.speechSynthesis.speak(u);
+}
+
+// ── DOM shortcuts ──
+function $(id){return document.getElementById(id)}
+
+// ── State ──
+var listening=false;
+var recognition=null;
+var transcript=$('transcript');
+var responseArea=$('responseArea');
+var responseText=$('responseText');
+var orbCore=$('orbCore');
+var micBtn=$('micBtn');
+var waveContainer=$('waveContainer');
+var historyEl=$('history');
+var isSpeaking=false;
+
+// Commands mapping
+var appLinks={
+  'charge rn':'https://chargenurse-app.vercel.app/charge-rn.html',
+  'charge nurse':'https://chargenurse-app.vercel.app/charge-rn.html',
+  'landing page':'https://chargenurse-app.vercel.app/',
+  'launchpad':'https://chargenurse-app.vercel.app/',
+  'morning report':'https://chargenurse-app.vercel.app/morning-report.html',
+  'scheduler':'https://clcscheduler.vercel.app/',
+  'clc scheduler':'https://clcscheduler.vercel.app/',
+  'resource directory':'https://jjp-resource-directory.vercel.app/',
+  'bullion dealer':'https://bulliondealerpro.com/',
+  'google':'https://google.com',
+  'gmail':'https://mail.google.com',
+  'youtube':'https://youtube.com',
+  'outlook':'https://outlook.live.com',
+  'facebook':'https://facebook.com',
+};
+
+var quickReplies={
+  'hello':'Hey! What can I help you with?',
+  'hi':'Hey there! Say the word.',
+  'hey':'What\'s up?',
+  'thank you':'Anytime!',
+  'thanks':'You got it!',
+  'good':'Glad to hear it!',
+  'what can you do':'I can search the web, open your apps, answer questions, and more. Tap the mic or say "Hey Hermes"!',
+  'help':'Say a command or tap Commands to see what I can do.',
+  'commands':null, // triggers showCmds
+  'who are you':'I\'m Hermes — your AI assistant. Built by Nous Research.',
+  'who made you':'Nous Research created me. I run on your phone.',
+};
+
+// ── Process command ──
+function processCommand(text){
+  t=text.toLowerCase().trim();
+  // Remove hey hermes prefix
+  t=t.replace(/^(hey\s+)?hermes[,]?\s*/,'');
+  
+  addHistory(t);
+  
+  // Check quick replies
+  for(var key in quickReplies){
+    if(t===key||t===key+'!'||t===key+'.'){
+      if(key==='commands'){showCmds();return null;}
+      return quickReplies[key];
+    }
+  }
+  
+  // Open app
+  for(var key in appLinks){
+    if(t.indexOf('open '+key)>=0||t.indexOf('go to '+key)>=0||t===key){
+      window.open(appLinks[key],'_blank');
+      return 'Opening '+key+'...';
+    }
+  }
+  
+  // Search
+  if(t.indexOf('search')>=0||t.indexOf('search for')>=0||t.indexOf('look up')>=0){
+    var q=t.replace(/^(search|search for|look up)\s+/,'');
+    if(q){
+      window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');
+      return 'Searching for "'+q+'"...';
+    }
+    return 'What should I search for?';
+  }
+  
+  // Weather
+  if(t.indexOf('weather')>=0){
+    window.open('https://www.google.com/search?q=weather','_blank');
+    return 'Checking the weather...';
+  }
+  
+  // Tell me about
+  if(t.indexOf('tell me about')>=0||t.indexOf('what is')>=0){
+    var q=t.replace(/^(tell me about|what is|what's)\s+/,'');
+    if(q){
+      window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');
+      return 'Looking up "'+q+'"...';
+    }
+  }
+  
+  // Stop / cancel
+  if(t==='stop'||t==='cancel'||t==='never mind'||t==='nevermind'){
+    stopListening();
+    return null;
+  }
+  
+  // Unknown
+  return 'I\'m not sure how to help with that yet. Try "search for [topic]" or "help" for commands.';
+}
+
+// ── Show response ──
+function showResponse(text){
+  if(!text) return;
+  responseArea.style.display='block';
+  responseText.textContent=text;
+  speak(text);
+}
+
+// ── Add to history ──
+function addHistory(text){
+  var item=document.createElement('div');
+  item.className='history-item';
+  item.innerHTML='<span class="hi-icon">🎤</span><span class="hi-text">'+escapeHtml(text)+'</span>';
+  historyEl.insertBefore(item,historyEl.firstChild);
+  // Keep max 15
+  while(historyEl.children.length>15) historyEl.removeChild(historyEl.lastChild);
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Toggle microphone ──
+function toggleMic(){
+  if(listening){stopListening();return;}
+  startListening();
+}
+
+function startListening(){
+  if(!('webkitSpeechRecognition' in window)&&!("SpeechRecognition" in window)){
+    transcript.innerHTML='<span style="color:var(--red)">Speech recognition not supported in this browser. Try Chrome.</span>';
+    return;
+  }
+  
+  listening=true;
+  micBtn.classList.add('listening');
+  micBtn.querySelector('.btn-label').textContent='listening...';
+  orbCore.classList.add('listening');
+  waveContainer.classList.add('active');
+  transcript.innerHTML='<span style="color:var(--muted)">Listening...</span><span class="listening-blip"></span>';
+  
+  var SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SpeechRecognition();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
+  
+  var finalTranscript='';
+  
+  recognition.onresult=function(e){
+    var interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var r=e.results[i];
+      if(r.isFinal) finalTranscript+=r[0].transcript+' ';
+      else interim+=r[0].transcript;
+    }
+    var display=finalTranscript+interim;
+    transcript.innerHTML='<span>'+escapeHtml(display||'...')+'</span><span class="listening-blip"></span>';
+    
+    // Check for "hey hermes" wake word
+    var lower=display.toLowerCase();
+    if(!finalTranscript&&!interim) return;
+    var check=lower;
+    
+    // Process when they stop speaking (detect via silence after final result)
+    if(e.results[e.results.length-1].isFinal){
+      var full=finalTranscript.trim();
+      if(full){
+        // Check for hey hermes
+        var cmd=full.toLowerCase();
+        if(cmd.indexOf('hey hermes')>=0||cmd.indexOf('hermes')>=0){
+          stopListening();
+          setTimeout(function(){
+            var reply=processCommand(cmd);
+            if(reply) showResponse(reply);
+          },300);
+        }
+      }
+    }
+  };
+  
+  recognition.onerror=function(e){
+    console.log('Speech error:',e.error);
+    if(e.error!='no-speech'&&e.error!='aborted'){
+      transcript.innerHTML='<span style="color:var(--red)">Error: '+e.error+'</span>';
+      stopListening();
+    }
+  };
+  
+  recognition.onend=function(){
+    // Auto-restart if still listening
+    if(listening){
+      try{recognition.start();}catch(e){}
+    }
+  };
+  
+  try{recognition.start();}catch(e){}
+}
+
+function stopListening(){
+  listening=false;
+  micBtn.classList.remove('listening');
+  micBtn.querySelector('.btn-label').textContent='tap to speak';
+  orbCore.classList.remove('listening');
+  waveContainer.classList.remove('active');
+  
+  if(recognition){
+    try{recognition.stop();}catch(e){}
+    recognition=null;
+  }
+  
+  // Reset transcript if showing idle
+  var t=transcript.textContent||'';
+  if(!t||t==='Listening...'||t.indexOf('Error')>=0){
+    transcript.innerHTML='<span class="placeholder">Tap the mic or say "Hey Hermes"</span>';
+  }
+}
+
+// ── Quick commands ──
+function quickCmd(type){
+  if(type==='search'){
+    var q=prompt('What should I search for?');
+    if(q&&q.trim()){
+      window.open('https://www.google.com/search?q='+encodeURIComponent(q.trim()),'_blank');
+      addHistory('search: '+q);
+      showResponse('Searching for "'+q+'"...');
+    }
+  }else if(type==='apps'){
+    var appList='Available apps: Charge RN, Morning Report, CLC Scheduler, Resource Directory, Bullion Dealer Pro, Google, Gmail, YouTube, Facebook, Outlook';
+    transcript.innerHTML='<span style="color:var(--gold);font-size:13px">'+appList+'</span>';
+    speak('Say "open" followed by the app name');
+  }
+}
+
+// ── Command overlay ──
+function showCmds(){
+  $('cmdOverlay').classList.add('active');
+}
+function closeCmds(){
+  $('cmdOverlay').classList.remove('active');
+}
+
+// ── Auto start listening on load ──
+// Removed auto-start — user taps mic to begin
+
+console.log('Hermes Assistant ready');
+</script>
+</body>
+</html>
