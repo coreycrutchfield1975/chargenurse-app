@@ -14,6 +14,32 @@
     background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
     display: flex; flex-direction: column;
   }
+  /* ── Theme background swatches ── */
+  body.theme-default { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
+  body.theme-sunset  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-clickerhappy-584420.jpg') center center / cover no-repeat fixed; }
+  body.theme-mist    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-lukasz-szabo-1178620274-28542760.jpg') center center / cover no-repeat fixed; }
+  body.theme-forest  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-magda-ehlers-pexels-12131409.jpg') center center / cover no-repeat fixed; }
+  body.theme-ember   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-molnartamasphotography-15100929.jpg') center center / cover no-repeat fixed; }
+  body.theme-shade   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-florian-suss-269098632-13606075.jpg') center center / cover no-repeat fixed; }
+  body.theme-pine    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-andreas-schnabl-1775843-38298475.jpg') center center / cover no-repeat fixed; }
+  .theme-swatches { display: flex; gap: 4px; align-items: center; }
+  .theme-swatches .swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color .2s, transform .15s; flex-shrink: 0; }
+  .theme-swatches .swatch:hover { transform: scale(1.15); }
+  .theme-swatches .swatch.active { border-color: #d4a017; box-shadow: 0 0 0 1px #d4a017; }
+  .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
+  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
+  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
+  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
+  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
+  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:9px; top:3px; left:4px; }
+  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
+  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:9px; top:3px; left:4px; }
 
   /* ── Login overlay ── */
   #loginOverlay {
@@ -202,6 +228,7 @@
     <button onclick="exportCSV()">⬇ Export</button>
     <button onclick="document.getElementById('importFile').click()">⬆ Import</button>
     <input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(event)">
+    <div class="theme-swatches" id="themeSwatches" style="margin-left:4px"></div>
     <button class="btn-gold" onclick="window.print()">🖨️ Print</button>
     <button class="btn-danger" onclick="logout()">Logout</button>
   </div>
@@ -383,6 +410,29 @@ function doLogin() {
   }
 }
 
+/* ── Theme backgrounds ── */
+var MR_THEME_KEY = 'mr_bg_theme';
+var MR_THEMES = ['default','sunset','mist','forest','ember','shade','pine'];
+function applyMrTheme(theme) {
+  if (!theme) theme = localStorage.getItem(MR_THEME_KEY) || 'default';
+  document.body.className = document.body.className
+    .split(' ').filter(function(c){return !c.startsWith('theme-');}).join(' ') + ' theme-' + theme;
+  localStorage.setItem(MR_THEME_KEY, theme);
+  var swatches = document.querySelectorAll('#themeSwatches .swatch');
+  for (var i = 0; i < swatches.length; i++) {
+    swatches[i].classList.toggle('active', swatches[i].dataset.theme === theme);
+  }
+}
+function initThemeSwatches() {
+  var html = '';
+  for (var i = 0; i < MR_THEMES.length; i++) {
+    var t = MR_THEMES[i];
+    html += '<span class="swatch" data-theme="' + t + '" onclick="applyMrTheme(\'' + t + '\')"></span>';
+  }
+  document.getElementById('themeSwatches').innerHTML = html;
+  applyMrTheme();
+}
+
 function logout() {
   sessionStorage.removeItem('mr_auth');
   $('loginOverlay').classList.remove('hidden');
@@ -390,6 +440,7 @@ function logout() {
 
 /* ── Init ── */
 function init() {
+  initThemeSwatches();
   loadNurses();
   var saved = localStorage.getItem(MR_NURSE_KEY);
   if (saved && nurses.indexOf(saved) >= 0) {
