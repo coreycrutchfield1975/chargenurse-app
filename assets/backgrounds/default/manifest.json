@@ -1,0 +1,16 @@
+{
+  "backgrounds": [
+    {
+      "name": "Futuristic Nurse Operations Center",
+      "file": "backgrounds/defaults/futuristic-nurse-operations-center.png"
+    },
+    {
+      "name": "Medical Command Center \u2014 Red/Blue HUD",
+      "file": "backgrounds/defaults/medical-command-center-red-blue.png"
+    },
+    {
+      "name": "Lotus Serenity",
+      "file": "backgrounds/defaults/lotus-serenity.png"
+    }
+  ]
+}
