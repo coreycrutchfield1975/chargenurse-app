@@ -1298,6 +1298,8 @@ body.theme-night .patient-card.active {
 /* ===== UNIT HEADER ===== */
 .unit-header { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
 </style>
+<script src="auth-session.js"></script>
+<script>if (!window.CLCAuth || !CLCAuth.requireAuth()) throw new Error("Authentication required");</script>
 </head>
 <body class="theme-clinical">
 
@@ -1753,6 +1755,7 @@ function doLogin() {
 }
 
 function doLogout() {
+  if (window.CLCAuth) { CLCAuth.logout(); return; }
   sessionStorage.removeItem('chargenurse_auth');
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('loginPass').value = '';
@@ -4686,7 +4689,7 @@ updateAlertBar();
 } catch(e) { console.error('Init error:', e); }
 
 // Auth check for login overlay
-if (sessionStorage.getItem('chargenurse_auth') === '1') {
+if (window.CLCAuth && CLCAuth.isAuthenticated()) {
   document.getElementById('loginOverlay').style.display = 'none';
   renderPatientList();
   renderContent();

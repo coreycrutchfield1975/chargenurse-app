@@ -216,6 +216,8 @@
     .patient-grid { grid-template-columns: 1fr; }
   }
 </style>
+<script src="auth-session.js"></script>
+<script>if (!window.CLCAuth || !CLCAuth.requireAuth()) throw new Error("Authentication required");</script>
 </head>
 <body>
 
@@ -350,6 +352,7 @@ function doLogin() {
   }
 }
 function logout() {
+  if (window.CLCAuth) { CLCAuth.logout(); return; }
   sessionStorage.removeItem('ts_auth');
   $('loginOverlay').classList.remove('hidden');
 }
@@ -872,12 +875,9 @@ function importCSV(event) {
 }
 
 /* ── Start ── */
-if (sessionStorage.getItem('ts_auth') === '1') {
-  $('loginOverlay').classList.add('hidden');
-  init();
-} else {
-  setTimeout(function(){ $('loginPass').focus(); }, 100);
-}
+// Shared site session: login occurs once at index.html.
+$('loginOverlay').classList.add('hidden');
+init();
 </script>
 </body>
 </html>
