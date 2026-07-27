@@ -114,7 +114,8 @@
     text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
     white-space: nowrap;
   }
-  tbody td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #eaf0f6; }
+  tbody td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #eaf0f6; vertical-align: middle; }
+  .patient-name { font-size: 15px; font-weight: 700; line-height: 1.05; }
   tbody tr:hover { background: rgba(255,255,255,0.03); }
   .empty-row td { text-align: center; padding: 20px; color: #6f8298; font-style: italic; }
 
@@ -172,8 +173,9 @@
     .report-page .section { break-inside: avoid; page-break-inside: avoid; }
     .section-title { color: #1a0f2e !important; border-bottom-color: #1a0f2e !important; }
     table { font-size: 9px; }
-    thead th { background: #1a0f2e !important; color: #ffd27a !important; padding: 3px 5px; font-size: 8px; }
-    tbody td { padding: 2px 5px; border: 1px solid #bbb; color: #000; font-size: 9px; }
+    thead th { background: #e6e6e6 !important; color: #111 !important; padding: 3px 5px; font-size: 8px; font-weight: 800; border: 1px solid #777; vertical-align: middle; }
+    tbody td { padding: 2px 5px; border: 1px solid #888; color: #000; font-size: 9px; vertical-align: middle; }
+    tbody td.patient-name { font-size: 13px; font-weight: 800; line-height: 1; }
     tbody tr:nth-child(even) { background: #f5f5f5; }
     tbody tr:hover { background: inherit; }
     .assign-content { background: #fafafa; border: 1px solid #bbb; color: #000; min-height: 50px; font-size: 10px; }
@@ -580,7 +582,7 @@ function render() {
         '<td style="font-weight:600;color:#ffd27a">' + esc(p.room) + '</td>' +
         '<td style="text-align:center;font-size:10px">' + esc(p.specialty||'—') + '</td>' +
         '<td style="text-align:center">' + esc(p.codeStatus||'—') + '</td>' +
-        '<td>' + esc(p.name) + '</td>' +
+        '<td class="patient-name">' + esc(p.name) + '</td>' +
         '<td style="text-align:center;font-size:11px">' + esc(p.provider||'—') + '</td>' +
         '<td style="text-align:center;font-size:11px">' + esc(p.meds||'—') + '</td>' +
         '<td style="text-align:center;font-size:11px">' + esc(p.diet||'—') + '</td>' +
@@ -1005,3 +1007,16 @@ if (sessionStorage.getItem('mr_auth') === '1') {
 </script>
 </body>
 </html>
+<style>
+@media print {
+  #censusTable tbody td:nth-child(2),
+  #censusTable tbody td.name-cell,
+  .patient-name {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.15px;
+    vertical-align: middle !important;
+  }
+}
+</style>
