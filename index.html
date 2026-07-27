@@ -1,499 +1,527 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VA Charge RN · Launchpad</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    color: #eaf0f6;
-    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
-    transition: background 0.8s ease;
-    display: flex; flex-direction: column;
-  }
-  /* theme swatch backgrounds — image overlay themes */
-  body.theme-default { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
-  body.theme-sunset  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-clickerhappy-584420.jpg') center center / cover no-repeat fixed; }
-  body.theme-mist    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-lukasz-szabo-1178620274-28542760.jpg') center center / cover no-repeat fixed; }
-  body.theme-forest  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-magda-ehlers-pexels-12131409.jpg') center center / cover no-repeat fixed; }
-  body.theme-ember   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-molnartamasphotography-15100929.jpg') center center / cover no-repeat fixed; }
-  body.theme-shade   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-florian-suss-269098632-13606075.jpg') center center / cover no-repeat fixed; }
-  body.theme-pine    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-andreas-schnabl-1775843-38298475.jpg') center center / cover no-repeat fixed; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morning Report</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐉</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f4f8; font-size: 13px; color: #1a2a3a; }
 
-    .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
-  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
-  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
-  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
-  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
-  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-body.theme-custom {
-    background: linear-gradient(180deg, rgba(14,24,34,0.35) 0%, rgba(14,24,34,0.70) 55%, rgba(14,24,34,0.92) 100%), var(--custom-bg, linear-gradient(135deg, #1a1a2e, #2a1a3a)) center center / cover no-repeat fixed;
-  }
+    /* ── App view ── */
+    #view-app { display: none; }
+    #view-app.active { display: block; }
 
-  body.locked #app-main, body.locked #lock-btn, body.locked #ql-dock { display: none !important; }
-  body.locked #lock-overlay { display: flex !important; }
+    /* ── Auth lock ── */
+    #view-setup, #view-login { display: none; }
+    #view-setup.active, #view-login.active { display: flex; }
+    .auth-view { background: #1a2a3a; min-height: 100vh; align-items: center; justify-content: center; }
+    .auth-box { background: #fff; border-radius: 10px; padding: 40px; width: 360px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .auth-logo { font-size: 40px; color: #1a4a7a; margin-bottom: 12px; }
+    .auth-box h1 { color: #1a2a3a; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .auth-box h2 { color: #1a2a3a; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .auth-sub { color: #666; font-size: 13px; margin-bottom: 24px; }
+    .auth-box input { width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 10px; outline: none; transition: border-color 0.2s; box-sizing:border-box; }
+    .auth-box input:focus { border-color: #1a4a7a; }
+    .auth-box button { width: 100%; padding: 12px; background: #1a4a7a; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: background 0.2s; }
+    .auth-box button:hover:not(:disabled) { background: #15396a; }
+    .auth-box button:disabled { opacity: 0.6; cursor: default; }
+    .error-msg { color: #c0392b; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+    .auth-inline { display:flex; justify-content:space-between; font-size:11px; margin-top:12px; }
+    .auth-inline span { color:#1a4a7a; cursor:pointer; text-decoration:underline; }
+    .auth-inline span:hover { color:#0d2a42; }
+    .auth-admin { display:none; margin-top:12px; padding-top:12px; border-top:1px solid #ddd; }
 
-  /* ── Pattern overlay ─────────────────────────────────────────── */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image:
-      radial-gradient(ellipse at 20% 30%, rgba(212,160,23,0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(91,43,142,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.02) 0%, transparent 40%);
-  }
+    /* ── Banner ── */
+    .banner { width: 100%; height: 120px; overflow: hidden; position: relative; background: #080f1a; }
+    .banner img { width: 100%; height: 100%; object-fit: contain; object-position: center center; display: block; }
+    .banner-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, rgba(8,15,26,0.88) 0%, rgba(8,15,26,0.1) 40%, rgba(8,15,26,0.1) 60%, rgba(8,15,26,0.5) 100%);
+      display: flex; align-items: center; padding: 0 24px; gap: 14px;
+    }
+    .banner-title { color: #fff; font-size: 30px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+    .banner-sub   { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
 
-  /* ── Hero banner ──────────────────────────────────────────────── */
-  .hero { position: relative; z-index: 1; color: #fff; }
-  .hero::after {
-    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-    background: linear-gradient(90deg, transparent, #d4a017, #ff7a18, #d4a017, transparent);
-  }
-  .hero-inner {
-    width: 100%; max-width: 1080px; margin: 0 auto;
-    padding: 14px 24px 12px;
-    display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;
-  }
-  .hero-text h1 {
-    margin: 0; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
-    background: linear-gradient(90deg, #ffe1a3, #ff7a18);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
-  }
-  .hero-text .tagline { margin: 5px 0 0; font-size: 14px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-  .hero-meta { margin-left: auto; text-align: right; text-shadow: 0 1px 5px rgba(0,0,0,0.85); }
-  .greeting { font-size: 17px; font-weight: 700; color: #ffd27a; }
-  .clock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .date { font-size: 12px; color: rgba(255,255,255,0.8); }
-  .greet-emoji { display: inline-block; animation: greet-pop 0.6s ease both; }
-  .greet-name {
-    background: linear-gradient(90deg, #ffe1a3 0%, #ff9d2f 50%, #ffe1a3 100%);
-    background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
-  }
-  .greet-wave { display: inline-block; transform-origin: 70% 80%; animation: wave 2.6s ease-in-out infinite; }
-  @keyframes shimmer { to { background-position: 200% center; } }
-  @keyframes wave { 0%,60%,100% { transform: rotate(0); } 10% { transform: rotate(16deg); } 20% { transform: rotate(-8deg); } 30% { transform: rotate(16deg); } 40% { transform: rotate(-4deg); } 50% { transform: rotate(10deg); } }
-  @keyframes greet-pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
-  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-  .anim-in .greeting { animation: fadeSlideIn 0.6s ease both; }
-  .anim-in .clock   { animation: fadeSlideIn 0.6s ease 0.10s both; }
-  .anim-in .date    { animation: fadeSlideIn 0.6s ease 0.18s both; }
-  @media (prefers-reduced-motion: reduce) {
-    .greet-wave, .greet-emoji, .greet-name, .anim-in .greeting, .anim-in .clock, .anim-in .date { animation: none; }
-  }
+    /* ── Header ── */
+    #header { background: #1a3a5c; color: #fff; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-title { font-size: 17px; font-weight: 700; letter-spacing: 0.3px; }
+    .header-date { font-size: 13px; opacity: 0.85; }
+    .header-right { display: flex; gap: 8px; }
+    .btn-add, .btn-export, .btn-print, .btn-logout { padding: 6px 14px; border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+    .btn-add    { background: #27ae60; color: #fff; }
+    .btn-export { background: #1d8348; color: #fff; }
+    .btn-import { background: #1a5276; color: #fff; padding: 6px 14px; border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+    .btn-print  { background: #fff; color: #1a3a5c; }
+    .btn-logout { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn-add:hover, .btn-export:hover, .btn-print:hover, .btn-logout:hover { opacity: 0.85; }
 
-  /* ── Theme swatches ──────────────────────────────────────────── */
-  .theme-swatches {
-    display: flex; align-items: center; gap: 8px;
-    margin-left: 12px; padding-left: 12px;
-    border-left: 1px solid rgba(255,255,255,0.12);
-  }
-  .theme-swatches .swatch {
-    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.2); transition: transform 0.15s, border-color 0.15s;
-  }
-  .theme-swatches .swatch:hover { transform: scale(1.25); border-color: rgba(255,255,255,0.6); }
-  .theme-swatches .swatch.active { border-color: #ffd27a; box-shadow: 0 0 10px rgba(212,160,23,0.5); }
-  .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
-  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
-  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
-  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
-  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
-  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="custom"]   { background: linear-gradient(135deg, #1a1a2e, #2a1a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="custom"]::after { content:'📷'; position:absolute; font-size:8px; top:3px; left:3px; }
+    /* ── Summary bar ── */
+    .summary-bar { display: flex; gap: 6px; padding: 6px 10px; background: #f8f9fa; border-bottom: 1px solid #dde3ea; font-size: 12px; }
+    .sum-item { padding: 3px 12px; border-radius: 12px; font-weight: 500; color: #fff; }
+    .sum-item strong { font-weight: 800; margin-left: 2px; }
+    .sum-ltc   { background: #2980b9; }
+    .sum-ss    { background: #27ae60; }
+    .sum-res   { background: #e67e22; }
+    .sum-eol   { background: #8e44ad; }
+    .sum-total { background: #1a3a5c; }
 
-  /* ── Lock button ─────────────────────────────────────────────── */
-  .lock-btn {
-    position: fixed; top: 14px; right: 16px; z-index: 900;
-    background: rgba(14,24,34,0.55); color: #ffd27a; border: 1px solid rgba(212,160,23,0.45);
-    border-radius: 9px; padding: 6px 10px; font-size: 13px; cursor: pointer;
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  }
-  .lock-btn:hover { background: rgba(20,32,46,0.8); }
+    /* ── Print header ── */
+    .print-header { display: none; }
 
-  /* ── Reminder ticker ─────────────────────────────────────────── */
-  .ticker { display: flex; align-items: stretch; overflow: hidden; z-index: 1; position: relative;
-    background: linear-gradient(90deg, rgba(212,160,23,0.20), rgba(20,32,46,0.55));
-    border-top: 1px solid rgba(212,160,23,0.35); border-bottom: 1px solid rgba(212,160,23,0.35);
-    box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
-  .ticker-label { flex-shrink: 0; display: flex; align-items: center; gap: 6px;
-    background: linear-gradient(90deg, #e0b94d, #d4a017); color: #1a1206;
-    font-weight: 800; font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase;
-    padding: 0 14px; }
-  .ticker-viewport { flex: 1; overflow: hidden; }
-  .ticker-track { display: inline-block; white-space: nowrap; padding: 10px 0 10px 100%;
-    font-size: 15px; font-weight: 600; color: #fbe6b8;
-    animation: ticker-scroll linear infinite; }
-  .ticker:hover .ticker-track { animation-play-state: paused; }
-  @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-  .tick-item { padding: 0 6px; }
-  .tick-sep { color: rgba(212,160,23,0.7); padding: 0 4px; }
-  .tick-due { color: #cdd8e4; font-weight: 500; font-size: 13px; }
-  .tick-item.overdue { color: #ff9b8c; }
-  .tick-item.overdue .tick-due { color: #ff9b8c; }
-  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; padding-left: 12px; } }
+    /* ── Main table ── */
+    .table-wrap { padding: 12px 8px 8px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; min-width: 1100px; }
+    thead tr { background: #1a3a5c; color: #fff; }
+    th { padding: 8px 6px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+    .col-status  { width: 90px; } .col-room  { width: 60px; }  .col-code { width: 55px; }
+    .col-np      { width: 55px; } .col-name  { width: 130px; } .col-diet { width: 90px; }
+    .col-sc      { width: 38px; } .col-iso   { width: 80px; }  .col-tens { width: 60px; }
+    .col-dc      { width: 100px; }.col-days  { width: 44px; }  .col-paper{ width: 80px; }
+    .col-nok     { width: 150px; }.col-notes { min-width: 120px; } .col-actions { width: 32px; }
+    tr.section-header td { background: #2c5f8a; color: #fff; font-weight: 700; font-size: 11px; padding: 5px 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+    tbody tr.patient-row { transition: background 0.1s; }
+    tbody tr.patient-row td { border: 1px solid #c8d4de; }
+    tbody tr.patient-row:hover td { background: #f0f5fa; }
+    tbody tr.patient-row td.col-notes { background: #f4f8fb; border-left: 3px solid #9ab4c8; min-width: 120px; }
+    tbody tr.patient-row:hover td.col-notes { background: #e8f0f7; }
+    tr.status-ltc     td.col-status { border-left: 4px solid #2980b9; }
+    tr.status-short   td.col-status { border-left: 4px solid #27ae60; }
+    tr.status-respite td.col-status { border-left: 4px solid #f39c12; }
+    tr.status-eol     td.col-status { border-left: 4px solid #8e44ad; }
+    td { padding: 5px 5px; vertical-align: middle; }
+    td.readonly { color: #555; font-weight: 600; }
+    td.days-cell { text-align: center; font-weight: 700; color: #1a3a5c; }
+    td.editable { cursor: pointer; position: relative; }
+    td.editable:hover { background: #eef4fb; }
+    td.editable input, td.editable select { width: 100%; border: 1px solid #3498db; border-radius: 3px; padding: 2px 4px; font-size: 13px; font-family: inherit; background: #fff; outline: none; }
+    td.editable select { padding: 1px 2px; }
+    .days-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .days-num   { font-size: 14px; font-weight: 700; color: #1a3a5c; line-height: 1; }
+    .days-admit { font-size: 9px; color: #888; line-height: 1; cursor: pointer; text-decoration: underline dotted; }
+    .days-admit:hover { color: #3498db; }
+    input[type="date"].admit-input { font-size: 11px; padding: 2px; width: 100%; border: 1px solid #3498db; border-radius: 3px; }
+    .btn-delete { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 15px; padding: 2px 4px; opacity: 0.5; transition: opacity 0.15s; }
+    .btn-delete:hover { opacity: 1; }
+    .loading, .empty-row { text-align: center; color: #999; padding: 30px; font-style: italic; }
 
-  /* ── Layout ──────────────────────────────────────────────────── */
-  main { position: relative; z-index: 1; padding: 16px 24px 80px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); max-width: 1080px; margin: 0 auto; width: 100%; }
-  .cols { display: grid; gap: 20px; align-items: start; }
-  .cols.layout-left  { grid-template-columns: 300px 1fr; }
-  .cols.layout-right { grid-template-columns: 1fr 300px; }
-  .cols.layout-right .apps-area { order: 2; }
-  .cols.layout-right .todo-area { order: 1; }
-  .cols.layout-top    { grid-template-columns: 1fr; }
-  .cols.layout-bottom { grid-template-columns: 1fr; }
-  .cols.layout-bottom .apps-area { order: 2; }
-  .cols.layout-bottom .todo-area { order: 1; }
-  .cols.layout-float { display: block; position: relative; min-height: 400px; }
-  .cols.layout-float .apps-area, .cols.layout-float .todo-area {
-    position: fixed; z-index: 100; width: 300px; cursor: grab; user-select: none;
-    background: linear-gradient(135deg, rgba(34,46,64,0.88), rgba(16,26,38,0.92));
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    border-radius: 12px; padding: 10px 14px 14px;
-    border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    touch-action: none; max-height: calc(100vh - 80px); overflow-y: auto;
-  }
-  .cols.layout-float .apps-area { left: 20px; top: 160px; }
-  .cols.layout-float .todo-area { right: 20px; top: 160px; }
-  .cols.layout-float .section-label { cursor: move; display: flex; align-items: center; gap: 6px; }
-  .cols.layout-float .section-label::before { content: '⠿'; font-size: 14px; opacity: 0.5; }
-  .cols.layout-float .section-label:hover { color: #ffd27a; }
-  .cols.layout-float .panel-head { cursor: move; display: flex; }
-  .cols.layout-float .panel-head::before { content: '⠿'; font-size: 14px; opacity: 0.5; margin-right: 6px; }
-  .cols.layout-float .panel-head:hover { color: #ffd27a; }
-  .cols.layout-float .panel { background: none; border: none; padding: 0; }
-  .cols.layout-float #app-main { min-height: calc(100vh - 118px); }
-  .cols.layout-float + footer { display: none; }
-  .layout-picker { display: flex; gap: 4px; align-items: center; margin-left: 8px; padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.12); }
-  .layout-picker .lay-btn {
-    width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
-    background: rgba(14,24,34,0.5); display: flex; flex-wrap: wrap; padding: 2px; gap: 1px; transition: transform 0.15s, border-color 0.15s;
-  }
-  .layout-picker .lay-btn:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.6); }
-  .layout-picker .lay-btn.active { border-color: #ffd27a; box-shadow: 0 0 8px rgba(212,160,23,0.5); }
-  .layout-picker .lay-btn i { display: block; background: rgba(255,255,255,0.25); border-radius: 1px; }
-  .lay-left i:nth-child(1) { width:8px; height:14px; }  .lay-left i:nth-child(2) { width:4px; height:14px; }
-  .lay-right i:nth-child(1) { width:4px; height:14px; } .lay-right i:nth-child(2) { width:8px; height:14px; }
-  .lay-top i { width:100%; height:6px; }
-  .lay-bottom i:nth-child(1) { width:100%; height:6px; } .lay-bottom i:nth-child(2) { width:100%; height:6px; }
-  .section-label {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: #b9c6d6; margin: 0 0 14px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  }
+    /* ── Sub-sections (Acute Care, Appointments, IDC) ── */
+    .sub-sections {
+      display: grid;
+      grid-template-areas: "acute" "appt" "idc";
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 0 8px 16px;
+      align-items: start;
+    }
+    .sub-section-acute { grid-area: acute; }
+    .sub-section-appt  { grid-area: appt; }
+    .sub-section-idc   { grid-area: idc; }
+    .sub-section { background: #fff; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); overflow: hidden; }
+    .sub-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; }
+    .sub-header.acute { background: #c0392b; }
+    .sub-header.appt  { background: #16a085; }
+    .sub-header.idc   { background: #7d3c98; }
+    .sub-header button { background: rgba(255,255,255,0.2); border: none; color: #fff; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .sub-header button:hover { background: rgba(255,255,255,0.35); }
+    .sub-table { width: 100%; border-collapse: collapse; }
+    .sub-table th { background: #f0f4f8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 6px; text-align: left; color: #445566; border-bottom: 1px solid #dde3ea; white-space: nowrap; }
+    .sub-table td { padding: 4px 6px; font-size: 12px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+    .sub-table tr:last-child td { border-bottom: none; }
+    .sub-table tr:hover td { background: #f8fafc; }
+    .sub-table td.sub-edit { cursor: pointer; }
+    .sub-table td.sub-edit:hover { background: #eef4fb !important; }
+    .sub-table td.sub-edit input { width: 100%; border: 1px solid #3498db; border-radius: 3px; padding: 2px 4px; font-size: 12px; font-family: inherit; outline: none; background: #fff; }
+    .sub-empty { color: #aaa; font-style: italic; font-size: 12px; padding: 10px 7px; }
 
-  /* ── App tiles ───────────────────────────────────────────────── */
-  .grid { display: flex; flex-direction: column; gap: 13px; }
-  .card {
-    position: relative; display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
-    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
-    border-radius: 14px; padding: 15px 18px 15px 20px;
-    text-decoration: none; color: inherit;
-    border: 1px solid rgba(255,255,255,0.10);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s, background 0.14s;
-    overflow: hidden;
-  }
-  .card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
-    box-shadow: 0 0 12px var(--accent);
-  }
-  .card:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, rgba(42,56,78,0.74), rgba(20,32,46,0.80));
-    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.48), 0 0 20px color-mix(in srgb, var(--accent) 38%, transparent);
-  }
-  .card-icon {
-    flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; font-size: 22px;
-    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--accent) 40%, transparent), rgba(10,16,24,0.55));
-    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-    box-shadow: inset 0 0 14px color-mix(in srgb, var(--accent) 22%, transparent);
-  }
-  .card-body { min-width: 0; }
-  .card-title { font-size: 15.5px; font-weight: 700; margin: 0 0 3px; color: #eef2f7; letter-spacing: 0.2px; }
-  .card-desc { font-size: 12.5px; color: #9fb0c2; line-height: 1.4; }
-  .card-open { font-size: 11.5px; font-weight: 700; margin-top: 8px; letter-spacing: 0.3px; color: color-mix(in srgb, var(--accent) 75%, #fff); }
+    /* ── Print ── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #fff; font-size: 11px; }
+      .no-print { display: none !important; }
+      .print-header { display: block; text-align: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #1a3a5c; }
+      .print-title { font-size: 18px; font-weight: 700; color: #1a3a5c; }
+      .print-date  { font-size: 12px; color: #555; margin-top: 2px; }
+      .table-wrap  { padding: 0; overflow: visible; }
+      table { box-shadow: none; border-radius: 0; min-width: unset; width: 100%; }
+      thead tr { background: #1a3a5c !important; color: #fff !important; }
+      th { font-size: 9px; padding: 5px 4px; }
+      td { padding: 4px 4px; font-size: 10px; }
+      tr.section-header td { background: #2c5f8a !important; color: #fff !important; }
+      tbody tr.patient-row { break-inside: avoid; }
+      td.editable input, td.editable select { border: none; padding: 0; background: transparent; }
+      .days-admit { display: none; }
+      .banner { display: none; }
+      .sub-sections { display: grid; grid-template-areas: "acute" "appt" "idc"; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+      .sub-section { box-shadow: none; border: 1px solid #dde3ea; break-inside: avoid; }
+      .sub-header button { display: none; }
+      .sub-table td { font-size: 9px; padding: 3px 5px; }
+      .sub-table th { font-size: 8px; padding: 3px 5px; }
+      #sw-panel .sw-controls { display: none; }
+      #sw-panel .sw-col-act { display: none; }
+      .sw-modal { display: none !important; }
+    }
 
-  /* ── Glass panel ─────────────────────────────────────────────── */
-  .panel {
-    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
-    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
-    border: 1px solid rgba(255,255,255,0.10); border-radius: 14px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
-    padding: 16px 18px; margin-bottom: 16px;
-  }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .panel-title { font-weight: 700; font-size: 15px; color: #eef2f7; }
-  .panel-count { font-size: 11px; color: #9fb0c2; font-weight: 600; }
+    /* ── Tab navigation ── */
+    .header-tabs { display: flex; gap: 4px; }
+    .tab-link { padding: 5px 16px; border-radius: 5px 5px 0 0; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); border: none; background: rgba(255,255,255,0.1); cursor: pointer; transition: background 0.15s; font-family: inherit; }
+    .tab-link:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .tab-link.tab-active { background: #fff; color: #1a3a5c; }
 
-  input, textarea, select, button { font-family: inherit; }
-  .fld {
-    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
-    color: #eaf0f6; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none;
-  }
-  .fld:focus { border-color: #5b9bf0; box-shadow: 0 0 0 2px rgba(91,155,240,0.2); }
-  .fld::placeholder { color: #6f8298; }
-  .btn-primary {
-    background: #2f6fb0; color: #fff; border: none; border-radius: 8px;
-    padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
-  }
-  .btn-primary:hover { background: #3a7ec4; }
+    /* ── SW Controls bar ── */
+    .sw-controls { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #dde3ea; flex-wrap: wrap; }
+    .sw-search { flex: 1; min-width: 180px; padding: 6px 10px; border: 1px solid #c8d0db; border-radius: 5px; font-size: 13px; font-family: inherit; outline: none; }
+    .sw-search:focus { border-color: #3498db; }
+    .sw-filter { padding: 6px 8px; border: 1px solid #c8d0db; border-radius: 5px; font-size: 13px; background: #fff; font-family: inherit; outline: none; cursor: pointer; }
+    .sw-count { font-size: 12px; color: #888; white-space: nowrap; }
 
-  /* ── To-Do ───────────────────────────────────────────────────── */
-  .todo-add { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .todo-add #todo-input { flex: 1 1 150px; min-width: 130px; }
-  .todo-add #todo-due { width: 140px; }
-  .todo-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
-  .todo-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px;
-    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07);
-  }
-  .todo-item.overdue { border-color: rgba(255,122,90,0.45); background: rgba(255,80,60,0.08); }
-  .todo-cb { width: 17px; height: 17px; accent-color: #34c47a; cursor: pointer; flex-shrink: 0; }
-  .todo-main { flex: 1; min-width: 0; }
-  .todo-text { font-size: 13.5px; color: #e7edf4; word-break: break-word; }
-  .todo-due { font-size: 11px; color: #9fb0c2; margin-top: 2px; }
-  .todo-due.overdue { color: #ff8a7a; font-weight: 700; }
-  .todo-item.done .todo-text { text-decoration: line-through; color: #7d8b9c; }
-  .todo-item.done { opacity: 0.6; }
-  .todo-del { background: none; border: none; color: #7d8b9c; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
-  .todo-del:hover { color: #ff8a7a; }
-  .panel-empty { font-size: 12.5px; color: #8294a8; padding: 4px 2px; }
+    /* ── SW Table ── */
+    .sw-table-wrap { padding: 12px 8px; overflow-x: auto; }
+    .sw-table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; min-width: 900px; }
+    .sw-table thead tr { background: #1a3a5c; color: #fff; }
+    .sw-table th { padding: 8px 6px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+    .sw-col-name { width: 160px; } .sw-col-title { width: 200px; } .sw-col-sl { width: 130px; }
+    .sw-col-loc { width: 130px; } .sw-col-contact { width: 130px; } .sw-col-tour { width: 120px; }
+    .sw-col-desc { min-width: 140px; } .sw-col-act { width: 56px; }
+    .sw-table th.sw-sortable { cursor: pointer; user-select: none; }
+    .sw-table th.sw-sortable:hover { background: #254e7a; }
+    .sw-sort-icon { opacity: 0.4; font-size: 10px; margin-left: 3px; }
+    .sw-asc .sw-sort-icon::after { content: ' ▲'; opacity: 1; }
+    .sw-desc .sw-sort-icon::after { content: ' ▼'; opacity: 1; }
+    .sw-row { border-bottom: 1px solid #e8edf2; }
+    .sw-row:hover td { background: #f5f8fb; }
+    .sw-cell { padding: 5px 6px; vertical-align: top; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
 
-  /* ── Passcode lock overlay ───────────────────────────────────── */
-  #lock-overlay {
-    position: fixed; inset: 0; z-index: 2000; display: none;
-    align-items: center; justify-content: center; padding: 20px;
-    background: rgba(8,14,20,0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  }
-  body.locked #lock-overlay { display: flex !important; }
-  .lock-card {
-    width: 100%; max-width: 380px; text-align: center;
-    background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
-    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
-    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
-  }
-  .lock-card .lock-icon { font-size: 44px; margin-bottom: 4px; }
-  .lock-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
-  .lock-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
-  .lock-card .fld { width: 100%; margin-bottom: 10px; text-align: center; font-size: 16px; letter-spacing: 2px; }
-  .lock-card .btn-primary { width: 100%; padding: 10px; font-size: 14px; }
-  .lock-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
-  .lock-reset { display: inline-block; margin-top: 14px; font-size: 11px; color: #7d8b9c; cursor: pointer; text-decoration: underline; }
-  .lock-intro { font-size: 12px; color: #7d8b9c; margin-bottom: 16px; }
-
-  /* ── Quick Launch dock ───────────────────────────────────────── */
-  #ql-dock {
-    position: fixed; bottom: 20px; right: 20px; z-index: 999;
-    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
-    background: rgba(26,34,50,0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-    padding: 10px 10px 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-    min-width: 150px; max-width: 220px;
-  }
-  .ql-label {
-    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-    color: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; gap: 4px;
-    cursor: grab; user-select: none; touch-action: none; padding: 2px 0;
-  }
-  .ql-grip { letter-spacing: -1px; opacity: 0.7; }
-  #ql-dock.ql-dragging { cursor: grabbing; opacity: 0.92; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
-  #ql-dock.ql-dragging .ql-label { cursor: grabbing; }
-  .ql-btn {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px;
-    cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit;
-    transition: opacity 0.15s, transform 0.1s; text-align: left;
-  }
-  .ql-btn:hover { opacity: 0.88; transform: translateX(-2px); }
-  .ql-btn:active { transform: scale(0.97); }
-  .ql-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
-  .ql-btn .ql-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  footer { text-align: center; color: #97a4b3; font-size: 11px; padding: 24px 0 0; }
-
-  @media (max-width: 820px) {
-    .cols { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .hero-meta { margin-left: 0; text-align: left; width: 100%; }
-    .hero-text h1 { font-size: 24px; }
-    .theme-swatches { margin-left: 0; padding-left: 0; border-left: none; margin-top: 6px; }
-    main { padding: 12px 14px 80px; }
-  }
-
-
-
-
-</style>
+    /* ── SW Modal ── */
+    .sw-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .sw-modal-box { background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); width: 100%; max-width: 540px; display: flex; flex-direction: column; max-height: 90vh; }
+    .sw-modal-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #1a3a5c; color: #fff; border-radius: 8px 8px 0 0; font-size: 15px; font-weight: 700; }
+    .sw-modal-close { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; opacity: 0.7; padding: 0; }
+    .sw-modal-close:hover { opacity: 1; }
+    .sw-modal-body { padding: 14px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .sw-modal-body label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #555; letter-spacing: 0.4px; }
+    .sw-modal-body input, .sw-modal-body select, .sw-modal-body textarea { width: 100%; padding: 6px 10px; border: 1px solid #c8d0db; border-radius: 5px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; }
+    .sw-modal-body input:focus, .sw-modal-body select:focus, .sw-modal-body textarea:focus { border-color: #3498db; }
+    .sw-modal-ftr { padding: 10px 16px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #e8edf2; }
+    .sw-btn-cancel { padding: 6px 16px; border: 1px solid #c8d0db; border-radius: 5px; background: #fff; color: #555; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .sw-btn-save { padding: 6px 18px; border: none; border-radius: 5px; background: #2980b9; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .sw-btn-edit { background: none; border: none; color: #2980b9; cursor: pointer; font-size: 14px; padding: 2px 4px; opacity: 0.6; }
+    .sw-btn-edit:hover { opacity: 1; }
+    .btn-sw-add { background: #27ae60; color: #fff; padding: 6px 14px; border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+    .btn-sw-csv { background: #1d8348; color: #fff; padding: 6px 14px; border: none; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+    .btn-sw-add:hover, .btn-sw-csv:hover { opacity: 0.85; }
+  </style>
 </head>
-<body class="locked theme-default">
+<body>
 
-<!-- ── Passcode lock overlay ──────────────────────────────────────── -->
-<div id="lock-overlay">
-  <div class="lock-card">
-    <div class="lock-icon">🏥</div>
-    <!-- Setup view: new user creates profile -->
-    <div id="lock-setup" style="display:none">
+  <!-- SETUP VIEW -->
+  <div id="view-setup" class="auth-view">
+    <div class="auth-box">
+      <div class="auth-logo">📋</div>
       <h2>Set up your profile</h2>
-      <p>First time? Enter your name and create a passcode.</p>
-      <input id="setup-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-      <input id="setup-pw"  class="fld" type="password" placeholder="New passcode (min 4)" autocomplete="new-password">
-      <input id="setup-pw2" class="fld" type="password" placeholder="Confirm passcode" autocomplete="new-password">
-      <div class="lock-err" id="setup-err"></div>
-      <button class="btn-primary" id="setup-btn">🔐 Create profile &amp; enter</button>
-      <span class="lock-reset" id="setup-back" style="display:block;margin-top:10px">← Back to sign in</span>
-    </div>
-    <!-- Login view: returning user -->
-    <div id="lock-login" style="display:none">
-      <h2>Sign in</h2>
-      <p id="login-prompt">Enter your name and passcode.</p>
-      <input id="login-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-      <input id="login-pw" class="fld" type="password" placeholder="Passcode" autocomplete="current-password">
-      <div class="lock-err" id="login-err"></div>
-      <button class="btn-primary" id="login-btn">🔓 Sign in</button>
-      <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px">
-        <span class="lock-reset" id="login-newuser">🆕 First time? Set up profile</span>
-        <span class="lock-reset" id="admin-link">🔑 Admin access</span>
-      </div>
-      <div id="admin-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
-        <p style="font-size:11px;color:#9fb0c2;margin:0 0 8px">Enter admin passcode to unlock any account.</p>
-        <input id="admin-pw" class="fld" type="password" placeholder="Admin passcode" autocomplete="off" style="letter-spacing:2px">
-        <button class="btn-primary" id="admin-btn" style="font-size:12px;padding:8px">🔑 Admin unlock</button>
-        <span class="lock-reset" id="admin-cancel" style="display:block;margin-top:6px">Cancel</span>
-      </div>
+      <p class="auth-sub">First time? Enter your name and create a password (min 4 characters).</p>
+      <input id="setup-name" type="text" placeholder="Your name" autocomplete="off" style="text-transform:capitalize;letter-spacing:0">
+      <input id="setup-pw"  type="password" placeholder="New password" autocomplete="new-password">
+      <input id="setup-pw2" type="password" placeholder="Confirm password" autocomplete="new-password">
+      <div class="error-msg" id="setup-error"></div>
+      <button id="setup-btn">🔐 Create Profile &amp; Enter</button>
+      <div class="auth-inline"><span id="setup-back">← Back to sign in</span></div>
     </div>
   </div>
-</div>
 
-<!-- ── Lock button ───────────────────────────────────────────────── -->
-<button class="lock-btn" id="lock-btn" title="Lock launchpad">🔒 Lock</button>
-
-<!-- ── Hero banner ────────────────────────────────────────────────── -->
-<header class="hero">
-  <div class="hero-inner">
-    <div class="hero-text">
-      <h1>🏥 Charge RN Launchpad</h1>
-      <p class="tagline">Your clinical workstation command center</p>
-    </div>
-    <div class="hero-meta">
-      <div class="greeting" id="greeting">Welcome</div>
-      <div class="clock" id="clock">--:--</div>
-      <div class="date" id="date"></div>
-      <div style="display:flex;align-items:center;margin-top:6px;justify-content:flex-end;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Theme</span>
-        <div class="theme-swatches" id="themeSwatches">
-          <span class="swatch active" data-theme="default" title="Dragon 🐉"></span>
-          <span class="swatch" data-theme="sunset" title="Sunset 🌅"></span>
-          <span class="swatch" data-theme="mist" title="Mist 🌫️"></span>
-          <span class="swatch" data-theme="forest" title="Forest 🌲"></span>
-          <span class="swatch" data-theme="ember" title="Ember 🔥"></span>
-          <span class="swatch" data-theme="shade" title="Shade 🌿"></span>
-          <span class="swatch" data-theme="pine" title="Pine 🌲"></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.12)">
-          <label for="bgUpload" style="font-size:10px;color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap">📁 Upload</label>
-          <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
-        </div>
+  <!-- LOGIN VIEW -->
+  <div id="view-login" class="auth-view">
+    <div class="auth-box">
+      <div class="auth-logo">📋</div>
+      <h2>Morning Report</h2>
+      <p class="auth-sub" id="login-prompt">Enter your name and password.</p>
+      <input id="login-name" type="text" placeholder="Your name" autocomplete="off" style="text-transform:capitalize;letter-spacing:0">
+      <input id="login-pw" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="error-msg" id="login-error"></div>
+      <button id="login-btn">🔓 Sign In</button>
+      <div class="auth-inline">
+        <span id="login-newuser">🆕 First time? Set up profile</span>
+        <span id="admin-link">🔑 Admin access</span>
       </div>
-      <div style="display:flex;align-items:center;margin-top:4px;justify-content:flex-end;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Layout</span>
-        <div class="layout-picker" id="layoutPicker">
-          <span class="lay-btn lay-left active" data-layout="left" title="Tiles left / Todo right"><i></i><i></i></span>
-          <span class="lay-btn lay-right" data-layout="right" title="Todo left / Tiles right"><i></i><i></i></span>
-          <span class="lay-btn lay-top" data-layout="top" title="Tiles on top"><i></i></span>
-          <span class="lay-btn lay-bottom" data-layout="bottom" title="Todo on top"><i></i><i></i></span>
-          <span class="lay-btn" data-layout="float" title="Floating panels (drag anywhere)" style="font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5)">⊞</span>
-        </div>
+      <div class="auth-admin" id="admin-panel">
+        <p style="font-size:12px;color:#666;margin:0 0 8px">Enter admin password to unlock any account.</p>
+        <input id="admin-pw" type="password" placeholder="Admin password" autocomplete="off">
+        <button id="admin-btn" style="font-size:13px;padding:10px">🔑 Admin Unlock</button>
+        <div class="auth-inline" style="justify-content:center"><span id="admin-cancel">Cancel</span></div>
       </div>
     </div>
   </div>
-</header>
 
-<!-- ── Scrolling reminder ticker ──────────────────────────────────── -->
-<div class="ticker" id="ticker">
-  <div class="ticker-label">📌 Reminders</div>
-  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading reminders...</div></div>
-</div>
-
-<!-- ── Main content ──────────────────────────────────────────────── -->
-<main id="app-main">
-  <div class="cols">
-    <!-- Left column: App tiles -->
-    <section class="apps-area">
-      <p class="section-label">Your tools</p>
-      <div class="grid" id="app-grid"></div>
-    </section>
-
-    <!-- Right column: To-Do list -->
-    <section class="todo-area">
-      <div class="panel">
-        <div class="panel-head">
-          <span class="panel-title">✅ To-Do &amp; Follow-ups</span>
-          <span class="panel-count" id="todo-count"></span>
+  <!-- APP VIEW -->
+  <div id="view-app">
+    <!-- Dragon banner -->
+    <div class="banner no-print">
+      <img src="logo.png" alt="Morning Report"/>
+      <div class="banner-overlay">
+        <div>
+          <div class="banner-title">Morning Report</div>
+          <div class="banner-sub" id="headerDate"></div>
         </div>
-        <form class="todo-add" id="todo-form">
-          <input class="fld" id="todo-input" placeholder="Add a task or follow-up…" autocomplete="off" maxlength="200">
-          <input class="fld" id="todo-due" type="date" title="Optional due date">
-          <button class="btn-primary" type="submit">Add</button>
-        </form>
-        <ul class="todo-list" id="todo-list"></ul>
-        <div class="panel-empty" id="todo-empty">No tasks yet — add your first above.</div>
       </div>
-    </section>
-  </div>
+    </div>
 
-  <footer id="footer"></footer>
-</main>
+    <div id="header" class="no-print">
+      <div class="header-left">
+        <span class="header-date" id="headerDateSticky"></span>
+      </div>
+      <div class="header-tabs">
+        <button class="tab-link tab-active" onclick="switchTab('mr')">Morning Report</button>
+        <button class="tab-link" onclick="switchTab('sw')">SW Directory</button>
+      </div>
+      <div id="mr-btns" class="header-right">
+        <button class="btn-add"    onclick="addPatient()">+ Add Patient</button>
+        <button class="btn-export" onclick="exportExcel()">&#x2B07; Excel</button>
+        <button class="btn-import" onclick="document.getElementById('import-file').click()">&#x2B06; Import</button>
+        <input type="file" id="import-file" accept=".xlsx" style="display:none" onchange="handleImportFile(event)">
+        <button class="btn-print"  onclick="window.print()">Print</button>
+        <button class="btn-logout" onclick="doLogout()">Logout</button>
+      </div>
+      <div id="sw-btns" class="header-right" style="display:none">
+        <button class="btn-sw-add" onclick="openSwModal(null)">+ Add Worker</button>
+        <button class="btn-sw-csv" onclick="exportSwCSV()">&#x2B07; CSV</button>
+        <button class="btn-print"  onclick="window.print()">Print</button>
+        <button class="btn-logout" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
 
-<!-- ── Quick Launch dock ──────────────────────────────────────────── -->
-<div id="ql-dock">
-  <div class="ql-label" id="ql-handle" title="Drag to move">
-    <span class="ql-grip">⠿</span> Quick Launch
-  </div>
-  <div id="ql-buttons"></div>
-</div>
+    <div id="mr-panel">
+    <div class="summary-bar no-print">
+      <div class="sum-item sum-ltc">LTC: <strong id="sumLTC">0</strong></div>
+      <div class="sum-item sum-ss">Short Stay: <strong id="sumSS">0</strong></div>
+      <div class="sum-item sum-res">Respite: <strong id="sumRes">0</strong></div>
+      <div class="sum-item sum-eol">EOL: <strong id="sumEOL">0</strong></div>
+      <div class="sum-item sum-total">Total: <strong id="sumTotal">0</strong></div>
+    </div>
 
-<script>
-  /* ══════════════════════════════════════════════════════════════════
-     Launchpad configuration — edit your apps, name, and quick links
-     ══════════════════════════════════════════════════════════════════ */
+    <div class="print-header">
+      <div class="print-title">Morning Report</div>
+      <div id="printDate" class="print-date"></div>
+    </div>
 
-  const APPS = [
-    { name: "Morning Report",     desc: "RN Morning Report — census, assignments, appointments", icon: "📋", color: "#5b9bf0", url: "/morning-report.html" },
-    { name: "CLC Scheduler",      desc: "Appointment scheduling (PHI)",                         icon: "📅", color: "#e0b94d", url: "https://clcscheduler.vercel.app" },
-    { name: "Charge RN",          desc: "VA Charge RN Workstation (PHI)",                       icon: "⚕️", color: "#5b2d8e", url: "/charge-rn.html" },
-    { name: "Resource Directory", desc: "Community resources & referrals",                      icon: "📚", color: "#a87bff", url: "https://jjp-resource-directory.vercel.app" },
-  ];
+    <!-- Main patient table -->
+    <div class="table-wrap">
+      <table id="reportTable">
+        <thead>
+          <tr>
+            <th class="col-status">Status</th>
+            <th class="col-room">Room</th>
+            <th class="col-code">Code</th>
+            <th class="col-np">NP</th>
+            <th class="col-name">Name / Last 4</th>
+            <th class="col-diet">Diet</th>
+            <th class="col-sc">SC</th>
+            <th class="col-iso">Isolation</th>
+            <th class="col-days">Days</th>
+            <th class="col-paper">Paperwork</th>
+            <th class="col-nok">NOK / Phone</th>
+            <th class="col-notes">Notes</th>
+            <th class="col-actions no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
 
-  // User database key in localStorage
-  const USERS_KEY = 'lp_users';
-  const ACTIVE_KEY = 'lp_active';
+    <!-- Sub-sections: Acute Care | Appointments | IDC Meetings -->
+    <div class="sub-sections">
 
-  /* ── User management ─────────────────────────────────────────── */
+      <!-- Acute Care -->
+      <div class="sub-section sub-section-acute">
+        <div class="sub-header acute">
+          <span>Acute Care</span>
+          <button class="no-print" onclick="addAcute()">+ Add</button>
+        </div>
+        <table class="sub-table">
+          <thead>
+            <tr>
+              <th style="width:70px">Room</th>
+              <th>Name</th>
+              <th class="no-print" style="width:24px"></th>
+            </tr>
+          </thead>
+          <tbody id="acuteBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Appointments -->
+      <div class="sub-section sub-section-appt">
+        <div class="sub-header appt">
+          <span>Appointments</span>
+          <button class="no-print" onclick="addAppt()">+ Add</button>
+        </div>
+        <table class="sub-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Where Going</th>
+              <th>With Who</th>
+              <th style="width:75px">Time</th>
+              <th class="no-print" style="width:22px"></th>
+            </tr>
+          </thead>
+          <tbody id="apptBody"></tbody>
+        </table>
+      </div>
+
+      <!-- IDC Meetings -->
+      <div class="sub-section sub-section-idc">
+        <div class="sub-header idc">
+          <span>IDC Meetings</span>
+          <button class="no-print" onclick="addIDC()">+ Add</button>
+        </div>
+        <table class="sub-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th class="no-print" style="width:20px"></th>
+            </tr>
+          </thead>
+          <tbody id="idcBody"></tbody>
+        </table>
+      </div>
+
+    </div><!-- end sub-sections -->
+    </div><!-- end mr-panel -->
+
+    <!-- ── SW Directory Panel ── -->
+    <div id="sw-panel" style="display:none">
+      <div class="sw-controls no-print">
+        <input id="sw-search" class="sw-search" type="text" placeholder="Search by name, title, location, contact…" oninput="applySwFilters()">
+        <select id="sw-filter-sl" class="sw-filter" onchange="applySwFilters()">
+          <option value="">All Service Lines</option>
+          <option>Care in the Community</option>
+          <option>Mental Health</option>
+          <option>Patient Care Services</option>
+          <option>Physical Medicine and Rehabilitation Services</option>
+        </select>
+        <select id="sw-filter-loc" class="sw-filter" onchange="applySwFilters()">
+          <option value="">All Locations</option>
+        </select>
+        <span id="sw-count" class="sw-count"></span>
+      </div>
+      <div class="print-header">
+        <div class="print-title">JJP Social Worker Directory</div>
+        <div id="sw-print-date" class="print-date"></div>
+      </div>
+      <div class="sw-table-wrap">
+        <table class="sw-table" id="swTable">
+          <thead>
+            <tr>
+              <th class="sw-col-name sw-sortable" data-col="name">Name <span class="sw-sort-icon"></span></th>
+              <th class="sw-col-title sw-sortable" data-col="title">Title <span class="sw-sort-icon"></span></th>
+              <th class="sw-col-sl sw-sortable" data-col="service_line">Service Line <span class="sw-sort-icon"></span></th>
+              <th class="sw-col-loc sw-sortable" data-col="location">Location <span class="sw-sort-icon"></span></th>
+              <th class="sw-col-contact">Contact Info</th>
+              <th class="sw-col-tour">Tour of Duty</th>
+              <th class="sw-col-desc">Description</th>
+              <th class="sw-col-act no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="swBody"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <!-- Add/Edit Modal -->
+      <div id="sw-modal" class="sw-modal" style="display:none" onclick="if(event.target===this)closeSwModal()">
+        <div class="sw-modal-box">
+          <div class="sw-modal-hdr">
+            <span id="sw-modal-title">Add Worker</span>
+            <button class="sw-modal-close" onclick="closeSwModal()">&#x2715;</button>
+          </div>
+          <div class="sw-modal-body">
+            <label>Name</label>
+            <input id="sw-m-name" type="text" placeholder="Full name and credentials">
+            <label>Title</label>
+            <input id="sw-m-title" type="text" placeholder="Job title">
+            <label>Service Line</label>
+            <select id="sw-m-sl">
+              <option value="">— Select —</option>
+              <option>Care in the Community</option>
+              <option>Mental Health</option>
+              <option>Patient Care Services</option>
+              <option>Physical Medicine and Rehabilitation Services</option>
+            </select>
+            <label>Location</label>
+            <input id="sw-m-loc" type="text" placeholder="Location / clinic">
+            <label>Contact Info</label>
+            <input id="sw-m-contact" type="text" placeholder="Phone number(s)">
+            <label>Tour of Duty</label>
+            <input id="sw-m-tour" type="text" placeholder="e.g. 7:30am-4:00pm M-F">
+            <label>Description</label>
+            <textarea id="sw-m-desc" rows="5" placeholder="Role description…"></textarea>
+          </div>
+          <div class="sw-modal-ftr">
+            <button class="sw-btn-cancel" onclick="closeSwModal()">Cancel</button>
+            <button class="sw-btn-save" onclick="saveSwModal()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- end sw-panel -->
+
+  </div><!-- end view-app -->
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <script>
+  'use strict';
+
+  const STATUS_OPTIONS = ['LTC', 'Short Stay', 'Respite', 'EOL'];
+  const CODE_OPTIONS   = ['', 'Full Code', 'DNR', 'DNI', 'Full/DNI'];
+  const NP_OPTIONS     = ['', 'McCain', 'Chang'];
+  const SC_OPTIONS     = ['', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];
+  const ISO_OPTIONS    = ['', 'Regular', 'Standard', 'Enhanced', 'Contact', 'Droplet', 'Airborne', 'Contact/Droplet'];
+  const DIET_OPTIONS   = ['', 'Regular', 'Reg CHO', 'M&M', 'Chopped', 'Easy to Chew', 'CHO Minced', 'Soft B/S', 'Puree', 'Liquid', 'NPO', 'CHO 60/60/60', 'Low NA', 'Low Fat'];
+  const PAPER_OPTIONS  = ['', 'Done', 'Not Done', "Not Req'd"];
+  const TENS_OPTIONS   = ['', 'Y', 'N', 'Pending'];
+  const DC_OPTIONS     = ['', 'Home', 'Asst Lvng', 'Nursing Home', 'Apartment', 'Mobile Home', 'Camper', 'Homeless', 'Home Hospice', 'Acute Care'];
+
+  const DATA_KEY  = 'mr_patients';
+  const ACUTE_KEY = 'mr_acute';
+  const APPT_KEY  = 'mr_appts';
+  const IDC_KEY   = 'mr_idc';
+
+  let patients   = [], nextId      = 1;
+  let acuteItems = [], nextAcuteId = 1;
+  let apptItems  = [], nextApptId  = 1;
+  let idcItems   = [], nextIdcId   = 1;
+
+  // ── Storage ───────────────────────────────────────────────────────────────
+  function loadKey(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  }
+  function saveKey(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+  function loadPatients() {
+    const data = loadKey(DATA_KEY);
+    nextId = data.length ? Math.max(...data.map(p=>p.id))+1 : 1;
+    return data;
+  }
+  function saveAll()  { saveKey(DATA_KEY,  patients);   }
+  function saveAcute(){ saveKey(ACUTE_KEY, acuteItems); }
+  function saveAppts(){ saveKey(APPT_KEY,  apptItems);  }
+  function saveIDC()  { saveKey(IDC_KEY,   idcItems);   }
+
+  function loadSections() {
+    acuteItems = loadKey(ACUTE_KEY);
+    nextAcuteId = acuteItems.length ? Math.max(...acuteItems.map(x=>x.id))+1 : 1;
+    apptItems  = loadKey(APPT_KEY);
+    nextApptId  = apptItems.length  ? Math.max(...apptItems.map(x=>x.id))+1  : 1;
+    idcItems   = loadKey(IDC_KEY);
+    nextIdcId   = idcItems.length   ? Math.max(...idcItems.map(x=>x.id))+1   : 1;
+  }
+
+  // ── User management ──────────────────────────────────────────────────────
+  const USERS_KEY = 'mr_users';
+  const ACTIVE_KEY = 'mr_active';
+  const ADMIN_PASSCODE = 'CLC-Admin-2024';
+
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch { return {}; }
   }
@@ -506,623 +534,864 @@ body.theme-custom {
     else sessionStorage.removeItem(ACTIVE_KEY);
   }
 
-  // Default quick launch links
-  const QL_DEFAULTS = [
-    { label: 'Pandora',          url: 'https://www.pandora.com',          color: '#224b7a', icon: '🎵' },
-    { label: 'Outlook Mail',     url: 'https://outlook.office.com/mail',  color: '#0078d4', icon: '📧' },
-    { label: 'Microsoft Teams',  url: 'https://teams.microsoft.com',      color: '#6264a7', icon: '💬' },
-    { label: 'Facebook',         url: 'https://www.facebook.com',         color: '#1877f2', icon: '📘' },
-  ];
-
-  // localStorage keys
-  const TODO_KEY = 'lp_todos';
-  const QL_KEY = 'lp_quicklinks';
-  const POS_KEY = 'lp_qlPos';
-  const THEME_KEY = 'lp_theme';
-  const LAYOUT_KEY = 'lp_layout';
-
-  /* ── DOM helpers ──────────────────────────────────────────────── */
-  const $ = function (id) { return document.getElementById(id); };
-  const esc = function (s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  };
-  function todayStr() {
-    var d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
-
-  /* ── SHA-256 passcode hashing ────────────────────────────────── */
-  function simpleHash(s) {
-    var h = 0;
-    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
-    return 'f:' + (h >>> 0).toString(16);
-  }
-
+  // ── Auth ──────────────────────────────────────────────────────────────────
   async function hashPw(pw) {
-    if (window.crypto && crypto.subtle) {
-      try {
-        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp|' + pw));
-        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      } catch (_) { /* fallback */ }
-    }
-    return simpleHash('lp|' + pw);
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mr|' + pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
   }
-
   async function hashAdminPw(pw) {
-    if (window.crypto && crypto.subtle) {
-      try {
-        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp-admin|' + pw));
-        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      } catch (_) { /* fallback */ }
-    }
-    return simpleHash('lp-admin|' + pw);
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mr-admin|' + pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
   }
 
-  // Admin passcode — change this to your desired master code
-  const ADMIN_PASSCODE = 'CLC-Admin-2024';
-
-  /* ── Passcode lock ───────────────────────────────────────────── */
-  function showLock(which) {
-    document.body.classList.add('locked');
-    var bodyClasses = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
-    document.body.className = 'locked' + (bodyClasses ? ' ' + bodyClasses : '');
-    $('lock-setup').style.display = which === 'setup' ? 'block' : 'none';
-    $('lock-login').style.display = which === 'login' ? 'block' : 'none';
-    $('admin-panel').style.display = 'none';
-    $('setup-err').textContent = '';
-    $('login-err').textContent = '';
-    setTimeout(function () {
-      var el = which === 'setup' ? $('setup-name') : $('login-name');
-      if (el) el.focus();
-    }, 60);
+  function showView(name) {
+    document.getElementById('view-setup').classList.toggle('active', name==='setup');
+    document.getElementById('view-login').classList.toggle('active', name==='login');
+    document.getElementById('view-app').classList.toggle('active', name==='app');
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('setup-error').textContent = '';
+    document.getElementById('login-error').textContent = '';
+    if (name==='setup') setTimeout(()=>document.getElementById('setup-name').focus(), 50);
+    if (name==='login') setTimeout(()=>document.getElementById('login-name').focus(), 50);
   }
 
   function initLock() {
-    var users = loadUsers();
-    var activeUser = getActiveUser();
-    if (activeUser && users[activeUser]) {
-      enterApp(activeUser);
-      return;
-    }
-    var userCount = Object.keys(users).length;
-    if (userCount === 0) {
-      showLock('setup');
-    } else {
-      showLock('login');
-    }
+    const users = loadUsers();
+    const activeUser = getActiveUser();
+    if (activeUser && users[activeUser]) { enterApp(activeUser); return; }
+    const cnt = Object.keys(users).length;
+    showView(cnt === 0 ? 'setup' : 'login');
   }
 
   function enterApp(name) {
     setActiveUser(name);
-    document.body.classList.remove('locked');
-    var meta = document.querySelector('.hero-meta');
-    if (meta) { meta.classList.remove('anim-in'); void meta.offsetWidth; meta.classList.add('anim-in'); }
-    renderTodos();
-    renderDock();
-    lastGreeting = '';
-    tick();
+    patients = loadPatients();
+    loadSections();
+    loadSW();
+    showView('app');
+    const ds = todayStr();
+    document.getElementById('headerDate').textContent       = ds;
+    document.getElementById('headerDateSticky').textContent = ds;
+    document.getElementById('printDate').textContent        = ds;
+    render();
+    renderAcute();
+    renderAppts();
+    renderIDC();
   }
 
   async function doSetup() {
-    var name = $('setup-name').value.trim();
-    var pw = $('setup-pw').value, pw2 = $('setup-pw2').value, err = $('setup-err');
+    const name = document.getElementById('setup-name').value.trim();
+    const pw   = document.getElementById('setup-pw').value;
+    const pw2  = document.getElementById('setup-pw2').value;
+    const err  = document.getElementById('setup-error');
     err.textContent = '';
-    if (!name) { err.textContent = 'Please enter your name.'; $('setup-name').focus(); return; }
-    if (pw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; $('setup-pw').focus(); return; }
-    if (pw !== pw2) { err.textContent = 'Passcodes do not match.'; $('setup-pw').focus(); return; }
-    var users = loadUsers();
-    if (users[name]) {
-      err.textContent = '"' + name + '" already exists. Use "Sign in" or pick a different name.';
-      return;
-    }
+    if (!name) { err.textContent = 'Please enter your name.'; return; }
+    if (pw.length < 4) { err.textContent = 'Password must be at least 4 characters'; return; }
+    if (pw !== pw2)    { err.textContent = 'Passwords do not match'; return; }
+    const users = loadUsers();
+    if (users[name]) { err.textContent = '"' + name + '" already exists. Use Sign in.'; return; }
     users[name] = await hashPw(pw);
     saveUsers(users);
-    $('setup-pw').value = $('setup-pw2').value = $('setup-name').value = '';
+    document.getElementById('setup-pw').value = document.getElementById('setup-pw2').value = document.getElementById('setup-name').value = '';
     enterApp(name);
   }
 
   async function doLogin() {
-    var name = $('login-name').value.trim();
-    var pw = $('login-pw').value, err = $('login-err');
+    const name = document.getElementById('login-name').value.trim();
+    const pw   = document.getElementById('login-pw').value;
+    const err  = document.getElementById('login-error');
     err.textContent = '';
-    if (!name) { err.textContent = 'Please enter your name.'; $('login-name').focus(); return; }
-    var users = loadUsers();
-    if (!users[name]) {
-      err.textContent = 'No profile found for "' + name + '". First time? Use "Set up profile" below.';
-      return;
-    }
+    if (!name) { err.textContent = 'Please enter your name.'; return; }
+    const users = loadUsers();
+    if (!users[name]) { err.textContent = 'No profile for "' + name + '". Use Set up profile.'; return; }
     if (await hashPw(pw) === users[name]) {
-      $('login-pw').value = $('login-name').value = '';
+      document.getElementById('login-pw').value = document.getElementById('login-name').value = '';
       enterApp(name);
     } else {
-      err.textContent = 'Incorrect passcode.';
-      $('login-pw').value = '';
-      $('login-pw').focus();
+      err.textContent = 'Incorrect password';
+      document.getElementById('login-pw').value = '';
+      document.getElementById('login-pw').focus();
     }
   }
 
   async function doAdminUnlock() {
-    var pw = $('admin-pw').value, err = $('login-err');
+    const pw  = document.getElementById('admin-pw').value;
+    const err = document.getElementById('login-error');
     err.textContent = '';
-    var adminHash = await hashAdminPw(ADMIN_PASSCODE);
-    if (await hashAdminPw(pw) !== adminHash) {
-      err.textContent = 'Incorrect admin passcode.';
-      $('admin-pw').value = '';
-      $('admin-pw').focus();
-      return;
+    if (await hashAdminPw(pw) !== await hashAdminPw(ADMIN_PASSCODE)) {
+      err.textContent = 'Incorrect admin password.';
+      document.getElementById('admin-pw').value = ''; return;
     }
-    var users = loadUsers();
-    var names = Object.keys(users);
-    if (names.length === 0) {
-      err.textContent = 'No user profiles exist. Set up a profile first.';
-      $('admin-pw').value = '';
-      showLock('setup');
-      return;
-    }
-    var choice = prompt('Admin Unlock\n\nExisting users: ' + names.join(', ') + '\n\nType a name to log in as (or leave blank to cancel):');
-    if (!choice) { $('admin-pw').value = ''; err.textContent = ''; return; }
-    var targetName = choice.trim();
-    if (!targetName) { $('admin-pw').value = ''; return; }
-    if (users[targetName]) {
-      $('admin-pw').value = '';
-      enterApp(targetName);
-      return;
-    }
-    var tempPw = prompt('New user "' + targetName + '" — set a temporary passcode for them (min 4 chars):');
-    if (!tempPw || tempPw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; return; }
-    users[targetName] = await hashPw(tempPw);
-    saveUsers(users);
-    $('admin-pw').value = '';
-    enterApp(targetName);
+    const users = loadUsers();
+    const names = Object.keys(users);
+    if (names.length === 0) { err.textContent = 'No users exist. Set up first.'; document.getElementById('admin-pw').value = ''; showView('setup'); return; }
+    const choice = prompt('Admin Unlock\nExisting users: ' + names.join(', ') + '\nType a name to login as:');
+    if (!choice) { document.getElementById('admin-pw').value = ''; return; }
+    const t = choice.trim();
+    if (users[t]) { document.getElementById('admin-pw').value = ''; enterApp(t); return; }
+    const tp = prompt('New user "' + t + '" — set temp password (min 4):');
+    if (!tp || tp.length < 4) return;
+    users[t] = await hashPw(tp); saveUsers(users);
+    document.getElementById('admin-pw').value = ''; enterApp(t);
   }
 
-  $('setup-btn').addEventListener('click', doSetup);
-  $('login-btn').addEventListener('click', doLogin);
-  $('admin-btn').addEventListener('click', doAdminUnlock);
-  $('setup-pw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSetup(); });
-  $('login-pw').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      if ($('admin-panel').style.display === 'block') { doAdminUnlock(); return; }
+  function doLogout() {
+    setActiveUser(null);
+    initLock();
+  }
+
+  // Event listeners
+  document.getElementById('setup-btn').addEventListener('click', doSetup);
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('admin-btn').addEventListener('click', doAdminUnlock);
+  document.getElementById('setup-pw2').addEventListener('keydown', e=>{ if(e.key==='Enter') doSetup(); });
+  document.getElementById('login-pw').addEventListener('keydown', e=>{
+    if(e.key==='Enter') {
+      if(document.getElementById('admin-panel').style.display==='block') { doAdminUnlock(); return; }
       doLogin();
     }
   });
-  $('admin-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doAdminUnlock(); });
-  $('lock-btn').addEventListener('click', function () {
-    setActiveUser(null);
-    var theme = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
-    initLock();
-    document.body.className = 'locked ' + theme;
+  document.getElementById('admin-pw').addEventListener('keydown', e=>{ if(e.key==='Enter') doAdminUnlock(); });
+  document.getElementById('login-newuser').addEventListener('click', ()=>showView('setup'));
+  document.getElementById('setup-back').addEventListener('click', ()=>showView('login'));
+  document.getElementById('admin-link').addEventListener('click', ()=>{
+    document.getElementById('admin-panel').style.display='block';
+    setTimeout(()=>document.getElementById('admin-pw').focus(), 50);
   });
-  $('login-newuser').addEventListener('click', function () { showLock('setup'); });
-  $('setup-back').addEventListener('click', function () { showLock('login'); });
-  $('admin-link').addEventListener('click', function () {
-    $('admin-panel').style.display = 'block';
-    $('admin-pw').value = '';
-    setTimeout(function () { $('admin-pw').focus(); }, 60);
-  });
-  $('admin-cancel').addEventListener('click', function () {
-    $('admin-panel').style.display = 'none';
-    $('admin-pw').value = '';
-    $('login-err').textContent = '';
+  document.getElementById('admin-cancel').addEventListener('click', ()=>{
+    document.getElementById('admin-panel').style.display='none';
+    document.getElementById('admin-pw').value='';
+    document.getElementById('login-error').textContent='';
   });
 
-  /* ── Theme swatches ──────────────────────────────────────────── */
-  function applyTheme(theme) {
-    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'default';
-    document.body.className = document.body.className
-      .split(' ').filter(function (c) { return !c.startsWith('theme-'); }).join(' ') + ' theme-' + theme;
-    localStorage.setItem(THEME_KEY, theme);
-    // re-apply custom bg if it exists
-    var savedBg = localStorage.getItem('custom_bg');
-    if (savedBg) {
-      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    }
-    // update swatch active state
-    var swatches = document.querySelectorAll('.swatch');
-    for (var i = 0; i < swatches.length; i++) {
-      swatches[i].classList.toggle('active', swatches[i].dataset.theme === theme);
-    }
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function todayStr() {
+    return new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+  function calcDays(admitDateStr) {
+    if (!admitDateStr) return '—';
+    const admit = new Date(admitDateStr+'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.floor((now-admit)/86400000);
+    return diff >= 0 ? diff : '—';
+  }
+  function statusClass(status) {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s==='ltc')            return 'status-ltc';
+    if (s.includes('short'))  return 'status-short';
+    if (s.includes('respite'))return 'status-respite';
+    if (s.includes('eol'))    return 'status-eol';
+    return '';
+  }
+  function esc(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}); }
+    catch { return d; }
   }
 
-  function handleBgUpload(event) {
-    var file = event.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      // Scale image down to max 1920px wide for background use
-      var img = new Image();
-      img.onload = function() {
-        var MAX_W = 1920, MAX_H = 1200;
-        var w = img.width, h = img.height;
-        if (w > MAX_W) { h = h * MAX_W / w; w = MAX_W; }
-        if (h > MAX_H) { w = w * MAX_H / h; h = MAX_H; }
-        var c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        var dataUrl = c.toDataURL('image/jpeg', 0.85);
-        localStorage.setItem('custom_bg', dataUrl);
-        document.body.style.setProperty('--custom-bg', 'url(' + dataUrl + ')');
-        applyTheme('custom');
-      };
-      img.src = e.target.result;
-      event.target.value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // Add click listeners to swatches
-  // Load theme
-  applyTheme();
-  // Load custom background
-  var savedBg = localStorage.getItem('custom_bg');
-  if (savedBg) {
-    document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    // If custom background exists, ensure it's applied
-    if (localStorage.getItem(THEME_KEY) === 'custom') {
-      applyTheme('custom');
-    } else {
-      // Still apply the custom background CSS variable even on gradient themes
-      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    }
-  }
-
-  // Handle clicks on swatches via delegation
-  document.getElementById('themeSwatches').addEventListener('click', function (e) {
-    var swatch = e.target.closest('.swatch');
-    if (swatch) applyTheme(swatch.dataset.theme);
-  });
-
-  /* ── Render app tiles ────────────────────────────────────────── */
-  // Note: The "Charge RN" tile opens in a NEW tab (target="_blank")
-  $('app-grid').innerHTML = APPS.map(function (a) {
-    var live = a.url && a.url !== '#';
-    return '<a class="card" style="--accent:' + a.color + '" href="' + esc(a.url) + '" ' +
-      (live ? 'target="_blank" rel="noopener"' : 'onclick="return false"') + '>' +
-      '<div class="card-icon">' + a.icon + '</div>' +
-      '<div class="card-body">' +
-      '<div class="card-title">' + esc(a.name) + '</div>' +
-      '<div class="card-desc">' + esc(a.desc) + '</div>' +
-      '<div class="card-open">' + (live ? 'Open →' : 'Link not set yet') + '</div>' +
-      '</div></a>';
-  }).join('');
-
-  /* ── To-Do & Follow-ups ──────────────────────────────────────── */
-  var todos = [];
-
-  function loadTodos() {
-    try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; }
-    catch (_e) { todos = []; }
-  }
-
-  function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
-
-  function renderTodos() {
-    loadTodos();
-    var today = todayStr();
-    var sorted = [...todos].sort(function (a, b) {
-      if (a.done !== b.done) return a.done ? 1 : -1;
-      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
-      return ad < bd ? -1 : ad > bd ? 1 : 0;
-    });
-    var list = $('todo-list');
-    list.innerHTML = sorted.map(function (t) {
-      var overdue = t.due && !t.done && t.due < today;
-      var dueHtml = '';
-      if (t.due) {
-        var d = new Date(t.due + 'T00:00:00');
-        var lbl = (overdue ? 'Overdue · ' : 'Due ') + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        dueHtml = '<div class="todo-due ' + (overdue ? 'overdue' : '') + '">' + lbl + '</div>';
-      }
-      return '<li class="todo-item ' + (t.done ? 'done' : '') + ' ' + (overdue ? 'overdue' : '') + '" data-id="' + t.id + '">' +
-        '<input type="checkbox" class="todo-cb" ' + (t.done ? 'checked' : '') + '>' +
-        '<div class="todo-main"><div class="todo-text">' + esc(t.text) + '</div>' + dueHtml + '</div>' +
-        '<button class="todo-del" title="Delete">✕</button></li>';
-    }).join('');
-    var open = todos.filter(function (t) { return !t.done; }).length;
-    $('todo-count').textContent = todos.length ? open + ' open · ' + todos.length + ' total' : '';
-    $('todo-empty').style.display = todos.length ? 'none' : 'block';
-    renderTicker();
-  }
-
-  $('todo-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var text = $('todo-input').value.trim();
-    if (!text) return;
-    todos.push({
-      id: Date.now() + '' + Math.floor(performance.now()),
-      text: text,
-      due: $('todo-due').value || '',
-      done: false
-    });
-    saveTodos();
-    renderTodos();
-    $('todo-input').value = '';
-    $('todo-due').value = '';
-    $('todo-input').focus();
-  });
-
-  $('todo-list').addEventListener('click', function (e) {
-    var li = e.target.closest('.todo-item');
-    if (!li) return;
-    var id = li.dataset.id;
-    var t = todos.find(function (x) { return x.id === id; });
-    if (!t) return;
-    if (e.target.classList.contains('todo-cb')) {
-      t.done = !t.done;
-      saveTodos();
-      renderTodos();
-    } else if (e.target.classList.contains('todo-del')) {
-      todos = todos.filter(function (x) { return x.id !== id; });
-      saveTodos();
-      renderTodos();
-    }
-  });
-
-  /* ── Scrolling reminder ticker ───────────────────────────────── */
-  function renderTicker() {
-    var today = todayStr();
-    var openTodos = [...todos].filter(function (t) { return !t.done; }).sort(function (a, b) {
-      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
-      return ad < bd ? -1 : ad > bd ? 1 : 0;
-    });
-    var track = $('ticker-track');
-    if (!openTodos.length) {
-      track.style.animation = 'none';
-      track.style.paddingLeft = '20px';
-      track.innerHTML = '<span class="tick-item">All clear — no open to-dos right now. ✨</span>';
+  // ── Main table render ─────────────────────────────────────────────────────
+  function render() {
+    const tbody = document.getElementById('tableBody');
+    if (!patients.length) {
+      tbody.innerHTML = '<tr><td colspan="13" class="empty-row">No patients yet. Click &quot;+ Add Patient&quot; to get started.</td></tr>';
+      updateSummary({}, []);
       return;
     }
-    var items = openTodos.map(function (t) {
-      var overdue = t.due && t.due < today;
-      var due = '';
-      if (t.due) {
-        var d = new Date(t.due + 'T00:00:00');
-        due = ' <span class="tick-due">(' + (overdue ? 'overdue · ' : 'due ') +
-          d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')</span>';
-      }
-      return '<span class="tick-item ' + (overdue ? 'overdue' : '') + '">' +
-        (overdue ? '⚠️ ' : '• ') + esc(t.text) + due + '</span>';
+    // Counts by status still feed the summary bar at the top
+    const order = ['LTC','Short Stay','Respite','EOL'];
+    const groups = {}; order.forEach(s=>groups[s]=[]);
+    const other = [];
+    patients.forEach(p => {
+      const key = order.find(o=>o.toLowerCase()===(p.status||'').toLowerCase());
+      if (key) groups[key].push(p); else other.push(p);
     });
-    track.innerHTML = items.join('<span class="tick-sep">◆</span>') +
-      '<span class="tick-sep">◆</span>' + items.join('<span class="tick-sep">◆</span>');
-    track.style.paddingLeft = '100%';
-    track.style.animation = 'none';
-    void track.offsetWidth;
-    var dur = Math.max(14, Math.round(track.scrollWidth / 70));
-    track.style.animation = 'ticker-scroll ' + dur + 's linear infinite';
+    // Render all rooms in one continuous list, sorted by room number (no status sections)
+    const sorted = patients.slice().sort((a,b)=>String(a.room||'').localeCompare(String(b.room||''), undefined, {numeric:true, sensitivity:'base'}));
+    let html = '';
+    sorted.forEach(p=>{ html += patientRow(p); });
+    tbody.innerHTML = html;
+    attachListeners();
+    updateSummary(groups, other);
   }
 
-  /* ── Greeting + live clock ───────────────────────────────────── */
-  var lastGreeting = '';
+  function updateSummary(groups, other) {
+    const ltc = (groups['LTC']||[]).length, ss  = (groups['Short Stay']||[]).length;
+    const res = (groups['Respite']||[]).length,  eol = (groups['EOL']||[]).length;
+    document.getElementById('sumLTC').textContent   = ltc;
+    document.getElementById('sumSS').textContent    = ss;
+    document.getElementById('sumRes').textContent   = res;
+    document.getElementById('sumEOL').textContent   = eol;
+    document.getElementById('sumTotal').textContent = ltc+ss+res+eol+(other||[]).length;
+  }
 
-  function tick() {
-    var now = new Date(), h = now.getHours();
-    var dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-    
-    // Inspiring daily rotation based on day of year
-    var greetings = [
-      'YOU ARE A HERO 🦸', 'NURSES ROCK THE WORLD 🌍', 'ROCKSTAR STATUS ⭐',
-      'ABSOLUTE LEGEND 🏆', 'SUPERCHARGE THE DAY ⚡', 'BOSS ENERGY 💪',
-      'MAKING MOVES 🔥', 'CHANGE THE GAME 🎯', 'UNSTOPPABLE FORCE 🚀',
-      'POWER UP 💥', 'LEAD THE CHARGE ⚔️', 'DIFFERENCE MAKER 🌟',
-      'FUEL THE FIRE 🔥', 'RISE AND GRIND 💪', 'CRUSH IT TODAY 📈',
-      'KING/QUEEN ENERGY 👑', 'LEGENDARY AHEAD 🏅', 'GO GET IT 🎯',
-      'BRIGHTEST IN THE ROOM 💡', 'WORTH IT ALL 🏔️', 'BUILT FOR THIS 🧱',
-      'SHOW UP AND SHINE ✨', 'NEXT LEVEL GRIT 💎', 'OWN THE DAY 💪',
-      'BE THE DIFFERENCE 🌟', 'STRENGTH WITHIN 🦁', 'KEEP GOING 🏃',
-      'WARRIOR MINDSET 🏹', 'SMASH THE GOALS 📋', 'HEART OF A LION 🦁',
-      'FEARLESS FOCUS 🎯', 'DAILY VICTORY 🏆', 'YOUR TIME NOW ⏰',
-      'ABSOLUTE BEAST 🐻', 'NURSE SUPREME 👩‍⚕️', 'PURE MAGIC ✨',
-      'BORN TO SHINE ☀️', 'UNBREAKABLE SPIRIT 🌪️', 'TROPHY CASE 🏆',
-      'LEAD WITH HEART ❤️', 'IRON WILL 🔩', 'SKY IS THE LIMIT ✈️',
-      'PHENOMENAL VIBES 🌊', 'CHAMPIONSHIP DAY 🏆', 'ON FIRE 🔥',
-      'ELEVATE YOUR GAME 📈', 'WILD SUCCESS 🌿', 'DREAM BIG 😤',
-      'FORCE OF NATURE 🌪️', 'ALL EYES ON YOU 👀', 'TOP OF YOUR GAME 📊',
-      'NO DAYS OFF 💪', 'LEGACY BUILDER 🏛️', 'SERVE WITH GRACE 🕊️',
-      'MAGNET FOR SUCCESS 🧲', 'CHANGE AGENT 🔄', 'INSPIRE GREATNESS 🌋',
-      'BOSS MOVES ONLY 💼', 'HEALING HANDS ✋', 'BEACON OF HOPE 🔦',
-      'LIGHT THE WAY 🔥', 'YOUR MOMENT 🕐', 'GRACE UNDER FIRE 🪖',
-      'UNSHAKEABLE 🏔️', 'IMPACT PLAYER 🎮', 'HEART OF GOLD 🌟',
-      'STEADY HANDS 👐', 'CALM IN THE STORM ⛈️', 'PURPOSE DRIVEN 🎯',
-      'FEARLESS NURSE 🏥', 'YOU GOT THIS 👊', 'RADIATE CONFIDENCE 🌟',
-      'BRILLIANT MOVE ♟️', 'POWERHOUSE 🔋', 'GENEROSITY OF SPIRIT 🌺',
-      'BRAVE AND BOLD 💪', 'VITAL FORCE 🩺', 'RESILIENT SPIRIT 🌱',
-      'MAGNETIC ENERGY 🧲', 'STAR PERFORMER ⭐', 'KINDHEARTED ❤️',
-      'FOCUSED FIRE 🔥', 'BALANCE AND GRACE 🧘', 'TOTAL BADASS 😎',
-    ];
-    var greetIdx = dayOfYear % greetings.length;
-    var greetingText = greetings[greetIdx];
-    
-    if (greetingText !== lastGreeting) {
-      lastGreeting = greetingText;
-      $('greeting').innerHTML =
-        '<span class="greet-emoji">🔥</span> ' + greetingText +
-        ' <span class="greet-name">' + esc(getActiveUser() || 'Nurse') + '</span> <span class="greet-wave">👊</span>';
+  function patientRow(p) {
+    const days = calcDays(p.admission_date);
+    const admitLabel = p.admission_date
+      ? new Date(p.admission_date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'})
+      : 'Set date';
+    return `
+    <tr class="patient-row ${statusClass(p.status)}" data-id="${p.id}">
+      <td class="editable col-status" data-field="status">${selectCell(p.status,STATUS_OPTIONS)}</td>
+      <td class="editable col-room"  data-field="room">${textCell(p.room)}</td>
+      <td class="editable col-code"  data-field="code">${selectCell(p.code,CODE_OPTIONS)}</td>
+      <td class="editable col-np"    data-field="np">${selectCell(p.np,NP_OPTIONS)}</td>
+      <td class="editable col-name"  data-field="name_last4">${textCell(p.name_last4)}</td>
+      <td class="editable col-diet"  data-field="diet">${selectCell(p.diet,DIET_OPTIONS)}</td>
+      <td class="editable col-sc"    data-field="sc">${selectCell(p.sc,SC_OPTIONS)}</td>
+      <td class="editable col-iso"   data-field="isolation">${selectCell(p.isolation,ISO_OPTIONS)}</td>
+      <td class="days-cell col-days">
+        <div class="days-wrapper">
+          <span class="days-num">${days}</span>
+          <span class="days-admit" title="Click to set admission date">${esc(admitLabel)}</span>
+        </div>
+      </td>
+      <td class="editable col-paper" data-field="paperwork">${selectCell(p.paperwork,PAPER_OPTIONS)}</td>
+      <td class="editable col-nok"   data-field="nok_phone">${textCell(p.nok_phone)}</td>
+      <td class="editable col-notes" data-field="notes">${textCell(p.notes)}</td>
+      <td class="no-print col-actions">
+        <button class="btn-delete" title="Remove patient" data-id="${p.id}">&#x2715;</button>
+      </td>
+    </tr>`;
+  }
+
+  function textCell(val)         { return `<span class="cell-display">${esc(val||'')}</span>`; }
+  function selectCell(val, opts) {
+    const matched = opts.find(o=>o.toLowerCase()===(val||'').toLowerCase()) || val || '';
+    return `<span class="cell-display">${esc(matched)}</span>`;
+  }
+
+  // ── Main table event listeners ────────────────────────────────────────────
+  function attachListeners() {
+    document.querySelectorAll('td.editable').forEach(td=>td.addEventListener('click',handleCellClick));
+    document.querySelectorAll('.days-admit').forEach(span=>span.addEventListener('click',handleAdmitClick));
+    document.querySelectorAll('.btn-delete:not(.btn-sub-del)').forEach(btn=>btn.addEventListener('click',handleDelete));
+  }
+
+  function handleCellClick(e) {
+    const td = e.currentTarget;
+    if (td.querySelector('input,select')) return;
+    const field = td.dataset.field;
+    const id    = parseInt(td.closest('tr').dataset.id);
+    const p     = patients.find(p=>p.id===id);
+    if (!p) return;
+    const val = p[field]||'';
+    let input;
+    if      (field==='status')    input = makeSelect(val,STATUS_OPTIONS);
+    else if (field==='code')      input = makeSelect(val,CODE_OPTIONS);
+    else if (field==='np')        input = makeSelect(val,NP_OPTIONS);
+    else if (field==='sc')        input = makeSelect(val,SC_OPTIONS);
+    else if (field==='isolation') input = makeSelect(val,ISO_OPTIONS);
+    else if (field==='diet')      input = makeSelect(val,DIET_OPTIONS);
+    else if (field==='paperwork') input = makeSelect(val,PAPER_OPTIONS);
+    else                          input = makeInput(val);
+    td.innerHTML=''; td.appendChild(input); input.focus();
+    function save() {
+      const newVal = input.value;
+      td.innerHTML = input._opts ? selectCell(newVal,input._opts) : textCell(newVal);
+      attachListeners();
+      if (newVal !== val) { p[field]=newVal; saveAll(); if(field==='status'||field==='room') render(); }
     }
-    $('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    $('date').textContent = now.toLocaleDateString([], {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e=>{
+      if (e.key==='Enter')  input.blur();
+      if (e.key==='Escape') { td.innerHTML=input._opts?selectCell(val,input._opts):textCell(val); attachListeners(); }
     });
-    $('footer').textContent = 'VA Charge RN Launchpad · ' + now.getFullYear();
   }
-  tick();
-  setInterval(tick, 15000);
 
-  /* ── Customizable Quick Launch ───────────────────────────────── */
-  var qlLinks = [];
+  function makeInput(val)       { const i=document.createElement('input'); i.type='text'; i.value=val; return i; }
+  function makeSelect(val,opts) {
+    const sel=document.createElement('select'); sel._opts=opts;
+    opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o||'—'; if(o.toLowerCase()===(val||'').toLowerCase()) opt.selected=true; sel.appendChild(opt); });
+    if (!opts.find(o=>o.toLowerCase()===(val||'').toLowerCase())&&val) { const opt=document.createElement('option'); opt.value=val; opt.textContent=val; opt.selected=true; sel.appendChild(opt); }
+    return sel;
+  }
 
-  function loadQL() {
+  function handleAdmitClick(e) {
+    e.stopPropagation();
+    const span = e.currentTarget;
+    const id   = parseInt(span.closest('tr').dataset.id);
+    const p    = patients.find(p=>p.id===id);
+    if (!p) return;
+    const input = document.createElement('input');
+    input.type='date'; input.className='admit-input'; input.value=p.admission_date||'';
+    const wrapper = span.closest('.days-wrapper');
+    wrapper.innerHTML=''; wrapper.appendChild(input); input.focus();
+    function save() {
+      const newDate = input.value;
+      p.admission_date = newDate; saveAll();
+      const td = wrapper.closest('td');
+      const days = calcDays(newDate);
+      const label = newDate ? new Date(newDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : 'Set date';
+      td.innerHTML = `<div class="days-wrapper"><span class="days-num">${days}</span><span class="days-admit" title="Click to set admission date">${esc(label)}</span></div>`;
+      td.querySelector('.days-admit').addEventListener('click', handleAdmitClick);
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); });
+  }
+
+  function handleDelete(e) {
+    const id   = parseInt(e.currentTarget.dataset.id);
+    const p    = patients.find(p=>p.id===id);
+    const name = p?(p.name_last4||p.room||'this patient'):'this patient';
+    if (!confirm(`Remove ${name} from the report?`)) return;
+    patients = patients.filter(p=>p.id!==id); saveAll(); render();
+  }
+
+  function addPatient() {
+    const room = prompt('Room number:');
+    if (room===null) return;
+    const p = { id:nextId++, room:room.trim(), status:'LTC', code:'', np:'', name_last4:'', diet:'', sc:'', isolation:'', admission_date:'', paperwork:'', nok_phone:'', notes:'', sort_order:patients.length };
+    patients.push(p); saveAll(); render();
+  }
+
+  // ── Sub-section renders ───────────────────────────────────────────────────
+  function renderAcute() {
+    const tbody = document.getElementById('acuteBody');
+    if (!acuteItems.length) { tbody.innerHTML = '<tr><td colspan="3" class="sub-empty">None</td></tr>'; return; }
+    tbody.innerHTML = acuteItems.map(x=>`
+      <tr data-id="${x.id}" data-sec="acute">
+        <td class="sub-edit" data-field="room">${esc(x.room)}</td>
+        <td class="sub-edit" data-field="name">${esc(x.name)}</td>
+        <td class="no-print"><button class="btn-delete btn-sub-del" data-sec="acute" data-id="${x.id}">&#x2715;</button></td>
+      </tr>`).join('');
+    attachSubListeners('acute');
+  }
+
+  function renderAppts() {
+    const tbody = document.getElementById('apptBody');
+    if (!apptItems.length) { tbody.innerHTML = '<tr><td colspan="5" class="sub-empty">None</td></tr>'; return; }
+    tbody.innerHTML = apptItems.map(x=>`
+      <tr data-id="${x.id}" data-sec="appt">
+        <td class="sub-edit" data-field="name">${esc(x.name)}</td>
+        <td class="sub-edit" data-field="where">${esc(x.where)}</td>
+        <td class="sub-edit" data-field="with_who">${esc(x.with_who)}</td>
+        <td class="sub-edit" data-field="appt_time">${esc(x.appt_time)}</td>
+        <td class="no-print"><button class="btn-delete btn-sub-del" data-sec="appt" data-id="${x.id}">&#x2715;</button></td>
+      </tr>`).join('');
+    attachSubListeners('appt');
+  }
+
+  function renderIDC() {
+    const tbody = document.getElementById('idcBody');
+    if (!idcItems.length) { tbody.innerHTML = '<tr><td colspan="4" class="sub-empty">None</td></tr>'; return; }
+    tbody.innerHTML = idcItems.map(x=>`
+      <tr data-id="${x.id}" data-sec="idc">
+        <td class="sub-edit" data-field="name">${esc(x.name)}</td>
+        <td class="sub-edit" data-field="date">${esc(fmtDate(x.date))}</td>
+        <td class="sub-edit" data-field="time">${esc(x.time)}</td>
+        <td class="no-print"><button class="btn-delete btn-sub-del" data-sec="idc" data-id="${x.id}">&#x2715;</button></td>
+      </tr>`).join('');
+    attachSubListeners('idc');
+  }
+
+  // ── Sub-section listeners & editing ──────────────────────────────────────
+  function attachSubListeners(sec) {
+    document.querySelectorAll(`[data-sec="${sec}"] td.sub-edit`).forEach(td=>td.addEventListener('click', handleSubCellClick));
+    document.querySelectorAll(`.btn-sub-del[data-sec="${sec}"]`).forEach(btn=>btn.addEventListener('click', handleSubDelete));
+  }
+
+  function secMeta(sec) {
+    if (sec==='acute') return { items:acuteItems, save:saveAcute, render:renderAcute };
+    if (sec==='appt')  return { items:apptItems,  save:saveAppts, render:renderAppts };
+    if (sec==='idc')   return { items:idcItems,   save:saveIDC,   render:renderIDC   };
+  }
+
+  function handleSubCellClick(e) {
+    const td    = e.currentTarget;
+    if (td.querySelector('input')) return;
+    const sec   = td.closest('tr').dataset.sec;
+    const id    = parseInt(td.closest('tr').dataset.id);
+    const field = td.dataset.field;
+    const { items, save } = secMeta(sec);
+    const item  = items.find(x=>x.id===id);
+    if (!item) return;
+
+    // For date field, use raw ISO value for input; display value was formatted
+    const rawVal = item[field] || '';
+    const input  = document.createElement('input');
+    input.type   = (field==='date') ? 'date' : 'text';
+    input.value  = rawVal;
+    td.innerHTML = ''; td.appendChild(input); input.focus();
+
+    function saveSub() {
+      const newVal = input.value;
+      // Display formatted date, store raw
+      td.textContent = (field==='date') ? fmtDate(newVal) : newVal;
+      td.classList.add('sub-edit');
+      td.dataset.field = field;
+      td.addEventListener('click', handleSubCellClick);
+      if (newVal !== rawVal) { item[field]=newVal; save(); }
+    }
+    input.addEventListener('blur', saveSub);
+    input.addEventListener('keydown', e=>{
+      if (e.key==='Enter')  input.blur();
+      if (e.key==='Escape') {
+        td.textContent = (field==='date') ? fmtDate(rawVal) : rawVal;
+        td.classList.add('sub-edit');
+        td.dataset.field = field;
+        td.addEventListener('click', handleSubCellClick);
+      }
+    });
+  }
+
+  function handleSubDelete(e) {
+    const btn  = e.currentTarget;
+    const sec  = btn.dataset.sec;
+    const id   = parseInt(btn.dataset.id);
+    const { items, save, render } = secMeta(sec);
+    const item = items.find(x=>x.id===id);
+    const name = item ? (item.name || 'this entry') : 'this entry';
+    if (!confirm(`Remove ${name}?`)) return;
+    items.splice(items.findIndex(x=>x.id===id), 1);
+    save(); render();
+  }
+
+  function addAcute() {
+    const item = { id:nextAcuteId++, room:'', name:'' };
+    acuteItems.push(item); saveAcute(); renderAcute();
+    focusSubCell('acute', item.id, 'room');
+  }
+  function addAppt() {
+    const item = { id:nextApptId++, name:'', where:'', with_who:'', appt_time:'' };
+    apptItems.push(item); saveAppts(); renderAppts();
+    focusSubCell('appt', item.id, 'name');
+  }
+  function addIDC() {
+    const item = { id:nextIdcId++, name:'', date:'', time:'' };
+    idcItems.push(item); saveIDC(); renderIDC();
+    focusSubCell('idc', item.id, 'name');
+  }
+
+  function focusSubCell(sec, id, field) {
+    const td = document.querySelector(`[data-sec="${sec}"][data-id="${id}"] [data-field="${field}"]`);
+    if (td) td.click();
+  }
+
+  // ── Excel Export ──────────────────────────────────────────────────────────
+  function exportExcel() {
+    const now      = new Date();
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dateStr  = now.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});
+    const dayStr   = dayNames[now.getDay()];
+
+    const order = ['LTC','Short Stay','Respite','EOL'];
+    const groups = {}; order.forEach(s=>groups[s]=[]);
+    const other  = [];
+    patients.forEach(p=>{ const key=order.find(o=>o.toLowerCase()===(p.status||'').toLowerCase()); if(key) groups[key].push(p); else other.push(p); });
+
+    const SEC_COLORS = {LTC:'2980B9','Short Stay':'27AE60',Respite:'F39C12',EOL:'8E44AD'};
+    const ROW_COLORS = {LTC:'D6EAF8','Short Stay':'D5F5E3',Respite:'FEF9E7',EOL:'F5EEF8'};
+
+    const HDR_S = { fill:{fgColor:{rgb:'1A3A5C'}}, font:{bold:true,color:{rgb:'FFFFFF'},sz:10}, alignment:{vertical:'center',horizontal:'center',wrapText:true} };
+    const LBL_S = { font:{bold:true,sz:10}, alignment:{horizontal:'right'} };
+    const VAL_S = { font:{sz:10},           alignment:{horizontal:'left'}  };
+
+    function cell(v,s)    { return {v:v??'',s}; }
+    function numCell(v,s) { return typeof v==='number'?{v,t:'n',s}:cell(String(v??''),s); }
+    function daysNum(d)   { if(!d) return ''; const diff=Math.floor((now-new Date(d+'T00:00:00'))/86400000); return diff>=0?diff:''; }
+
+    const wsData=[], merges=[];
+    let rowIdx=0;
+
+    // Header
+    wsData.push(['Status','Room','Code','NP','Name / Last 4','Diet','SC','Isolation','Days','Admit Date','Paperwork','NOK / Phone','Notes'].map(h=>cell(h,HDR_S)));
+    rowIdx++;
+
+    // All rooms in one continuous list, sorted by room number (no status sections); each row still shaded by its status
+    const sorted = patients.slice().sort((a,b)=>String(a.room||'').localeCompare(String(b.room||''), undefined, {numeric:true, sensitivity:'base'}));
+    sorted.forEach(p=>{
+      const key=order.find(o=>o.toLowerCase()===(p.status||'').toLowerCase());
+      const bg=ROW_COLORS[key]||'FFFFFF';
+      const ROW_S={fill:{fgColor:{rgb:bg}},font:{sz:10},alignment:{vertical:'center',wrapText:true},border:{bottom:{style:'hair',color:{rgb:'CCCCCC'}}}};
+      wsData.push([cell(p.status,ROW_S),cell(p.room,ROW_S),cell(p.code,ROW_S),cell(p.np,ROW_S),cell(p.name_last4,ROW_S),cell(p.diet,ROW_S),cell(p.sc,ROW_S),cell(p.isolation,ROW_S),numCell(daysNum(p.admission_date),ROW_S),cell(p.admission_date||'',ROW_S),cell(p.paperwork,ROW_S),cell(p.nok_phone,ROW_S),cell(p.notes,ROW_S)]);
+      rowIdx++;
+    });
+
+    // Summary
+    wsData.push(Array(12).fill(cell('',{}))); rowIdx++;
+    const ltcN=groups['LTC'].length,ssN=groups['Short Stay'].length,resN=groups['Respite'].length,eolN=groups['EOL'].length,tot=ltcN+ssN+resN+eolN+other.length;
+    [["Today's Date:",dateStr],["Day of Week:",dayStr],["LTC:",ltcN],["Short Stay:",ssN],["Respite:",resN],["EOL:",eolN],["Total:",tot]].forEach(([lbl,val])=>{
+      const row=Array(12).fill(cell('',{}));
+      row[10]=cell(lbl,LBL_S); row[11]=typeof val==='number'?numCell(val,VAL_S):cell(val,VAL_S);
+      wsData.push(row); rowIdx++;
+    });
+
+    // ── Sub-sections side by side ──────────────────────────────────────────
+    wsData.push(Array(12).fill(cell('',{}))); rowIdx++;
+
+    // Section header bar
+    const ACUTE_S  = {fill:{fgColor:{rgb:'C0392B'}},font:{bold:true,color:{rgb:'FFFFFF'},sz:10},alignment:{vertical:'center',horizontal:'center'}};
+    const APPT_S   = {fill:{fgColor:{rgb:'16A085'}},font:{bold:true,color:{rgb:'FFFFFF'},sz:10},alignment:{vertical:'center',horizontal:'center'}};
+    const IDC_S    = {fill:{fgColor:{rgb:'7D3C98'}},font:{bold:true,color:{rgb:'FFFFFF'},sz:10},alignment:{vertical:'center',horizontal:'center'}};
+    const COL_S    = {fill:{fgColor:{rgb:'F0F4F8'}},font:{bold:true,sz:9},alignment:{horizontal:'center'}};
+    const SUB_S    = {font:{sz:10},border:{bottom:{style:'hair',color:{rgb:'EEEEEE'}}}};
+
+    // Header row
+    const subHdrRow = Array(12).fill(cell('',{}));
+    subHdrRow[0]=cell('Acute Care',ACUTE_S);  subHdrRow[1]=cell('',ACUTE_S);
+    subHdrRow[3]=cell('Appointments',APPT_S); subHdrRow[4]=cell('',APPT_S); subHdrRow[5]=cell('',APPT_S); subHdrRow[6]=cell('',APPT_S);
+    subHdrRow[8]=cell('IDC Meetings',IDC_S);  subHdrRow[9]=cell('',IDC_S);  subHdrRow[10]=cell('',IDC_S);
+    wsData.push(subHdrRow);
+    merges.push({s:{r:rowIdx,c:0},e:{r:rowIdx,c:1}});
+    merges.push({s:{r:rowIdx,c:3},e:{r:rowIdx,c:6}});
+    merges.push({s:{r:rowIdx,c:8},e:{r:rowIdx,c:10}});
+    rowIdx++;
+
+    // Column headers
+    const colHdrRow = Array(12).fill(cell('',{}));
+    colHdrRow[0]=cell('Room',COL_S);       colHdrRow[1]=cell('Name',COL_S);
+    colHdrRow[3]=cell('Name',COL_S);       colHdrRow[4]=cell('Where Going',COL_S); colHdrRow[5]=cell('With Who',COL_S); colHdrRow[6]=cell('Time',COL_S);
+    colHdrRow[8]=cell('Name',COL_S);       colHdrRow[9]=cell('Date',COL_S);        colHdrRow[10]=cell('Time',COL_S);
+    wsData.push(colHdrRow); rowIdx++;
+
+    // Data rows
+    const maxRows = Math.max(acuteItems.length, apptItems.length, idcItems.length, 1);
+    for (let i=0; i<maxRows; i++) {
+      const row = Array(12).fill(cell('',{}));
+      const ac=acuteItems[i], ap=apptItems[i], id=idcItems[i];
+      if (ac) { row[0]=cell(ac.room,SUB_S); row[1]=cell(ac.name,SUB_S); }
+      if (ap) { row[3]=cell(ap.name,SUB_S); row[4]=cell(ap.where,SUB_S); row[5]=cell(ap.with_who,SUB_S); row[6]=cell(ap.appt_time,SUB_S); }
+      if (id) { row[8]=cell(id.name,SUB_S); row[9]=cell(id.date?fmtDate(id.date):'',SUB_S); row[10]=cell(id.time,SUB_S); }
+      wsData.push(row); rowIdx++;
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:10},{wch:22},{wch:16},{wch:8},{wch:14},{wch:8},{wch:12},{wch:28},{wch:40}];
+    ws['!merges'] = merges;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Morning Report');
+    XLSX.writeFile(wb, `Morning_Report_${now.toISOString().slice(0,10)}.xlsx`);
+  }
+
+  // ── Import Excel ──────────────────────────────────────────────────────────
+  function handleImportFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const wb = XLSX.read(ev.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        // Find header row
+        let headerRow = -1, colMap = {};
+        for (let i = 0; i < Math.min(rows.length, 5); i++) {
+          if (rows[i].some(c => String(c).toLowerCase().includes('status'))) {
+            headerRow = i;
+            rows[i].forEach((h, idx) => { colMap[String(h).trim().toLowerCase()] = idx; });
+            break;
+          }
+        }
+        if (headerRow === -1) { alert('Could not find header row in the Excel file.'); return; }
+
+        const get = (row, headers) => {
+          for (const h of headers) {
+            const idx = colMap[h];
+            if (idx !== undefined && row[idx] !== undefined) return String(row[idx]).trim();
+          }
+          return '';
+        };
+
+        const imported = [];
+        let nextId = Date.now();
+        for (let i = headerRow + 1; i < rows.length; i++) {
+          const row = rows[i];
+          const first = String(row[0] || '').trim();
+          if (!first && !row.some(c => c !== '')) continue;
+          if (/^(LTC|Short Stay|Respite|EOL|Other)\s*\(/i.test(first)) continue;
+          if (!first) break; // hit summary section
+          imported.push({
+            id: nextId++,
+            status:         get(row, ['status']),
+            room:           get(row, ['room']),
+            code:           get(row, ['code']),
+            np:             get(row, ['np']),
+            name_last4:     get(row, ['name / last 4','name/last 4','name']),
+            diet:           get(row, ['diet']),
+            sc:             get(row, ['sc']),
+            isolation:      get(row, ['isolation']),
+            ten_tens:       get(row, ["10-10's",'10-10s']),
+            dc:             get(row, ['d.c.','dc']),
+            admission_date: get(row, ['admission_date', 'admit date', 'admission date', 'days tracked']),
+            paperwork:      get(row, ['paperwork']),
+            nok_phone:      get(row, ['nok / phone','nok/phone']),
+            notes:          get(row, ['notes']),
+            sort_order:     nextId,
+          });
+        }
+
+        if (!imported.length) { alert('No patient data found in the Excel file.'); return; }
+        if (!confirm(`Import ${imported.length} patients? This will replace all current patient data.`)) return;
+        patients = imported;
+        saveAll();
+        render();
+        alert(`Imported ${imported.length} patients successfully.`);
+      } catch(err) {
+        alert('Error reading file: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  }
+
+  // ── SW Directory ──────────────────────────────────────────────────────────
+  const SW_KEY = 'mr_sw_directory';
+  const SW_DEFAULT = [{"id":1,"name":"Amy Helm MSW, LCSW","title":"Local Recovery Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"573-778-4724","tour_of_duty":"7:30am-4:00pm M-F","description":"Local Recovery Coordinator (LRC) functions as a champion and advocate for the recovery model. LRC also serves as a recovery ombudsman to the MH Director, program managers, and staff on recovery and implementation of recovery oriented services."},{"id":2,"name":"Andrena Wiggins MSW, LCSW","title":"Home Based Primary Care Social Worker","service_line":"Patient Care Services","location":"West Plains","contact_info":"","tour_of_duty":"","description":""},{"id":3,"name":"Ashlee Medler MSW, LCSW","title":"Coordinated Entry Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":4,"name":"Charissa Young MSW, LCSW","title":"Homeless Program Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"573-718-5711 (cell) 573-778-4425 (desk)","tour_of_duty":"","description":"Manages daily operations of Homeless Program and providing direct patient care services to Veteran's enrolled in program."},{"id":5,"name":"Corey Crutchfield MSW, LCSW, ACSW","title":"CLC Social Worker – HPC Social Work Coordinator","service_line":"Patient Care Services","location":"Poplar Bluff Building 1 Room 4056A","contact_info":"","tour_of_duty":"7:30am-4:00pm M-F","description":"Intake assessments, Advance Directives, discharge planning, case management, IDC Team member, Screening Team, involved with CCICM, Involved with SAIL, involved with SHEP Care Transitions, involved with Acute Care IDT, take care of Hospice/Palliative consults, Chair for HPC meetings."},{"id":6,"name":"Cynthia Brown MSW, LCSW","title":"MST Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":7,"name":"Daniel Cuneio MSW, LCSW","title":"Home Based Primary Care Social Worker","service_line":"Patient Care Services","location":"Farmington/Cape","contact_info":"573-772-2331","tour_of_duty":"7:00am-3:30pm M-F","description":"SW works as part of an inter-disciplinary team within the Home-Based Primary Care program to provide a full range of health care services, in the home, to Veterans with complex chronic diseases and terminal illness, who are unable to leave their home due to functional deficits, lack of transportation, or absence of a caregiver. HBPC SW completes an initial and annual bio-psychosocial assessment and provides supportive case management for all Veterans on their assigned caseload. Job duties include education/assistance with Advance Directives, Caregiver Support, referral/linkage for nursing home placement, VHA/VBA/community resources, BH referrals, SA tx. resources, homelessness resources, food insecurity resources, hospice care, and transportation."},{"id":8,"name":"Daniel T. Phillips LCSW, MSG, US Army, Retired","title":"Substance Abuse Treatment Program (SATP)","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"ext 52261","tour_of_duty":"","description":""},{"id":9,"name":"David Baltz MSW, LCSW","title":"HUD/VASH Case Manager","service_line":"Mental Health","location":"Pocahontas","contact_info":"","tour_of_duty":"","description":""},{"id":10,"name":"Dianna Neal","title":"Senior Social Worker","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"778-4439","tour_of_duty":"","description":""},{"id":11,"name":"Deborah McCart MSW, LCSW","title":"MHICM E-RANGE Case Manager","service_line":"Mental Health","location":"West Plains","contact_info":"417-254-0692 ; 573-714-9832 (cell)","tour_of_duty":"8:00am-4:30pm","description":""},{"id":12,"name":"Erin Shaw MSW, LCSW","title":"PACT ACT Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":13,"name":"Gary Helle MSW, LCSW","title":"Veterans Justice Outreach Specialist","service_line":"Mental Health","location":"Cape Girardeau","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"The purpose of the Veteran Justice Outreach Initiative (VJO) initiative is to avoid the unnecessary criminalization of mental illness and extended incarceration among Veterans by ensuring that eligible justice-involved Veterans have timely access to VHA mental health and substance abuse services when clinically indicated, and other VA services and benefits as appropriate."},{"id":14,"name":"Greta Lambert MSW, LCSW","title":"HUD/VASH Case Manager","service_line":"Mental Health","location":"Farmington","contact_info":"573-760-1365(office) 573-452-1934 (cell)","tour_of_duty":"","description":"I do case management for Homeless or unhoused veterans. As a provider, I link them to community resources, assist with navigating the HUD process, and provide mental health services."},{"id":15,"name":"Heather Cox MSW, LCSW","title":"MHICM E-RANGE Case Manager","service_line":"Mental Health","location":"Sikeston","contact_info":"","tour_of_duty":"","description":""},{"id":16,"name":"Heather Russom-Earls MSW, LCSW","title":"Suicide Prevention Coordinator","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"Monitor veterans with a high risk flag and those that are post discharge from the hospital. Provide initial counseling to those on the high risk list that do not have an assigned therapist."},{"id":17,"name":"Heather Wills MSW, LCSW","title":"Senior Social Worker","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":""},{"id":18,"name":"Jacie Davis MSW","title":"HUD/VASH Case Manager","service_line":"Mental Health","location":"Sikeston","contact_info":"","tour_of_duty":"","description":""},{"id":19,"name":"Janice Wheeler LMSW","title":"Outpatient Mental Health Therapist","service_line":"Mental Health","location":"Paragould","contact_info":"","tour_of_duty":"8:00am-4:30 pm M-F","description":"I am one of two out-patient mental health therapist that work out of the Paragould CBOC."},{"id":20,"name":"Jennifer Becking MSW, LCSW, BCD, CRAADC","title":"Supervisory Social Worker- Suicide Prevention","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"(573) 686-9797","tour_of_duty":"8:00am-4:30pm","description":""},{"id":21,"name":"Jennifer Bess MSW, LCSW; COR Level 1","title":"Contract Nursing Home Coordinator/State Veteran's Home POC","service_line":"Care in the Community","location":"Sikeston","contact_info":"","tour_of_duty":"7:30am-4:00pm M-F","description":"Responsible for contracting duties as it relates to contract nursing homes and Veteran Care Agreements (VCA). Assist Veterans caregivers, and providers with placement options and referral needs."},{"id":22,"name":"Jennifer Hale MSW, LCSW","title":"Veteran Directed Care Coordinator","service_line":"Care in the Community","location":"Farmington","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"Processes consults for eligibility for the Veteran Directed Care program. I review Veteran's budgets for programs, receive quarterly, 180 day and yearly assessments for each Veteran."},{"id":23,"name":"Jennifer Lay MSW, LCSW","title":"Homeless Program Supervisor","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":24,"name":"Jennifer Owens MSW, LCSW","title":"PACT Social Worker","service_line":"Patient Care Services","location":"Sikeston","contact_info":"","tour_of_duty":"","description":""},{"id":25,"name":"Jennifer Shelton MSW, LCSW","title":"Mental Health Supervisor Cape HCC","service_line":"Mental Health","location":"Cape Girardeau","contact_info":"ext 59340","tour_of_duty":"8:00am-4:30pm M-F","description":"Manage the mental health clinic programming and direct administrative and professional supervision of mental health staff located at the Cape Girardeau HCC."},{"id":26,"name":"Jenny Keene MSW, LCSW","title":"Outpatient Therapist","service_line":"Mental Health","location":"Cape Girardeau","contact_info":"","tour_of_duty":"","description":""},{"id":27,"name":"Jessi Houchins MSW, LCSW","title":"Caregiver Support Program Manager","service_line":"Patient Care Services","location":"Cape Girardeau","contact_info":"","tour_of_duty":"7:00am-3:30pm M-F","description":"Manage all Caregiver Support providers, including 4 social workers, 4 nurses, and a PSA. Oversee day to day activities of both PCAFC application and programming, as well as PGCSS outreach and service offerings."},{"id":28,"name":"Kaley Berry MSW, LCSW","title":"Veteran Directed Care Coordinator","service_line":"Care in the Community","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"Processes consults for eligibility for the Veteran Directed Care program. I review Veteran's budgets for programs, receive quarterly, 180 day and yearly assessments for each Veteran."},{"id":29,"name":"Katrina Dowell MSW, LCSW, DSW","title":"Transplant Coordinator/PACT SW","service_line":"Care in the Community","location":"","contact_info":"","tour_of_duty":"","description":""},{"id":30,"name":"Kevin Wagner MSW, LCSW","title":"Supervisory Social Worker, Mental Health","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"Mental Health Supervisor overseeing BHIP, PTSD Clinical Team; Police Evaluations, Psychological Testing and C&P Providers."},{"id":31,"name":"Lee Barnes MSW, LCSW","title":"PACT Social Worker/Spinal Cord Injury Coordinator","service_line":"Patient Care Services","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":32,"name":"Lindsey Johnson","title":"Senior Social Worker HUD/VASH","service_line":"Mental Health","location":"Sikeston","contact_info":"778-4664","tour_of_duty":"","description":""},{"id":33,"name":"Lisa Zug MSW, LCSW","title":"Caregiver Support Case Manager (PGCSS)","service_line":"Patient Care Services","location":"Poplar Bluff","contact_info":"","tour_of_duty":"7:30am-4:00pm M-F","description":"Assist caregivers with enrollment in the Program of General Caregiver Support Services (PGCSS); provide training and support for enrolled caregivers in either the Program of Comprehensive Assistance for Family Caregivers (PCAFC), or PGCSS."},{"id":34,"name":"Lyntoria Williams MSW, LCSW","title":"CCICM Social Worker Co-Champion/PACT SW","service_line":"Patient Care Services","location":"Sikeston","contact_info":"ext 52283","tour_of_duty":"8:30am-5:00pm M-F","description":""},{"id":35,"name":"Maggie Buckley MSW, LCSW","title":"Outpatient Therapist","service_line":"Mental Health","location":"Cape Girardeau","contact_info":"ext 59357","tour_of_duty":"7:30am-5:00pm M-Th; off first Friday of pay period; 7:30am-4:00pm second Fri of pay period","description":""},{"id":36,"name":"Marilyn Shoumake MSW, LCSW","title":"Outpatient Therapist","service_line":"Mental Health","location":"Farmington","contact_info":"","tour_of_duty":"","description":""},{"id":37,"name":"Martinie Franks MSW, LCSW","title":"Women Veteran Program Manager/temporary VIST coverage","service_line":"","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":38,"name":"Mary Deschler MSW, LCSW","title":"Primary Care Mental Health Integration","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":39,"name":"Melinda Fox MSW, LCSW","title":"MHICM E-RANGE Case Manager","service_line":"Mental Health","location":"Farmington","contact_info":"573-300-7621","tour_of_duty":"8:00am-4:30pm M-F","description":"Meets with the veteran 1-3 times per week, offers assistance with medication management, treatment planning and goal setting, crisis intervention, daily living skills, teaching about mental illness, providing therapy and emotional support."},{"id":40,"name":"Melissa Meredith MSW, LCSW","title":"Home Based Primary Care Social Worker","service_line":"Patient Care Services","location":"Poplar Bluff/Paragould","contact_info":"573 778 9743","tour_of_duty":"7:00am-3:30pm M-F","description":"SW works as part of an inter-disciplinary team within the Home-Based Primary Care program to provide a full range of health care services, in the home, to Veterans with complex chronic diseases and terminal illness."},{"id":41,"name":"Monique Crowley MSW, LCSW","title":"Caregiver Support Coordinator (PCAFC)","service_line":"Patient Care Services","location":"Cape Girardeau","contact_info":"573-300-3818","tour_of_duty":"7:00am-3:30pm M-F","description":"One of two Coordinators that ensure the application process for the Program of Comprehensive Assistance for Family Caregivers (PCAFC) program is completed properly and in a timely manner."},{"id":42,"name":"Pamela Harness MSW, LCSW","title":"Suicide Prevention Case Manager","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"ext. 59212","tour_of_duty":"","description":""},{"id":43,"name":"Rebecca Hartwell MSW, LCSW, BCD, ICAADC","title":"Whole Health Program Manager","service_line":"Physical Medicine and Rehabilitation Services","location":"Poplar Bluff Room 5068","contact_info":"","tour_of_duty":"7:30am-4:00pm M-F","description":""},{"id":44,"name":"Robert McDonald MSW, LCSW","title":"SSVF SUD Navigator","service_line":"Mental Health","location":"Tele","contact_info":"","tour_of_duty":"8:00am-4:30pm","description":"Working with at risk veterans with SUD diagnosis."},{"id":45,"name":"Russell Fields MSW","title":"Senior Social Worker: HUD/VASH","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":46,"name":"Sandra Jackson MSW, LCSW, EdD","title":"Social Work Executive/temporary VIST coverage","service_line":"","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":47,"name":"Sandra Robison MSW, LCSW","title":"Suicide Prevnetion Case Manager","service_line":"Mental Health","location":"Poplar Bluff, Sikeston","contact_info":"573-778-4457","tour_of_duty":"8:00am-4:30pm M-F","description":"Responds to VCL calls, recent discharges from a hospital or domiciliary, maintain ReachVet dashboard"},{"id":48,"name":"Sharon Sorrell MSW, LCSW","title":"Associate Chief of Mental","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"","description":""},{"id":49,"name":"Shawn Lee MSSW, LCSW","title":"Senior Social Worker SUD Specialty Care","service_line":"Mental Health","location":"Farmington","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"Direct SUD/MH Services: triage, intervention, education, and consultative services regarding a wide range of mental health and behavioral medicine concerns, to include substance use."},{"id":50,"name":"Stacey Bruce MSW, LCSW","title":"SUD Dual-Diagnosis Specialist; Senior Social Worker","service_line":"Mental Health","location":"Poplar Bluff  Room 5068","contact_info":"","tour_of_duty":"8:00am-4:30pm","description":"Provider conducts complex mental health assessments, diagnosis, and treatment for Substance Use Disorder and Co-occurring disorders for patients with a wide variety of Axis I and II disorders as listed in DSM-V."},{"id":51,"name":"Stacey Weitzel MSW, LCSW","title":"Assistance Chief of Mental Health","service_line":"Mental Health","location":"Poplar Bluff Building 1- 2nd Floor-2A128","contact_info":"","tour_of_duty":"24/7","description":""},{"id":52,"name":"Stephanie Steinmetz MSW, LCSW","title":"Outpatient Therapist","service_line":"Mental Health","location":"Farmington","contact_info":"ext 53965","tour_of_duty":"8:00am-4:30pm M-F","description":"Social Worker in Mental Health at the Farmington CBOC. I provide individual, couples, and group therapy treating a range of mental health disorders and symptoms. Specialized training in CPT and DBT."},{"id":53,"name":"Sydney Davis MSW, LMSW","title":"HUD/VASH Case Manager","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"One of three (Poplar Bluff based) Case Managers who provide case management and interventions to Veteran patients who may have physical health, mental health and/or substance use diagnoses."},{"id":54,"name":"Tabitha Shankle","title":"HCHV Outreach Coordinator","service_line":"Mental Health","location":"Sikeston","contact_info":"573-778-4664","tour_of_duty":"","description":""},{"id":55,"name":"Timothy Pennington MSW, LCSW, ACSW, C-SWHC, BCD","title":"Community Engagement & Partnership Coordinator (CEPC)","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"I travel around to all the counties that John J. Pershing VA Medical Center serves working with community stakeholders to include community mental health centers, public health departments, hospitals and anybody in the community willing to work on suicide prevention priority areas."},{"id":56,"name":"Vicki Burns MSW, LCSW","title":"Caregiver Support Coordinator (PGCSS)","service_line":"Patient Care Services","location":"Poplar Bluff","contact_info":"","tour_of_duty":"7:00am-3:30pm M-F","description":"Coordinator for the General Program of Caregiver Support Services. Responsible for creating and organizing programs for caregivers, including an annual Resource Fair and Caregiver Summit each year for clinicians."},{"id":57,"name":"Wesley Gautreaux MSW, LCSW","title":"Supervisor At-Risk Services ICMHR E-Range Program and CWT","service_line":"Mental Health","location":"Poplar Bluff","contact_info":"","tour_of_duty":"8:00am-4:30pm M-F","description":"I supervise the day to day functions of both the E-Range and CWT programs that provide Community-based psychosocial rehabilitation as the primary service/treatment modality."},{"id":58,"name":"William P. Miller (WP Miller) MSW, LCSW","title":"Outpatient Therapist","service_line":"Mental Health","location":"West Plains","contact_info":"","tour_of_duty":"8:00am – 4:30pm M-F","description":"psychotherapist"}];
+
+  let swWorkers = [], swFiltered = [], swNextId = 1, swEditId = null;
+  let swSortCol = 'name', swSortDir = 1;
+
+  function switchTab(tab) {
+    const isSw = tab === 'sw';
+    document.getElementById('mr-panel').style.display  = isSw ? 'none'  : 'block';
+    document.getElementById('sw-panel').style.display  = isSw ? 'block' : 'none';
+    document.getElementById('mr-btns').style.display   = isSw ? 'none'  : 'flex';
+    document.getElementById('sw-btns').style.display   = isSw ? 'flex'  : 'none';
+    document.querySelectorAll('.tab-link').forEach((btn, i) => {
+      btn.classList.toggle('tab-active', isSw ? i === 1 : i === 0);
+    });
+    if (isSw) {
+      document.getElementById('sw-print-date').textContent = todayStr();
+      buildSwLocFilter();
+      applySwFilters();
+    }
+  }
+
+  function loadSW() {
     try {
-      var s = JSON.parse(localStorage.getItem(QL_KEY));
-      qlLinks = Array.isArray(s) ? s : QL_DEFAULTS.slice();
-    } catch (_e) { qlLinks = QL_DEFAULTS.slice(); }
+      const stored = localStorage.getItem(SW_KEY);
+      swWorkers = stored ? JSON.parse(stored) : SW_DEFAULT.map(w => Object.assign({}, w));
+      if (!stored) saveSW();
+      swNextId = swWorkers.length ? Math.max(...swWorkers.map(w => w.id)) + 1 : 1;
+    } catch { swWorkers = SW_DEFAULT.map(w => Object.assign({}, w)); }
   }
 
-  function saveQL() { localStorage.setItem(QL_KEY, JSON.stringify(qlLinks)); }
+  function saveSW() { localStorage.setItem(SW_KEY, JSON.stringify(swWorkers)); }
 
-  function qlOpen(url) {
-    var w = 1024, h = 768;
-    var left = Math.round(window.screenX + window.outerWidth - w - 20);
-    var top = Math.round(window.screenY + 60);
-    window.open(url, '_blank', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
+  function buildSwLocFilter() {
+    const sel = document.getElementById('sw-filter-loc');
+    const cur = sel.value;
+    const locs = [...new Set(swWorkers.map(w => w.location).filter(Boolean).map(l => l.trim()))].sort();
+    while (sel.options.length > 1) sel.remove(1);
+    locs.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
+    sel.value = cur;
   }
 
-  function renderDock() {
-    loadQL();
-    $('ql-buttons').innerHTML = qlLinks.map(function (l, i) {
-      return '<button class="ql-btn" style="background:' + (l.color || '#5b9bf0') + '" data-i="' + i + '">' +
-        '<span class="ql-icon">' + (l.icon || '🔗') + '</span> <span class="ql-name">' + esc(l.label) + '</span></button>';
-    }).join('');
+  function applySwFilters() {
+    const q  = (document.getElementById('sw-search').value || '').toLowerCase();
+    const sl = (document.getElementById('sw-filter-sl').value || '').toLowerCase();
+    const lc = (document.getElementById('sw-filter-loc').value || '').toLowerCase();
+    swFiltered = swWorkers.filter(w => {
+      const mQ  = !q  || ['name','title','service_line','location','contact_info','description'].some(f => (w[f]||'').toLowerCase().includes(q));
+      const mSL = !sl || (w.service_line||'').toLowerCase() === sl;
+      const mL  = !lc || (w.location||'').toLowerCase().trim() === lc;
+      return mQ && mSL && mL;
+    });
+    swFiltered.sort((a, b) => {
+      const av = (a[swSortCol]||'').toLowerCase(), bv = (b[swSortCol]||'').toLowerCase();
+      return av < bv ? -swSortDir : av > bv ? swSortDir : 0;
+    });
+    document.getElementById('sw-count').textContent = swFiltered.length + ' of ' + swWorkers.length + ' workers';
+    renderSW();
   }
 
-  $('ql-buttons').addEventListener('click', function (e) {
-    var btn = e.target.closest('.ql-btn');
-    if (!btn) return;
-    var l = qlLinks[+btn.dataset.i];
-    if (l) qlOpen(l.url);
+  function renderSW() {
+    const tbody = document.getElementById('swBody');
+    if (!swFiltered.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-row">No results. Try adjusting your search or filters.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = swFiltered.map(w => `
+      <tr class="sw-row" data-id="${w.id}">
+        <td class="sw-cell sw-col-name">${esc(w.name)}</td>
+        <td class="sw-cell sw-col-title">${esc(w.title)}</td>
+        <td class="sw-cell sw-col-sl">${esc(w.service_line)}</td>
+        <td class="sw-cell sw-col-loc">${esc(w.location)}</td>
+        <td class="sw-cell sw-col-contact">${esc(w.contact_info)}</td>
+        <td class="sw-cell sw-col-tour">${esc(w.tour_of_duty)}</td>
+        <td class="sw-cell sw-col-desc">${esc(w.description)}</td>
+        <td class="sw-col-act no-print">
+          <button class="sw-btn-edit" title="Edit" data-id="${w.id}">&#x270E;</button>
+          <button class="btn-delete" title="Delete" data-id="${w.id}" style="font-size:13px;opacity:0.5">&#x2715;</button>
+        </td>
+      </tr>`).join('');
+    document.querySelectorAll('#swBody .sw-btn-edit').forEach(b => b.addEventListener('click', e => openSwModal(parseInt(e.currentTarget.dataset.id))));
+    document.querySelectorAll('#swBody .btn-delete[data-id]').forEach(b => b.addEventListener('click', handleSwDelete));
+  }
+
+  document.getElementById('swTable').addEventListener('click', e => {
+    const th = e.target.closest('th.sw-sortable');
+    if (!th) return;
+    const col = th.dataset.col;
+    if (swSortCol === col) swSortDir *= -1; else { swSortCol = col; swSortDir = 1; }
+    document.querySelectorAll('#swTable th.sw-sortable').forEach(h => h.classList.remove('sw-asc','sw-desc'));
+    th.classList.add(swSortDir === 1 ? 'sw-asc' : 'sw-desc');
+    applySwFilters();
   });
 
-  /* ── Draggable dock with saved position ──────────────────────── */
-  (function () {
-    var dock = $('ql-dock'), handle = $('ql-handle');
-
-    function clamp(left, top) {
-      var maxLeft = window.innerWidth - dock.offsetWidth;
-      var maxTop = window.innerHeight - dock.offsetHeight;
-      return { left: Math.max(0, Math.min(left, maxLeft)), top: Math.max(0, Math.min(top, maxTop)) };
-    }
-
-    function applyPos(left, top) {
-      var p = clamp(left, top);
-      dock.style.left = p.left + 'px';
-      dock.style.top = p.top + 'px';
-      dock.style.right = 'auto';
-      dock.style.bottom = 'auto';
-    }
-
-    try {
-      var s = JSON.parse(localStorage.getItem(POS_KEY));
-      if (s && typeof s.left === 'number') applyPos(s.left, s.top);
-    } catch (_e) { /* ignore */ }
-
-    var sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
-
-    handle.addEventListener('pointerdown', function (e) {
-      dragging = true;
-      var r = dock.getBoundingClientRect();
-      sl = r.left;
-      st = r.top;
-      sx = e.clientX;
-      sy = e.clientY;
-      dock.classList.add('ql-dragging');
-      handle.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-
-    handle.addEventListener('pointermove', function (e) {
-      if (dragging) applyPos(sl + (e.clientX - sx), st + (e.clientY - sy));
-    });
-
-    function endDrag() {
-      if (!dragging) return;
-      dragging = false;
-      dock.classList.remove('ql-dragging');
-      var r = dock.getBoundingClientRect();
-      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); }
-      catch (_e) { /* ignore */ }
-    }
-
-    handle.addEventListener('pointerup', endDrag);
-    handle.addEventListener('pointercancel', endDrag);
-    window.addEventListener('resize', function () {
-      var r = dock.getBoundingClientRect();
-      applyPos(r.left, r.top);
-    });
-  })();
-
-  /* ── Layout picker ──────────────────────────────────────────── */
-  var FLOAT_POS_KEY = 'lp_floatPos';
-  var floatDragging = false;
-
-  function applyLayout(layout) {
-    if (!layout) layout = localStorage.getItem(LAYOUT_KEY) || 'left';
-    var cols = document.querySelector('.cols');
-    if (!cols) return;
-    cols.className = 'cols layout-' + layout;
-    localStorage.setItem(LAYOUT_KEY, layout);
-    var btns = document.querySelectorAll('.lay-btn');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.toggle('active', btns[i].dataset.layout === layout);
-    }
-    if (layout === 'float') { initFloatMode(); }
+  function openSwModal(id) {
+    swEditId = id || null;
+    document.getElementById('sw-modal-title').textContent = id ? 'Edit Worker' : 'Add Worker';
+    const w = id ? swWorkers.find(x => x.id === id) : null;
+    document.getElementById('sw-m-name').value    = w ? w.name : '';
+    document.getElementById('sw-m-title').value   = w ? w.title : '';
+    document.getElementById('sw-m-sl').value      = w ? w.service_line : '';
+    document.getElementById('sw-m-loc').value     = w ? w.location : '';
+    document.getElementById('sw-m-contact').value = w ? w.contact_info : '';
+    document.getElementById('sw-m-tour').value    = w ? w.tour_of_duty : '';
+    document.getElementById('sw-m-desc').value    = w ? w.description : '';
+    document.getElementById('sw-modal').style.display = 'flex';
+    document.getElementById('sw-m-name').focus();
   }
 
-  function initFloatMode() {
-    var apps = document.querySelector('.apps-area');
-    var todo = document.querySelector('.todo-area');
-    if (!apps || !todo) return;
-    try { var pos = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)); if (pos) {
-      if (pos.appsLeft) apps.style.left = pos.appsLeft + 'px';
-      if (pos.appsTop) apps.style.top = pos.appsTop + 'px';
-      if (pos.todoLeft) todo.style.left = pos.todoLeft + 'px';
-      if (pos.todoTop) todo.style.top = pos.todoTop + 'px';
-      if (pos.todoRight) todo.style.right = pos.todoRight + 'px';
-    } } catch (_e) {}
-    makeDraggable(apps, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.appsLeft=l; p.appsTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
-    makeDraggable(todo, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.todoLeft=l; p.todoTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
+  function closeSwModal() {
+    document.getElementById('sw-modal').style.display = 'none';
+    swEditId = null;
   }
 
-  function makeDraggable(el, onMove) {
-    var handle = el.querySelector('.section-label') || el.querySelector('.panel-head');
-    if (!handle) return;
-    handle.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.lay-btn, .swatch, button, input, select, textarea, a')) return;
-      floatDragging = true;
-      var r = el.getBoundingClientRect();
-      var sx = e.clientX, sy = e.clientY;
-      var sl = el.offsetLeft, st = el.offsetTop;
-      el.classList.add('ql-dragging');
-      handle.setPointerCapture(e.pointerId);
-      e.preventDefault();
-      function onMoveHandler(ev) {
-        if (!floatDragging) return;
-        var nl = sl + (ev.clientX - sx);
-        var nt = st + (ev.clientY - sy);
-        var maxL = window.innerWidth - el.offsetWidth - 10;
-        var maxT = window.innerHeight - el.offsetHeight - 10;
-        nl = Math.max(5, Math.min(nl, maxL));
-        nt = Math.max(60, Math.min(nt, maxT));
-        el.style.left = nl + 'px'; el.style.top = nt + 'px'; el.style.right = 'auto';
-        if (onMove) onMove(nl, nt);
-      }
-      function endHandler() {
-        floatDragging = false; el.classList.remove('ql-dragging');
-        handle.removeEventListener('pointermove', onMoveHandler);
-        handle.removeEventListener('pointerup', endHandler);
-        handle.removeEventListener('pointercancel', endHandler);
-      }
-      handle.addEventListener('pointermove', onMoveHandler);
-      handle.addEventListener('pointerup', endHandler);
-      handle.addEventListener('pointercancel', endHandler);
-    });
+  function saveSwModal() {
+    const name = document.getElementById('sw-m-name').value.trim();
+    if (!name) { alert('Name is required.'); return; }
+    const payload = {
+      name,
+      title:        document.getElementById('sw-m-title').value.trim(),
+      service_line: document.getElementById('sw-m-sl').value,
+      location:     document.getElementById('sw-m-loc').value.trim(),
+      contact_info: document.getElementById('sw-m-contact').value.trim(),
+      tour_of_duty: document.getElementById('sw-m-tour').value.trim(),
+      description:  document.getElementById('sw-m-desc').value.trim()
+    };
+    if (swEditId) {
+      const idx = swWorkers.findIndex(w => w.id === swEditId);
+      if (idx !== -1) swWorkers[idx] = Object.assign({ id: swEditId }, payload);
+    } else {
+      swWorkers.push(Object.assign({ id: swNextId++ }, payload));
+    }
+    saveSW();
+    closeSwModal();
+    buildSwLocFilter();
+    applySwFilters();
   }
-  document.getElementById('layoutPicker').addEventListener('click', function (e) {
-    var btn = e.target.closest('.lay-btn');
-    if (btn) applyLayout(btn.dataset.layout);
-  });
 
-  /* ── Start ───────────────────────────────────────────────────── */
-  // Apply saved theme before initialising the lock screen
-  var savedTheme = localStorage.getItem(THEME_KEY);
-  if (savedTheme) {
-    document.body.classList.add('theme-' + savedTheme);
+  function handleSwDelete(e) {
+    const id = parseInt(e.currentTarget.dataset.id);
+    const w  = swWorkers.find(x => x.id === id);
+    if (!confirm('Remove "' + (w ? w.name : 'this worker') + '" from the directory?')) return;
+    swWorkers = swWorkers.filter(x => x.id !== id);
+    saveSW();
+    buildSwLocFilter();
+    applySwFilters();
   }
+
+  function exportSwCSV() {
+    const cols = ['name','title','service_line','location','contact_info','tour_of_duty','description'];
+    const hdr  = ['Name','Title','Service Line','Location','Contact Info','Tour of Duty','Description'];
+    const rows = [hdr, ...swFiltered.map(w => cols.map(c => swCsvCell(w[c])))];
+    const csv  = rows.map(r => r.join(',')).join('\r\n');
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'JJP_SW_Directory_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function swCsvCell(v) {
+    const s = String(v||'');
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }
+
+  // ── Start ─────────────────────────────────────────────────────────────────
   initLock();
-  // Apply saved layout after lock screen
-  applyLayout();
-</script>
+  </script>
+
+  <style>
+    #ql-dock { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: stretch; gap: 6px; background: #1a2a3a; border-radius: 12px; padding: 10px 10px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); min-width: 130px; }
+    .ql-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); text-align: center; margin-bottom: 2px; cursor: grab; user-select: none; touch-action: none; padding: 2px 0; }
+    .ql-grip { letter-spacing: -1px; margin-right: 3px; opacity: 0.7; }
+    #ql-dock.ql-dragging { cursor: grabbing; opacity: 0.92; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+    #ql-dock.ql-dragging .ql-label { cursor: grabbing; }
+    .ql-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; transition: opacity 0.15s, transform 0.1s; }
+    .ql-btn:hover { opacity: 0.88; transform: translateX(-2px); }
+    .ql-btn:active { transform: scale(0.97); }
+    .ql-icon { font-size: 16px; line-height: 1; }
+    @media print { #ql-dock { display: none !important; } }
+  </style>
+
+  <div id="ql-dock">
+    <div class="ql-label" id="ql-handle" title="Drag to move"><span class="ql-grip">⠿</span> Quick Launch</div>
+    <button class="ql-btn" style="background:#224b7a" onclick="qlOpen('pandora','https://www.pandora.com',480,720)">
+      <span class="ql-icon">🎵</span> Pandora
+    </button>
+    <button class="ql-btn" style="background:#1877f2" onclick="qlOpen('facebook','https://www.facebook.com',1024,768)">
+      <span class="ql-icon">📘</span> Facebook
+    </button>
+  </div>
+
+  <script>
+    const _qlWins = {};
+    function qlOpen(id, url, w, h) {
+      if (_qlWins[id] && !_qlWins[id].closed) { _qlWins[id].focus(); return; }
+      const left = Math.round(window.screenX + window.outerWidth - w - 20);
+      const top  = Math.round(window.screenY + 60);
+      _qlWins[id] = window.open(url, 'ql_' + id, 'width='+w+',height='+h+',left='+left+',top='+top+',resizable=yes,scrollbars=yes');
+    }
+
+    (function () {
+      const dock = document.getElementById('ql-dock');
+      const handle = document.getElementById('ql-handle');
+      if (!dock || !handle) return;
+      const POS_KEY = 'quickLaunchPos';
+
+      function clamp(left, top) {
+        const maxLeft = window.innerWidth  - dock.offsetWidth;
+        const maxTop  = window.innerHeight - dock.offsetHeight;
+        return { left: Math.max(0, Math.min(left, maxLeft)), top: Math.max(0, Math.min(top, maxTop)) };
+      }
+      function applyPos(left, top) {
+        const p = clamp(left, top);
+        dock.style.left = p.left + 'px';
+        dock.style.top  = p.top + 'px';
+        dock.style.right = 'auto';
+        dock.style.bottom = 'auto';
+      }
+      try {
+        const s = JSON.parse(localStorage.getItem(POS_KEY));
+        if (s && typeof s.left === 'number' && typeof s.top === 'number') applyPos(s.left, s.top);
+      } catch (e) {}
+
+      let sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
+      handle.addEventListener('pointerdown', e => {
+        dragging = true;
+        const r = dock.getBoundingClientRect();
+        sl = r.left; st = r.top; sx = e.clientX; sy = e.clientY;
+        dock.classList.add('ql-dragging');
+        handle.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      handle.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        applyPos(sl + (e.clientX - sx), st + (e.clientY - sy));
+      });
+      function end() {
+        if (!dragging) return;
+        dragging = false;
+        dock.classList.remove('ql-dragging');
+        const r = dock.getBoundingClientRect();
+        try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); } catch (e) {}
+      }
+      handle.addEventListener('pointerup', end);
+      handle.addEventListener('pointercancel', end);
+      window.addEventListener('resize', () => {
+        const r = dock.getBoundingClientRect();
+        applyPos(r.left, r.top);
+      });
+    })();
+  </script>
 </body>
 </html>
