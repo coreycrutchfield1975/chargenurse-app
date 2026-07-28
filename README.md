@@ -29,3 +29,10 @@ Calendar Center and local workflow automation are included. See `RELEASE-NOTES-v
 
 ## Custom Backgrounds
 Use **Command Center → Appearance**. Users may select a built-in image, upload a personal image that stays in browser local storage, or reference an image placed in `backgrounds/custom/`. Do not use images containing PHI.
+
+
+## ChargeNurse v5 Phase 2
+- Added internal `scheduler.html`
+- Added shared `clc-data.js`
+- Scheduler and Command Center use the same local Veteran/appointment storage
+- Removed external clcscheduler.vercel.app references
