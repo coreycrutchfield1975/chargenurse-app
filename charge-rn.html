@@ -1301,6 +1301,7 @@ body.theme-night .patient-card.active {
 @media print{.veteran-shortcut{display:none!important}}
 @media print{.operations-shortcut{display:none!important}}
 </style>
+<link rel="stylesheet" href="design-system.css">
 <script src="auth-session.js"></script>
 <script src="appearance.js"></script>
 <script>if (!window.CLCAuth || !CLCAuth.requireAuth()) throw new Error("Authentication required");</script>
@@ -3571,7 +3572,8 @@ function printPatient() {
       '.adl-grid{display:flex;gap:6px;flex-wrap:wrap}' +
       '.adl-card{padding:8px;border:1px solid #d1d5db;border-radius:4px;text-align:center;font-size:11px}' +
       '.adl-card.adl-done{background:#bbf7d0;border-color:#16a34a}' +
-    '</style></head><body>' +
+    '</style>
+<link rel="stylesheet" href="design-system.css"></head><body>' +
     '<div class="print-header"><h1>' + title + '</h1><div class="sub">Printed from VA Charge RN Workstation — ' + new Date().toLocaleString() + '</div></div>' +
     currentContent +
     '</body></html>');
@@ -4602,7 +4604,8 @@ function printDischargeSummary() {
   var printWin = window.open('', '_blank', 'width=800,height=600');
   if (!printWin) { alert('Please allow pop-ups for printing.'); return; }
   printWin.document.write('<!DOCTYPE html><html><head><title>Discharge Summary</title>');
-  printWin.document.write('<style>body{font-family:Arial,sans-serif;padding:40px;font-size:13px;color:#333}table{width:100%;border-collapse:collapse}td{padding:6px 10px;border-bottom:1px solid #eee}h3{font-size:18px;margin:0 0 4px 0}.header{border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:12px}.notes-section{margin-top:16px}textarea{display:none}</style></head><body>');
+  printWin.document.write('<style>body{font-family:Arial,sans-serif;padding:40px;font-size:13px;color:#333}table{width:100%;border-collapse:collapse}td{padding:6px 10px;border-bottom:1px solid #eee}h3{font-size:18px;margin:0 0 4px 0}.header{border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:12px}.notes-section{margin-top:16px}textarea{display:none}</style>
+<link rel="stylesheet" href="design-system.css"></head><body>');
   printWin.document.write('<div class="header"><h3>Discharge Summary</h3><div style="font-size:13px;color:#666">VA Charge RN Workstation</div></div>');
   printWin.document.write(content.innerHTML);
   if (notesVal) {
