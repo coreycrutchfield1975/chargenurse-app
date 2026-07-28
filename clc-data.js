@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='7.1-phase30-rn-consolidation';
+var VERSION='7.2-phase30-rn8';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -143,6 +143,53 @@ function upsertResidents(inputs){
   }
   return changed;
 }
+
+function patchResident(id,patch,changeMeta){
+  var d=load(), key=String(id||''), i=d.residents.findIndex(function(x){return x.id===key});
+  if(i<0)return null;
+  var current=d.residents[i], merged=Object.assign({},current,patch||{}, {
+    id:current.id,
+    createdAt:current.createdAt,
+    updatedAt:now()
+  });
+  var normalized=normalizeResident(merged,i);
+  normalized.createdAt=current.createdAt;
+  normalized.updatedAt=merged.updatedAt;
+  d.residents[i]=normalized;
+  d.appointments.forEach(function(a){
+    if(a.residentId===normalized.id){a.residentName=normalized.name;a.room=normalized.room;a.updatedAt=now()}
+  });
+  if(changeMeta!==false){
+    var title=(changeMeta&&changeMeta.title)||'Veteran clinical record updated';
+    var detail=(changeMeta&&changeMeta.detail)||((normalized.room?('Room '+normalized.room+' · '):'')+normalized.name);
+    addChange(d,(changeMeta&&changeMeta.type)||'clinical',title,detail);
+  }
+  save(d);return normalized;
+}
+function patchResidents(items,changeMeta){
+  var d=load(), changed=[];
+  (Array.isArray(items)?items:[]).forEach(function(item){
+    if(!item)return;
+    var key=String(item.id||''), i=d.residents.findIndex(function(x){return x.id===key});
+    if(i<0)return;
+    var current=d.residents[i];
+    var normalized=normalizeResident(Object.assign({},current,item.patch||{}, {
+      id:current.id,createdAt:current.createdAt,updatedAt:now()
+    }),i);
+    normalized.createdAt=current.createdAt;
+    d.residents[i]=normalized;
+    d.appointments.forEach(function(a){
+      if(a.residentId===normalized.id){a.residentName=normalized.name;a.room=normalized.room;a.updatedAt=now()}
+    });
+    changed.push(normalized);
+  });
+  if(changed.length){
+    if(changeMeta!==false)addChange(d,(changeMeta&&changeMeta.type)||'clinical',(changeMeta&&changeMeta.title)||'Clinical workspace updated',(changeMeta&&changeMeta.detail)||(changed.length+' Veteran record'+(changed.length===1?'':'s')));
+    save(d);
+  }
+  return changed;
+}
+
 function archiveAllResidents(){
   var d=load(), count=0;
   d.residents.forEach(function(r){
@@ -179,6 +226,7 @@ function removeAppointment(id){
 global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
   residents:residents,resident:resident,normalizeResident:normalizeResident,
   upsertResident:upsertResident,upsertResidents:upsertResidents,
+  patchResident:patchResident,patchResidents:patchResidents,
   setResidentActive:setResidentActive,archiveAllResidents:archiveAllResidents,
   appointments:appointments,appointmentsForDate:appointmentsForDate,
   upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,

@@ -1603,24 +1603,8 @@ body.theme-night .patient-card.active {
 </div>
 
 <script>
-// FIRST: clear any password that leaked into settings
-try {
-  var _raw = localStorage.getItem('va-rn-workstation');
-  if (_raw) {
-    var _p = JSON.parse(_raw);
-    if (_p && _p.settings) {
-      var _dirty = false;
-      for (var _k in _p.settings) {
-        if (_p.settings[_k] === 'CLC-Admin-2024') {
-          delete _p.settings[_k];
-          _dirty = true;
-        }
-      }
-      if (_dirty) localStorage.setItem('va-rn-workstation', JSON.stringify(_p));
-    }
-  }
-} catch(_e) {}
-console.log('VA Charge RN: script executing');
+console.log('VA Charge RN RN8: shared-record patch persistence active');
+window.CHARGENURSE_BUILD='Phase30-RN8';
 window.addEventListener('clc:datachange', function(){ if (typeof loadData==='function') { loadData(); if (typeof renderPatientList==='function') renderPatientList(); if (typeof renderContent==='function') renderContent(); } });
 // ============== DATA LAYER ==============
 let data = { patients: [], settings: { nurseName: '', background: 'clinical' }, nextId: Date.now() };
@@ -1656,17 +1640,25 @@ function ensureRNDefaults(r) {
 }
 
 function migrateLegacyRNDataIfNeeded() {
-  if (!window.CLCData || CLCData.residents(false).length) return;
+  if (!window.CLCData || localStorage.getItem('chargenurse-rn-migrated')) return;
   try {
     var legacy = JSON.parse(localStorage.getItem('va-rn-workstation') || 'null');
-    if (!legacy || !Array.isArray(legacy.patients) || !legacy.patients.length) return;
+    if (!legacy || !Array.isArray(legacy.patients) || !legacy.patients.length) {
+      localStorage.setItem('chargenurse-rn-migrated', new Date().toISOString());
+      localStorage.removeItem('va-rn-workstation');
+      return;
+    }
+    var existing = {};
+    CLCData.residents(false).forEach(function(r){ existing[String(r.id)] = true; });
     legacy.patients.forEach(function(p) {
+      if (existing[String(p.id)]) return;
       p.active = p.active !== false;
       p.rnAppointments = typeof p.appointments === 'string' ? p.appointments : '';
       delete p.appointments;
       CLCData.upsertResident(p);
     });
     localStorage.setItem('chargenurse-rn-migrated', new Date().toISOString());
+    localStorage.removeItem('va-rn-workstation');
   } catch (e) { console.error('RN migration error:', e); }
 }
 
@@ -1688,24 +1680,35 @@ function loadData() {
   updateNurseBadge();
 }
 
+var RN_OWNED_FIELDS = [
+  'name','preferredName','room','last4','dob','specialty','provider','physician','codeStatus','allergies','diet','isolation',
+  'emergencyContact','transportNeeds','fallRisk','skinRisk','behaviorPrecautions','oxygen','equipment','notes','active',
+  'assistance','toilet','serviceConnection','siderail','meds','ppdDate','ppdRead','ppdResult','vitalsFreq','fsbsCount',
+  'showerTime','bathDays','vitalsDays','weightDays','skinDays','labDays','bmLog','neuroChecks','skinAssessments','weights',
+  'postFallVS','fsbsLog','oralInfo','sbar','transferChecklist','skinAssigned','showerAssigned','vitalsAssigned',
+  'weightsAssigned','admission','nursingNotes','alerts'
+];
+function rnPatchFromPatient(patient) {
+  var patch = {};
+  RN_OWNED_FIELDS.forEach(function(key){ if (Object.prototype.hasOwnProperty.call(patient,key)) patch[key]=patient[key]; });
+  patch.rnAppointments = typeof patient.appointments === 'string' ? patient.appointments : (patient.rnAppointments || '');
+  return patch;
+}
 function saveData() {
   try {
     if (!window.CLCData) throw new Error('Shared CLCData layer is unavailable.');
-    var shared = CLCData.load();
-    var byId = {};
-    shared.residents.forEach(function(r){ byId[String(r.id)] = r; });
-
-    var updates = data.patients.map(function(patient) {
-      var copy = Object.assign({}, byId[String(patient.id)] || {}, patient);
-      copy.active = true;
-      copy.rnAppointments = typeof patient.appointments === 'string' ? patient.appointments : (patient.rnAppointments || '');
-      delete copy.appointments;
-      return copy;
+    var existing = {};
+    CLCData.residents(false).forEach(function(r){ existing[String(r.id)] = true; });
+    var patches = [];
+    data.patients.forEach(function(patient) {
+      if (existing[String(patient.id)]) patches.push({id:patient.id,patch:rnPatchFromPatient(patient)});
+      else {
+        var created = Object.assign({},rnPatchFromPatient(patient),{id:patient.id,active:true});
+        CLCData.upsertResident(created);
+      }
     });
-    CLCData.upsertResidents(updates);
-
+    if (patches.length) CLCData.patchResidents(patches,{type:'clinical',title:'Charge RN workspace saved'});
     localStorage.setItem('chargenurse-rn-settings', JSON.stringify(data.settings || {}));
-    // Retire the duplicate roster after a successful shared save.
     localStorage.removeItem('va-rn-workstation');
   } catch(e) {
     console.error('Save error:', e);
