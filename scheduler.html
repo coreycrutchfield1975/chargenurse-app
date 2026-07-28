@@ -49,5 +49,14 @@ window.openEditor=function(id,date){
 }
 window.saveAppointment=function(id){if(!fResident.value){alert('Select a Veteran.');return}var a={id:id,residentId:fResident.value,date:fDate.value,time:fTime.value,leaveTime:fLeave.value,location:fLocation.value.trim(),clinic:fClinic.value.trim(),provider:fProvider.value.trim(),escort:fEscort.value.trim(),transportation:fTransport.value.trim(),transportNeeded:fNeeded.checked,ticketPrepared:fTicket.checked,travelRequestEmailed:fTravel.checked,confirmed:fConfirmed.checked,departed:fDeparted.checked,completed:fCompleted.checked,notCompleted:fNotCompleted.checked,chartFlagged:fChart.checked,returnTime:fReturn.value,notes:fNotes.value.trim()};CLCData.upsertAppointment(a);selectedDate=a.date;cursor=new Date(a.date+'T12:00:00');closeEditor();render()}
 window.removeAppointment=function(id){if(confirm('Delete this appointment?')){CLCData.removeAppointment(id);closeEditor();render()}}
-window.addEventListener('clc:datachange',render);render();
+window.addEventListener('clc:datachange',render);
+(function openDeepLink(){
+  var params=new URLSearchParams(location.search),id=params.get('appointment'),date=params.get('date');
+  if(date){selectedDate=date;cursor=new Date(date+'T12:00:00')}
+  render();
+  if(id){
+    var found=CLCData.appointments().find(function(a){return a.id===id});
+    if(found){selectedDate=found.date;cursor=new Date(found.date+'T12:00:00');render();openEditor(id)}
+  }
+})();
 </script></body></html>
