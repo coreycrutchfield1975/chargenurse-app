@@ -36,3 +36,8 @@ Use **Command Center → Appearance**. Users may select a built-in image, upload
 - Added shared `clc-data.js`
 - Scheduler and Command Center use the same local Veteran/appointment storage
 - Removed external clcscheduler.vercel.app references
+
+
+## v5.3 shared Veteran roster
+
+Open `veterans.html` to manage the shared Veteran database. Records contain operational fields only; no photographs, primary nurse assignment, or AI integration are included.

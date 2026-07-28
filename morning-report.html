@@ -202,6 +202,7 @@
     .modal .form-row { grid-template-columns: 1fr; }
     .assign-grid { flex-direction: column; }
   }
+@media print{.veteran-shortcut{display:none!important}}
 </style>
 <script src="auth-session.js"></script>
 <script src="appearance.js"></script>
@@ -1060,6 +1061,7 @@ $('loginOverlay').classList.add('hidden');
 if (window.CLCAuth && CLCAuth.currentUser()) localStorage.setItem(MR_NURSE_KEY, CLCAuth.currentUser());
 init();
 </script>
+<a href="veterans.html" style="position:fixed;right:18px;bottom:66px;z-index:9000;background:#557b69;color:white;text-decoration:none;border-radius:999px;padding:10px 14px;font:800 11px system-ui;box-shadow:0 10px 26px rgba(0,0,0,.2)" class="veteran-shortcut">Veterans</a>
 </body>
 </html>
 <style>

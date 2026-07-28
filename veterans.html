@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChargeNurse Veteran Roster</title>
+<script src="auth-session.js"></script>
+<script>if(!window.CLCAuth||!CLCAuth.requireAuth())throw new Error('Authentication required');</script>
+<script src="clc-data.js"></script>
+<style>
+:root{--ink:#17222b;--muted:#66747d;--canvas:#e9efec;--surface:#fffdf9;--line:#d6ded9;--nav:#152a38;--sage:#557b69;--sage2:#3f6655;--gold:#a87932;--red:#b53d46;--shadow:0 16px 44px rgba(35,42,47,.11)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(rgba(233,239,236,.96),rgba(233,239,236,.98)),radial-gradient(circle at 82% 0,rgba(85,123,105,.24),transparent 38%)}
+.shell{max-width:1500px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);font-weight:900}.title{font-size:clamp(30px,4vw,46px);font-weight:930;letter-spacing:-.04em}.sub{color:var(--muted);margin-top:6px}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 13px;border-radius:12px;text-decoration:none;font-weight:820;cursor:pointer}.primary{background:var(--sage);border-color:var(--sage);color:#fff}.danger{background:var(--red);border-color:var(--red);color:#fff}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.metric{background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:17px;padding:14px;box-shadow:0 6px 20px rgba(35,42,47,.06)}.metric b{font-size:27px;display:block}.metric span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px}.panel{background:rgba(255,253,249,.96);border:1px solid var(--line);border-top:5px solid var(--sage);border-radius:24px;box-shadow:var(--shadow);padding:17px}.section{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:#506069}
+.search{width:100%;border:1px solid #cfd7d2;border-radius:12px;padding:11px;background:#fff;margin-bottom:10px}.filters{display:flex;gap:6px;margin-bottom:10px}.filter{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px;font-weight:800;font-size:10px;cursor:pointer}.filter.active{background:#e3ece6;color:#335746;border-color:#9eb7aa}
+.roster{display:grid;gap:7px;max-height:68vh;overflow:auto}.resident{border:1px solid #e0e5e1;background:#fbfaf6;border-radius:13px;padding:11px;cursor:pointer}.resident:hover,.resident.active{border-color:var(--sage);box-shadow:inset 0 0 0 1px var(--sage)}.resident.archived{opacity:.6}.resident b{display:block}.small{font-size:11px;color:var(--muted)}.empty{text-align:center;padding:35px;color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}.summary div{background:#f5f2eb;border:1px solid #e4ded3;border-radius:13px;padding:11px}.summary b{display:block;font-size:11px;margin-bottom:4px}.summary span{font-size:12px;color:#4f5e66}
+.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.detail-head h2{margin:0;font-size:28px}.flags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pill{font-size:9px;padding:5px 8px;border-radius:999px;background:#e6eee9;color:#3b604f;font-weight:850}.pill.warn{background:#fff0dc;color:#84551d}.pill.danger{background:#f6e1e3;color:#8b2932}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin:16px 0}.tab{border:0;background:transparent;padding:8px 10px;border-radius:9px;font-weight:850;cursor:pointer}.tab.active{background:#e3ece6;color:#335746}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.info{border:1px solid #e2e4df;border-radius:13px;padding:11px;background:#fbfaf6}.info label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#718089;font-weight:900;margin-bottom:5px}.info div{font-size:12px;white-space:pre-wrap}.appt{padding:11px;border:1px solid #e2e4df;border-radius:12px;margin-bottom:7px;background:#fbfaf6}.appt b{display:block}
+.modalbg{display:none;position:fixed;inset:0;background:rgba(13,24,29,.68);z-index:30;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}.modalbg.show{display:flex}.modal{width:min(980px,100%);max-height:95vh;overflow:auto;background:var(--surface);border-radius:23px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.3)}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field.span2{grid-column:span 2}.field label{font-size:11px;font-weight:850;color:#52616a}.field input,.field select,.field textarea{border:1px solid #cfd7d2;border-radius:10px;padding:10px;background:#fff}.checks{display:flex;gap:12px;flex-wrap:wrap;padding:8px 0}.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:15px}
+.schedule-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.schedule-box{border:1px solid #dfe4df;border-radius:11px;padding:9px}.schedule-box b{display:block;font-size:10px;margin-bottom:6px}.days{display:flex;gap:5px;flex-wrap:wrap}.days label{font-size:10px}
+@media(max-width:980px){.workspace{grid-template-columns:1fr}.roster{max-height:360px}.metrics,.summary{grid-template-columns:repeat(2,1fr)}}@media(max-width:680px){.shell{padding:14px}.top{flex-direction:column}.metrics,.summary,.info-grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}.schedule-grid{grid-template-columns:1fr 1fr}}
+@media print{.nav,.filters,.search,.actions,.modalbg{display:none!important}.workspace{display:block}.workspace>aside{display:none}.panel{box-shadow:none;border:1px solid #333}}
+</style>
+<script src="appearance.js"></script>
+</head>
+<body>
+<div class="shell">
+<header class="top">
+  <div><div class="eyebrow">ChargeNurse · Shared Veteran Database</div><div class="title">Veteran Roster</div><div class="sub">One Veteran record shared by Command Center, Scheduler, Treatment Sheets and reports.</div></div>
+  <div class="nav"><a class="btn" href="command-center.html">Command Center</a><a class="btn" href="scheduler.html">Scheduler</a><button class="btn" onclick="window.print()">Print</button><button class="btn primary" onclick="openEditor()">Add Veteran</button></div>
+</header>
+<div class="metrics" id="metrics"></div>
+<div class="workspace">
+  <aside class="panel">
+    <div class="section"><span>Veterans</span><span id="rosterCount"></span></div>
+    <input class="search" id="search" placeholder="Search name, room, provider or last 4" oninput="renderRoster()">
+    <div class="filters"><button class="filter active" data-filter="active" onclick="setFilter('active')">Active</button><button class="filter" data-filter="all" onclick="setFilter('all')">All</button><button class="filter" data-filter="archived" onclick="setFilter('archived')">Archived</button></div>
+    <div class="roster" id="roster"></div>
+  </aside>
+  <main class="panel" id="detail"><div class="empty">Select a Veteran or add a new record.</div></main>
+</div>
+</div>
+<div class="modalbg" id="modalbg"><div class="modal" id="modal"></div></div>
+<script>
+'use strict';
+var selectedId='',filter='active',detailTab='overview';
+var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
+function age(dob){if(!dob)return '—';var d=new Date(dob+'T12:00:00'),n=new Date(),a=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a>=0?a:'—'}
+function setFilter(v){filter=v;document.querySelectorAll('.filter').forEach(function(b){b.classList.toggle('active',b.dataset.filter===v)});renderRoster()}
+function rows(){
+  var q=document.getElementById('search').value.trim().toLowerCase();
+  return CLCData.residents(false).filter(function(r){
+    if(filter==='active'&&r.active===false)return false;
+    if(filter==='archived'&&r.active!==false)return false;
+    var hay=[r.name,r.preferredName,r.room,r.last4,r.provider,r.specialty].join(' ').toLowerCase();
+    return !q||hay.indexOf(q)>=0;
+  }).sort(function(a,b){return String(a.room).localeCompare(String(b.room),undefined,{numeric:true})||a.name.localeCompare(b.name)})
+}
+function render(){
+  var all=CLCData.residents(false),active=all.filter(function(r){return r.active!==false}),risks=active.filter(function(r){return r.fallRisk||r.skinRisk||r.isolation&&r.isolation!=='None'});
+  document.getElementById('metrics').innerHTML='<div class="metric"><b>'+active.length+'</b><span>Active Veterans</span></div><div class="metric"><b>'+all.filter(function(r){return r.active===false}).length+'</b><span>Archived</span></div><div class="metric"><b>'+risks.length+'</b><span>Records with flags</span></div><div class="metric"><b>'+CLCData.appointments().filter(function(a){return a.date>=new Date().toISOString().slice(0,10)}).length+'</b><span>Upcoming appointments</span></div>';
+  renderRoster();renderDetail();
+}
+function renderRoster(){
+  var list=rows();document.getElementById('rosterCount').textContent=list.length;
+  document.getElementById('roster').innerHTML=list.length?list.map(function(r){
+    return '<div class="resident '+(selectedId===r.id?'active ':'')+(r.active===false?'archived':'')+'" onclick="selectResident(\''+esc(r.id)+'\')"><b>'+esc((r.room?('Room '+r.room+' · '):'')+r.name)+'</b><span class="small">'+esc(r.provider||r.specialty||'Provider not entered')+(r.active===false?' · Archived':'')+'</span></div>'
+  }).join(''):'<div class="empty">No matching Veterans.</div>';
+}
+function selectResident(id){selectedId=id;detailTab='overview';renderRoster();renderDetail()}
+function flagPills(r){
+  var p=[];if(r.fallRisk)p.push('<span class="pill warn">Fall risk</span>');if(r.skinRisk)p.push('<span class="pill warn">Skin risk</span>');
+  if(r.isolation&&r.isolation!=='None')p.push('<span class="pill danger">'+esc(r.isolation)+'</span>');
+  if(r.behaviorPrecautions)p.push('<span class="pill">Behavior precautions</span>');
+  if(!p.length)p.push('<span class="pill">No active flags entered</span>');return p.join('');
+}
+function renderDetail(){
+  var r=CLCData.resident(selectedId),el=document.getElementById('detail');
+  if(!r){el.innerHTML='<div class="empty">Select a Veteran or add a new record.</div>';return}
+  var upcoming=CLCData.appointments().filter(function(a){return a.residentId===r.id&&a.date>=new Date().toISOString().slice(0,10)}).slice(0,12);
+  var content='';
+  if(detailTab==='overview'){
+    content='<div class="summary"><div><b>Room</b><span>'+esc(r.room||'—')+'</span></div><div><b>Age</b><span>'+age(r.dob)+'</span></div><div><b>Provider</b><span>'+esc(r.provider||'—')+'</span></div><div><b>Program</b><span>'+esc(r.specialty||'—')+'</span></div></div>'+
+    '<div class="info-grid">'+
+      info('Preferred name',r.preferredName||'—')+info('Last 4',r.last4||'—')+info('Date of birth',r.dob||'—')+
+      info('Code status',r.codeStatus||'—')+info('Allergies',r.allergies||'None entered')+info('Diet',r.diet||'—')+
+      info('Isolation',r.isolation||'None')+info('Emergency contact',r.emergencyContact||'—')+info('Transportation needs',r.transportNeeds||'—')+
+      info('Oxygen',r.oxygen||'—')+info('Equipment',r.equipment||'—')+info('Behavior precautions',r.behaviorPrecautions||'—')+
+      '<div class="info" style="grid-column:1/-1"><label>Notes</label><div>'+esc(r.notes||'No notes entered')+'</div></div>'+
+    '</div>';
+  }else if(detailTab==='appointments'){
+    content=upcoming.length?upcoming.map(function(a){return '<div class="appt"><b>'+esc(a.date+' · '+(a.time||a.leaveTime||'Time not set')+' · '+(a.location||'Location not entered'))+'</b><span class="small">'+esc(a.clinic||a.provider||a.transportation||'')+'</span><div style="margin-top:7px"><a class="btn" href="scheduler.html?appointment='+encodeURIComponent(a.id)+'">Open in Scheduler</a></div></div>'}).join(''):'<div class="empty">No upcoming appointments.</div>';
+  }else{
+    content='<div class="info-grid">'+
+      info('Bath days',r.bathDays.join(', ')||'None scheduled')+info('Vitals days',r.vitalsDays.join(', ')||'None scheduled')+
+      info('Weight days',r.weightDays.join(', ')||'None scheduled')+info('Skin days',r.skinDays.join(', ')||'None scheduled')+
+      info('Lab days',r.labDays.join(', ')||'None scheduled')+
+    '</div>';
+  }
+  el.innerHTML='<div class="detail-head"><div><h2>'+esc(r.name)+'</h2><div class="small">'+esc((r.room?('Room '+r.room+' · '):'')+(r.active===false?'Archived Veteran':'Active Veteran'))+'</div><div class="flags">'+flagPills(r)+'</div></div><div class="actions"><button class="btn" onclick="openEditor(\''+esc(r.id)+'\')">Edit Record</button><button class="btn '+(r.active===false?'primary':'danger')+'" onclick="toggleArchive(\''+esc(r.id)+'\','+(r.active!==false)+')">'+(r.active===false?'Reactivate':'Archive')+'</button></div></div>'+
+  '<div class="tabs"><button class="tab '+(detailTab==='overview'?'active':'')+'" onclick="setTab(\'overview\')">Overview</button><button class="tab '+(detailTab==='appointments'?'active':'')+'" onclick="setTab(\'appointments\')">Appointments</button><button class="tab '+(detailTab==='schedule'?'active':'')+'" onclick="setTab(\'schedule\')">Treatment Schedule</button></div>'+content;
+}
+function info(label,value){return '<div class="info"><label>'+esc(label)+'</label><div>'+esc(value)+'</div></div>'}
+function setTab(v){detailTab=v;renderDetail()}
+function checkedDays(field,values){return dayNames.map(function(d){return '<label><input type="checkbox" name="'+field+'" value="'+d+'" '+((values||[]).indexOf(d)>=0?'checked':'')+'> '+d+'</label>'}).join('')}
+function selectedDays(name){return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(x){return x.value})}
+function openEditor(id){
+  var r=id?CLCData.resident(id):CLCData.normalizeResident({active:true,isolation:'None'},CLCData.residents(false).length);
+  document.getElementById('modal').innerHTML='<h2>'+(id?'Edit Veteran Record':'Add Veteran')+'</h2>'+
+  '<div class="form">'+
+    '<div class="field span2"><label>Full Name</label><input id="vName" value="'+esc(r.name)+'"></div>'+
+    '<div class="field"><label>Preferred Name</label><input id="vPreferred" value="'+esc(r.preferredName)+'"></div>'+
+    '<div class="field"><label>Room</label><input id="vRoom" value="'+esc(r.room)+'"></div>'+
+    '<div class="field"><label>Last 4</label><input id="vLast4" maxlength="4" inputmode="numeric" value="'+esc(r.last4)+'"></div>'+
+    '<div class="field"><label>Date of Birth</label><input type="date" id="vDob" value="'+esc(r.dob)+'"></div>'+
+    '<div class="field"><label>Program / Specialty</label><input id="vSpecialty" value="'+esc(r.specialty)+'"></div>'+
+    '<div class="field"><label>Provider</label><input id="vProvider" value="'+esc(r.provider)+'"></div>'+
+    '<div class="field"><label>Code Status</label><input id="vCode" value="'+esc(r.codeStatus)+'"></div>'+
+    '<div class="field span2"><label>Allergies</label><input id="vAllergies" value="'+esc(r.allergies)+'"></div>'+
+    '<div class="field"><label>Diet</label><input id="vDiet" value="'+esc(r.diet)+'"></div>'+
+    '<div class="field"><label>Isolation</label><input id="vIsolation" value="'+esc(r.isolation)+'"></div>'+
+    '<div class="field"><label>Oxygen</label><input id="vOxygen" value="'+esc(r.oxygen)+'"></div>'+
+    '<div class="field"><label>Equipment</label><input id="vEquipment" value="'+esc(r.equipment)+'"></div>'+
+    '<div class="field span2"><label>Emergency Contact</label><input id="vEmergency" value="'+esc(r.emergencyContact)+'"></div>'+
+    '<div class="field"><label>Transportation Needs</label><input id="vTransport" value="'+esc(r.transportNeeds)+'"></div>'+
+    '<div class="field full"><label>Risk Flags</label><div class="checks"><label><input type="checkbox" id="vFall" '+(r.fallRisk?'checked':'')+'> Fall risk</label><label><input type="checkbox" id="vSkin" '+(r.skinRisk?'checked':'')+'> Skin risk</label></div></div>'+
+    '<div class="field full"><label>Behavior Precautions</label><input id="vBehavior" value="'+esc(r.behaviorPrecautions)+'"></div>'+
+    '<div class="field full"><label>Treatment Schedule</label><div class="schedule-grid">'+
+      '<div class="schedule-box"><b>Bath / Shower</b><div class="days">'+checkedDays('bath',r.bathDays)+'</div></div>'+
+      '<div class="schedule-box"><b>Vitals</b><div class="days">'+checkedDays('vitals',r.vitalsDays)+'</div></div>'+
+      '<div class="schedule-box"><b>Weights</b><div class="days">'+checkedDays('weight',r.weightDays)+'</div></div>'+
+      '<div class="schedule-box"><b>Skin</b><div class="days">'+checkedDays('skin',r.skinDays)+'</div></div>'+
+      '<div class="schedule-box"><b>Labs</b><div class="days">'+checkedDays('lab',r.labDays)+'</div></div>'+
+    '</div></div>'+
+    '<div class="field full"><label>Notes</label><textarea id="vNotes" rows="4">'+esc(r.notes)+'</textarea></div>'+
+  '</div><div class="actions"><button class="btn" onclick="closeEditor()">Cancel</button><button class="btn primary" onclick="saveVeteran(\''+esc(r.id)+'\')">Save Veteran</button></div>';
+  document.getElementById('modalbg').classList.add('show');
+}
+function closeEditor(){document.getElementById('modalbg').classList.remove('show')}
+function saveVeteran(id){
+  var name=vName.value.trim(),room=vRoom.value.trim();
+  if(!name||!room){alert('Full name and room are required.');return}
+  var existing=CLCData.resident(id)||{};
+  var r=Object.assign({},existing,{
+    id:id,active:existing.active!==false,name:name,preferredName:vPreferred.value.trim(),room:room,last4:vLast4.value.trim(),
+    dob:vDob.value,specialty:vSpecialty.value.trim(),provider:vProvider.value.trim(),codeStatus:vCode.value.trim(),
+    allergies:vAllergies.value.trim(),diet:vDiet.value.trim(),isolation:vIsolation.value.trim()||'None',
+    oxygen:vOxygen.value.trim(),equipment:vEquipment.value.trim(),emergencyContact:vEmergency.value.trim(),
+    transportNeeds:vTransport.value.trim(),fallRisk:vFall.checked,skinRisk:vSkin.checked,
+    behaviorPrecautions:vBehavior.value.trim(),bathDays:selectedDays('bath'),vitalsDays:selectedDays('vitals'),
+    weightDays:selectedDays('weight'),skinDays:selectedDays('skin'),labDays:selectedDays('lab'),notes:vNotes.value.trim()
+  });
+  CLCData.upsertResident(r);selectedId=r.id;closeEditor();render();
+}
+function toggleArchive(id,isActive){
+  var message=isActive?'Archive this Veteran record? Existing appointments and history will remain available.':'Reactivate this Veteran record?';
+  if(confirm(message)){CLCData.setResidentActive(id,!isActive);render()}
+}
+window.addEventListener('clc:datachange',render);
+(function(){var p=new URLSearchParams(location.search),id=p.get('veteran');if(id)selectedId=id;render()})();
+</script>
+</body>
+</html>

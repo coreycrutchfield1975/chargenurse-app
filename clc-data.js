@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='5.0';
+var VERSION='5.3';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -14,12 +14,29 @@ function blank(){return{
 function normalizeResident(r,index){
   r=r||{};
   return {
-    id:String(r.id||uid()),active:r.active!==false,name:r.name||('Resident '+((index||0)+1)),
-    room:r.room||'',last4:r.last4||'',specialty:r.specialty||r.program||'LTC',
-    provider:r.provider||'',diet:r.diet||'',codeStatus:r.codeStatus||'',
-    allergies:r.allergies||'',isolation:r.isolation||'None',
-    emergencyContact:r.emergencyContact||'',transportNeeds:r.transportNeeds||'',
-    notes:r.notes||'',createdAt:r.createdAt||now(),updatedAt:r.updatedAt||now(),
+    id:String(r.id||uid()),
+    active:r.active!==false,
+    name:r.name||('Veteran '+((index||0)+1)),
+    preferredName:r.preferredName||'',
+    room:r.room||'',
+    last4:r.last4||'',
+    dob:r.dob||'',
+    specialty:r.specialty||r.program||'LTC',
+    provider:r.provider||'',
+    codeStatus:r.codeStatus||'',
+    allergies:r.allergies||'',
+    diet:r.diet||'',
+    isolation:r.isolation||'None',
+    emergencyContact:r.emergencyContact||'',
+    transportNeeds:r.transportNeeds||'',
+    fallRisk:!!r.fallRisk,
+    skinRisk:!!r.skinRisk,
+    behaviorPrecautions:r.behaviorPrecautions||'',
+    oxygen:r.oxygen||'',
+    equipment:r.equipment||'',
+    notes:r.notes||'',
+    createdAt:r.createdAt||now(),
+    updatedAt:r.updatedAt||now(),
     bathDays:Array.isArray(r.bathDays)?r.bathDays:[],
     vitalsDays:Array.isArray(r.vitalsDays)?r.vitalsDays:[],
     weightDays:Array.isArray(r.weightDays)?r.weightDays:[],
@@ -62,6 +79,30 @@ function residents(activeOnly){
   return activeOnly===false?rows:rows.filter(function(r){return r.active!==false})
 }
 function resident(id){return load().residents.find(function(r){return r.id===String(id)})||null}
+function upsertResident(input){
+  var d=load(), r=normalizeResident(input,d.residents.length);
+  var i=d.residents.findIndex(function(x){return x.id===r.id});
+  if(i>=0){
+    r.createdAt=d.residents[i].createdAt||r.createdAt;
+    r.updatedAt=now();
+    d.residents[i]=r;
+    addChange(d,'veteran','Veteran record updated',(r.room?('Room '+r.room+' · '):'')+r.name);
+  }else{
+    d.residents.push(r);
+    addChange(d,'veteran','Veteran record added',(r.room?('Room '+r.room+' · '):'')+r.name);
+  }
+  d.appointments.forEach(function(a){
+    if(a.residentId===r.id){a.residentName=r.name;a.room=r.room;a.updatedAt=now()}
+  });
+  save(d);return r;
+}
+function setResidentActive(id,active){
+  var d=load(),r=d.residents.find(function(x){return x.id===String(id)});
+  if(!r)return null;
+  r.active=active!==false;r.updatedAt=now();
+  addChange(d,'veteran',r.active?'Veteran reactivated':'Veteran archived',(r.room?('Room '+r.room+' · '):'')+r.name);
+  save(d);return r;
+}
 function appointments(){
   return load().appointments.slice().sort(function(a,b){return (a.date+' '+a.time).localeCompare(b.date+' '+b.time)})
 }
@@ -80,7 +121,10 @@ function removeAppointment(id){
   if(a)addChange(d,'appointment','Appointment deleted',a.residentName+' · '+a.date);
   save(d);
 }
-global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,residents:residents,resident:resident,
-  appointments:appointments,appointmentsForDate:appointmentsForDate,upsertAppointment:upsertAppointment,
-  removeAppointment:removeAppointment,normalizeAppointment:normalizeAppointment};
+global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
+  residents:residents,resident:resident,normalizeResident:normalizeResident,
+  upsertResident:upsertResident,setResidentActive:setResidentActive,
+  appointments:appointments,appointmentsForDate:appointmentsForDate,
+  upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,
+  normalizeAppointment:normalizeAppointment};
 })(window);
