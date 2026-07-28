@@ -70,3 +70,8 @@ The Command Center now uses the same Veteran, schedule, appointment, Ticket to R
 ## v5.9 Scheduler Calendar Views
 
 Scheduler supports Day, Week, Month, and Year views while preserving transportation and appointment workflow.
+
+
+## v6.0 Editable Provider List
+
+Settings now maintains shared Provider suggestions. McCain and Cook are the defaults, Chang has been removed, and provider fields remain editable so staff can type an unlisted name.

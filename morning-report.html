@@ -207,6 +207,7 @@
 </style>
 <script src="auth-session.js"></script>
 <script src="clc-data.js"></script>
+<script src="master-lists.js"></script>
 <script src="appearance.js"></script>
 <script>if (!window.CLCAuth || !CLCAuth.requireAuth()) throw new Error("Authentication required");</script>
 </head>
@@ -363,10 +364,7 @@
 </div>
 
 <!-- ── Provider datalist ── -->
-<datalist id="providerList">
-  <option value="McCain">
-  <option value="Chang">
-</datalist>
+<datalist id="providerList"></datalist>
 
 <!-- ── Modal container ── -->
 <div id="modalContainer" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
@@ -384,6 +382,9 @@ var MR_APPT_KEY = 'mr_appts';
 var MR_NURSE_KEY = 'mr_nurse';
 var CC_KEY = 'clc-command-center-v3';
 var MR_SYNC_KEY = 'mr_command_center_last_sync';
+function refreshProviderList(){ChargeNurseLists.fillProviderList('providerList')}
+refreshProviderList();
+window.addEventListener('chargenurse:masterlists',refreshProviderList);
 
 /* ── Helpers ── */
 function $(id) { return document.getElementById(id); }
@@ -710,7 +711,7 @@ function showAddPatient() {
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Code Status</label><select id="mCode"><option value="">—</option><option>Full Code</option><option>DNR</option><option>DNI</option><option>Full/DNI</option></select></div>' +
-    '<div><label>Provider</label><input id="mProvider" placeholder="McCain, Chang" list="providerList"></div>' +
+    '<div><label>Provider</label><input id="mProvider" placeholder="Select or type provider" list="providerList"></div>' +
     '</div>' +
     '<div class="form-row">' +
     '<div><label>Meds</label><select id="mMeds"><option value="">—</option><option>Whole</option><option>W/AS</option><option>W/CP</option><option>W/VP</option><option>W/Cr</option><option>Crush</option><option>PEG</option><option>W/VE</option><option>W/CE</option><option>W/SE</option><option>C/AS</option><option>C/CP</option><option>C/VP</option><option>C/CE</option><option>C/VE</option><option>C/SE</option></select></div>' +

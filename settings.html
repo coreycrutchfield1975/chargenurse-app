@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChargeNurse Settings</title>
+<script src="auth-session.js"></script>
+<script src="master-lists.js"></script>
+<style>
+:root{--nav:#274e49;--teal:#447d76;--bg:#eef2ef;--card:#fff;--line:#d9e1dc;--muted:#66746d;--danger:#9b343d}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#26332e}.shell{max-width:1050px;margin:auto;padding:24px}
+.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);font-weight:800}.title{font-size:31px;font-weight:900;margin-top:5px}.sub{color:var(--muted);margin-top:5px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;color:#26332e;padding:9px 13px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}.btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}.btn.danger{color:var(--danger)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(37,66,55,.06)}.section{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.section h2{margin:0;font-size:19px}
+.add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:14px}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.list{display:grid;gap:8px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fafcfb}.name{font-weight:850}.small{font-size:12px;color:var(--muted);line-height:1.45}.notice{margin-top:14px;padding:12px;border-radius:12px;background:#edf5f3;color:#315d57}
+@media(max-width:650px){.top{flex-direction:column}.nav{justify-content:flex-start}.row{grid-template-columns:1fr auto}.row .edit{grid-column:2}.row .danger{grid-column:2}.add{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top">
+  <div><div class="eyebrow">ChargeNurse · Administration</div><div class="title">Settings</div><div class="sub">Maintain shared names without changing application code.</div></div>
+  <div class="nav"><a class="btn" href="command-center.html">Command Center</a><a class="btn" href="scheduler.html">Scheduler</a><a class="btn" href="veterans.html">Veterans</a></div>
+</header>
+<section class="panel">
+  <div class="section"><div><h2>Providers</h2><div class="small">Provider names appear as suggestions while staff may still type another name.</div></div><button class="btn" onclick="restoreDefaults()">Restore Defaults</button></div>
+  <div class="add"><input id="newProvider" placeholder="Enter provider last name" onkeydown="if(event.key==='Enter')addProvider()"><button class="btn primary" onclick="addProvider()">Add Provider</button></div>
+  <div class="list" id="providerRows"></div>
+  <div class="notice">Current defaults are <b>McCain</b> and <b>Cook</b>. Chang has been removed. Changes made here become available in Scheduler, Veteran Records, and Morning Report.</div>
+</section>
+</div>
+<script>
+(function(){
+'use strict';
+function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
+function render(){
+ var rows=ChargeNurseLists.providers();
+ providerRows.innerHTML=rows.length?rows.map(function(name){
+   return '<div class="row"><span class="name">'+esc(name)+'</span><button class="btn edit" onclick="renameProvider(\''+esc(name).replace(/'/g,"\\'")+'\')">Edit</button><button class="btn danger" onclick="deleteProvider(\''+esc(name).replace(/'/g,"\\'")+'\')">Remove</button></div>'
+ }).join(''):'<div class="small">No providers are configured. Staff can still type provider names manually.</div>'
+}
+window.addProvider=function(){
+ var value=newProvider.value.trim();if(!value)return;
+ ChargeNurseLists.addProvider(value);newProvider.value='';render()
+}
+window.renameProvider=function(oldName){
+ var value=prompt('Update provider name:',oldName);
+ if(value===null)return;value=value.trim();if(!value)return;
+ ChargeNurseLists.updateProvider(oldName,value);render()
+}
+window.deleteProvider=function(name){
+ if(!confirm('Remove '+name+' from the provider suggestions? Existing records will not be changed.'))return;
+ ChargeNurseLists.removeProvider(name);render()
+}
+window.restoreDefaults=function(){
+ if(!confirm('Restore McCain and Cook as the provider suggestions?'))return;
+ ChargeNurseLists.save({providers:['McCain','Cook']});render()
+}
+render()
+})();
+</script>
+<script src="print-support.js"></script>
+</body>
+</html>
