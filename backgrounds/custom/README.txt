@@ -1,7 +1,24 @@
-CUSTOM BACKGROUNDS
+CHARGENURSE CUSTOM BACKGROUNDS
 
-Place JPG, PNG, or WEBP files in this folder before uploading the project.
-Because a static website cannot automatically scan a folder, enter the file path in Appearance settings, for example:
-backgrounds/custom/my-background.jpg
+This folder is for permanent background images that should travel with the project.
 
-Users may also upload a personal image directly inside the app. That image stays only in that browser's local storage and is included in Command Center backup exports.
+SUPPORTED FORMATS
+- JPG / JPEG
+- PNG
+- WEBP
+
+HOW TO ADD A BACKGROUND
+1. Copy the image into this folder.
+2. Upload/commit the image with the rest of the ChargeNurse project.
+3. Open ChargeNurse.
+4. Select Appearance.
+5. Enter the path, for example:
+   backgrounds/custom/night-shift.jpg
+6. Select Use Project Image.
+
+PERSONAL BROWSER UPLOADS
+Users can also select Upload Personal Image in Appearance.
+That image is stored only in that browser's local storage and is not uploaded to GitHub or Vercel.
+
+PRIVACY
+Never use a background containing Veteran information, names, photographs, medical records, or other PHI.

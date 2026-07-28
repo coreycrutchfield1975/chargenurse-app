@@ -17,7 +17,8 @@
 .modalbg{display:none;position:fixed;inset:0;background:rgba(13,24,29,.68);z-index:20;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}.modalbg.show{display:flex}.modal{width:min(900px,100%);max-height:94vh;overflow:auto;background:var(--surface);border-radius:23px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.3)}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field.span2{grid-column:span 2}.field label{font-size:11px;font-weight:850;color:#52616a}.field input,.field select,.field textarea{border:1px solid #cfd7d2;border-radius:10px;padding:10px;background:#fff}.checks{display:flex;gap:12px;flex-wrap:wrap;padding:8px 0}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 @media(max-width:950px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{padding:14px}.top{flex-direction:column}.week,.days{gap:3px}.day{min-height:82px;padding:5px}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}}
 @media print{.nav,.metrics,.calendar-head .btn,.modalbg{display:none!important}.grid{display:block}.panel{box-shadow:none;border:1px solid #333;margin-bottom:12px}}
-</style></head>
+</style><script src="appearance.js"></script>
+</head>
 <body><div class="shell">
 <header class="top"><div><div class="eyebrow">ChargeNurse · Scheduler Workspace</div><div class="title">Libertyville CLC Scheduler</div><div class="sub">Appointments, transportation and travel coordination—using the same Veteran records as Command Center.</div></div><div class="nav"><a class="btn" href="command-center.html">Command Center</a><button class="btn" onclick="window.print()">Print</button><button class="btn primary" onclick="openEditor()">New Appointment</button></div></header>
 <div class="metrics" id="metrics"></div>
