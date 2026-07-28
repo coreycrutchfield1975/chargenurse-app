@@ -261,7 +261,48 @@ global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
   setResidentActive:setResidentActive,archiveAllResidents:archiveAllResidents,
   appointments:appointments,appointmentsForDate:appointmentsForDate,
   upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,
-  normalizeAppointment:normalizeAppointment};
+  normalizeAppointment:normalizeAppointment,
+  alerts:generateAlerts};
+
+function generateAlerts(){
+  var today=new Date().toISOString().split('T')[0];
+  var all=residents(true);
+  var apps=appointmentsForDate(today);
+  var result=[];
+  
+  // Appointments missing departure time
+  apps.forEach(function(a){
+    if(!a.completed&&!a.notCompleted&&!a.departed&&!a.leaveTime){
+      result.push({level:'amber',title:a.residentName||'Veteran',detail:'Appointment today has no departure time set',id:a.id});
+    }
+  });
+  
+  // Appointments past expected return without being marked returned
+  apps.forEach(function(a){
+    if(a.departed&&!a.completed&&a.returnTime){
+      var now=new Date();var rt=a.returnTime.split(':');var retMins=parseInt(rt[0])*60+parseInt(rt[1]);var nowMins=now.getHours()*60+now.getMinutes();
+      if(nowMins>retMins+30){
+        result.push({level:'red',title:a.residentName||'Veteran',detail:'Return from appointment overdue — expected '+a.returnTime,id:a.id});
+      }
+    }
+  });
+  
+  // Veterans with no provider assigned
+  all.forEach(function(r){
+    if(!r.provider||r.provider===''){
+      result.push({level:'amber',title:r.name,detail:'No provider assigned to this Veteran',id:r.id});
+    }
+  });
+  
+  // Appointments with transportation needed but no transport method
+  apps.forEach(function(a){
+    if(a.transportNeeded&&(!a.transportation||a.transportation==='')){
+      result.push({level:'amber',title:a.residentName||'Veteran',detail:'Transportation needed but no method selected',id:a.id});
+    }
+  });
+  
+  return result;
+}
 })(window);
 
 
