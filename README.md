@@ -41,3 +41,8 @@ Use **Command Center → Appearance**. Users may select a built-in image, upload
 ## v5.3 shared Veteran roster
 
 Open `veterans.html` to manage the shared Veteran database. Records contain operational fields only; no photographs, primary nurse assignment, or AI integration are included.
+
+
+## v5.4 Operations Calendar
+
+`operations-calendar.html` is a read-only coordination view. It shows showers, weights, and vitals from schedules already entered during admission, along with scheduled appointments. It does not add assignments or duplicate documentation.

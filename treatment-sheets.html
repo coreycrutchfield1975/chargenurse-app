@@ -216,6 +216,7 @@
     .patient-grid { grid-template-columns: 1fr; }
   }
 @media print{.veteran-shortcut{display:none!important}}
+@media print{.operations-shortcut{display:none!important}}
 </style>
 <script src="auth-session.js"></script>
 <script src="appearance.js"></script>
@@ -882,5 +883,6 @@ $('loginOverlay').classList.add('hidden');
 init();
 </script>
 <a href="veterans.html" style="position:fixed;right:18px;bottom:66px;z-index:9000;background:#557b69;color:white;text-decoration:none;border-radius:999px;padding:10px 14px;font:800 11px system-ui;box-shadow:0 10px 26px rgba(0,0,0,.2)" class="veteran-shortcut">Veterans</a>
+<a href="operations-calendar.html" style="position:fixed;right:18px;bottom:110px;z-index:9000;background:#2f7d78;color:white;text-decoration:none;border-radius:999px;padding:10px 14px;font:800 11px system-ui;box-shadow:0 10px 26px rgba(0,0,0,.2)" class="operations-shortcut">Operations Calendar</a>
 </body>
 </html>

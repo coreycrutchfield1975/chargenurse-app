@@ -246,6 +246,7 @@ button{color:inherit}
     <a href="scheduler.html"><span class="nav-icon">▦</span><span>Scheduler</span></a>
     <a href="veterans.html"><span class="nav-icon">◎</span><span>Veterans</span></a>
     <a href="treatment-sheets.html"><span class="nav-icon">≡</span><span>Treatment Sheets</span></a>
+    <a href="operations-calendar.html"><span class="nav-icon">▦</span><span>Operations Calendar</span></a>
     <a href="morning-report.html"><span class="nav-icon">☀</span><span>Morning Report</span></a>
     <a href="charge-rn.html"><span class="nav-icon">✚</span><span>RN Workstation</span></a>
   </nav>
@@ -362,7 +363,7 @@ button{color:inherit}
 <div class="modalbg" id="modalbg"><div class="modal" id="modal"></div></div>
 <script>
 (function(){'use strict';
-var RN_KEY='va-rn-workstation',KEY='clc-command-center-v3',VERSION=5.3,currentTask='showers';
+var RN_KEY='va-rn-workstation',KEY='clc-command-center-v3',VERSION=5.4,currentTask='showers';
 function parse(x,f){try{return x?JSON.parse(x):f}catch(e){return f}}function esc(x){return String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function iso(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}function dow(){return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function blank(){return{version:VERSION,residents:[],appointments:[],completion:{},updated:new Date().toISOString()}}function load(){var d=parse(localStorage.getItem(KEY),blank());d.version=VERSION;d.residents=Array.isArray(d.residents)?d.residents:[];d.appointments=Array.isArray(d.appointments)?d.appointments:[];d.completion=d.completion||{};return d}function save(d){d.updated=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(d))}
 function normalize(p,i){p=p||{};return{id:String(p.id||uid()),active:p.active!==false,name:p.name||'Resident '+(i+1),room:p.room||'',dob:p.dob||'',last4:p.last4||'',specialty:p.specialty||p.program||'LTC',provider:p.provider||'',diet:p.diet||'',codeStatus:p.codeStatus||'',allergies:p.allergies||'',isolation:p.isolation||'None',oxygen:p.oxygen||'',equipment:p.equipment||'',fallRisk:!!p.fallRisk,skinRisk:!!p.skinRisk,behaviorPrecautions:p.behaviorPrecautions||'',emergencyContact:p.emergencyContact||'',transportNeeds:p.transportNeeds||'',bathDays:Array.isArray(p.bathDays)?p.bathDays:[],showerTime:p.showerTime||'',vitalsDays:Array.isArray(p.vitalsDays)?p.vitalsDays:(p.vitalsFreq?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:[]),weightDays:Array.isArray(p.weightDays)?p.weightDays:[],skinDays:Array.isArray(p.skinDays)?p.skinDays:Object.keys(p.skinAssessments||{}),labDays:Array.isArray(p.labDays)?p.labDays:[],notes:p.notes||''}}
