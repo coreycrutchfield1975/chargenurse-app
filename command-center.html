@@ -298,11 +298,6 @@ button{color:inherit}
       <div class="spark-text" id="sparkText"></div>
       <div class="spark-source" id="sparkSource"></div>
     </div>
-    <div class="quick-links">
-      <a class="btn module-scheduler" href="scheduler.html">Open Scheduler</a>
-      <a class="btn module-report" href="morning-report.html">Morning Report</a>
-      <a class="btn" href="veterans.html">Veteran Records</a>
-    </div>
   </div>
   <div class="panel sage">
     <div class="panel-inner">
@@ -327,7 +322,7 @@ button{color:inherit}
   </div>
   <aside class="mission-side">
     <div class="panel teal mission-card animate-card" style="--delay:270ms"><div class="panel-inner"><div class="section"><span class="section-title-group"><span class="section-dot"></span>Daily Wins</span><span id="winsCount"></span></div><div class="daily-wins" id="dailyWins"></div></div></div>
-    <div class="panel mission-card animate-card" style="--delay:360ms"><div class="panel-inner"><div class="section"><span>Quick Actions</span></div><div class="mission-actions"><a class="btn module-scheduler" href="scheduler.html">＋ New Appointment</a><a class="btn module-report" href="morning-report.html">☀ Morning Report</a><a class="btn" href="veterans.html">◎ Veteran Records</a><a class="btn" href="treatment-sheets.html">≡ Treatment Sheets</a><a class="btn" href="charge-rn.html">✚ RN Workstation</a><button class="btn" onclick="exportAll()">Backup</button><button class="btn" onclick="document.getElementById('importFile').click()">Restore</button><input hidden type="file" id="importFile" accept=".json" onchange="importAll(event)"></div><div class="status" id="status"></div></div></div>
+    <div class="panel mission-card animate-card" style="--delay:360ms"><div class="panel-inner"><div class="section"><span>Data Safety</span><span>Local backup</span></div><p class="small">Create or restore a ChargeNurse backup without duplicating the sidebar navigation.</p><div class="mission-actions"><button class="btn" onclick="exportAll()">Backup Data</button><button class="btn" onclick="document.getElementById('importFile').click()">Restore Data</button><input hidden type="file" id="importFile" accept=".json" onchange="importAll(event)"></div><div class="status" id="status"></div></div></div>
   </aside>
 </section>
 
