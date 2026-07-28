@@ -1,8 +1,9 @@
 (function(){
 'use strict';
 
-var KEY='clcAppearanceV2';
-var LEGACY_KEY='clcAppearanceV1';
+var KEY='clcAppearanceV3';
+var LEGACY_KEY='clcAppearanceV2';
+var OLDEST_KEY='clcAppearanceV1';
 var defaults={
   source:'',
   name:'Page Default',
@@ -31,7 +32,7 @@ function parse(value,fallback){
 }
 function migrate(){
   if(localStorage.getItem(KEY))return;
-  var old=parse(localStorage.getItem(LEGACY_KEY),null);
+  var old=parse(localStorage.getItem(LEGACY_KEY),null)||parse(localStorage.getItem(OLDEST_KEY),null);
   if(old)localStorage.setItem(KEY,JSON.stringify(Object.assign({},defaults,old)));
 }
 function get(){
@@ -50,24 +51,46 @@ function clearBodyBackground(body){
   body.style.removeProperty('background-attachment');
   body.style.removeProperty('background-repeat');
 }
+function safeSource(source){
+  source=String(source||'').trim();
+  if(!source)return '';
+  if(/^data:image\/(png|jpeg|webp);base64,/i.test(source)||/^blob:/i.test(source))return source;
+  try{return new URL(source,document.baseURI).href}catch(e){return source}
+}
+function setBackground(body,a,source){
+  var shade=clamp(a.overlay,0,90)/100;
+  body.style.backgroundImage='linear-gradient(rgba(12,20,25,'+shade+'),rgba(12,20,25,'+shade+')),url("'+String(source).replace(/"/g,'%22')+'")';
+  body.style.backgroundSize=a.fit||'cover';
+  body.style.backgroundPosition=a.position||'center center';
+  body.style.backgroundAttachment='fixed';
+  body.style.backgroundRepeat='no-repeat';
+  document.documentElement.dataset.customBackground='true';
+  requestAnimationFrame(function(){document.documentElement.classList.add('clc-bg-ready')});
+}
 function apply(){
   var a=get(),body=document.body;
   if(!body)return;
 
   document.documentElement.style.setProperty('--clc-panel-opacity',String(clamp(a.panelOpacity,55,100)/100));
   document.documentElement.style.setProperty('--clc-bg-blur',clamp(a.blur,0,10)+'px');
+  document.documentElement.classList.remove('clc-bg-error');
 
   if(a.source){
-    var shade=clamp(a.overlay,0,90)/100;
-    body.style.backgroundImage='linear-gradient(rgba(12,20,25,'+shade+'),rgba(12,20,25,'+shade+')),url("'+String(a.source).replace(/"/g,'%22')+'")';
-    body.style.backgroundSize=a.fit||'cover';
-    body.style.backgroundPosition=a.position||'center center';
-    body.style.backgroundAttachment='fixed';
-    body.style.backgroundRepeat='no-repeat';
-    document.documentElement.dataset.customBackground='true';
+    var resolved=safeSource(a.source),img=new Image();
+    document.documentElement.classList.remove('clc-bg-ready');
+    img.onload=function(){setBackground(body,a,resolved)};
+    img.onerror=function(){
+      clearBodyBackground(body);
+      document.documentElement.dataset.customBackground='false';
+      document.documentElement.classList.add('clc-bg-error','clc-bg-ready');
+      console.warn('ChargeNurse background could not be loaded:',a.source);
+      window.dispatchEvent(new CustomEvent('clcbackgrounderror',{detail:{source:a.source}}));
+    };
+    img.src=resolved;
   }else{
     clearBodyBackground(body);
     document.documentElement.dataset.customBackground='false';
+    document.documentElement.classList.add('clc-bg-ready');
   }
 
   window.dispatchEvent(new CustomEvent('clcappearancechange',{detail:a}));
@@ -87,7 +110,7 @@ function ensureStyles(){
   var style=document.createElement('style');
   style.id='clcAppearanceStyles';
   style.textContent=`
-    :root{--clc-panel-opacity:.94;--clc-bg-blur:0px}
+    :root{--clc-panel-opacity:.94;--clc-bg-blur:0px}\n    html{background:#e8eeeb} body{opacity:.01;transition:opacity .34s ease,background-color .34s ease} html.clc-bg-ready body{opacity:1}\n    html.clc-bg-error body:before{content:"Selected background unavailable — page default restored";position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:10000;background:#7f2630;color:#fff;padding:8px 12px;border-radius:999px;font:800 11px system-ui,sans-serif;box-shadow:0 8px 25px rgba(0,0,0,.22);animation:clcNotice 5s both}\n    @keyframes clcNotice{0%{opacity:0;transform:translate(-50%,-8px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
     [data-custom-background="true"] .panel,
     [data-custom-background="true"] .clock,
     [data-custom-background="true"] .metric,
@@ -139,7 +162,7 @@ function ensureStyles(){
       .clc-appearance-grid{grid-template-columns:1fr}.clc-gallery{grid-template-columns:repeat(2,1fr)}
       .clc-appearance-launcher{right:10px;bottom:10px}
     }
-    @media print{.clc-appearance-launcher,.clc-appearance-backdrop{display:none!important}}
+    @media(prefers-reduced-motion:reduce){body{transition:none!important}.clc-appearance-launcher{transition:none!important}}\n    @media print{body{opacity:1!important}.clc-appearance-launcher,.clc-appearance-backdrop{display:none!important}}
   `;
   document.head.appendChild(style);
 }

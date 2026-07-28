@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
-var KEY='chargenurse-master-lists-v4';
-var LEGACY_KEYS=['chargenurse-master-lists-v3','chargenurse-master-lists-v2','chargenurse-master-lists-v1'];
+var KEY='chargenurse-master-lists-v5';
+var LEGACY_KEYS=['chargenurse-master-lists-v4','chargenurse-master-lists-v3','chargenurse-master-lists-v2','chargenurse-master-lists-v1'];
 var DEFAULTS={
   providers:['McCain','Cook'],
   transportation:['VA Vehicle','Wheelchair Van','Ambulance','Family','Private Vehicle','Taxi / Rideshare','Other'],
@@ -15,6 +15,7 @@ var DEFAULT_PROFILES={
   Cook:{clinic:'',facility:'',phone:'',fax:''}
 };
 var DEFAULT_TRANSPORT_CONTACT={email:'',phone:'',fax:'',instructions:''};
+var DEFAULT_FACILITY_PROFILES={};
 function parse(v,f){try{return v?JSON.parse(v):f}catch(e){return f}}
 function clean(items){
   var seen={};
@@ -33,6 +34,17 @@ function cleanProfile(p){
     fax:String(p.fax||'').trim()
   }
 }
+
+function cleanFacilityProfile(p){
+  p=p||{};
+  return {
+    address:String(p.address||'').trim(),
+    phone:String(p.phone||'').trim(),
+    fax:String(p.fax||'').trim(),
+    contact:String(p.contact||'').trim(),
+    directions:String(p.directions||'').trim()
+  }
+}
 function normalized(data){
   data=data||{};
   var out={};
@@ -45,6 +57,12 @@ function normalized(data){
     fax:String((data.transportContact||{}).fax||'').trim(),
     instructions:String((data.transportContact||{}).instructions||'').trim()
   };
+  out.facilityProfiles={};
+  var facilitySource=data.facilityProfiles||{};
+  out.facilities.forEach(function(name){
+    var match=Object.keys(facilitySource).find(function(k){return k.toLowerCase()===name.toLowerCase()});
+    out.facilityProfiles[name]=cleanFacilityProfile(match?facilitySource[match]:DEFAULT_FACILITY_PROFILES[name]||{})
+  });
   out.providerProfiles={};
   var source=data.providerProfiles||{};
   out.providers.forEach(function(name){
@@ -60,6 +78,7 @@ function load(){
     saved=Object.assign({},DEFAULTS,saved);
     saved.providerProfiles=saved.providerProfiles||DEFAULT_PROFILES;
     saved.transportContact=saved.transportContact||DEFAULT_TRANSPORT_CONTACT;
+    saved.facilityProfiles=saved.facilityProfiles||DEFAULT_FACILITY_PROFILES;
     localStorage.setItem(KEY,JSON.stringify(normalized(saved)))
   }
   return normalized(saved)
@@ -74,11 +93,18 @@ function items(key){return (load()[key]||[]).slice()}
 function add(key,name){
   var d=load();d[key]=(d[key]||[]).concat([name]);
   if(key==='providers')d.providerProfiles[name]=cleanProfile({});
+  if(key==='facilities')d.facilityProfiles[name]=cleanFacilityProfile({});
   return save(d)
 }
 function update(key,oldName,newName){
   var d=load(),oldKey=String(oldName||'').trim().toLowerCase();
   d[key]=(d[key]||[]).map(function(x){return x.toLowerCase()===oldKey?newName:x});
+  if(key==='facilities'){
+    var facilityActual=Object.keys(d.facilityProfiles||{}).find(function(k){return k.toLowerCase()===oldKey});
+    var facilityProfile=facilityActual?d.facilityProfiles[facilityActual]:{};
+    if(facilityActual)delete d.facilityProfiles[facilityActual];
+    d.facilityProfiles[newName]=cleanFacilityProfile(facilityProfile)
+  }
   if(key==='providers'){
     var actual=Object.keys(d.providerProfiles||{}).find(function(k){return k.toLowerCase()===oldKey});
     var profile=actual?d.providerProfiles[actual]:{};
@@ -92,6 +118,9 @@ function remove(key,name){
   d[key]=(d[key]||[]).filter(function(x){return x.toLowerCase()!==needle});
   if(key==='providers'){
     Object.keys(d.providerProfiles||{}).forEach(function(k){if(k.toLowerCase()===needle)delete d.providerProfiles[k]})
+  }
+  if(key==='facilities'){
+    Object.keys(d.facilityProfiles||{}).forEach(function(k){if(k.toLowerCase()===needle)delete d.facilityProfiles[k]})
   }
   return save(d)
 }
@@ -107,6 +136,18 @@ function fill(id,key,selected){
 function providerProfile(name){
   var d=load(),needle=String(name||'').trim().toLowerCase(),key=Object.keys(d.providerProfiles||{}).find(function(k){return k.toLowerCase()===needle});
   return cleanProfile(key?d.providerProfiles[key]:{})
+}
+
+function facilityProfile(name){
+  var d=load(),needle=String(name||'').trim().toLowerCase(),key=Object.keys(d.facilityProfiles||{}).find(function(k){return k.toLowerCase()===needle});
+  return cleanFacilityProfile(key?d.facilityProfiles[key]:{})
+}
+function saveFacilityProfile(name,profile){
+  var d=load(),needle=String(name||'').trim().toLowerCase(),key=d.facilities.find(function(x){return x.toLowerCase()===needle})||String(name||'').trim();
+  if(!key)return d;
+  if(!d.facilities.some(function(x){return x.toLowerCase()===needle}))d.facilities.push(key);
+  d.facilityProfiles[key]=cleanFacilityProfile(profile);
+  return save(d)
 }
 function transportContact(){return load().transportContact||Object.assign({},DEFAULT_TRANSPORT_CONTACT)}
 function saveTransportContact(contact){
@@ -136,6 +177,7 @@ global.ChargeNurseLists={
   providerOptions:function(selected){return options('providers',selected)},
   fillProviderList:function(id,selected){return fill(id,'providers',selected)},
   providerProfile:providerProfile,saveProviderProfile:saveProviderProfile,
+  facilityProfile:facilityProfile,saveFacilityProfile:saveFacilityProfile,
   transportContact:transportContact,saveTransportContact:saveTransportContact
 };
 })(window);

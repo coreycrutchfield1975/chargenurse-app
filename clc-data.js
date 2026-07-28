@@ -50,6 +50,7 @@ function normalizeAppointment(a){
     id:String(a.id||uid()),residentId:String(a.residentId||''),
     residentName:a.residentName||'',room:a.room||'',date:a.date||'',
     time:a.time||'',leaveTime:a.leaveTime||'',location:a.location||'',
+    facilityAddress:a.facilityAddress||'',facilityPhone:a.facilityPhone||'',facilityFax:a.facilityFax||'',facilityContact:a.facilityContact||'',facilityDirections:a.facilityDirections||'',
     clinic:a.clinic||'',provider:a.provider||'',providerPhone:a.providerPhone||'',providerFax:a.providerFax||'',escort:a.escort||'',
     transportation:a.transportation||'',transportNeeded:a.transportNeeded!==false,
     emailTo:a.emailTo||'',transportPhone:a.transportPhone||'',transportFax:a.transportFax||'',transportInstructions:a.transportInstructions||'',emailDate:a.emailDate||'',reason:a.reason||'',

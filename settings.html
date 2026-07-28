@@ -10,7 +10,7 @@
 :root{--nav:#274e49;--teal:#447d76;--bg:#eef2ef;--card:#fff;--line:#d9e1dc;--muted:#66746d;--danger:#9b343d}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#26332e}.shell{max-width:1180px;margin:auto;padding:24px}
 .top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);font-weight:800}.title{font-size:31px;font-weight:900;margin-top:5px}.sub{color:var(--muted);margin-top:5px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.btn{appearance:none;border:1px solid var(--line);background:#fff;color:#26332e;padding:9px 13px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}.btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}.btn.danger{color:var(--danger)}
+.btn{transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;appearance:none;border:1px solid var(--line);background:#fff;color:#26332e;padding:9px 13px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}.btn:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(37,66,55,.12)}.btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}.btn.danger{color:var(--danger)}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab.active{background:var(--nav);color:#fff;border-color:var(--nav)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(37,66,55,.06)}.section{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.section h2{margin:0;font-size:19px}
 .add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:14px}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit}
@@ -35,6 +35,7 @@
   <div class="add"><input id="newItem" onkeydown="if(event.key==='Enter')addItem()"><button class="btn primary" onclick="addItem()">Add</button></div>
   <div class="list" id="rows"></div>
   <div class="profile" id="transportContactPanel" style="display:none"><h3>Transportation Department Defaults</h3><div class="small">These values can prefill new appointments and Travel Requests.</div><div class="profile-grid"><div><div class="small">Email</div><input id="transportEmail" type="email" placeholder="Optional"></div><div><div class="small">Phone</div><input id="transportPhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="transportFax" placeholder="Optional"></div><div><div class="small">Standing Instructions</div><input id="transportInstructions" placeholder="Optional"></div></div><div class="profile-actions"><button class="btn primary" onclick="saveTransportContact()">Save Transportation Defaults</button></div></div>
+  <div class="profile" id="facilityProfilePanel" style="display:none"><h3>Facility Details</h3><div class="small">These details prefill Scheduler appointments when the facility is selected.</div><div class="profile-grid"><div><div class="small">Street Address</div><input id="facilityAddress" placeholder="Optional"></div><div><div class="small">Phone</div><input id="facilityPhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="facilityFax" placeholder="Optional"></div><div><div class="small">Contact Person / Department</div><input id="facilityContact" placeholder="Optional"></div><div style="grid-column:1/-1"><div class="small">Directions / Special Instructions</div><input id="facilityDirections" placeholder="Optional"></div></div><div class="profile-actions"><button class="btn primary" onclick="saveFacilityDetails()">Save Facility Details</button></div></div>
   <div class="profile" id="providerProfilePanel" style="display:none"><h3>Provider Defaults</h3><div class="small">Optional defaults fill only blank Scheduler fields when this provider is selected.</div><div class="profile-grid"><div><div class="small">Clinic</div><input id="profileClinic" list="settingsClinicList"></div><div><div class="small">Facility / Destination</div><input id="profileFacility" list="settingsFacilityList"></div><div><div class="small">Phone</div><input id="profilePhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="profileFax" placeholder="Optional"></div></div><datalist id="settingsClinicList"></datalist><datalist id="settingsFacilityList"></datalist><div class="profile-actions"><button class="btn primary" onclick="saveProfile()">Save Provider Defaults</button></div></div>
   <div class="notice">These are suggestions only. Staff may still type an unlisted value in Scheduler or Veteran Records.</div>
 </section>
@@ -53,6 +54,7 @@ var CONFIG={
 };
 var current=localStorage.getItem('chargenurse-settings-tab')||'providers';
 var selectedProvider='';
+var selectedFacility='';
 function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
 function jsq(x){return String(x||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function renderTabs(){
@@ -62,10 +64,11 @@ function render(){
  var cfg=CONFIG[current],items=ChargeNurseLists.items(current);
  renderTabs();listTitle.textContent=cfg.title;listHelp.textContent=cfg.help;newItem.placeholder='Enter '+cfg.singular.toLowerCase();
  rows.innerHTML=items.length?items.map(function(name){
-   var extra=current==='providers'?'<button class="btn" onclick="editProfile(\''+jsq(name)+'\')">Defaults</button>':'';
+   var extra=current==='providers'?'<button class="btn" onclick="editProfile(\''+jsq(name)+'\')">Defaults</button>':(current==='facilities'?'<button class="btn" onclick="editFacility(\''+jsq(name)+'\')">Details</button>':'');
    return '<div class="row"><span class="name">'+esc(name)+'</span>'+extra+'<button class="btn" onclick="renameItem(\''+jsq(name)+'\')">Edit</button><button class="btn danger" onclick="deleteItem(\''+jsq(name)+'\')">Remove</button></div>'
  }).join(''):'<div class="small">No suggestions configured.</div>';
  providerProfilePanel.style.display=current==='providers'&&selectedProvider?'block':'none';
+ facilityProfilePanel.style.display=current==='facilities'&&selectedFacility?'block':'none';
  transportContactPanel.style.display=current==='transportation'?'block':'none';
  if(current==='transportation'){
    var tc=ChargeNurseLists.transportContact();
@@ -74,11 +77,22 @@ function render(){
  settingsClinicList.innerHTML=ChargeNurseLists.options('clinics');
  settingsFacilityList.innerHTML=ChargeNurseLists.options('facilities')
 }
-window.chooseTab=function(k){current=k;selectedProvider='';localStorage.setItem('chargenurse-settings-tab',k);render()}
+window.chooseTab=function(k){current=k;selectedProvider='';selectedFacility='';localStorage.setItem('chargenurse-settings-tab',k);render()}
 window.addItem=function(){var value=newItem.value.trim();if(!value)return;ChargeNurseLists.add(current,value);newItem.value='';render()}
 window.renameItem=function(oldName){var value=prompt('Update '+CONFIG[current].singular.toLowerCase()+':',oldName);if(value===null)return;value=value.trim();if(!value)return;ChargeNurseLists.update(current,oldName,value);render()}
 window.deleteItem=function(name){if(!confirm('Remove '+name+' from the suggestions? Existing records will not be changed.'))return;ChargeNurseLists.remove(current,name);render()}
-window.restoreCurrent=function(){if(!confirm('Restore the default '+CONFIG[current].title.toLowerCase()+' list?'))return;var data=ChargeNurseLists.load();data[current]=ChargeNurseLists.defaults[current].slice();if(current==='providers'){data.providerProfiles={McCain:{clinic:'',facility:'',phone:'',fax:''},Cook:{clinic:'',facility:'',phone:'',fax:''}};selectedProvider=''}ChargeNurseLists.save(data);render()}
+window.restoreCurrent=function(){if(!confirm('Restore the default '+CONFIG[current].title.toLowerCase()+' list?'))return;var data=ChargeNurseLists.load();data[current]=ChargeNurseLists.defaults[current].slice();if(current==='providers'){data.providerProfiles={McCain:{clinic:'',facility:'',phone:'',fax:''},Cook:{clinic:'',facility:'',phone:'',fax:''}};selectedProvider=''}if(current==='facilities'){data.facilityProfiles={};selectedFacility=''}ChargeNurseLists.save(data);render()}
+
+window.editFacility=function(name){
+ selectedFacility=name;var p=ChargeNurseLists.facilityProfile(name);
+ facilityAddress.value=p.address;facilityPhone.value=p.phone;facilityFax.value=p.fax;facilityContact.value=p.contact;facilityDirections.value=p.directions;
+ render()
+}
+window.saveFacilityDetails=function(){
+ if(!selectedFacility)return;
+ ChargeNurseLists.saveFacilityProfile(selectedFacility,{address:facilityAddress.value,phone:facilityPhone.value,fax:facilityFax.value,contact:facilityContact.value,directions:facilityDirections.value});
+ alert('Facility details saved for '+selectedFacility+'.');render()
+}
 window.editProfile=function(name){
  selectedProvider=name;var p=ChargeNurseLists.providerProfile(name);
  profileClinic.value=p.clinic;profileFacility.value=p.facility;profilePhone.value=p.phone;profileFax.value=p.fax;
@@ -96,6 +110,7 @@ window.saveProfile=function(){
 render()
 })();
 </script>
+<script src="appearance.js"></script>
 <script src="print-support.js"></script>
 </body>
 </html>
