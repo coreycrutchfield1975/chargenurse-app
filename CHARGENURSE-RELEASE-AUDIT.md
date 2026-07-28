@@ -1,38 +1,66 @@
-# ChargeNurse Release Audit Ledger
+# ChargeNurse Release Audit
 
-Audit baseline: Phase 18 and earlier snapshots compared with the Phase 20 visual build.
+## Audit basis
+
+The current Phase 21 package was compared structurally against Phases 2–20. The review included module presence, form controls, headings, storage keys, functions, navigation targets, local asset references, release notes, and JavaScript syntax.
 
 ## Confirmed findings
 
-| ID | Module | Priority | Finding | Action | Status |
-|---|---|---:|---|---|---|
-| SCH-001 | Scheduler | Critical | Facility address and phone information was not available in the current appointment workflow. | Restore structured facility details and reusable facility profiles. | Implemented in v6.9; browser verification pending |
-| BG-001 | Appearance | Critical | Only recently saved backgrounds are reported to work reliably; several legacy selections do not behave as expected. | Inventory image sources, reproduce in browser, and correct persistence/path handling. | Open |
-| AUD-001 | All modules | High | Content must be compared across historical phases to identify regressions, duplicates, and obsolete items. | Complete module-by-module old/new review. | In progress |
+### AUD-001 — RN Workstation JavaScript parse failure
 
-## Scheduler restoration delivered in v6.9
+**Priority:** Critical  
+**Status:** Fixed in this build
 
-- Facility address
-- Facility phone
-- Facility fax
-- Facility contact or department
-- Directions and special instructions
-- Reusable facility profiles in Settings
-- Automatic prefill for configured facilities
-- Ticket to Ride inclusion
-- Travel Request inclusion
+`charge-rn.html` contained raw HTML and a script tag inside the JavaScript expression used to construct a printable document. Because the main script block could not parse, RN Workstation behavior could fail before initialization.
 
-## Next audit targets
+**Repair:** Removed the malformed markup from the print-document string and restored a valid closing `</body></html>` string.
 
-1. Scheduler field-by-field comparison across all available phases.
-2. Morning Report content and workflow comparison.
-3. Veteran Records content and historical field comparison.
-4. Background manager runtime investigation.
-5. Treatment Sheets and Operations Calendar comparison.
+### AUD-002 — Scheduler facility contact information
 
-## Audit labels
+**Priority:** High  
+**Status:** Restored in Phase 21 and preserved
 
-- **Keep:** valuable and working as intended.
-- **Improve:** useful but requires refinement.
-- **Restore:** valuable historical function that disappeared or became inaccessible.
-- **Retire:** duplicated, obsolete, or not useful enough to maintain.
+Current Scheduler and Settings include facility address, phone, fax, contact/department, and directions/special instructions. Facility profiles prefill blank Scheduler fields.
+
+### AUD-003 — Background behavior
+
+**Priority:** High  
+**Status:** Open — browser verification required
+
+All background files referenced by the current Appearance gallery exist in the package, and the paths match the packaged filenames. Static reference checks did not reveal a missing-file error. The reported failure of legacy backgrounds therefore requires browser reproduction, including the selected localStorage appearance value and browser console output.
+
+### AUD-004 — Settings provider management
+
+**Priority:** Review completed  
+**Status:** Preserved
+
+Provider defaults and editable shared provider lists remain in the current Settings page. The earlier dedicated wording changed over time, but the provider workflow is still present.
+
+### AUD-005 — Morning Report manual sync control
+
+**Priority:** Review completed  
+**Status:** Intentional change
+
+An older `Sync Command Center` control is no longer present. Release history documents that Morning Report now reads Scheduler appointments through the shared data layer, so restoring a duplicate manual synchronization button is not supported by the current architecture.
+
+### AUD-006 — Command Center legacy action buttons
+
+**Priority:** Review completed  
+**Status:** Intentional redesign
+
+Older controls for admissions, transportation, roster import, and appointments were removed as the Command Center evolved into Mission Control. Release history states that duplicate editing was intentionally removed and ownership moved to the corresponding modules. These controls should not be restored during the regression audit.
+
+## Structural verification
+
+- No missing local script, stylesheet, image, or internal HTML target was found in the current package.
+- Scheduler, Morning Report, Veteran Records, Treatment Sheets, Operations Calendar, Settings, Mission Control, and RN Workstation remain packaged.
+- Current external JavaScript files pass syntax validation.
+- Current inline JavaScript blocks pass syntax validation after the RN Workstation repair.
+
+## Open items requiring browser testing
+
+1. Reproduce legacy background failures and record the selected path and console warning.
+2. Verify RN Workstation startup and print behavior after the syntax repair.
+3. Confirm legacy browser data loads in Scheduler, Veteran Records, Morning Report, and RN Workstation.
+4. Verify all print layouts visually.
+5. Complete content-level review with the user for fields whose clinical necessity cannot be determined from code history alone.
