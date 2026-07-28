@@ -19,10 +19,21 @@
 .travel-box h3{margin:0 0 5px;font-size:16px}.travel-box p{margin:4px 0;color:var(--muted);font-size:12px;line-height:1.45}
 .email-preview{border:1px solid #d8ded9;background:#fff;border-radius:12px;padding:11px;white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;max-height:250px;overflow:auto}
 .btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+.viewbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 12px}
+.viewbar .btn.active{background:var(--nav);border-color:var(--nav);color:#fff}
+.calendar-body{min-height:520px}
+.day-view{display:grid;gap:10px}.day-summary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:15px;background:#f8faf8}.day-events{display:grid;gap:8px}
+.day-event{display:grid;grid-template-columns:95px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid #e0e5e1;border-radius:14px;background:#fbfcfa;cursor:pointer}.day-event:hover{border-color:var(--teal)}.day-time{font-weight:900;font-size:15px}.day-event .name{font-weight:850}
+.week-view{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.week-day{min-height:430px;border:1px solid #dfe5e1;border-radius:14px;background:#fbfcfa;overflow:hidden}.week-day.selected{box-shadow:inset 0 0 0 2px var(--teal)}
+.week-day-head{padding:9px;text-align:center;border-bottom:1px solid #e3e8e4;cursor:pointer}.week-day-head b{display:block;font-size:17px}.week-day-head span{font-size:10px;color:var(--muted);text-transform:uppercase}.week-events{padding:6px}
+.week-event{padding:7px;border-radius:9px;background:#dcecea;color:#285e59;font-size:10px;margin-bottom:6px;cursor:pointer}.week-event.pending{background:#fff0dc;color:#84551d}.week-event.critical{background:#f7e2e4;color:#8b2932}
+.year-view{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mini-month{border:1px solid #dfe5e1;border-radius:14px;padding:10px;background:#fbfcfa}.mini-title{text-align:center;font-weight:900;margin-bottom:7px;cursor:pointer}
+.mini-week,.mini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.mini-week span{text-align:center;font-size:8px;color:var(--muted);font-weight:800}.mini-day{min-height:26px;padding:3px;text-align:center;font-size:9px;border-radius:6px;cursor:pointer;position:relative}
+.mini-day.out{opacity:.22}.mini-day.today{box-shadow:inset 0 0 0 1px var(--teal)}.mini-day.selected{background:#dcecea}.mini-day.has{font-weight:900}.mini-day.has:after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--amber);bottom:2px;left:50%;transform:translateX(-50%)}
 
-@media(max-width:950px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{padding:14px}.top{flex-direction:column}.week,.days{gap:3px}.day{min-height:82px;padding:5px}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}}
+@media(max-width:1100px){.week-view{grid-template-columns:repeat(2,1fr)}.year-view{grid-template-columns:repeat(2,1fr)}}@media(max-width:950px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{padding:14px}.top{flex-direction:column}.week,.days{gap:3px}.day{min-height:82px;padding:5px}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}.week-view,.year-view{grid-template-columns:1fr}.day-event{grid-template-columns:75px minmax(0,1fr)}.day-event .pill{grid-column:2}}
 @media print{
-.nav,.calendar-head .btn,.modalbg,.section .btn{display:none!important}
+.nav,.calendar-head .btn,.viewbar,.modalbg,.section .btn{display:none!important}
 .shell{max-width:none;padding:0}.top{display:none}.metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:0 0 10px}.metric{box-shadow:none;border:1px solid #777;padding:8px}.metric b{font-size:18px}
 .grid{display:block}.panel{box-shadow:none;border:1px solid #555;margin-bottom:12px;border-radius:0;padding:10px}.calendar-title{font-size:17px}.day{min-height:72px;border-color:#999;border-radius:0;padding:4px}.event{white-space:normal;font-size:8px;padding:3px}.agenda{max-height:none;overflow:visible}.appt{border-color:#888;border-radius:0;padding:8px}.week div{color:#000}
 }
@@ -32,26 +43,55 @@
 <body data-print-title="Scheduler and Transportation" data-print-subtitle="Appointments, transportation, travel requests, departures, and returns"><div class="shell">
 <header class="top"><div><div class="eyebrow">ChargeNurse · Scheduler Workspace</div><div class="title">Libertyville CLC Scheduler</div><div class="sub">Appointments, transportation and travel coordination—using the same Veteran records as Command Center.</div></div><div class="nav"><a class="btn" href="command-center.html">Command Center</a><a class="btn" href="operations-calendar.html">Operations Calendar</a><a class="btn" href="veterans.html">Veterans</a><button class="btn" onclick="window.print()">Print</button><button class="btn primary" onclick="openEditor()">New Appointment</button></div></header>
 <div class="metrics" id="metrics"></div>
-<div class="grid"><section class="panel"><div class="calendar-head"><button class="btn" onclick="moveMonth(-1)">Previous</button><div class="calendar-title" id="monthTitle"></div><button class="btn" onclick="moveMonth(1)">Next</button></div><div class="week"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div><div class="days" id="days"></div></section>
+<div class="grid"><section class="panel"><div class="calendar-head"><button class="btn" onclick="moveView(-1)">Previous</button><div class="calendar-title" id="monthTitle"></div><div style="display:flex;gap:6px"><button class="btn" onclick="goToday()">Today</button><button class="btn" onclick="moveView(1)">Next</button></div></div><div class="viewbar"><button class="btn" data-calview="day" onclick="setCalendarView('day')">Day</button><button class="btn" data-calview="week" onclick="setCalendarView('week')">Week</button><button class="btn" data-calview="month" onclick="setCalendarView('month')">Month</button><button class="btn" data-calview="year" onclick="setCalendarView('year')">Year</button></div><div class="calendar-body" id="calendarBody"></div></section>
 <aside class="panel"><div class="section"><span id="agendaTitle">Selected Day</span><button class="btn primary" onclick="openEditor(null,selectedDate)">Add</button></div><div class="agenda" id="agenda"></div></aside></div></div>
 <div class="modalbg" id="modalbg"><div class="modal" id="modal"></div></div>
 <script>
 'use strict';
-var cursor=new Date(),selectedDate=iso(new Date());
+var cursor=new Date(),selectedDate=iso(new Date()),calendarView=localStorage.getItem('clc-scheduler-view')||'month';
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
 function status(a){if(a.completed)return['Completed','done'];if(a.notCompleted)return['Not completed','warn'];if(a.transportNeeded&&!a.travelRequestEmailed)return['Travel request pending','warn'];if(a.transportNeeded&&!a.ticketPrepared)return['Ticket pending','warn'];return['Scheduled','']}
+function startOfWeek(d){var x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(12,0,0,0);return x}
 function render(){
  var all=CLCData.appointments(),today=iso(new Date()),todayRows=all.filter(function(a){return a.date===today}),pending=all.filter(function(a){return a.date>=today&&a.transportNeeded&&!a.completed&&(!a.ticketPrepared||!a.travelRequestEmailed)}),completed=todayRows.filter(function(a){return a.completed});
  document.getElementById('metrics').innerHTML='<div class="metric"><b>'+todayRows.length+'</b><span>Appointments today</span></div><div class="metric"><b>'+pending.length+'</b><span>Travel items pending</span></div><div class="metric"><b>'+completed.length+'</b><span>Completed today</span></div><div class="metric"><b>'+CLCData.residents().length+'</b><span>Active Veterans</span></div>';
- document.getElementById('monthTitle').textContent=cursor.toLocaleDateString([], {month:'long',year:'numeric'});
- var y=cursor.getFullYear(),m=cursor.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),html='';
- for(var i=0;i<42;i++){var d=new Date(start);d.setDate(start.getDate()+i);var ds=iso(d),rows=all.filter(function(a){return a.date===ds});html+='<div class="day '+(d.getMonth()!==m?'out ':'')+(ds===today?'today ':'')+(ds===selectedDate?'selected':'')+'" onclick="selectDate(\''+ds+'\')"><div class="num">'+d.getDate()+'</div>'+rows.slice(0,3).map(function(a){var s=status(a);return '<div class="event '+(s[1]==='warn'?'pending ':'')+(a.notCompleted?'critical':'')+'">'+esc((a.time||'')+' '+a.residentName)+'</div>'}).join('')+(rows.length>3?'<div class="small">+'+(rows.length-3)+' more</div>':'')+'</div>'}
- document.getElementById('days').innerHTML=html;renderAgenda();
+ document.querySelectorAll('[data-calview]').forEach(function(b){b.classList.toggle('active',b.dataset.calview===calendarView)});
+ if(calendarView==='day')renderDay(all);else if(calendarView==='week')renderWeek(all);else if(calendarView==='year')renderYear(all);else renderMonth(all);
+ renderAgenda();
 }
-function renderAgenda(){var rows=CLCData.appointmentsForDate(selectedDate);document.getElementById('agendaTitle').textContent=new Date(selectedDate+'T12:00:00').toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});document.getElementById('agenda').innerHTML=rows.length?rows.map(function(a){var s=status(a);return '<div class="appt" onclick="openEditor(\''+esc(a.id)+'\')"><div class="appt-top"><span><b>'+esc(a.time||a.leaveTime||'Time not set')+' · '+esc(a.residentName)+'</b><span class="small">Room '+esc(a.room||'—')+' · '+esc(a.location||'Location not entered')+'</span></span><span class="pill '+s[1]+'">'+s[0]+'</span></div><div class="small" style="margin-top:7px">'+esc(a.transportation||'Transportation not specified')+'</div></div>'}).join(''):'<div class="small" style="padding:30px;text-align:center">No appointments scheduled for this day.</div>'}
-window.moveMonth=function(n){cursor=new Date(cursor.getFullYear(),cursor.getMonth()+n,1);render()}
-window.selectDate=function(v){selectedDate=v;render()}
+function renderDay(all){
+ var d=new Date(selectedDate+'T12:00:00'),rows=all.filter(function(a){return a.date===selectedDate}).sort(function(a,b){return(a.time||a.leaveTime||'').localeCompare(b.time||b.leaveTime||'')});cursor=new Date(d);
+ monthTitle.textContent=d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric',year:'numeric'});
+ calendarBody.innerHTML='<div class="day-view"><div class="day-summary"><div><b>'+rows.length+' appointment'+(rows.length===1?'':'s')+'</b><div class="small">'+rows.filter(function(a){return a.transportNeeded!==false}).length+' requiring transportation</div></div><button class="btn primary" onclick="openEditor(null,\''+selectedDate+'\')">Add Appointment</button></div><div class="day-events">'+(rows.length?rows.map(function(a){var st=status(a);return'<div class="day-event" onclick="openEditor(\''+esc(a.id)+'\')"><div class="day-time">'+esc(a.time||a.leaveTime||'Time not set')+'</div><div><span class="name">'+esc(a.residentName)+'</span><div class="small">Room '+esc(a.room||'—')+' · '+esc(a.location||a.clinic||'Location not entered')+'<br>'+esc(a.transportation||'Transportation not specified')+'</div></div><span class="pill '+st[1]+'">'+st[0]+'</span></div>'}).join(''):'<div class="small" style="padding:40px;text-align:center">No appointments scheduled for this day.</div>')+'</div></div>';
+}
+function renderWeek(all){
+ var base=startOfWeek(new Date(selectedDate+'T12:00:00')),end=new Date(base);end.setDate(base.getDate()+6);cursor=new Date(base);
+ monthTitle.textContent=base.toLocaleDateString([], {month:'short',day:'numeric'})+' – '+end.toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'});
+ var html='<div class="week-view">';
+ for(var i=0;i<7;i++){var d=new Date(base);d.setDate(base.getDate()+i);var ds=iso(d),rows=all.filter(function(a){return a.date===ds}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'')});
+ html+='<div class="week-day '+(ds===selectedDate?'selected':'')+'"><div class="week-day-head" onclick="selectDate(\''+ds+'\')"><span>'+d.toLocaleDateString([], {weekday:'short'})+'</span><b>'+d.getDate()+'</b></div><div class="week-events">'+(rows.length?rows.map(function(a){var st=status(a);return'<div class="week-event '+(st[1]==='warn'?'pending ':'')+(a.notCompleted?'critical':'')+'" onclick="event.stopPropagation();openEditor(\''+esc(a.id)+'\')">'+esc((a.time||a.leaveTime||'')+' '+a.residentName)+'</div>'}).join(''):'<div class="small" style="padding:10px;text-align:center">No appointments</div>')+'</div></div>'}
+ calendarBody.innerHTML=html+'</div>';
+}
+function renderMonth(all){
+ monthTitle.textContent=cursor.toLocaleDateString([], {month:'long',year:'numeric'});
+ var y=cursor.getFullYear(),m=cursor.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),today=iso(new Date()),html='<div class="week"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div><div class="days">';
+ for(var i=0;i<42;i++){var d=new Date(start);d.setDate(start.getDate()+i);var ds=iso(d),rows=all.filter(function(a){return a.date===ds});html+='<div class="day '+(d.getMonth()!==m?'out ':'')+(ds===today?'today ':'')+(ds===selectedDate?'selected':'')+'" onclick="selectDate(\''+ds+'\')"><div class="num">'+d.getDate()+'</div>'+rows.slice(0,3).map(function(a){var st=status(a);return'<div class="event '+(st[1]==='warn'?'pending ':'')+(a.notCompleted?'critical':'')+'" onclick="event.stopPropagation();openEditor(\''+esc(a.id)+'\')">'+esc((a.time||'')+' '+a.residentName)+'</div>'}).join('')+(rows.length>3?'<div class="small">+'+(rows.length-3)+' more</div>':'')+'</div>'}
+ calendarBody.innerHTML=html+'</div>';
+}
+function renderYear(all){
+ var year=cursor.getFullYear(),today=iso(new Date());monthTitle.textContent=String(year);var html='<div class="year-view">';
+ for(var m=0;m<12;m++){var first=new Date(year,m,1),start=new Date(year,m,1-first.getDay());html+='<div class="mini-month"><div class="mini-title" onclick="openMonth('+m+')">'+first.toLocaleDateString([], {month:'long'})+'</div><div class="mini-week"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div class="mini-days">';
+ for(var i=0;i<42;i++){var d=new Date(start);d.setDate(start.getDate()+i);var ds=iso(d),has=all.some(function(a){return a.date===ds});html+='<div class="mini-day '+(d.getMonth()!==m?'out ':'')+(ds===today?'today ':'')+(ds===selectedDate?'selected ':'')+(has?'has':'')+'" onclick="selectYearDate(\''+ds+'\')">'+d.getDate()+'</div>'}html+='</div></div>'}
+ calendarBody.innerHTML=html+'</div>';
+}
+function renderAgenda(){var rows=CLCData.appointmentsForDate(selectedDate);agendaTitle.textContent=new Date(selectedDate+'T12:00:00').toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});agenda.innerHTML=rows.length?rows.map(function(a){var st=status(a);return'<div class="appt" onclick="openEditor(\''+esc(a.id)+'\')"><div class="appt-top"><span><b>'+esc(a.time||a.leaveTime||'Time not set')+' · '+esc(a.residentName)+'</b><span class="small">Room '+esc(a.room||'—')+' · '+esc(a.location||'Location not entered')+'</span></span><span class="pill '+st[1]+'">'+st[0]+'</span></div><div class="small" style="margin-top:7px">'+esc(a.transportation||'Transportation not specified')+'</div></div>'}).join(''):'<div class="small" style="padding:30px;text-align:center">No appointments scheduled for this day.</div>'}
+window.setCalendarView=function(v){calendarView=v;localStorage.setItem('clc-scheduler-view',v);render()}
+window.moveView=function(n){if(calendarView==='day'){var d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()+n);selectedDate=iso(d);cursor=new Date(d)}else if(calendarView==='week'){var w=new Date(selectedDate+'T12:00:00');w.setDate(w.getDate()+7*n);selectedDate=iso(w);cursor=new Date(w)}else if(calendarView==='year'){cursor=new Date(cursor.getFullYear()+n,0,1);selectedDate=iso(new Date(cursor.getFullYear(),0,1))}else{cursor=new Date(cursor.getFullYear(),cursor.getMonth()+n,1);selectedDate=iso(new Date(cursor.getFullYear(),cursor.getMonth(),1))}render()}
+window.goToday=function(){var d=new Date();selectedDate=iso(d);cursor=new Date(d);render()}
+window.selectDate=function(v){selectedDate=v;cursor=new Date(v+'T12:00:00');render()}
+window.selectYearDate=function(v){selectedDate=v;cursor=new Date(v+'T12:00:00');calendarView='day';localStorage.setItem('clc-scheduler-view','day');render()}
+window.openMonth=function(m){cursor=new Date(cursor.getFullYear(),m,1);selectedDate=iso(cursor);calendarView='month';localStorage.setItem('clc-scheduler-view','month');render()}
 window.closeEditor=function(){document.getElementById('modalbg').classList.remove('show')}
 window.openEditor=function(id,date){
  var a=id?CLCData.appointments().find(function(x){return x.id===id}):null;a=a||CLCData.normalizeAppointment({date:date||selectedDate,transportNeeded:true});

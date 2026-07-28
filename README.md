@@ -65,3 +65,8 @@ Morning Report now reads its daily appointment and transportation information di
 ## v5.8 Connected Command Center
 
 The Command Center now uses the same Veteran, schedule, appointment, Ticket to Ride, and Travel Request data as the rest of ChargeNurse. Duplicate Veteran editing and the extra Skin/Lab categories were removed from this operational screen.
+
+
+## v5.9 Scheduler Calendar Views
+
+Scheduler supports Day, Week, Month, and Year views while preserving transportation and appointment workflow.
