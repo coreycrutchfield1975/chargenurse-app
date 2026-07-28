@@ -95,3 +95,8 @@ Provider phone and fax can now auto-fill from Settings, remain editable per appo
 ## v6.4 Printable Ticket to Ride
 
 Scheduler now generates an individual printable Ticket to Ride from either the appointment editor or a saved daily-agenda appointment. Printing does not automatically change the existing workflow status.
+
+
+## v6.5 Transportation Department Defaults
+
+Settings now stores transportation email, phone, fax, and standing instructions. These values can prefill appointments and appear in Travel Requests and printable Tickets to Ride.

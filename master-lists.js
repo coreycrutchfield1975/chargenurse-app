@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
-var KEY='chargenurse-master-lists-v3';
-var LEGACY_KEYS=['chargenurse-master-lists-v2','chargenurse-master-lists-v1'];
+var KEY='chargenurse-master-lists-v4';
+var LEGACY_KEYS=['chargenurse-master-lists-v3','chargenurse-master-lists-v2','chargenurse-master-lists-v1'];
 var DEFAULTS={
   providers:['McCain','Cook'],
   transportation:['VA Vehicle','Wheelchair Van','Ambulance','Family','Private Vehicle','Taxi / Rideshare','Other'],
@@ -14,6 +14,7 @@ var DEFAULT_PROFILES={
   McCain:{clinic:'',facility:'',phone:'',fax:''},
   Cook:{clinic:'',facility:'',phone:'',fax:''}
 };
+var DEFAULT_TRANSPORT_CONTACT={email:'',phone:'',fax:'',instructions:''};
 function parse(v,f){try{return v?JSON.parse(v):f}catch(e){return f}}
 function clean(items){
   var seen={};
@@ -38,6 +39,12 @@ function normalized(data){
   Object.keys(DEFAULTS).forEach(function(key){
     out[key]=clean(data[key]&&data[key].length?data[key]:DEFAULTS[key])
   });
+  out.transportContact={
+    email:String((data.transportContact||{}).email||'').trim(),
+    phone:String((data.transportContact||{}).phone||'').trim(),
+    fax:String((data.transportContact||{}).fax||'').trim(),
+    instructions:String((data.transportContact||{}).instructions||'').trim()
+  };
   out.providerProfiles={};
   var source=data.providerProfiles||{};
   out.providers.forEach(function(name){
@@ -52,6 +59,7 @@ function load(){
     saved=saved||{};
     saved=Object.assign({},DEFAULTS,saved);
     saved.providerProfiles=saved.providerProfiles||DEFAULT_PROFILES;
+    saved.transportContact=saved.transportContact||DEFAULT_TRANSPORT_CONTACT;
     localStorage.setItem(KEY,JSON.stringify(normalized(saved)))
   }
   return normalized(saved)
@@ -100,6 +108,17 @@ function providerProfile(name){
   var d=load(),needle=String(name||'').trim().toLowerCase(),key=Object.keys(d.providerProfiles||{}).find(function(k){return k.toLowerCase()===needle});
   return cleanProfile(key?d.providerProfiles[key]:{})
 }
+function transportContact(){return load().transportContact||Object.assign({},DEFAULT_TRANSPORT_CONTACT)}
+function saveTransportContact(contact){
+  var d=load();
+  d.transportContact={
+    email:String((contact||{}).email||'').trim(),
+    phone:String((contact||{}).phone||'').trim(),
+    fax:String((contact||{}).fax||'').trim(),
+    instructions:String((contact||{}).instructions||'').trim()
+  };
+  return save(d)
+}
 function saveProviderProfile(name,profile){
   var d=load(),needle=String(name||'').trim().toLowerCase(),key=d.providers.find(function(x){return x.toLowerCase()===needle})||String(name||'').trim();
   if(!key)return d;
@@ -116,6 +135,7 @@ global.ChargeNurseLists={
   removeProvider:function(name){return remove('providers',name)},
   providerOptions:function(selected){return options('providers',selected)},
   fillProviderList:function(id,selected){return fill(id,'providers',selected)},
-  providerProfile:providerProfile,saveProviderProfile:saveProviderProfile
+  providerProfile:providerProfile,saveProviderProfile:saveProviderProfile,
+  transportContact:transportContact,saveTransportContact:saveTransportContact
 };
 })(window);

@@ -34,6 +34,7 @@
   </div>
   <div class="add"><input id="newItem" onkeydown="if(event.key==='Enter')addItem()"><button class="btn primary" onclick="addItem()">Add</button></div>
   <div class="list" id="rows"></div>
+  <div class="profile" id="transportContactPanel" style="display:none"><h3>Transportation Department Defaults</h3><div class="small">These values can prefill new appointments and Travel Requests.</div><div class="profile-grid"><div><div class="small">Email</div><input id="transportEmail" type="email" placeholder="Optional"></div><div><div class="small">Phone</div><input id="transportPhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="transportFax" placeholder="Optional"></div><div><div class="small">Standing Instructions</div><input id="transportInstructions" placeholder="Optional"></div></div><div class="profile-actions"><button class="btn primary" onclick="saveTransportContact()">Save Transportation Defaults</button></div></div>
   <div class="profile" id="providerProfilePanel" style="display:none"><h3>Provider Defaults</h3><div class="small">Optional defaults fill only blank Scheduler fields when this provider is selected.</div><div class="profile-grid"><div><div class="small">Clinic</div><input id="profileClinic" list="settingsClinicList"></div><div><div class="small">Facility / Destination</div><input id="profileFacility" list="settingsFacilityList"></div><div><div class="small">Phone</div><input id="profilePhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="profileFax" placeholder="Optional"></div></div><datalist id="settingsClinicList"></datalist><datalist id="settingsFacilityList"></datalist><div class="profile-actions"><button class="btn primary" onclick="saveProfile()">Save Provider Defaults</button></div></div>
   <div class="notice">These are suggestions only. Staff may still type an unlisted value in Scheduler or Veteran Records.</div>
 </section>
@@ -65,6 +66,11 @@ function render(){
    return '<div class="row"><span class="name">'+esc(name)+'</span>'+extra+'<button class="btn" onclick="renameItem(\''+jsq(name)+'\')">Edit</button><button class="btn danger" onclick="deleteItem(\''+jsq(name)+'\')">Remove</button></div>'
  }).join(''):'<div class="small">No suggestions configured.</div>';
  providerProfilePanel.style.display=current==='providers'&&selectedProvider?'block':'none';
+ transportContactPanel.style.display=current==='transportation'?'block':'none';
+ if(current==='transportation'){
+   var tc=ChargeNurseLists.transportContact();
+   transportEmail.value=tc.email;transportPhone.value=tc.phone;transportFax.value=tc.fax;transportInstructions.value=tc.instructions
+ }
  settingsClinicList.innerHTML=ChargeNurseLists.options('clinics');
  settingsFacilityList.innerHTML=ChargeNurseLists.options('facilities')
 }
@@ -77,6 +83,10 @@ window.editProfile=function(name){
  selectedProvider=name;var p=ChargeNurseLists.providerProfile(name);
  profileClinic.value=p.clinic;profileFacility.value=p.facility;profilePhone.value=p.phone;profileFax.value=p.fax;
  render()
+}
+window.saveTransportContact=function(){
+ ChargeNurseLists.saveTransportContact({email:transportEmail.value,phone:transportPhone.value,fax:transportFax.value,instructions:transportInstructions.value});
+ alert('Transportation defaults saved.');render()
 }
 window.saveProfile=function(){
  if(!selectedProvider)return;
