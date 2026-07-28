@@ -1,0 +1,158 @@
+{
+  "phase": "26",
+  "audit_version": "7.4",
+  "application_changes": false,
+  "event_handler_audit": {
+    "charge-rn.html": {
+      "handler_calls": 151,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "chargenurse_auth",
+        "chargenurse_pass",
+        "cn_directives_files",
+        "mr_nurse",
+        "va-rn-workstation"
+      ]
+    },
+    "command-center.html": {
+      "handler_calls": 14,
+      "unresolved_handlers": [],
+      "storage_keys": []
+    },
+    "index.html": {
+      "handler_calls": 1,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "custom_bg"
+      ]
+    },
+    "morning-report.html": {
+      "handler_calls": 22,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "mr_auth"
+      ]
+    },
+    "operations-calendar.html": {
+      "handler_calls": 7,
+      "unresolved_handlers": [],
+      "storage_keys": []
+    },
+    "scheduler.html": {
+      "handler_calls": 37,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "clc-scheduler-view",
+        "clc-transport-email"
+      ]
+    },
+    "settings.html": {
+      "handler_calls": 15,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "chargenurse-settings-tab"
+      ]
+    },
+    "treatment-sheets.html": {
+      "handler_calls": 25,
+      "unresolved_handlers": [],
+      "storage_keys": [
+        "ts_auth",
+        "ts_nurse"
+      ]
+    },
+    "veterans.html": {
+      "handler_calls": 17,
+      "unresolved_handlers": [],
+      "storage_keys": []
+    }
+  },
+  "storage_inventory": {
+    "charge-rn.html": [
+      "chargenurse_auth",
+      "chargenurse_pass",
+      "cn_directives_files",
+      "mr_nurse",
+      "va-rn-workstation"
+    ],
+    "index.html": [
+      "custom_bg"
+    ],
+    "morning-report.html": [
+      "mr_auth"
+    ],
+    "scheduler.html": [
+      "clc-scheduler-view",
+      "clc-transport-email"
+    ],
+    "settings.html": [
+      "chargenurse-settings-tab"
+    ],
+    "treatment-sheets.html": [
+      "ts_auth",
+      "ts_nurse"
+    ],
+    "auth-session.js": [
+      "chargenurse_auth",
+      "mr_auth",
+      "ts_auth"
+    ]
+  },
+  "form_inventory": {
+    "charge-rn.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 60,
+      "dialogs": 0
+    },
+    "command-center.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 11,
+      "dialogs": 0
+    },
+    "index.html": {
+      "forms": 1,
+      "required_fields": 0,
+      "buttons": 7,
+      "dialogs": 0
+    },
+    "morning-report.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 20,
+      "dialogs": 0
+    },
+    "operations-calendar.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 6,
+      "dialogs": 0
+    },
+    "scheduler.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 20,
+      "dialogs": 0
+    },
+    "settings.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 10,
+      "dialogs": 0
+    },
+    "treatment-sheets.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 20,
+      "dialogs": 0
+    },
+    "veterans.html": {
+      "forms": 0,
+      "required_fields": 0,
+      "buttons": 12,
+      "dialogs": 0
+    }
+  },
+  "browser_runtime_attempt": "blocked by administrator in audit environment"
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "file": "appearance.js",
+    "status": "changed",
+    "phase21_sha256": "3915672eea2beb26fa221df1425cbeab3cce0fb11780afe15b2cdf909660acf9",
+    "phase25_sha256": "5f9b7336d75dbed9a5882e7e0cbef0a42b9c11855b8bba7bc9e9784671f77cd6"
+  },
+  {
+    "file": "auth-session.js",
+    "status": "same",
+    "phase21_sha256": "32a1301ffdd7c5dabd096284faa41ffbf9afbcd0d7c5e9e7b6b180f0a9f9f9a1",
+    "phase25_sha256": "32a1301ffdd7c5dabd096284faa41ffbf9afbcd0d7c5e9e7b6b180f0a9f9f9a1"
+  },
+  {
+    "file": "charge-rn.html",
+    "status": "changed",
+    "phase21_sha256": "86f7b97f12879df445183b440d33a5637e2e43e866af271479b7b8c9b497436c",
+    "phase25_sha256": "3bfe31529339131c50335079f8a906d57f4087fe082b89c3b25219ea49e5c4ed"
+  },
+  {
+    "file": "clc-data.js",
+    "status": "same",
+    "phase21_sha256": "41830f26df44d109e58e2527a27352a1a3a5dd1115fa19093697d0e0cee49b82",
+    "phase25_sha256": "41830f26df44d109e58e2527a27352a1a3a5dd1115fa19093697d0e0cee49b82"
+  },
+  {
+    "file": "command-center.html",
+    "status": "same",
+    "phase21_sha256": "9712b80e192efcbc3a182fcc2d7bb9731d3cc45224b9bbba5310e8ac93b8453b",
+    "phase25_sha256": "9712b80e192efcbc3a182fcc2d7bb9731d3cc45224b9bbba5310e8ac93b8453b"
+  },
+  {
+    "file": "index.html",
+    "status": "same",
+    "phase21_sha256": "b5546b7b4e7e429d070a8cbefd50bc50a0fe593983e7dfaa1d75f4e96735a897",
+    "phase25_sha256": "b5546b7b4e7e429d070a8cbefd50bc50a0fe593983e7dfaa1d75f4e96735a897"
+  },
+  {
+    "file": "master-lists.js",
+    "status": "same",
+    "phase21_sha256": "56b7ddbabc55f0697904c84bef97f20ca655077a77def88495ac1ed78bdf317e",
+    "phase25_sha256": "56b7ddbabc55f0697904c84bef97f20ca655077a77def88495ac1ed78bdf317e"
+  },
+  {
+    "file": "morning-report.html",
+    "status": "same",
+    "phase21_sha256": "1e7153770d034b6ce3a7b4b01412bd53cb5596bacddedf419cae73f607a2393f",
+    "phase25_sha256": "1e7153770d034b6ce3a7b4b01412bd53cb5596bacddedf419cae73f607a2393f"
+  },
+  {
+    "file": "operations-calendar.html",
+    "status": "same",
+    "phase21_sha256": "7e122de11fbdb932cf3e8110097bfc22cfb17cc3f14c5d826b0fa29c65a820fa",
+    "phase25_sha256": "7e122de11fbdb932cf3e8110097bfc22cfb17cc3f14c5d826b0fa29c65a820fa"
+  },
+  {
+    "file": "print-support.css",
+    "status": "same",
+    "phase21_sha256": "6fbdebe2f17fb4440f54832d732d149d0cc77e4a429e611d97c947198b770dcd",
+    "phase25_sha256": "6fbdebe2f17fb4440f54832d732d149d0cc77e4a429e611d97c947198b770dcd"
+  },
+  {
+    "file": "print-support.js",
+    "status": "same",
+    "phase21_sha256": "1e03767ee709d04d99c6639735200f34f9324206a885f0003a4ae66550ecf617",
+    "phase25_sha256": "1e03767ee709d04d99c6639735200f34f9324206a885f0003a4ae66550ecf617"
+  },
+  {
+    "file": "scheduler.html",
+    "status": "same",
+    "phase21_sha256": "f9a5ee1d5ed8d73834bb4a7f49d7ce0d3377c3b6bfcda34e4c86510451e6dda0",
+    "phase25_sha256": "f9a5ee1d5ed8d73834bb4a7f49d7ce0d3377c3b6bfcda34e4c86510451e6dda0"
+  },
+  {
+    "file": "settings.html",
+    "status": "same",
+    "phase21_sha256": "8706aebb9afa306e1d044308addb1d57c612a58f4215bdf84c86427c83523d1f",
+    "phase25_sha256": "8706aebb9afa306e1d044308addb1d57c612a58f4215bdf84c86427c83523d1f"
+  },
+  {
+    "file": "styles.css",
+    "status": "same",
+    "phase21_sha256": "78ff46c562e65ab8793f8ecbfb66c252bdf8a997341538c407a034b519830a6e",
+    "phase25_sha256": "78ff46c562e65ab8793f8ecbfb66c252bdf8a997341538c407a034b519830a6e"
+  },
+  {
+    "file": "treatment-sheets.html",
+    "status": "same",
+    "phase21_sha256": "ac3f3a92b57c20faa0f54fecd26f3492dd0444f1ce5cca20ff0d28646f8c4e72",
+    "phase25_sha256": "ac3f3a92b57c20faa0f54fecd26f3492dd0444f1ce5cca20ff0d28646f8c4e72"
+  },
+  {
+    "file": "veterans.html",
+    "status": "same",
+    "phase21_sha256": "7493ed9b9961fc27e2592d78583af957941c03edfdb066ecb4943da3e81690b0",
+    "phase25_sha256": "7493ed9b9961fc27e2592d78583af957941c03edfdb066ecb4943da3e81690b0"
+  }
+]
