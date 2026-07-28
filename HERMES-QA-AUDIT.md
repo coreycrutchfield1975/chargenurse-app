@@ -14,7 +14,7 @@
 | Operations Calendar | ✅ | 5/5 | N/A | ✅ Reads only | Shows schedules |
 | Morning Report | ✅ | 8/8 | N/A | ✅ Sync button | Pulls from CLCData |
 | RN Workstation | ✅ | 6/6 | N/A | ✅ Migrates legacy | Saves to CLCData |
-| Treatment Sheets | ⚠️ | — | — | ❌ Isolated | Own DATA_KEY |
+| Treatment Sheets | ✅ | 3/3 | N/A | ✅ Sync button | Import from CLCData |
 
 ---
 
@@ -120,6 +120,6 @@ The Phase 30 refactor is ~85% complete. Six of seven pages use `CLCData`:
 | Operations Calendar | `CLCData.residents()` + `CLCData.appointmentsForDate()` | ✅ |
 | Morning Report | `syncFromCommandCenter()` pulls from `CLCData` | ✅ |
 | RN Workstation | Legacy migration → `CLCData.upsertResident()` | ✅ |
-| Treatment Sheets | Own `DATA_KEY` localStorage | ❌ |
+| Treatment Sheets | `syncFromChargeNurse()` imports from `CLCData` | ✅ |
 
-**Six out of seven pages share data.** Treatment Sheets is the only outlier. No code changes were needed — the wiring was already done by ChatGPT's architecture work.
+**All seven pages now share data.**
