@@ -60,3 +60,8 @@ Appointments requiring transportation now open a Travel Request email draft befo
 ## v5.7 Morning Report Integration
 
 Morning Report now reads its daily appointment and transportation information directly from Scheduler through the shared data layer. The report remains complete and printable, while duplicate appointment editing has been removed from Morning Report.
+
+
+## v5.8 Connected Command Center
+
+The Command Center now uses the same Veteran, schedule, appointment, Ticket to Ride, and Travel Request data as the rest of ChargeNurse. Duplicate Veteran editing and the extra Skin/Lab categories were removed from this operational screen.
