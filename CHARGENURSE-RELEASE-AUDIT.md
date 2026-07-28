@@ -64,3 +64,33 @@ Older controls for admissions, transportation, roster import, and appointments w
 3. Confirm legacy browser data loads in Scheduler, Veteran Records, Morning Report, and RN Workstation.
 4. Verify all print layouts visually.
 5. Complete content-level review with the user for fields whose clinical necessity cannot be determined from code history alone.
+
+## Phase 23 audit pass
+
+### AUD-007 — Legacy background source compatibility
+
+**Priority:** High  
+**Status:** Repaired in Phase 23
+
+The packaged background images are present and pass image-integrity validation. The remaining risk was a stored browser value from an earlier build containing an absolute path, Windows separators, a leading slash, a CSS `url(...)` wrapper, or an obsolete folder prefix. The Appearance manager now normalizes those legacy forms and maps known background filenames to their current packaged locations before loading.
+
+### AUD-008 — Module structural integrity
+
+**Priority:** High  
+**Status:** Passed static deep audit
+
+Mission Control, Scheduler, Morning Report, Veteran Records, Treatment Sheets, Operations Calendar, Settings, and RN Workstation were checked for duplicate element IDs, missing local assets, missing internal navigation targets, broken datalist references, and missing label targets. No confirmed structural failures were found.
+
+### AUD-009 — Background file integrity
+
+**Priority:** High  
+**Status:** Passed
+
+All packaged PNG and JPEG backgrounds were opened and validated successfully. No corrupt image file was found.
+
+### AUD-010 — Browser runtime verification
+
+**Priority:** High  
+**Status:** Still requires testing on the presentation computer
+
+Automated browser launch is restricted in the current build environment. The included Phase 23 checklist therefore identifies a short manual smoke test for the presentation computer, with emphasis on legacy stored data, background selection, RN Workstation startup, Scheduler save/edit/print, and navigation.

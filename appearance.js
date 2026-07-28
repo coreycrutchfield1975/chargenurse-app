@@ -14,6 +14,30 @@ var defaults={
   panelOpacity:94
 };
 
+
+var legacySourceAliases={
+  'futuristic-nurse-operations-center.png':'backgrounds/defaults/futuristic-nurse-operations-center.png',
+  'medical-command-center-red-blue.png':'backgrounds/defaults/medical-command-center-red-blue.png',
+  'lotus-serenity.png':'backgrounds/defaults/lotus-serenity.png',
+  'patriotic-hospital.png':'backgrounds/patriotic-hospital.png',
+  'patriotic-watercolor.png':'backgrounds/patriotic-watercolor.png',
+  'patriotic-stethoscope.png':'backgrounds/patriotic-stethoscope.png',
+  'pink heart and background.png':'backgrounds/pink heart and background.png',
+  'blue heart.png':'backgrounds/blue heart.png',
+  'pexels-clickerhappy-584420.jpg':'backgrounds/pexels-clickerhappy-584420.jpg'
+};
+function normalizeStoredSource(source){
+  source=String(source||'').trim();
+  if(!source||/^data:image\//i.test(source)||/^blob:/i.test(source))return source;
+  source=source.replace(/^url\(["']?|["']?\)$/gi,'').replace(/\\/g,'/');
+  try{source=decodeURIComponent(source)}catch(e){}
+  var marker=source.toLowerCase().lastIndexOf('/backgrounds/');
+  if(marker>=0)source=source.slice(marker+1);
+  source=source.replace(/^\.\//,'').replace(/^\//,'');
+  var base=source.split('/').pop().toLowerCase();
+  return legacySourceAliases[base]||source;
+}
+
 var builtIns=[
   {name:'Page Default',source:'',group:'Neutral'},
   {name:'Clinical Operations',source:'backgrounds/defaults/futuristic-nurse-operations-center.png',group:'Command Center'},
@@ -33,11 +57,14 @@ function parse(value,fallback){
 function migrate(){
   if(localStorage.getItem(KEY))return;
   var old=parse(localStorage.getItem(LEGACY_KEY),null)||parse(localStorage.getItem(OLDEST_KEY),null);
-  if(old)localStorage.setItem(KEY,JSON.stringify(Object.assign({},defaults,old)));
+  if(old){old=Object.assign({},defaults,old);old.source=normalizeStoredSource(old.source);localStorage.setItem(KEY,JSON.stringify(old));}
 }
 function get(){
   migrate();
-  return Object.assign({},defaults,parse(localStorage.getItem(KEY),{}));
+  var current=Object.assign({},defaults,parse(localStorage.getItem(KEY),{}));
+  var normalizedSource=normalizeStoredSource(current.source);
+  if(normalizedSource!==current.source){current.source=normalizedSource;localStorage.setItem(KEY,JSON.stringify(current));}
+  return current;
 }
 function save(values){
   localStorage.setItem(KEY,JSON.stringify(Object.assign({},get(),values||{})));
