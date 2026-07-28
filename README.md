@@ -80,3 +80,8 @@ Settings now maintains shared Provider suggestions. McCain and Cook are the defa
 ## v6.1 Shared Scheduler Suggestions
 
 Settings now manages shared suggestions for Providers, Transportation, Escorts, Clinics, Facilities, and Appointment Reasons. Scheduler fields remain free-text and accept custom entries.
+
+
+## v6.2 Optional Provider Defaults
+
+Settings supports optional clinic, facility, phone, and fax details for each Provider. Scheduler fills only blank fields and never overwrites staff-entered information.

@@ -14,8 +14,8 @@
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab.active{background:var(--nav);color:#fff;border-color:var(--nav)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(37,66,55,.06)}.section{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.section h2{margin:0;font-size:19px}
 .add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:14px}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit}
-.list{display:grid;gap:8px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fafcfb}.name{font-weight:850}.small{font-size:12px;color:var(--muted);line-height:1.45}.notice{margin-top:14px;padding:12px;border-radius:12px;background:#edf5f3;color:#315d57}
-@media(max-width:650px){.top{flex-direction:column}.nav{justify-content:flex-start}.row{grid-template-columns:1fr auto}.add{grid-template-columns:1fr}}
+.list{display:grid;gap:8px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fafcfb}.name{font-weight:850}.small{font-size:12px;color:var(--muted);line-height:1.45}.notice{margin-top:14px;padding:12px;border-radius:12px;background:#edf5f3;color:#315d57}.profile{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#fafcfb}.profile h3{margin:0 0 5px}.profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.profile-actions{display:flex;justify-content:flex-end;margin-top:12px}
+@media(max-width:650px){.top{flex-direction:column}.nav{justify-content:flex-start}.row{grid-template-columns:1fr auto}.add{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -34,6 +34,7 @@
   </div>
   <div class="add"><input id="newItem" onkeydown="if(event.key==='Enter')addItem()"><button class="btn primary" onclick="addItem()">Add</button></div>
   <div class="list" id="rows"></div>
+  <div class="profile" id="providerProfilePanel" style="display:none"><h3>Provider Defaults</h3><div class="small">Optional defaults fill only blank Scheduler fields when this provider is selected.</div><div class="profile-grid"><div><div class="small">Clinic</div><input id="profileClinic" list="settingsClinicList"></div><div><div class="small">Facility / Destination</div><input id="profileFacility" list="settingsFacilityList"></div><div><div class="small">Phone</div><input id="profilePhone" placeholder="Optional"></div><div><div class="small">Fax</div><input id="profileFax" placeholder="Optional"></div></div><datalist id="settingsClinicList"></datalist><datalist id="settingsFacilityList"></datalist><div class="profile-actions"><button class="btn primary" onclick="saveProfile()">Save Provider Defaults</button></div></div>
   <div class="notice">These are suggestions only. Staff may still type an unlisted value in Scheduler or Veteran Records.</div>
 </section>
 </div>
@@ -50,6 +51,7 @@ var CONFIG={
  appointmentReasons:{title:'Appointment Reasons',singular:'Appointment reason',help:'Frequently used appointment types or reasons.'}
 };
 var current=localStorage.getItem('chargenurse-settings-tab')||'providers';
+var selectedProvider='';
 function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
 function jsq(x){return String(x||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function renderTabs(){
@@ -58,13 +60,29 @@ function renderTabs(){
 function render(){
  var cfg=CONFIG[current],items=ChargeNurseLists.items(current);
  renderTabs();listTitle.textContent=cfg.title;listHelp.textContent=cfg.help;newItem.placeholder='Enter '+cfg.singular.toLowerCase();
- rows.innerHTML=items.length?items.map(function(name){return '<div class="row"><span class="name">'+esc(name)+'</span><button class="btn" onclick="renameItem(\''+jsq(name)+'\')">Edit</button><button class="btn danger" onclick="deleteItem(\''+jsq(name)+'\')">Remove</button></div>'}).join(''):'<div class="small">No suggestions configured.</div>'
+ rows.innerHTML=items.length?items.map(function(name){
+   var extra=current==='providers'?'<button class="btn" onclick="editProfile(\''+jsq(name)+'\')">Defaults</button>':'';
+   return '<div class="row"><span class="name">'+esc(name)+'</span>'+extra+'<button class="btn" onclick="renameItem(\''+jsq(name)+'\')">Edit</button><button class="btn danger" onclick="deleteItem(\''+jsq(name)+'\')">Remove</button></div>'
+ }).join(''):'<div class="small">No suggestions configured.</div>';
+ providerProfilePanel.style.display=current==='providers'&&selectedProvider?'block':'none';
+ settingsClinicList.innerHTML=ChargeNurseLists.options('clinics');
+ settingsFacilityList.innerHTML=ChargeNurseLists.options('facilities')
 }
-window.chooseTab=function(k){current=k;localStorage.setItem('chargenurse-settings-tab',k);render()}
+window.chooseTab=function(k){current=k;selectedProvider='';localStorage.setItem('chargenurse-settings-tab',k);render()}
 window.addItem=function(){var value=newItem.value.trim();if(!value)return;ChargeNurseLists.add(current,value);newItem.value='';render()}
 window.renameItem=function(oldName){var value=prompt('Update '+CONFIG[current].singular.toLowerCase()+':',oldName);if(value===null)return;value=value.trim();if(!value)return;ChargeNurseLists.update(current,oldName,value);render()}
 window.deleteItem=function(name){if(!confirm('Remove '+name+' from the suggestions? Existing records will not be changed.'))return;ChargeNurseLists.remove(current,name);render()}
-window.restoreCurrent=function(){if(!confirm('Restore the default '+CONFIG[current].title.toLowerCase()+' list?'))return;var data=ChargeNurseLists.load();data[current]=ChargeNurseLists.defaults[current].slice();ChargeNurseLists.save(data);render()}
+window.restoreCurrent=function(){if(!confirm('Restore the default '+CONFIG[current].title.toLowerCase()+' list?'))return;var data=ChargeNurseLists.load();data[current]=ChargeNurseLists.defaults[current].slice();if(current==='providers'){data.providerProfiles={McCain:{clinic:'',facility:'',phone:'',fax:''},Cook:{clinic:'',facility:'',phone:'',fax:''}};selectedProvider=''}ChargeNurseLists.save(data);render()}
+window.editProfile=function(name){
+ selectedProvider=name;var p=ChargeNurseLists.providerProfile(name);
+ profileClinic.value=p.clinic;profileFacility.value=p.facility;profilePhone.value=p.phone;profileFax.value=p.fax;
+ render()
+}
+window.saveProfile=function(){
+ if(!selectedProvider)return;
+ ChargeNurseLists.saveProviderProfile(selectedProvider,{clinic:profileClinic.value,facility:profileFacility.value,phone:profilePhone.value,fax:profileFax.value});
+ alert('Defaults saved for '+selectedProvider+'.');render()
+}
 render()
 })();
 </script>
