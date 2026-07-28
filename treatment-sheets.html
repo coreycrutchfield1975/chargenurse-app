@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Treatment Sheets · CLC</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩹</text></svg>">
+<script src="auth-session.js"></script>
+<script src="clc-data.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   body {
@@ -267,6 +269,7 @@
   <div id="patientList">
     <div class="section-title">
       <span>👤 Patients</span>
+      <button class="no-print" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="syncFromChargeNurse()">↻ Sync ChargeNurse</button>
       <button class="no-print" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddPatient()">+ Add Patient</button>
     </div>
     <div class="patient-grid" id="patientGrid"></div>
@@ -425,6 +428,51 @@ function setPatients(patients) {
   var data = getData({});
   data[currentNurse] = patients;
   setData(data);
+}
+
+/* ── Sync from ChargeNurse (CLCData) ── */
+function syncFromChargeNurse() {
+  if (!window.CLCData) {
+    alert('ChargeNurse shared data layer is not available. Please log in through the Command Center first.');
+    return;
+  }
+  var residents = CLCData.residents(true);
+  if (!residents.length) {
+    alert('No active veterans found in ChargeNurse. Add veterans in Command Center or Veterans page first.');
+    return;
+  }
+  var patients = getPatients();
+  var imported = 0;
+  residents.forEach(function(r) {
+    // Check if already imported by matching name+room
+    var exists = Object.keys(patients).some(function(id) {
+      var p = patients[id];
+      return p.name === r.name && p.room === r.room;
+    });
+    if (!exists) {
+      var id = 'clc_' + (r.id || Date.now());
+      patients[id] = {
+        sheetType: 'licensed',
+        name: r.name || '',
+        room: r.room || '',
+        northSouth: '',
+        allergies: r.allergies || '',
+        nka: !r.allergies,
+        provider: r.provider || '',
+        month: new Date().toLocaleString('default', {month:'long'}),
+        year: String(new Date().getFullYear()),
+        treatments: []
+      };
+      imported++;
+    }
+  });
+  if (imported > 0) {
+    setPatients(patients);
+    showPatientList();
+    alert('Imported ' + imported + ' veteran' + (imported !== 1 ? 's' : '') + ' from ChargeNurse.');
+  } else {
+    alert('All veterans are already imported.');
+  }
 }
 
 /* ── Patient list ── */
