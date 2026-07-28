@@ -414,11 +414,11 @@ function renderAppointments(){
     h+='<div class="empty"><div class="empty-icon">📅</div>No appointments for this day.</div>';
   } else {
     appsForDay.forEach(x=>{
-      var st=x.completed?'complete':x.departed?'departed':x.confirmed?'confirmed':'pending';
-      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':'Pending';
+      var st=x.completed?'returned':x.departed?'departed':x.confirmed?'confirmed':x.transportStatus||'pending';
+      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':(x.transportStatus||'Pending');
       h+='<div class="appt-row" onclick="openAppointmentEditor(\''+esc(x.id)+'\')">';
       h+='<span class="appt-time">'+(x.leaveTime||x.time||'TBD')+'</span>';
-      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.location||x.clinic||'')+' · '+esc(x.transportation||'Transport?')+' · '+esc(x.escort||'')+'</span></span>';
+      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.reason||x.appointmentType||'')+' · '+esc(x.provider||x.doctorNP||'')+' · '+esc(x.location||'')+'</span></span>';
       h+='<span class="appt-status status-'+st+'">'+stLabel+'</span>';
       h+='</div>';
     });
@@ -430,82 +430,128 @@ function renderAppointments(){
 
 /* ── Appointment Editor Modal ── */
 function openAppointmentEditor(id){
-  var a=id?CLCData.appointments().find(x=>x.id===id):{id:'',date:iso(),time:'',leaveTime:'',residentId:'',location:'',clinic:'',provider:'',escort:'',transportation:'',reason:'',wheelchair:false,oxygen:false,transportNeeded:true,returnTime:'',notes:''};
+  var a=id?CLCData.appointments().find(x=>x.id===id):{id:'',date:iso(),time:'',leaveTime:'',returnTime:'',residentId:'',location:'',clinic:'',provider:'',escort:'',transportation:'',reason:'',transportStatus:'',escortName:'',prepInstructions:'',notes:'',changed:false,changeReason:''};
   var r=residents();
-  var h='<h2>'+(id?'Edit':'New')+' Appointment</h2>';
+  var h='';
+  
+  // Match original CLC Scheduler modal structure exactly
+  h+='<input type="hidden" id="m-id" value="'+esc(a.id||'')+'">';
+  
+  // Veteran standing notes
+  h+='<div class="standing-notes-box" id="m-standing-notes-box" style="display:none;background:var(--gp);border:1px solid var(--gold);border-radius:6px;padding:8px 10px;margin-bottom:10px">';
+  h+='<div class="standing-notes-label" style="font-size:11px;font-weight:700;color:#92400e">📌 Standing Notes for this Veteran</div>';
+  h+='<div class="standing-notes-text" id="m-standing-notes-text" style="font-size:12px;margin-top:4px"></div></div>';
+  
   h+='<div class="form-grid">';
   
-  // Veteran select
-  h+='<div class="form-group full"><label>Veteran</label><select id="aeResident">';
-  h+='<option value="">Select Veteran</option>';
-  r.forEach(x=>h+='<option value="'+esc(x.id)+'"'+(a.residentId===x.id?' selected':'')+'>'+(x.room?'Room '+x.room+' · ':'')+esc(x.name)+'</option>');
+  // Core fields
+  h+='<div class="fg form-full"><label class="fl">Veteran Name *</label>';
+  h+='<select id="m-vet" onchange="vetAutoFill()"><option value="">Select Veteran</option>';
+  r.forEach(function(x){h+='<option value="'+esc(x.name)+'" data-id="'+esc(x.id)+'" data-room="'+esc(x.room||'')+'"'+(a.residentId===x.id?' selected':'')+'>'+(x.room?'Rm '+x.room+' · ':'')+esc(x.name)+'</option>';});
   h+='</select></div>';
   
-  // Date and times
-  h+='<div class="form-group"><label>Date</label><input type="date" id="aeDate" value="'+esc(a.date)+'"></div>';
-  h+='<div class="form-group"><label>Appointment Time</label><input type="time" id="aeTime" value="'+esc(a.time)+'"></div>';
-  h+='<div class="form-group"><label>Departure Time</label><input type="time" id="aeLeave" value="'+esc(a.leaveTime)+'"></div>';
-  h+='<div class="form-group"><label>Return Time</label><input type="time" id="aeReturn" value="'+esc(a.returnTime)+'"></div>';
+  h+='<div class="fg"><label class="fl">Date *</label><input type="date" id="m-date" value="'+esc(a.date)+'"></div>';
+  h+='<div class="fg"><label class="fl">Appointment Time</label><input type="time" id="m-time" value="'+esc(a.time)+'"></div>';
+  h+='<div class="fg"><label class="fl" style="color:var(--gold)">★ Leave Time</label><input type="time" id="m-leave" value="'+esc(a.leaveTime)+'" style="border-color:var(--gold);background:var(--gp)"></div>';
+  h+='<div class="fg"><label class="fl">Expected Return Time</label><input type="time" id="m-return-time" value="'+esc(a.returnTime||'')+'"></div>';
   
-  // Location — SELECT not input
-  h+='<div class="form-group"><label>Location / Destination</label><select id="aeLocation">'+ChargeNurseLists.selectOptions('facilities',a.location||a.clinic)+'</select></div>';
-  h+='<div class="form-group"><label>Clinic</label><select id="aeClinic">'+ChargeNurseLists.selectOptions('clinics',a.clinic)+'</select></div>';
+  // Provider & Location section
+  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Provider & Location</div>';
+  h+='<div class="fg"><label class="fl">Appointment Type</label><select id="m-type">'+ChargeNurseLists.selectOptions('appointmentReasons',a.reason||a.appointmentType)+'</select></div>';
+  h+='<div class="fg"><label class="fl">Doctor / NP / Provider</label><select id="m-doctor" onchange="providerAutoFill()">'+ChargeNurseLists.selectOptions('providers',a.provider||a.doctorNP)+'</select></div>';
+  h+='<div class="fg"><label class="fl">Specialty</label><select id="m-spec">'+ChargeNurseLists.selectOptions('clinics',a.clinic||a.specialty)+'</select></div>';
+  h+='<div class="fg"><label class="fl">Location / Facility</label><select id="m-loc" onchange="locationAutoFill()">'+ChargeNurseLists.selectOptions('facilities',a.location)+'</select></div>';
+  h+='<div class="fg"><label class="fl">City / Town</label><input type="text" id="m-city" value="'+esc(a.cityTown||'')+'"></div>';
+  h+='<div class="fg"><label class="fl">Facility Phone</label><input type="tel" id="m-phone" value="'+esc(a.phone||'')+'"></div>';
   
-  // Provider — SELECT not input
-  h+='<div class="form-group"><label>Provider</label><select id="aeProvider" onchange="aeProviderChanged()">'+ChargeNurseLists.selectOptions('providers',a.provider)+'</select></div>';
+  // Transport section
+  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Transport & Escort</div>';
+  h+='<div class="fg"><label class="fl">Transport Type</label><select id="m-transport">'+ChargeNurseLists.selectOptions('transportation',a.transportation||a.transport)+'</select></div>';
+  h+='<div class="fg"><label class="fl">Transport Status</label><select id="m-transport-status">';
+  h+='<option value="">Not Set</option><option value="requested">🟡 Transport Requested</option><option value="confirmed">🔵 Transport Confirmed</option><option value="departed">🟠 Departed</option><option value="returned">✅ Returned</option></select></div>';
+  h+='<div class="fg form-full"><label class="fl">Escort / Attendant Name</label><input type="text" id="m-escort" value="'+esc(a.escortName||a.escort||'')+'"></div>';
   
-  // Escort + Transport — SELECTs
-  h+='<div class="form-group"><label>Escort</label><select id="aeEscort">'+ChargeNurseLists.selectOptions('escorts',a.escort)+'</select></div>';
-  h+='<div class="form-group"><label>Transportation</label><select id="aeTransport">'+ChargeNurseLists.selectOptions('transportation',a.transportation)+'</select></div>';
+  // Clinical notes
+  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Clinical Notes</div>';
+  h+='<div class="fg form-full"><label class="fl" style="color:var(--red)">Prep Instructions (NPO, hold meds, etc.)</label><textarea id="m-prep" style="min-height:50px;border-color:#fecaca;background:#fef2f2">'+esc(a.prepInstructions||'')+'</textarea></div>';
+  h+='<div class="fg form-full"><label class="fl">Notes</label><textarea id="m-notes">'+esc(a.notes||'')+'</textarea></div>';
   
-  // Reason — SELECT
-  h+='<div class="form-group full"><label>Appointment Reason</label><select id="aeReason">'+ChargeNurseLists.selectOptions('appointmentReasons',a.reason)+'</select></div>';
+  // Change tracking
+  h+='<div class="fg form-full"><div class="cb-row"><input type="checkbox" id="m-changed" onchange="toggleChange()"'+(a.changed?' checked':'')+'><label for="m-changed" class="fl" style="text-transform:none;letter-spacing:0;font-size:13px">⚠️ This appointment was changed or rescheduled</label></div>';
+  h+='<div class="change-box" id="change-box" style="display:'+(a.changed?'block':'none')+'"><label class="fl">Reason for Change</label><textarea id="m-changereason" style="min-height:50px;margin-top:5px">'+esc(a.changeReason||'')+'</textarea></div></div>';
   
-  // Checkboxes
-  h+='<div class="form-group full"><label>Status</label><div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px">';
-  h+='<label><input type="checkbox" id="aeNeeded"'+(a.transportNeeded?' checked':'')+'> Transport needed</label>';
-  h+='<label><input type="checkbox" id="aeWheel"'+(a.wheelchair?' checked':'')+'> Wheelchair</label>';
-  h+='<label><input type="checkbox" id="aeOxygen"'+(a.oxygen?' checked':'')+'> Oxygen</label>';
-  h+='<label><input type="checkbox" id="aeTicket"'+(a.ticketPrepared?' checked':'')+'> Ticket ready</label>';
-  h+='<label><input type="checkbox" id="aeTravel"'+(a.travelRequestEmailed?' checked':'')+'> Travel request sent</label>';
-  h+='<label><input type="checkbox" id="aeConfirmed"'+(a.confirmed?' checked':'')+'> Confirmed</label>';
-  h+='<label><input type="checkbox" id="aeDeparted"'+(a.departed?' checked':'')+'> Departed</label>';
-  h+='<label><input type="checkbox" id="aeCompleted"'+(a.completed?' checked':'')+'> Returned</label>';
-  h+='</div></div>';
+  h+='</div>'; // end form-grid
   
-  // Notes
-  h+='<div class="form-group full"><label>Notes</label><textarea id="aeNotes" rows="2">'+esc(a.notes)+'</textarea></div>';
-  h+='</div>';
-  
-  // Actions
-  h+='<div class="form-actions">';
-  if(id)h+='<button class="btn-danger btn-sm" onclick="deleteAppointment(\''+esc(id)+'\')">Delete</button>';
+  // Footer
+  h+='<div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">';
+  if(id)h+='<button class="btn-danger btn-sm" onclick="deleteAppointment(\''+esc(id)+'\')" style="margin-right:auto">🗑 Delete</button>';
   h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
-  h+='<button class="btn-gold" onclick="saveAppointment(\''+esc(a.id)+'\')">Save Appointment</button>';
-  h+='</div>';
+  h+='<button class="btn-gold" onclick="saveAppointment(\''+esc(a.id||'')+'\')">💾 Save Appointment</button></div>';
   
   showModal(h);
+  document.getElementById('m-transport-status').value=a.transportStatus||'';
+  if(id&&a.residentId){vetAutoFill();}
 }
 
-function aeProviderChanged(){
-  var name=$('aeProvider')?.value;
-  if(!name||!ChargeNurseLists)return;
+/* ── Auto-fill helpers ── */
+function vetAutoFill(){
+  var sel=document.getElementById('m-vet');if(!sel)return;
+  var opt=sel.options[sel.selectedIndex];if(!opt)return;
+  var box=document.getElementById('m-standing-notes-box');
+  var txt=document.getElementById('m-standing-notes-text');
+  var name=sel.value;var r=residents().find(function(x){return x.name===name;});
+  if(r&&r.notes){if(box&&txt){txt.textContent=r.notes;box.style.display='block'}}
+  else{if(box)box.style.display='none'}
+}
+
+function providerAutoFill(){
+  var name=document.getElementById('m-doctor')?.value;if(!name||!ChargeNurseLists)return;
   var p=ChargeNurseLists.providerProfile(name);
-  // Auto-fill provider details if available
+  if(p.facility){var loc=document.getElementById('m-loc');if(loc)loc.value=p.facility}
+  if(p.clinic){var spec=document.getElementById('m-spec');if(spec)spec.value=p.clinic}
+  if(p.phone){var phone=document.getElementById('m-phone');if(phone)phone.value=p.phone}
+}
+
+function locationAutoFill(){
+  var name=document.getElementById('m-loc')?.value;if(!name||!ChargeNurseLists)return;
+  var p=ChargeNurseLists.facilityProfile(name);
+  if(p.phone){var ph=document.getElementById('m-phone');if(ph&&!ph.value)ph.value=p.phone}
+  if(p.address){var c=document.getElementById('m-city');if(c&&!c.value)c.value=p.address}
+}
+
+function toggleChange(){
+  var box=document.getElementById('change-box');if(box)box.style.display=document.getElementById('m-changed')?.checked?'block':'none';
 }
 
 function saveAppointment(id){
+  var vet=document.getElementById('m-vet')?.value?.trim();
+  var date=document.getElementById('m-date')?.value;
+  if(!vet){alert('Veteran name is required.');return}
+  if(!date){alert('Date is required.');return}
+  var sel=document.getElementById('m-vet');var opt=sel?.options[sel.selectedIndex];
+  var residentId=opt?.dataset?.id||'';
   var a={
-    id:id||CLCData.uid(),residentId:$('aeResident').value,date:$('aeDate').value,
-    time:$('aeTime').value,leaveTime:$('aeLeave').value,returnTime:$('aeReturn').value,
-    location:$('aeLocation').value,clinic:$('aeClinic').value,
-    provider:$('aeProvider').value,escort:$('aeEscort').value,
-    transportation:$('aeTransport').value,reason:$('aeReason').value,
-    wheelchair:$('aeWheel')?.checked||false,oxygen:$('aeOxygen')?.checked||false,
-    transportNeeded:$('aeNeeded')?.checked!==false,
-    ticketPrepared:$('aeTicket')?.checked||false,travelRequestEmailed:$('aeTravel')?.checked||false,
-    confirmed:$('aeConfirmed')?.checked||false,departed:$('aeDeparted')?.checked||false,
-    completed:$('aeCompleted')?.checked||false,notes:$('aeNotes').value
+    id:id||CLCData.uid(),residentId:residentId,date:date,
+    time:document.getElementById('m-time')?.value||'',
+    leaveTime:document.getElementById('m-leave')?.value||'',
+    returnTime:document.getElementById('m-return-time')?.value||'',
+    reason:document.getElementById('m-type')?.value||'',
+    provider:document.getElementById('m-doctor')?.value||'',
+    clinic:document.getElementById('m-spec')?.value||'',
+    location:document.getElementById('m-loc')?.value||'',
+    cityTown:document.getElementById('m-city')?.value||'',
+    phone:document.getElementById('m-phone')?.value||'',
+    transportation:document.getElementById('m-transport')?.value||'',
+    transportStatus:document.getElementById('m-transport-status')?.value||'',
+    escort:document.getElementById('m-escort')?.value||'',
+    prepInstructions:document.getElementById('m-prep')?.value||'',
+    notes:document.getElementById('m-notes')?.value||'',
+    changed:document.getElementById('m-changed')?.checked||false,
+    changeReason:document.getElementById('m-changereason')?.value||'',
+    transportNeeded:!!(document.getElementById('m-transport')?.value),
+    completed:document.getElementById('m-transport-status')?.value==='returned',
+    departed:document.getElementById('m-transport-status')?.value==='departed',
+    confirmed:document.getElementById('m-transport-status')?.value==='confirmed'
   };
   var r=CLCData.resident(a.residentId);
   if(r){a.residentName=r.name;a.room=r.room}
