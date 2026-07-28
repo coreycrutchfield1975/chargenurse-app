@@ -16,10 +16,15 @@
 .agenda{max-height:650px;overflow:auto}.appt{padding:12px;border:1px solid #e3e5e0;border-radius:14px;margin-bottom:8px;background:#fbfaf6;cursor:pointer}.appt:hover{border-color:var(--teal)}.appt-top{display:flex;justify-content:space-between;gap:8px}.appt b{display:block}.small{font-size:11px;color:var(--muted)}.pill{display:inline-block;font-size:9px;padding:4px 7px;border-radius:999px;background:#e4efec;color:#2b615c;margin-top:6px}.pill.warn{background:#fff0dc;color:#84551d}.pill.done{background:#e5f1e8;color:#356747}
 .modalbg{display:none;position:fixed;inset:0;background:rgba(13,24,29,.68);z-index:20;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}.modalbg.show{display:flex}.modal{width:min(900px,100%);max-height:94vh;overflow:auto;background:var(--surface);border-radius:23px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.3)}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field.span2{grid-column:span 2}.field label{font-size:11px;font-weight:850;color:#52616a}.field input,.field select,.field textarea{border:1px solid #cfd7d2;border-radius:10px;padding:10px;background:#fff}.checks{display:flex;gap:12px;flex-wrap:wrap;padding:8px 0}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 @media(max-width:950px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{padding:14px}.top{flex-direction:column}.week,.days{gap:3px}.day{min-height:82px;padding:5px}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}}
-@media print{.nav,.metrics,.calendar-head .btn,.modalbg{display:none!important}.grid{display:block}.panel{box-shadow:none;border:1px solid #333;margin-bottom:12px}}
+@media print{
+.nav,.calendar-head .btn,.modalbg,.section .btn{display:none!important}
+.shell{max-width:none;padding:0}.top{display:none}.metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:0 0 10px}.metric{box-shadow:none;border:1px solid #777;padding:8px}.metric b{font-size:18px}
+.grid{display:block}.panel{box-shadow:none;border:1px solid #555;margin-bottom:12px;border-radius:0;padding:10px}.calendar-title{font-size:17px}.day{min-height:72px;border-color:#999;border-radius:0;padding:4px}.event{white-space:normal;font-size:8px;padding:3px}.agenda{max-height:none;overflow:visible}.appt{border-color:#888;border-radius:0;padding:8px}.week div{color:#000}
+}
 </style><script src="appearance.js"></script>
+<link rel="stylesheet" href="print-support.css">
 </head>
-<body><div class="shell">
+<body data-print-title="Scheduler and Transportation" data-print-subtitle="Appointments, transportation, travel requests, departures, and returns"><div class="shell">
 <header class="top"><div><div class="eyebrow">ChargeNurse · Scheduler Workspace</div><div class="title">Libertyville CLC Scheduler</div><div class="sub">Appointments, transportation and travel coordination—using the same Veteran records as Command Center.</div></div><div class="nav"><a class="btn" href="command-center.html">Command Center</a><a class="btn" href="operations-calendar.html">Operations Calendar</a><a class="btn" href="veterans.html">Veterans</a><button class="btn" onclick="window.print()">Print</button><button class="btn primary" onclick="openEditor()">New Appointment</button></div></header>
 <div class="metrics" id="metrics"></div>
 <div class="grid"><section class="panel"><div class="calendar-head"><button class="btn" onclick="moveMonth(-1)">Previous</button><div class="calendar-title" id="monthTitle"></div><button class="btn" onclick="moveMonth(1)">Next</button></div><div class="week"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div><div class="days" id="days"></div></section>
@@ -60,4 +65,5 @@ window.addEventListener('clc:datachange',render);
     if(found){selectedDate=found.date;cursor=new Date(found.date+'T12:00:00');render();openEditor(id)}
   }
 })();
-</script></body></html>
+</script><script src="print-support.js"></script>
+</body></html>

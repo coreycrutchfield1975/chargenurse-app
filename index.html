@@ -351,8 +351,9 @@ body.theme-custom {
 </style>
 <script src="auth-session.js"></script>
 <script src="appearance.js"></script>
+<link rel="stylesheet" href="print-support.css">
 </head>
-<body class="locked theme-default">
+<body class="locked theme-default" data-print-title="ChargeNurse" data-print-subtitle="Libertyville CLC nursing operations">
 
 <!-- ── Passcode lock overlay ──────────────────────────────────────── -->
 <div id="lock-overlay">
@@ -1132,5 +1133,6 @@ body.theme-custom {
   // Apply saved layout after lock screen
   applyLayout();
 </script>
+<script src="print-support.js"></script>
 </body>
 </html>

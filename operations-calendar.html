@@ -54,11 +54,12 @@ background:linear-gradient(rgba(233,239,236,.96),rgba(233,239,236,.98)),radial-g
 .note{margin-top:14px;padding:11px;border-radius:13px;background:#f4f1eb;color:#687279;font-size:11px;line-height:1.45}
 @media(max-width:1100px){.week{grid-template-columns:repeat(4,1fr)}.today-grid{grid-template-columns:1fr 1fr}.detail-columns{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.shell{padding:14px}.top{flex-direction:column}.metrics,.today-grid,.week,.detail-columns{grid-template-columns:1fr}.date-label{min-width:auto}.toolbar{align-items:flex-start}}
-@media print{.nav,.toolbar,.clc-appearance-launcher,.clc-appearance-backdrop{display:none!important}.panel,.day{box-shadow:none}.task-list{max-height:none;overflow:visible}.week{grid-template-columns:repeat(7,1fr)}}
+@media print{.nav,.toolbar,.clc-appearance-launcher,.clc-appearance-backdrop{display:none!important}.shell{max-width:none;padding:0}.top{display:none}.metrics{grid-template-columns:repeat(4,1fr)}.metric,.panel,.day{box-shadow:none!important;border-color:#666!important}.task-list{max-height:none;overflow:visible}.today-grid{grid-template-columns:repeat(3,1fr)}.week{grid-template-columns:repeat(7,1fr)}.detail-columns{grid-template-columns:repeat(4,1fr)}.note{display:none}}
 </style>
 <script src="appearance.js"></script>
+<link rel="stylesheet" href="print-support.css">
 </head>
-<body>
+<body data-print-title="Operations Calendar" data-print-subtitle="Showers, weights, vitals, and appointments due">
 <div class="shell">
 <header class="top">
   <div>
@@ -198,5 +199,6 @@ function render(){view==='today'?renderToday():renderWeek()}
 window.addEventListener('clc:datachange',render);
 render();
 </script>
+<script src="print-support.js"></script>
 </body>
 </html>

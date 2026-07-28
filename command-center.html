@@ -226,14 +226,15 @@ button{color:inherit}
   .transport-row{grid-template-columns:66px 1fr auto}.transport-row>:nth-child(3){display:none}
 }
 @media print{
-  .sidebar,.toolbar,.workspace-tabs,.actions,.modalbg{display:none!important}
-  .app-shell{display:block}.main{padding:0}.panel,.welcome{box-shadow:none;border:1px solid #333;background:#fff;color:#000}
-  body{background:#fff}.tasklist,.alerts{max-height:none}.small,.status{color:#333}
+  .sidebar,.toolbar,.workspace-tabs,.actions,.modalbg,.quick-links{display:none!important}
+  .app-shell{display:block}.main{padding:0}.topbar{display:none}.hero-strip,.dashboard-grid{grid-template-columns:1fr 1fr;gap:10px}.panel,.welcome{box-shadow:none;border:1px solid #555;background:#fff!important;color:#000!important;border-radius:0}.welcome-copy,.greet,.greet span{color:#000!important}
+  body{background:#fff}.tasklist,.alerts,.roster,.transport{max-height:none;overflow:visible}.small,.status{color:#333}.status-ribbon{grid-template-columns:repeat(7,1fr);box-shadow:none;border-color:#777}.status-ribbon .metric{padding:7px}.taskcard{border:1px solid #999}.alert-panel .panel-inner:after{display:none}section[hidden]{display:none!important}
 }
 </style>
 <script src="appearance.js"></script>
+<link rel="stylesheet" href="print-support.css">
 </head>
-<body>
+<body data-print-title="Nursing Command Center" data-print-subtitle="Today’s coordination and operational status">
 <div class="app-shell">
 <aside class="sidebar">
   <div class="brand">
@@ -403,4 +404,5 @@ window.importAll=function(e){var f=e.target.files[0];if(!f)return;var r=new File
 function clock(){var d=new Date();clockEl.textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});date.textContent=d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric',year:'numeric'});var h=d.getHours(),w=h<12?'morning':h<17?'afternoon':'evening';greet.innerHTML='Good '+w+', <span>'+esc(CLCAuth.currentUser()||'Nurse')+'</span>'}var clockEl=document.getElementById('clock');clock();setInterval(clock,30000);render();
 })();
 </script>
+<script src="print-support.js"></script>
 </body></html>

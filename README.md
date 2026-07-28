@@ -46,3 +46,7 @@ Open `veterans.html` to manage the shared Veteran database. Records contain oper
 ## v5.4 Operations Calendar
 
 `operations-calendar.html` is a read-only coordination view. It shows showers, weights, and vitals from schedules already entered during admission, along with scheduled appointments. It does not add assignments or duplicate documentation.
+
+
+## v5.5 Print and Connection Cleanup
+Shared print support was added across the connected operational pages. Morning Report was intentionally preserved without content changes.
