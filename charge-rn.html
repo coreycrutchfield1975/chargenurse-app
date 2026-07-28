@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Charge RN Workstation</title>
+<script src="clc-data.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
 <style>
 /* VA Charge RN Workstation v2 — Complete Stylesheet */
@@ -1620,6 +1621,7 @@ try {
   }
 } catch(_e) {}
 console.log('VA Charge RN: script executing');
+window.addEventListener('clc:datachange', function(){ if (typeof loadData==='function') { loadData(); if (typeof renderPatientList==='function') renderPatientList(); if (typeof renderContent==='function') renderContent(); } });
 // ============== DATA LAYER ==============
 let data = {         patients: [
           {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
@@ -1658,69 +1660,61 @@ let selectedPatientId = null;
 let currentTab = 'overview';
 let currentView = 'dashboard'; // 'dashboard' | 'unit'
 
+function rnSettingsLoad() {
+  try { return JSON.parse(localStorage.getItem('chargenurse-rn-settings') || '{}'); }
+  catch (e) { return {}; }
+}
+
+function appointmentSummaryForVeteran(id) {
+  if (!window.CLCData) return '';
+  return CLCData.appointments().filter(function(a) {
+    return a.residentId === String(id) && !a.completed && !a.notCompleted;
+  }).slice(0, 4).map(function(a) {
+    return [a.date, a.time, a.location || a.clinic].filter(Boolean).join(' ');
+  }).join('; ');
+}
+
+function ensureRNDefaults(r) {
+  r.bmLog = Array.isArray(r.bmLog) ? r.bmLog : [];
+  r.neuroChecks = Array.isArray(r.neuroChecks) ? r.neuroChecks : [];
+  r.skinAssessments = r.skinAssessments || {Mon:'',Tue:'',Wed:'',Thu:'',Fri:''};
+  r.weights = Array.isArray(r.weights) ? r.weights : [];
+  r.postFallVS = Array.isArray(r.postFallVS) ? r.postFallVS : [];
+  r.fsbsLog = Array.isArray(r.fsbsLog) ? r.fsbsLog : [];
+  r.oralInfo = r.oralInfo || {dental:'',notes:''};
+  r.transferChecklist = Array.isArray(r.transferChecklist) ? r.transferChecklist : [];
+  r.appointments = appointmentSummaryForVeteran(r.id) || r.rnAppointments || '';
+  return r;
+}
+
+function migrateLegacyRNDataIfNeeded() {
+  if (!window.CLCData || CLCData.residents(false).length) return;
+  try {
+    var legacy = JSON.parse(localStorage.getItem('va-rn-workstation') || 'null');
+    if (!legacy || !Array.isArray(legacy.patients) || !legacy.patients.length) return;
+    legacy.patients.forEach(function(p) {
+      p.active = p.active !== false;
+      p.rnAppointments = typeof p.appointments === 'string' ? p.appointments : '';
+      delete p.appointments;
+      CLCData.upsertResident(p);
+    });
+    localStorage.setItem('chargenurse-rn-migrated', new Date().toISOString());
+  } catch (e) { console.error('RN migration error:', e); }
+}
+
 function loadData() {
-  // Hard clear any password that leaked into settings
   try {
-    var raw = localStorage.getItem('va-rn-workstation');
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed && parsed.settings) {
-        var dirty = false;
-        Object.keys(parsed.settings).forEach(function(k) {
-          if (parsed.settings[k] === 'CLC-Admin-2024') {
-            delete parsed.settings[k];
-            dirty = true;
-          }
-        });
-        if (dirty) localStorage.setItem('va-rn-workstation', JSON.stringify(parsed));
-      }
-    }
-  } catch(e) {}
-  try {
-    const stored = localStorage.getItem('va-rn-workstation');
-    if (stored) {
-      data = JSON.parse(stored);
-    } else {
-      // Load sample data
-      data = {
-                patients: [
-          {id:"1",name:"Johnson, Harold",last4:"2345",room:"101A",diet:"Regular, Carb Count",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"Sulfa, PCN",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"PT Mon 10am; Dietitian Wed 2pm",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"2",name:"Martinez, Dolores",last4:"6789",room:"102A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"Lab draw Tue 0600",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"3",name:"Baker, William",last4:"1112",room:"103A",diet:"Pureed",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Wed","Fri","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"4",name:"Anderson, James",last4:"001",room:"104A",diet:"Regular",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"5",name:"Brown, Mary",last4:"002",room:"105A",diet:"Renal",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"6",name:"Clark, Robert",last4:"003",room:"106A",diet:"Pureed",isolation:"Droplet",fallRisk:false,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Wed","Sun"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"7",name:"Davis, Patricia",last4:"004",room:"107A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"8",name:"Edwards, John",last4:"005",room:"108A",diet:"Dysphagia",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"9",name:"Foster, Jennifer",last4:"006",room:"109A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"DNR/DNI",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"10",name:"Garcia, David",last4:"007",room:"110A",diet:"Heart Healthy",isolation:"Contact + Droplet",fallRisk:true,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"11",name:"Harris, Linda",last4:"008",room:"111A",diet:"Low Sodium",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"12",name:"Irwin, Richard",last4:"009",room:"112A",diet:"No Concentrated Sweets",isolation:"None",fallRisk:false,codeStatus:"DNR",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"13",name:"Jones, Barbara",last4:"010",room:"113A",diet:"Regular",isolation:"Contact",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"14",name:"Kelly, Joseph",last4:"011",room:"114A",diet:"Renal",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"15",name:"Lewis, Elizabeth",last4:"012",room:"115A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"DNI",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"16",name:"Miller, Thomas",last4:"013",room:"116A",diet:"Mechanical Soft",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"Latex",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"17",name:"Nelson, Margaret",last4:"014",room:"117A",diet:"Dysphagia",isolation:"Contact + Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Fri","Sat"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"18",name:"O'Brien, Charles",last4:"015",room:"118A",diet:"Diabetic",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Codeine",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"19",name:"Parker, Susan",last4:"016",room:"119A",diet:"Heart Healthy",isolation:"None",fallRisk:true,codeStatus:"DNR",allergies:"Iodine",bathDays:["Tue","Fri"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"20",name:"Quinn, William",last4:"017",room:"120A",diet:"Low Sodium",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Sulfa",bathDays:["Mon","Wed","Fri"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"21",name:"Reynolds, Dorothy",last4:"018",room:"121A",diet:"Regular",isolation:"Contact",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Tue","Thu","Sat"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"22",name:"Smith, George",last4:"019",room:"122A",diet:"Renal",isolation:"None",fallRisk:true,codeStatus:"DNR/DNI",allergies:"PCN",bathDays:["Mon","Thu"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"23",name:"Taylor, Helen",last4:"020",room:"123A",diet:"Pureed",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Morphine",bathDays:["Wed","Sun"],showerTime:"PM",vitalsFreq:"Q2h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"24",name:"Upton, Kenneth",last4:"021",room:"124A",diet:"Mechanical Soft",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"Latex",bathDays:["Fri","Sat"],showerTime:"AM",vitalsFreq:"Q6h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"25",name:"Valdez, Betty",last4:"022",room:"125A",diet:"Dysphagia",isolation:"None",fallRisk:true,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q12h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"26",name:"Washington, Edward",last4:"023",room:"126A",diet:"Diabetic",isolation:"Contact",fallRisk:false,codeStatus:"DNR",allergies:"Codeine",bathDays:["Tue","Fri"],showerTime:"AM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"27",name:"Xavier, Sandra",last4:"024",room:"127A",diet:"Heart Healthy",isolation:"Droplet",fallRisk:false,codeStatus:"Full Code",allergies:"Iodine",bathDays:["Mon","Thu"],showerTime:"PM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"28",name:"Young, Ronald",last4:"025",room:"128A",diet:"Low Sodium",isolation:"None",fallRisk:true,codeStatus:"DNI",allergies:"Sulfa",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Qshift",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-          {id:"29",name:"Zimmerman, Larry",last4:"026",room:"129A",diet:"Regular",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"NKDA",bathDays:["Mon","Wed","Fri"],showerTime:"PM",vitalsFreq:"Q4h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:"Kidney specialist consult pending"},
-          {id:"30",name:"Adams, Carol",last4:"027",room:"130A",diet:"Renal",isolation:"None",fallRisk:false,codeStatus:"Full Code",allergies:"PCN",bathDays:["Tue","Thu","Sat"],showerTime:"AM",vitalsFreq:"Q8h",appointments:"",bmLog:[],neuroChecks:[],skinAssessments:{Mon:"",Tue:"",Wed:"",Thu:"",Fri:""},weights:[],postFallVS:[],oralInfo:{dental:"",notes:""},sbar:"",transferChecklist:[],notes:""},
-        ],
-        settings: { nurseName: '', background: 'clinical' },
-        nextId: 31
-      };
-    }
+    migrateLegacyRNDataIfNeeded();
+    var settings = rnSettingsLoad();
+    var residents = window.CLCData ? CLCData.residents(true) : [];
+    data = {
+      patients: residents.map(function(r) { return ensureRNDefaults(Object.assign({}, r)); }),
+      settings: Object.assign({ nurseName:'', background:'clinical' }, settings),
+      nextId: Date.now()
+    };
   } catch(e) {
-    console.error('Load error:', e);
+    console.error('Shared RN load error:', e);
+    data = {patients:[], settings:{nurseName:'',background:'clinical'}, nextId:Date.now()};
   }
   applyTheme();
   updateNurseBadge();
@@ -1728,10 +1722,25 @@ function loadData() {
 
 function saveData() {
   try {
-    localStorage.setItem('va-rn-workstation', JSON.stringify(data));
+    if (!window.CLCData) throw new Error('Shared CLCData layer is unavailable.');
+    var shared = CLCData.load();
+    var byId = {};
+    shared.residents.forEach(function(r){ byId[String(r.id)] = r; });
+
+    data.patients.forEach(function(patient) {
+      var copy = Object.assign({}, byId[String(patient.id)] || {}, patient);
+      copy.active = true;
+      copy.rnAppointments = typeof patient.appointments === 'string' ? patient.appointments : (patient.rnAppointments || '');
+      delete copy.appointments;
+      CLCData.upsertResident(copy);
+    });
+
+    localStorage.setItem('chargenurse-rn-settings', JSON.stringify(data.settings || {}));
+    // Retire the duplicate roster after a successful shared save.
+    localStorage.removeItem('va-rn-workstation');
   } catch(e) {
     console.error('Save error:', e);
-    alert('Error saving data. Check browser storage limits.');
+    alert('Error saving shared Veteran data. ' + e.message);
   }
 }
 
@@ -2013,10 +2022,10 @@ function saveAddPatient() {
 }
 
 function deletePatient(id) {
-  if (!confirm('Remove this patient from the roster?')) return;
-  data.patients = data.patients.filter(p => p.id !== id);
+  if (!confirm('Archive this Veteran from the active roster? The shared clinical record will be retained.')) return;
+  if (window.CLCData) CLCData.setResidentActive(id, false);
+  data.patients = data.patients.filter(function(p){ return p.id !== id; });
   if (selectedPatientId === id) selectedPatientId = null;
-  saveData();
   renderPatientList();
   renderContent();
 }

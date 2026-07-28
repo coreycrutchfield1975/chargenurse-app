@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='6.6';
+var VERSION='7.0-phase30';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -41,7 +41,27 @@ function normalizeResident(r,index){
     vitalsDays:Array.isArray(r.vitalsDays)?r.vitalsDays:[],
     weightDays:Array.isArray(r.weightDays)?r.weightDays:[],
     skinDays:Array.isArray(r.skinDays)?r.skinDays:[],
-    labDays:Array.isArray(r.labDays)?r.labDays:[]
+    labDays:Array.isArray(r.labDays)?r.labDays:[],
+
+    // Charge RN clinical workspace fields now live on the shared Veteran record.
+    assistance:r.assistance||'', toilet:r.toilet||'', serviceConnection:r.serviceConnection||'',
+    siderail:r.siderail||'', meds:r.meds||'', ppdDate:r.ppdDate||'', ppdRead:r.ppdRead||'',
+    ppdResult:r.ppdResult||'', vitalsFreq:r.vitalsFreq||'', fsbsCount:Number(r.fsbsCount||0),
+    physician:r.physician||'', showerTime:r.showerTime||'AM',
+    bmLog:Array.isArray(r.bmLog)?r.bmLog:[],
+    neuroChecks:Array.isArray(r.neuroChecks)?r.neuroChecks:[],
+    skinAssessments:r.skinAssessments&&typeof r.skinAssessments==='object'?r.skinAssessments:{Mon:'',Tue:'',Wed:'',Thu:'',Fri:''},
+    weights:Array.isArray(r.weights)?r.weights:[],
+    postFallVS:Array.isArray(r.postFallVS)?r.postFallVS:[],
+    fsbsLog:Array.isArray(r.fsbsLog)?r.fsbsLog:[],
+    oralInfo:r.oralInfo&&typeof r.oralInfo==='object'?r.oralInfo:{dental:'',notes:''},
+    sbar:r.sbar||'', transferChecklist:Array.isArray(r.transferChecklist)?r.transferChecklist:[],
+    skinAssigned:r.skinAssigned||'', showerAssigned:r.showerAssigned||'',
+    vitalsAssigned:r.vitalsAssigned||'', weightsAssigned:r.weightsAssigned||'',
+    admission:r.admission&&typeof r.admission==='object'?r.admission:{},
+    nursingNotes:Array.isArray(r.nursingNotes)?r.nursingNotes:[],
+    alerts:Array.isArray(r.alerts)?r.alerts:[],
+    rnAppointments:r.rnAppointments||r.appointmentsText||''
   }
 }
 function normalizeAppointment(a){
