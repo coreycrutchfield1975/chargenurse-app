@@ -102,6 +102,6 @@ Scheduler now generates an individual printable Ticket to Ride from either the a
 Settings now stores transportation email, phone, fax, and standing instructions. These values can prefill appointments and appear in Travel Requests and printable Tickets to Ride.
 
 
-## v6.6 Command Center Personality
+## v6.7 Command Center Personality
 
 The Command Center now uses funny, shift-aware greetings and a rotating Nursing Spark with nursing history, encouragement, teamwork reminders, and light humor.
