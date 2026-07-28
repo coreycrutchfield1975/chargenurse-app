@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='6.5';
+var VERSION='6.6';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}

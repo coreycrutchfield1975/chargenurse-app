@@ -226,9 +226,18 @@ button{color:inherit}
   .form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}
   .transport-row{grid-template-columns:66px 1fr auto}.transport-row>:nth-child(3){display:none}
 }
+
+.nursing-spark{margin-top:16px;padding:14px 15px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.12);backdrop-filter:blur(5px)}
+.spark-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px}
+.spark-label{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.78)}
+.spark-next{appearance:none;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;cursor:pointer}
+.spark-next:hover{background:rgba(255,255,255,.2)}
+.spark-text{font-size:14px;line-height:1.5;font-weight:750;color:#fff}
+.spark-source{font-size:11px;margin-top:6px;color:rgba(255,255,255,.72)}
 @media print{
   .sidebar,.toolbar,.workspace-tabs,.actions,.modalbg,.quick-links{display:none!important}
   .app-shell{display:block}.main{padding:0}.topbar{display:none}.hero-strip,.dashboard-grid{grid-template-columns:1fr 1fr;gap:10px}.panel,.welcome{box-shadow:none;border:1px solid #555;background:#fff!important;color:#000!important;border-radius:0}.welcome-copy,.greet,.greet span{color:#000!important}
+  .nursing-spark{border:1px solid #777!important;background:#fff!important;color:#000!important}.spark-label,.spark-text,.spark-source{color:#000!important}.spark-next{display:none!important}
   body{background:#fff}.tasklist,.alerts,.roster,.transport{max-height:none;overflow:visible}.small,.status{color:#333}.status-ribbon{grid-template-columns:repeat(7,1fr);box-shadow:none;border-color:#777}.status-ribbon .metric{padding:7px}.taskcard{border:1px solid #999}.alert-panel .panel-inner:after{display:none}section[hidden]{display:none!important}
 }
 </style>
@@ -274,8 +283,13 @@ button{color:inherit}
 
 <section class="hero-strip">
   <div class="welcome">
-    <div class="greet" id="greet">Good morning, <span>Nurse</span></div>
+    <div class="greet" id="greet">Scrubs on. Let’s make the shift behave.</div>
     <div class="welcome-copy">ChargeNurse brings together today’s scheduled care and Scheduler transportation information without duplicating entry.</div>
+    <div class="nursing-spark" aria-live="polite">
+      <div class="spark-top"><span class="spark-label" id="sparkLabel">Nursing spark</span><button class="spark-next" type="button" onclick="nextSpark()">Another one ↻</button></div>
+      <div class="spark-text" id="sparkText"></div>
+      <div class="spark-source" id="sparkSource"></div>
+    </div>
     <div class="quick-links">
       <a class="btn module-scheduler" href="scheduler.html">Open Scheduler</a>
       <a class="btn module-report" href="morning-report.html">Morning Report</a>
@@ -388,8 +402,68 @@ window.discharge=function(id){location.href='veterans.html?resident='+encodeURIC
 window.syncRN=function(){location.href='veterans.html'}
 window.exportAll=function(){var pkg={app:'ChargeNurse',version:VERSION,exportedAt:new Date().toISOString(),sharedData:shared(),rnWorkstation:parse(localStorage.getItem(RN_KEY),null),morningReport:{}};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('mr_')===0)pkg.morningReport[k]=localStorage.getItem(k)}var blob=new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ChargeNurse-Backup-'+iso()+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 window.importAll=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(r.result),incoming=p.sharedData||p.commandCenter;if(incoming)CLCData.save(incoming);if(p.rnWorkstation)localStorage.setItem(RN_KEY,JSON.stringify(p.rnWorkstation));if(p.morningReport)Object.keys(p.morningReport).forEach(function(k){localStorage.setItem(k,p.morningReport[k])});render();alert('Backup restored.')}catch(err){alert('Could not restore: '+err.message)}e.target.value=''};r.readAsText(f)}
-function clock(){var d=new Date();clockEl.textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});date.textContent=d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric',year:'numeric'});var h=d.getHours(),w=h<12?'morning':h<17?'afternoon':'evening';greet.innerHTML='Good '+w+', <span>'+esc(CLCAuth.currentUser()||'Nurse')+'</span>'}
-var clockEl=document.getElementById('clock');clock();setInterval(clock,30000);window.addEventListener('clc:datachange',render);render();
+var FUN_GREETINGS={
+ morning:[
+  'Coffee checked. Census checked. Chaos, please take a number.',
+  'The unit is awake. Whether it is ready is another question.',
+  'Scrubs on, coffee nearby, clinical judgment fully charged.',
+  'Rise, chart, coordinate, repeat.',
+  'Morning report survived. Now let’s make the shift behave.'
+ ],
+ afternoon:[
+  'Halfway there. The call lights have formed a committee.',
+  'Still standing, still charting, still making it happen.',
+  'The afternoon plot twist has entered the building.',
+  'Hydrate, delegate, and do not trust an unusually quiet hallway.',
+  'The shift is moving. So is everything else.'
+ ],
+ evening:[
+  'Night mode activated. Clinical instincts remain fully lit.',
+  'The sun clocked out. Nursing did not.',
+  'Evening crew online: calm voices, sharp eyes, strong coffee.',
+  'The hallway is quieter. Suspicious, but appreciated.',
+  'Let’s land this shift with fewer loose ends than we found.'
+ ]
+};
+var NURSING_SPARKS=[
+ {label:'From nursing history',text:'Modern nursing grew stronger when careful observation, sanitation, and organized records became part of everyday patient care.',source:'A reminder that good systems have always mattered.'},
+ {label:'Nursing spark',text:'A calm nurse does not mean a calm shift. It means someone capable is holding the center.',source:'ChargeNurse original'},
+ {label:'From nursing history',text:'Nursing documentation evolved from simple bedside notes into a vital record of assessment, communication, and continuity of care.',source:'The chart tells the next clinician what the room cannot.'},
+ {label:'Nursing spark',text:'You cannot prevent every surprise, but you can make sure the important details are not hiding in three different places.',source:'ChargeNurse original'},
+ {label:'From nursing history',text:'Public health nursing helped move care beyond hospital walls and into homes, schools, neighborhoods, and communities.',source:'Nursing has always gone where people need it.'},
+ {label:'Nursing spark',text:'Today’s goal: fewer mysteries, clearer handoffs, and at least one uninterrupted sip of coffee.',source:'ChargeNurse original'},
+ {label:'Nursing spark',text:'Good teamwork is knowing who has the answer. Great teamwork is making sure everyone can find it.',source:'ChargeNurse original'},
+ {label:'From nursing history',text:'The nursing profession has long combined skilled care, patient advocacy, education, and practical problem-solving.',source:'Different century, familiar assignment.'},
+ {label:'Nursing spark',text:'The schedule is a plan, not a prophecy. Adjust intelligently.',source:'ChargeNurse original'},
+ {label:'Nursing spark',text:'Behind every smooth appointment is someone who checked the time, the ride, the paperwork, and the thing nobody remembered to mention.',source:'ChargeNurse original'},
+ {label:'Nursing spark',text:'Clinical excellence is serious work. The people doing it are still allowed to laugh.',source:'ChargeNurse original'},
+ {label:'From nursing history',text:'Nursing education moved from informal apprenticeship toward formal schools, standards, licensure, and specialized practice.',source:'The profession kept learning—and still does.'}
+];
+var greetingKey='',sparkIndex=-1;
+function daypart(h){return h<12?'morning':h<17?'afternoon':'evening'}
+function greetingFor(d){
+ var part=daypart(d.getHours()),name=CLCAuth.currentUser()||'Nurse';
+ var day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(),key=day+'-'+part;
+ var list=FUN_GREETINGS[part],seed=(d.getDate()+d.getMonth()*7+d.getHours()+name.length)%list.length;
+ greetingKey=key;
+ return list[seed]+' <span>'+esc(name)+'</span>'
+}
+function renderSpark(index){
+ sparkIndex=((index%NURSING_SPARKS.length)+NURSING_SPARKS.length)%NURSING_SPARKS.length;
+ var item=NURSING_SPARKS[sparkIndex];
+ sparkLabel.textContent=item.label;sparkText.textContent=item.text;sparkSource.textContent=item.source
+}
+window.nextSpark=function(){renderSpark(sparkIndex+1)}
+function clock(){
+ var d=new Date();
+ clockEl.textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+ date.textContent=d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric',year:'numeric'});
+ var key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'-'+daypart(d.getHours());
+ if(key!==greetingKey)greet.innerHTML=greetingFor(d)
+}
+var clockEl=document.getElementById('clock');
+var nowForSpark=new Date(),sparkSeed=(nowForSpark.getFullYear()+nowForSpark.getMonth()*31+nowForSpark.getDate())%NURSING_SPARKS.length;
+renderSpark(sparkSeed);clock();setInterval(clock,30000);window.addEventListener('clc:datachange',render);render();
 })();
 </script>
 </script>
