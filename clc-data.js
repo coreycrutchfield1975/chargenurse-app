@@ -263,3 +263,7 @@ global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
   upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,
   normalizeAppointment:normalizeAppointment};
 })(window);
+
+
+// RN13 build marker
+window.RN13_BUILD='Phase30-RN13';
