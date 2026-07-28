@@ -10,11 +10,11 @@
 |--------|-------|---------|-----------|------------|-----------|--------|--------|
 | Command Center | ✅ | 6/6 | N/A | ✅ Alerts | ✅ Census | 0 | ✅ |
 | Scheduler | ✅ | 7/7 | ✅ 6/6 select | ✅ Seed data | ✅ Vets appear | 0 | ✅ |
-| Veterans | ✅ | N/A | N/A | ✅ Shared data | ✅ Creates | 0 | ✅ |
-| Treatment Sheets | Not tested | — | — | — | — | — | ⬜ |
-| Operations Calendar | Not tested | — | — | — | — | — | ⬜ |
-| Morning Report | Not tested | — | — | — | — | — | ⬜ |
-| RN Workstation | Not tested | — | — | — | — | — | ⬜ |
+| Veterans | ✅ | ✅ | N/A | ✅ Shared data | ✅ Creates | 0 | ✅ |
+| Operations Calendar | ✅ | 5/5 | N/A | ⚠️ Own data | ⚠️ No CLCData | 0 | ⚠️ |
+| Morning Report | ✅ | 8/8 | N/A | ⚠️ Own data | ⚠️ Separate mr_* | 0 | ⚠️ |
+| Treatment Sheets | ⚠️ Timeout | — | — | ⚠️ Own data | ❌ No CLCData | ? | 🔴 |
+| RN Workstation | ✅ | 6/6 | N/A | ⚠️ Own data | ⚠️ Separate va-rn-* | 0 | ⚠️ |
 
 ---
 
@@ -98,9 +98,27 @@
 
 | # | Task | Effort |
 |---|------|--------|
-| 1 | Unify sidebar navigation across all 7 pages | Medium |
-| 2 | Fix veterans.html "Add Veteran" modal trigger | Small |
-| 3 | Add modal close-on-outside-click | Small |
-| 4 | QA test: Treatment Sheets, Operations Calendar, Morning Report, RN Workstation | Medium |
-| 5 | Persist theme across navigation | Small |
-| 6 | Remove old release notes + test checklist clutter from repo | Trivial |
+| 1 | **Wire Morning Report to CLCData** — replace mr_* localStorage with shared Veterans[] | Medium |
+| 2 | **Wire Operations Calendar to CLCData** — pull schedules from shared data | Medium |
+| 3 | **Wire RN Workstation to CLCData** — replace va-rn-workstation with CLCData.Veterans[] | Large |
+| 4 | **Fix Treatment Sheets** — page times out, needs investigation | Medium |
+| 5 | Unify sidebar navigation across all 7 pages | Medium |
+| 6 | Fix veterans.html "Add Veteran" modal trigger | Small |
+| 7 | Add modal close-on-outside-click | Small |
+| 8 | Persist theme across navigation | Small |
+| 9 | Remove old release notes + test checklist clutter from repo | Trivial |
+
+### 🔑 Key Finding: Data Model Fragmentation
+
+The Phase 30 refactor is only **50% complete**. Command Center and Scheduler use the shared `CLCData` model. But four pages still use isolated storage:
+
+| Page | Storage Key | Shared? |
+|------|-------------|---------|
+| Command Center | `clc-command-center-v3` | ✅ |
+| Scheduler | `clc-command-center-v3` | ✅ |
+| Morning Report | `mr_*` (own localStorage) | ❌ |
+| RN Workstation | `va-rn-workstation` (own) | ❌ |
+| Operations Calendar | Own inline data | ❌ |
+| Treatment Sheets | Own inline data | ❌ |
+
+**Impact:** A veteran created on Veterans page appears in Command Center and Scheduler but NOT in Morning Report, RN Workstation, Operations Calendar, or Treatment Sheets. The nurse must enter the same veteran 4 separate times.
