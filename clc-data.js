@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='7.0-phase30';
+var VERSION='7.1-phase30-rn-consolidation';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -119,6 +119,38 @@ function upsertResident(input){
   });
   save(d);return r;
 }
+
+function upsertResidents(inputs){
+  var d=load(), changed=[];
+  (Array.isArray(inputs)?inputs:[]).forEach(function(input){
+    var r=normalizeResident(input,d.residents.length);
+    var i=d.residents.findIndex(function(x){return x.id===r.id});
+    if(i>=0){
+      r.createdAt=d.residents[i].createdAt||r.createdAt;
+      r.updatedAt=now();
+      d.residents[i]=r;
+    }else{
+      d.residents.push(r);
+    }
+    d.appointments.forEach(function(a){
+      if(a.residentId===r.id){a.residentName=r.name;a.room=r.room;a.updatedAt=now()}
+    });
+    changed.push(r);
+  });
+  if(changed.length){
+    addChange(d,'veteran','Clinical workspace updated',changed.length+' Veteran record'+(changed.length===1?'':'s'));
+    save(d);
+  }
+  return changed;
+}
+function archiveAllResidents(){
+  var d=load(), count=0;
+  d.residents.forEach(function(r){
+    if(r.active!==false){r.active=false;r.updatedAt=now();count++}
+  });
+  if(count){addChange(d,'veteran','Active roster cleared',count+' Veteran record'+(count===1?'':'s')+' archived');save(d)}
+  return count;
+}
 function setResidentActive(id,active){
   var d=load(),r=d.residents.find(function(x){return x.id===String(id)});
   if(!r)return null;
@@ -146,7 +178,8 @@ function removeAppointment(id){
 }
 global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
   residents:residents,resident:resident,normalizeResident:normalizeResident,
-  upsertResident:upsertResident,setResidentActive:setResidentActive,
+  upsertResident:upsertResident,upsertResidents:upsertResidents,
+  setResidentActive:setResidentActive,archiveAllResidents:archiveAllResidents,
   appointments:appointments,appointmentsForDate:appointmentsForDate,
   upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,
   normalizeAppointment:normalizeAppointment};
