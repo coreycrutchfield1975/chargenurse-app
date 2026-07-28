@@ -1,1138 +1,765 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VA Charge RN · Launchpad</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLC Command Center</title>
+<link rel="stylesheet" href="design-system.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    color: #eaf0f6;
-    background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%);
-    transition: background 0.8s ease;
-    display: flex; flex-direction: column;
-  }
-  /* theme swatch backgrounds — image overlay themes */
-  body.theme-default { background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #1a1040 70%, #0f0a1e 100%); }
-  body.theme-sunset  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-clickerhappy-584420.jpg') center center / cover no-repeat fixed; }
-  body.theme-mist    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-lukasz-szabo-1178620274-28542760.jpg') center center / cover no-repeat fixed; }
-  body.theme-forest  { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-magda-ehlers-pexels-12131409.jpg') center center / cover no-repeat fixed; }
-  body.theme-ember   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-molnartamasphotography-15100929.jpg') center center / cover no-repeat fixed; }
-  body.theme-shade   { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-florian-suss-269098632-13606075.jpg') center center / cover no-repeat fixed; }
-  body.theme-pine    { background: linear-gradient(180deg, rgba(14,24,34,0.30) 0%, rgba(14,24,34,0.65) 50%, rgba(14,24,34,0.90) 100%), url('backgrounds/pexels-andreas-schnabl-1775843-38298475.jpg') center center / cover no-repeat fixed; }
+/* ── CLC Scheduler-inspired palette ── */
+:root{
+  --pd:#0f172a;--pm:#1e1b4b;--pl:#8b5bb8;--pp:#f0e8ff;
+  --gold:#c9a227;--gl:#f5e06e;--gp:#fef9e7;
+  --text:#1a1a2e;--muted:#6b6b8a;
+  --red:#dc2626;--green:#16a34a;--white:#fff;
+  --card:rgba(255,255,255,.06);--border:rgba(255,255,255,.08);
+  --radius:12px;--font:system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:linear-gradient(135deg,var(--pd),var(--pm));min-height:100vh}
+body{
+  font-family:var(--font);color:#e2e8f0;min-height:100vh;
+  display:flex;flex-direction:column;
+  background:radial-gradient(circle at 72% 18%,rgba(139,91,184,.13),transparent 45%),
+             radial-gradient(circle at 28% 78%,rgba(201,162,39,.08),transparent 40%);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{
+  background:rgba(255,255,255,.07);border:1px solid var(--border);
+  color:#e2e8f0;border-radius:8px;padding:10px 12px;width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.15)}
+select option{background:var(--pd);color:#e2e8f0}
 
-    .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
-  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
-  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
-  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
-  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
-  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-body.theme-custom {
-    background: linear-gradient(180deg, rgba(14,24,34,0.35) 0%, rgba(14,24,34,0.70) 55%, rgba(14,24,34,0.92) 100%), var(--custom-bg, linear-gradient(135deg, #1a1a2e, #2a1a3a)) center center / cover no-repeat fixed;
-  }
+/* ── Header ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 16px;background:rgba(15,23,42,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;color:var(--gold)}
+.brand small{font-size:10px;display:block;color:var(--muted);font-weight:400;letter-spacing:.08em}
+.phi-badge{font-size:9px;background:var(--red);color:#fff;padding:3px 8px;border-radius:99px;font-weight:800;letter-spacing:.06em}
 
-  body.locked #app-main, body.locked #lock-btn, body.locked #ql-dock { display: none !important; }
-  body.locked #lock-overlay { display: flex !important; }
+/* ── Tab navigation ── */
+.tab-bar{
+  display:flex;gap:2px;padding:8px 12px;background:rgba(0,0,0,.3);
+  border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;
+}
+.tab-bar button{
+  padding:10px 18px;border-radius:8px 8px 0 0;font-size:13px;font-weight:700;
+  color:var(--muted);white-space:nowrap;transition:.15s;
+}
+.tab-bar button:hover{color:#e2e8f0;background:rgba(255,255,255,.04)}
+.tab-bar button.active{color:var(--gold);background:rgba(201,162,39,.1);border-bottom:2px solid var(--gold)}
 
-  /* ── Pattern overlay ─────────────────────────────────────────── */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image:
-      radial-gradient(ellipse at 20% 30%, rgba(212,160,23,0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(91,43,142,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.02) 0%, transparent 40%);
-  }
+/* ── Main workspace ── */
+.workspace{flex:1;padding:16px;overflow:auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 
-  /* ── Hero banner ──────────────────────────────────────────────── */
-  .hero { position: relative; z-index: 1; color: #fff; }
-  .hero::after {
-    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-    background: linear-gradient(90deg, transparent, #d4a017, #ff7a18, #d4a017, transparent);
-  }
-  .hero-inner {
-    width: 100%; max-width: 1080px; margin: 0 auto;
-    padding: 14px 24px 12px;
-    display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;
-  }
-  .hero-text h1 {
-    margin: 0; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
-    background: linear-gradient(90deg, #ffe1a3, #ff7a18);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
-  }
-  .hero-text .tagline { margin: 5px 0 0; font-size: 14px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-  .hero-meta { margin-left: auto; text-align: right; text-shadow: 0 1px 5px rgba(0,0,0,0.85); }
-  .greeting { font-size: 17px; font-weight: 700; color: #ffd27a; }
-  .clock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .date { font-size: 12px; color: rgba(255,255,255,0.8); }
-  .greet-emoji { display: inline-block; animation: greet-pop 0.6s ease both; }
-  .greet-name {
-    background: linear-gradient(90deg, #ffe1a3 0%, #ff9d2f 50%, #ffe1a3 100%);
-    background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
-  }
-  .greet-wave { display: inline-block; transform-origin: 70% 80%; animation: wave 2.6s ease-in-out infinite; }
-  @keyframes shimmer { to { background-position: 200% center; } }
-  @keyframes wave { 0%,60%,100% { transform: rotate(0); } 10% { transform: rotate(16deg); } 20% { transform: rotate(-8deg); } 30% { transform: rotate(16deg); } 40% { transform: rotate(-4deg); } 50% { transform: rotate(10deg); } }
-  @keyframes greet-pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
-  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-  .anim-in .greeting { animation: fadeSlideIn 0.6s ease both; }
-  .anim-in .clock   { animation: fadeSlideIn 0.6s ease 0.10s both; }
-  .anim-in .date    { animation: fadeSlideIn 0.6s ease 0.18s both; }
-  @media (prefers-reduced-motion: reduce) {
-    .greet-wave, .greet-emoji, .greet-name, .anim-in .greeting, .anim-in .clock, .anim-in .date { animation: none; }
-  }
+/* ── Stat cards ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;text-align:center;
+}
+.stat-card b{display:block;font-size:36px;font-weight:900;color:var(--gold);line-height:1}
+.stat-card span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+.stat-card.warn b{color:var(--red)}
 
-  /* ── Theme swatches ──────────────────────────────────────────── */
-  .theme-swatches {
-    display: flex; align-items: center; gap: 8px;
-    margin-left: 12px; padding-left: 12px;
-    border-left: 1px solid rgba(255,255,255,0.12);
-  }
-  .theme-swatches .swatch {
-    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.2); transition: transform 0.15s, border-color 0.15s;
-  }
-  .theme-swatches .swatch:hover { transform: scale(1.25); border-color: rgba(255,255,255,0.6); }
-  .theme-swatches .swatch.active { border-color: #ffd27a; box-shadow: 0 0 10px rgba(212,160,23,0.5); }
-  .theme-swatches .swatch[data-theme="default"] { background: #1a1410; position:relative; }
-  .theme-swatches .swatch[data-theme="default"]::after { content:'🐉'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="sunset"]  { background: #8c5a5a; position:relative; }
-  .theme-swatches .swatch[data-theme="sunset"]::after  { content:'🌅'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="mist"]    { background: #5a7a72; position:relative; }
-  .theme-swatches .swatch[data-theme="mist"]::after    { content:'🌫️'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="forest"]  { background: #4a5a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="forest"]::after  { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="ember"]   { background: #5a4a3a; position:relative; }
-  .theme-swatches .swatch[data-theme="ember"]::after   { content:'🔥'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="shade"]   { background: #3a4a2a; position:relative; }
-  .theme-swatches .swatch[data-theme="shade"]::after   { content:'🌿'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="pine"]    { background: #2a3a1a; position:relative; }
-  .theme-swatches .swatch[data-theme="pine"]::after    { content:'🌲'; position:absolute; font-size:10px; top:2px; left:4px; }
-  .theme-swatches .swatch[data-theme="custom"]   { background: linear-gradient(135deg, #1a1a2e, #2a1a3a); position:relative; }
-  .theme-swatches .swatch[data-theme="custom"]::after { content:'📷'; position:absolute; font-size:8px; top:3px; left:3px; }
+/* ── Cards / panels ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+}
+.card-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+  font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+}
+.card-header h2{font-size:15px;color:#e2e8f0;text-transform:none;letter-spacing:0}
 
-  /* ── Lock button ─────────────────────────────────────────────── */
-  .lock-btn {
-    position: fixed; top: 14px; right: 16px; z-index: 900;
-    background: rgba(14,24,34,0.55); color: #ffd27a; border: 1px solid rgba(212,160,23,0.45);
-    border-radius: 9px; padding: 6px 10px; font-size: 13px; cursor: pointer;
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  }
-  .lock-btn:hover { background: rgba(20,32,46,0.8); }
+/* ── Grid layouts ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
 
-  /* ── Reminder ticker ─────────────────────────────────────────── */
-  .ticker { display: flex; align-items: stretch; overflow: hidden; z-index: 1; position: relative;
-    background: linear-gradient(90deg, rgba(212,160,23,0.20), rgba(20,32,46,0.55));
-    border-top: 1px solid rgba(212,160,23,0.35); border-bottom: 1px solid rgba(212,160,23,0.35);
-    box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
-  .ticker-label { flex-shrink: 0; display: flex; align-items: center; gap: 6px;
-    background: linear-gradient(90deg, #e0b94d, #d4a017); color: #1a1206;
-    font-weight: 800; font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase;
-    padding: 0 14px; }
-  .ticker-viewport { flex: 1; overflow: hidden; }
-  .ticker-track { display: inline-block; white-space: nowrap; padding: 10px 0 10px 100%;
-    font-size: 15px; font-weight: 600; color: #fbe6b8;
-    animation: ticker-scroll linear infinite; }
-  .ticker:hover .ticker-track { animation-play-state: paused; }
-  @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-  .tick-item { padding: 0 6px; }
-  .tick-sep { color: rgba(212,160,23,0.7); padding: 0 4px; }
-  .tick-due { color: #cdd8e4; font-weight: 500; font-size: 13px; }
-  .tick-item.overdue { color: #ff9b8c; }
-  .tick-item.overdue .tick-due { color: #ff9b8c; }
-  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; padding-left: 12px; } }
+/* ── Alert items ── */
+.alert-item{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:10px;margin-bottom:6px;border-radius:8px;font-size:13px;
+}
+.alert-item.crit{background:rgba(220,38,38,.12);border-left:3px solid var(--red)}
+.alert-item.warn{background:rgba(201,162,39,.1);border-left:3px solid var(--gold)}
+.alert-item .alert-dot{width:8px;height:8px;border-radius:50%}
+.alert-item.crit .alert-dot{background:var(--red)}
+.alert-item.warn .alert-dot{background:var(--gold)}
 
-  /* ── Layout ──────────────────────────────────────────────────── */
-  main { position: relative; z-index: 1; padding: 16px 24px 80px; display: flex; flex-direction: column; min-height: calc(100vh - 118px); max-width: 1080px; margin: 0 auto; width: 100%; }
-  .cols { display: grid; gap: 20px; align-items: start; }
-  .cols.layout-left  { grid-template-columns: 300px 1fr; }
-  .cols.layout-right { grid-template-columns: 1fr 300px; }
-  .cols.layout-right .apps-area { order: 2; }
-  .cols.layout-right .todo-area { order: 1; }
-  .cols.layout-top    { grid-template-columns: 1fr; }
-  .cols.layout-bottom { grid-template-columns: 1fr; }
-  .cols.layout-bottom .apps-area { order: 2; }
-  .cols.layout-bottom .todo-area { order: 1; }
-  .cols.layout-float { display: block; position: relative; min-height: 400px; }
-  .cols.layout-float .apps-area, .cols.layout-float .todo-area {
-    position: fixed; z-index: 100; width: 300px; cursor: grab; user-select: none;
-    background: linear-gradient(135deg, rgba(34,46,64,0.88), rgba(16,26,38,0.92));
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    border-radius: 12px; padding: 10px 14px 14px;
-    border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    touch-action: none; max-height: calc(100vh - 80px); overflow-y: auto;
-  }
-  .cols.layout-float .apps-area { left: 20px; top: 160px; }
-  .cols.layout-float .todo-area { right: 20px; top: 160px; }
-  .cols.layout-float .section-label { cursor: move; display: flex; align-items: center; gap: 6px; }
-  .cols.layout-float .section-label::before { content: '⠿'; font-size: 14px; opacity: 0.5; }
-  .cols.layout-float .section-label:hover { color: #ffd27a; }
-  .cols.layout-float .panel-head { cursor: move; display: flex; }
-  .cols.layout-float .panel-head::before { content: '⠿'; font-size: 14px; opacity: 0.5; margin-right: 6px; }
-  .cols.layout-float .panel-head:hover { color: #ffd27a; }
-  .cols.layout-float .panel { background: none; border: none; padding: 0; }
-  .cols.layout-float #app-main { min-height: calc(100vh - 118px); }
-  .cols.layout-float + footer { display: none; }
-  .layout-picker { display: flex; gap: 4px; align-items: center; margin-left: 8px; padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.12); }
-  .layout-picker .lay-btn {
-    width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
-    background: rgba(14,24,34,0.5); display: flex; flex-wrap: wrap; padding: 2px; gap: 1px; transition: transform 0.15s, border-color 0.15s;
-  }
-  .layout-picker .lay-btn:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.6); }
-  .layout-picker .lay-btn.active { border-color: #ffd27a; box-shadow: 0 0 8px rgba(212,160,23,0.5); }
-  .layout-picker .lay-btn i { display: block; background: rgba(255,255,255,0.25); border-radius: 1px; }
-  .lay-left i:nth-child(1) { width:8px; height:14px; }  .lay-left i:nth-child(2) { width:4px; height:14px; }
-  .lay-right i:nth-child(1) { width:4px; height:14px; } .lay-right i:nth-child(2) { width:8px; height:14px; }
-  .lay-top i { width:100%; height:6px; }
-  .lay-bottom i:nth-child(1) { width:100%; height:6px; } .lay-bottom i:nth-child(2) { width:100%; height:6px; }
-  .section-label {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: #b9c6d6; margin: 0 0 14px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  }
+/* ── Appointment row ── */
+.appt-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:10px;border-radius:8px;margin-bottom:4px;cursor:pointer;font-size:13px;
+  border:1px solid transparent;transition:.15s;
+}
+.appt-row:hover{background:rgba(255,255,255,.04);border-color:var(--border)}
+.appt-time{font-weight:800;color:var(--gold);min-width:70px}
+.appt-name{font-weight:700}.appt-detail{font-size:11px;color:var(--muted)}
+.appt-status{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
+.status-pending{background:rgba(201,162,39,.15);color:var(--gold)}
+.status-confirmed{background:rgba(22,163,74,.15);color:var(--green)}
+.status-departed{background:rgba(139,91,184,.15);color:var(--pl)}
+.status-complete{background:rgba(100,116,139,.12);color:var(--muted)}
 
-  /* ── App tiles ───────────────────────────────────────────────── */
-  .grid { display: flex; flex-direction: column; gap: 13px; }
-  .card {
-    position: relative; display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
-    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
-    border-radius: 14px; padding: 15px 18px 15px 20px;
-    text-decoration: none; color: inherit;
-    border: 1px solid rgba(255,255,255,0.10);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s, background 0.14s;
-    overflow: hidden;
-  }
-  .card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
-    box-shadow: 0 0 12px var(--accent);
-  }
-  .card:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, rgba(42,56,78,0.74), rgba(20,32,46,0.80));
-    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.48), 0 0 20px color-mix(in srgb, var(--accent) 38%, transparent);
-  }
-  .card-icon {
-    flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; font-size: 22px;
-    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--accent) 40%, transparent), rgba(10,16,24,0.55));
-    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-    box-shadow: inset 0 0 14px color-mix(in srgb, var(--accent) 22%, transparent);
-  }
-  .card-body { min-width: 0; }
-  .card-title { font-size: 15.5px; font-weight: 700; margin: 0 0 3px; color: #eef2f7; letter-spacing: 0.2px; }
-  .card-desc { font-size: 12.5px; color: #9fb0c2; line-height: 1.4; }
-  .card-open { font-size: 11.5px; font-weight: 700; margin-top: 8px; letter-spacing: 0.3px; color: color-mix(in srgb, var(--accent) 75%, #fff); }
+/* ── Calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.cal-nav button{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border)}
+.cal-nav button:hover{background:rgba(255,255,255,.06)}
+.cal-nav .today-btn{background:var(--gold);color:var(--pd);border-color:var(--gold)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{
+  min-height:60px;padding:6px;border-radius:6px;background:rgba(255,255,255,.03);
+  border:1px solid transparent;cursor:pointer;text-align:center;font-size:12px;
+}
+.cal-day:hover{border-color:var(--border)}
+.cal-day.today{background:rgba(201,162,39,.12);border-color:var(--gold)}
+.cal-day.has-appts{font-weight:800}
+.cal-day .day-num{display:block;font-size:16px;font-weight:700;margin-bottom:2px}
+.cal-day .day-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin:1px}
+.cal-day-header{text-align:center;font-size:10px;text-transform:uppercase;color:var(--muted);padding:6px}
 
-  /* ── Glass panel ─────────────────────────────────────────────── */
-  .panel {
-    background: linear-gradient(135deg, rgba(34,46,64,0.66), rgba(16,26,38,0.74));
-    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
-    border: 1px solid rgba(255,255,255,0.10); border-radius: 14px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
-    padding: 16px 18px; margin-bottom: 16px;
-  }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .panel-title { font-weight: 700; font-size: 15px; color: #eef2f7; }
-  .panel-count { font-size: 11px; color: #9fb0c2; font-weight: 600; }
+/* ── Roster ── */
+.roster-row{
+  display:grid;grid-template-columns:50px 1fr auto auto;gap:8px;align-items:center;
+  padding:10px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13px;
+}
+.roster-row:hover{background:rgba(255,255,255,.04)}
+.roster-room{font-weight:900;color:var(--gold)}
+.roster-name{font-weight:700}.roster-spec{font-size:10px;color:var(--muted)}
 
-  input, textarea, select, button { font-family: inherit; }
-  .fld {
-    background: rgba(10,16,24,0.55); border: 1px solid rgba(255,255,255,0.14);
-    color: #eaf0f6; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none;
-  }
-  .fld:focus { border-color: #5b9bf0; box-shadow: 0 0 0 2px rgba(91,155,240,0.2); }
-  .fld::placeholder { color: #6f8298; }
-  .btn-primary {
-    background: #2f6fb0; color: #fff; border: none; border-radius: 8px;
-    padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
-  }
-  .btn-primary:hover { background: #3a7ec4; }
+/* ── Forms ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid .full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.form-actions button{padding:10px 20px;border-radius:8px;font-weight:700;font-size:13px}
+.btn-gold{background:var(--gold);color:var(--pd)}
+.btn-outline{border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;font-weight:700}
 
-  /* ── To-Do ───────────────────────────────────────────────────── */
-  .todo-add { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .todo-add #todo-input { flex: 1 1 150px; min-width: 130px; }
-  .todo-add #todo-due { width: 140px; }
-  .todo-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
-  .todo-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px;
-    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07);
-  }
-  .todo-item.overdue { border-color: rgba(255,122,90,0.45); background: rgba(255,80,60,0.08); }
-  .todo-cb { width: 17px; height: 17px; accent-color: #34c47a; cursor: pointer; flex-shrink: 0; }
-  .todo-main { flex: 1; min-width: 0; }
-  .todo-text { font-size: 13.5px; color: #e7edf4; word-break: break-word; }
-  .todo-due { font-size: 11px; color: #9fb0c2; margin-top: 2px; }
-  .todo-due.overdue { color: #ff8a7a; font-weight: 700; }
-  .todo-item.done .todo-text { text-decoration: line-through; color: #7d8b9c; }
-  .todo-item.done { opacity: 0.6; }
-  .todo-del { background: none; border: none; color: #7d8b9c; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
-  .todo-del:hover { color: #ff8a7a; }
-  .panel-empty { font-size: 12.5px; color: #8294a8; padding: 4px 2px; }
+/* ── Empty state ── */
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+.empty-icon{font-size:36px;margin-bottom:8px}
 
-  /* ── Passcode lock overlay ───────────────────────────────────── */
-  #lock-overlay {
-    position: fixed; inset: 0; z-index: 2000; display: none;
-    align-items: center; justify-content: center; padding: 20px;
-    background: rgba(8,14,20,0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  }
-  body.locked #lock-overlay { display: flex !important; }
-  .lock-card {
-    width: 100%; max-width: 380px; text-align: center;
-    background: linear-gradient(135deg, rgba(30,42,60,0.95), rgba(16,26,38,0.96));
-    border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px 28px;
-    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
-  }
-  .lock-card .lock-icon { font-size: 44px; margin-bottom: 4px; }
-  .lock-card h2 { margin: 8px 0 4px; font-size: 20px; color: #ffe1a3; }
-  .lock-card p { margin: 0 0 18px; font-size: 13px; color: #9fb0c2; }
-  .lock-card .fld { width: 100%; margin-bottom: 10px; text-align: center; font-size: 16px; letter-spacing: 2px; }
-  .lock-card .btn-primary { width: 100%; padding: 10px; font-size: 14px; }
-  .lock-err { color: #ff8a7a; font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
-  .lock-reset { display: inline-block; margin-top: 14px; font-size: 11px; color: #7d8b9c; cursor: pointer; text-decoration: underline; }
-  .lock-intro { font-size: 12px; color: #7d8b9c; margin-bottom: 16px; }
+/* ── Weather ── */
+.weather-card{display:flex;align-items:center;gap:12px}
+.weather-icon{font-size:40px}.weather-temp{font-size:28px;font-weight:900}.weather-detail{font-size:11px;color:var(--muted)}
 
-  /* ── Quick Launch dock ───────────────────────────────────────── */
-  #ql-dock {
-    position: fixed; bottom: 20px; right: 20px; z-index: 999;
-    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
-    background: rgba(26,34,50,0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-    padding: 10px 10px 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-    min-width: 150px; max-width: 220px;
-  }
-  .ql-label {
-    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-    color: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; gap: 4px;
-    cursor: grab; user-select: none; touch-action: none; padding: 2px 0;
-  }
-  .ql-grip { letter-spacing: -1px; opacity: 0.7; }
-  #ql-dock.ql-dragging { cursor: grabbing; opacity: 0.92; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
-  #ql-dock.ql-dragging .ql-label { cursor: grabbing; }
-  .ql-btn {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; border-radius: 8px;
-    cursor: pointer; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit;
-    transition: opacity 0.15s, transform 0.1s; text-align: left;
-  }
-  .ql-btn:hover { opacity: 0.88; transform: translateX(-2px); }
-  .ql-btn:active { transform: scale(0.97); }
-  .ql-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
-  .ql-btn .ql-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ── Modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  width:min(800px,100%);max-height:90vh;overflow:auto;
+  background:var(--pd);border:1px solid var(--border);border-radius:14px;
+  padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.modal h2{margin-bottom:14px;color:var(--gold)}
 
-  footer { text-align: center; color: #97a4b3; font-size: 11px; padding: 24px 0 0; }
+/* ── Quick actions ── */
+.quick-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.quick-bar button{
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
+  border:1px solid var(--border);transition:.15s;
+}
+.quick-bar button:hover{background:rgba(255,255,255,.06)}
+.quick-bar button.primary{background:var(--gold);color:var(--pd);border-color:var(--gold)}
 
-  @media (max-width: 820px) {
-    .cols { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .hero-meta { margin-left: 0; text-align: left; width: 100%; }
-    .hero-text h1 { font-size: 24px; }
-    .theme-swatches { margin-left: 0; padding-left: 0; border-left: none; margin-top: 6px; }
-    main { padding: 12px 14px 80px; }
-  }
+/* ── Settings ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.settings-grid{grid-template-columns:1fr}}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.list-item button{font-size:10px;padding:3px 8px;border-radius:4px}
 
-
-
-
+/* ── Print ── */
+@media print{
+  .topbar,.tab-bar,.tab-bar button:not(.active),.quick-bar,.modal-overlay,.btn-sm,.no-print{display:none!important}
+  body{background:#fff;color:#000}
+  .card{background:#fff;border:1px solid #ccc;box-shadow:none}
+  .stat-card b,.appt-time{color:#000}
+}
 </style>
-<script src="auth-session.js"></script>
-<script src="appearance.js"></script>
-<link rel="stylesheet" href="print-support.css">
 </head>
-<body class="locked theme-default" data-print-title="ChargeNurse" data-print-subtitle="Libertyville CLC nursing operations">
+<body>
 
-<!-- ── Passcode lock overlay ──────────────────────────────────────── -->
-<div id="lock-overlay">
-  <div class="lock-card">
-    <div class="lock-icon">🏥</div>
-    <!-- Setup view: new user creates profile -->
-    <div id="lock-setup" style="display:none">
-      <h2>Set up your profile</h2>
-      <p>First time? Enter your name and create a passcode.</p>
-      <input id="setup-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-      <input id="setup-pw"  class="fld" type="password" placeholder="New passcode (min 4)" autocomplete="new-password">
-      <input id="setup-pw2" class="fld" type="password" placeholder="Confirm passcode" autocomplete="new-password">
-      <div class="lock-err" id="setup-err"></div>
-      <button class="btn-primary" id="setup-btn">🔐 Create profile &amp; enter</button>
-      <span class="lock-reset" id="setup-back" style="display:block;margin-top:10px">← Back to sign in</span>
-    </div>
-    <!-- Login view: returning user -->
-    <div id="lock-login" style="display:none">
-      <h2>Sign in</h2>
-      <p id="login-prompt">Enter your name and passcode.</p>
-      <input id="login-name" class="fld" type="text" placeholder="Your name" autocomplete="off" style="letter-spacing:0;text-transform:capitalize">
-      <input id="login-pw" class="fld" type="password" placeholder="Passcode" autocomplete="current-password">
-      <div class="lock-err" id="login-err"></div>
-      <button class="btn-primary" id="login-btn">🔓 Sign in</button>
-      <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px">
-        <span class="lock-reset" id="login-newuser">🆕 First time? Set up profile</span>
-        <span class="lock-reset" id="admin-link">🔑 Admin access</span>
-      </div>
-      <div id="admin-panel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
-        <p style="font-size:11px;color:#9fb0c2;margin:0 0 8px">Enter admin passcode to unlock any account.</p>
-        <input id="admin-pw" class="fld" type="password" placeholder="Admin passcode" autocomplete="off" style="letter-spacing:2px">
-        <button class="btn-primary" id="admin-btn" style="font-size:12px;padding:8px">🔑 Admin unlock</button>
-        <span class="lock-reset" id="admin-cancel" style="display:block;margin-top:6px">Cancel</span>
-      </div>
-    </div>
+<!-- ── Header ── -->
+<header class="topbar">
+  <div class="brand">
+    <span>⚕</span>
+    <div><strong>CLC COMMAND CENTER</strong><small>Community Living Center · VA</small></div>
   </div>
-</div>
-
-<!-- ── Lock button ───────────────────────────────────────────────── -->
-<button class="lock-btn" id="lock-btn" title="Lock launchpad">🔒 Lock</button>
-
-<!-- ── Hero banner ────────────────────────────────────────────────── -->
-<header class="hero">
-  <div class="hero-inner">
-    <div class="hero-text">
-      <h1>🏥 Charge RN Launchpad</h1>
-      <p class="tagline">Your clinical workstation command center</p>
-    </div>
-    <div class="hero-meta">
-      <div class="greeting" id="greeting">Welcome</div>
-      <div class="clock" id="clock">--:--</div>
-      <div class="date" id="date"></div>
-      <div style="display:flex;align-items:center;margin-top:6px;justify-content:flex-end;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Theme</span>
-        <div class="theme-swatches" id="themeSwatches">
-          <span class="swatch active" data-theme="default" title="Dragon 🐉"></span>
-          <span class="swatch" data-theme="sunset" title="Sunset 🌅"></span>
-          <span class="swatch" data-theme="mist" title="Mist 🌫️"></span>
-          <span class="swatch" data-theme="forest" title="Forest 🌲"></span>
-          <span class="swatch" data-theme="ember" title="Ember 🔥"></span>
-          <span class="swatch" data-theme="shade" title="Shade 🌿"></span>
-          <span class="swatch" data-theme="pine" title="Pine 🌲"></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.12)">
-          <label for="bgUpload" style="font-size:10px;color:rgba(255,255,255,0.45);cursor:pointer;white-space:nowrap">📁 Upload</label>
-          <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;margin-top:4px;justify-content:flex-end;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.45);margin-right:6px;">Layout</span>
-        <div class="layout-picker" id="layoutPicker">
-          <span class="lay-btn lay-left active" data-layout="left" title="Tiles left / Todo right"><i></i><i></i></span>
-          <span class="lay-btn lay-right" data-layout="right" title="Todo left / Tiles right"><i></i><i></i></span>
-          <span class="lay-btn lay-top" data-layout="top" title="Tiles on top"><i></i></span>
-          <span class="lay-btn lay-bottom" data-layout="bottom" title="Todo on top"><i></i><i></i></span>
-          <span class="lay-btn" data-layout="float" title="Floating panels (drag anywhere)" style="font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5)">⊞</span>
-        </div>
-      </div>
-    </div>
+  <span class="phi-badge">🔒 PHI — KEEP CONFIDENTIAL</span>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+    <span id="greeting">Good morning</span>
+    <span id="liveClock">--:--</span>
+    <button class="btn-sm btn-outline" onclick="doLock()">🔓 Lock</button>
   </div>
 </header>
 
-<!-- ── Scrolling reminder ticker ──────────────────────────────────── -->
-<div class="ticker" id="ticker">
-  <div class="ticker-label">📌 Reminders</div>
-  <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading reminders...</div></div>
-</div>
+<!-- ── Tab navigation ── -->
+<nav class="tab-bar" id="tabBar">
+  <button class="active" data-tab="home">🏠 Home</button>
+  <button data-tab="appointments">📅 Appointments</button>
+  <button data-tab="veterans">👥 Veterans</button>
+  <button data-tab="transport">🚐 Transport</button>
+  <button data-tab="reports">📋 Reports</button>
+  <button data-tab="settings">⚙️ Settings</button>
+</nav>
 
-<!-- ── Main content ──────────────────────────────────────────────── -->
-<main id="app-main">
-  <div class="cols">
-    <!-- Left column: App tiles -->
-    <section class="apps-area">
-      <p class="section-label">Your tools</p>
-      <div class="grid" id="app-grid"></div>
-    </section>
-
-    <!-- Right column: To-Do list -->
-    <section class="todo-area">
-      <div class="panel">
-        <div class="panel-head">
-          <span class="panel-title">✅ To-Do &amp; Follow-ups</span>
-          <span class="panel-count" id="todo-count"></span>
-        </div>
-        <form class="todo-add" id="todo-form">
-          <input class="fld" id="todo-input" placeholder="Add a task or follow-up…" autocomplete="off" maxlength="200">
-          <input class="fld" id="todo-due" type="date" title="Optional due date">
-          <button class="btn-primary" type="submit">Add</button>
-        </form>
-        <ul class="todo-list" id="todo-list"></ul>
-        <div class="panel-empty" id="todo-empty">No tasks yet — add your first above.</div>
-      </div>
-    </section>
-  </div>
-
-  <footer id="footer"></footer>
+<!-- ── Workspace ── -->
+<main class="workspace" id="workspace">
 </main>
 
-<!-- ── Quick Launch dock ──────────────────────────────────────────── -->
-<div id="ql-dock">
-  <div class="ql-label" id="ql-handle" title="Drag to move">
-    <span class="ql-grip">⠿</span> Quick Launch
-  </div>
-  <div id="ql-buttons"></div>
+<!-- ── Modal ── -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
 </div>
 
+<script src="clc-data.js"></script>
+<script src="master-lists.js"></script>
 <script>
-  /* ══════════════════════════════════════════════════════════════════
-     Launchpad configuration — edit your apps, name, and quick links
-     ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   CLC Command Center — Unified App Shell
+   ══════════════════════════════════════════════════════ */
+var $=id=>document.getElementById(id);
+var $$=sel=>[...document.querySelectorAll(sel)];
+var esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+var iso=d=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+var today=iso();
+var activeTab='home';
 
-  const APPS = [
-    { name: "Nursing Command Center", desc: "Unified census, daily care, schedules, and reports", icon: "🩺", color: "#38bdf8", url: "/command-center.html" },
-    { name: "Morning Report",     desc: "RN Morning Report — census, assignments, appointments", icon: "📋", color: "#5b9bf0", url: "/morning-report.html" },
-    { name: "CLC Scheduler",      desc: "Appointment scheduling (PHI)",                         icon: "📅", color: "#e0b94d", url: "scheduler.html" },
-    { name: "Charge RN",          desc: "VA Charge RN Workstation (PHI)",                       icon: "⚕️", color: "#5b2d8e", url: "/charge-rn.html" },
-    { name: "Resource Directory", desc: "Community resources & referrals",                      icon: "📚", color: "#a87bff", url: "https://jjp-resource-directory.vercel.app" },
+/* ── Auth ── */
+var PASSCODE='CLC-Admin-2024';
+function checkAuth(){
+  if(sessionStorage.getItem('clc_auth')==='1')return true;
+  var p=prompt('Enter access password:');
+  if(p===PASSCODE){sessionStorage.setItem('clc_auth','1');return true}
+  if(p)alert('Incorrect password.');
+  return false;
+}
+function doLock(){sessionStorage.removeItem('clc_auth');location.reload()}
+
+/* ── Tab switching ── */
+function switchTab(tab){
+  activeTab=tab;
+  $$('#tabBar button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  render();
+}
+$$('#tabBar button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+/* ── Greeting ── */
+function updateGreeting(){
+  var d=new Date(),h=d.getHours(),p=h<12?'morning':h<17?'afternoon':'evening';
+  var msgs={morning:'☀️ Good morning',afternoon:'🌤️ Good afternoon',evening:'🌙 Good evening'};
+  $('greeting').textContent=msgs[p];
+  $('liveClock').textContent=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+}
+setInterval(updateGreeting,30000);updateGreeting();
+
+/* ── Helpers ── */
+function residents(){return window.CLCData?CLCData.residents(true):[]}
+function apps(d){return window.CLCData?CLCData.appointmentsForDate(d||today):[]}
+function allApps(){return window.CLCData?CLCData.appointments():[]}
+
+function residentName(a){
+  if(a.residentName)return a.residentName;
+  var r=CLCData.resident(a.residentId);return r?r.name:'Unknown';
+}
+
+/* ── ==================== HOME TAB ==================== ── */
+function renderHome(){
+  var r=residents(),a=apps(),all=allApps();
+  var pending=a.filter(x=>!x.completed&&!x.notCompleted);
+  var departing=a.filter(x=>x.departed&&!x.completed);
+  var census={LTC:0,SSR:0,EOL:0,Respite:0};
+  r.forEach(x=>{var s=String(x.specialty||'LTC').toUpperCase();if(s==='SSR')census.SSR++;else if(s==='EOL')census.EOL++;else if(s==='RESP'||s==='RESPITE')census.Respite++;else census.LTC++});
+  
+  // Alerts
+  var alerts=CLCData.alerts?CLCData.alerts():[];
+  
+  // Nursing facts
+  var facts=[
+    'More than 60% of the healthcare workforce in VA facilities are nurses or nursing support staff.',
+    'The VA is the largest employer of nurses in the United States.',
+    'VA nurses pioneered telehealth programs that now serve rural veterans nationwide.',
+    'The first VA nursing school opened in 1923 — before many civilian nursing programs existed.',
+    'CLC nurses provide 24/7 skilled care to veterans with complex medical needs.',
+    'VA nursing documentation standards influenced nationwide EHR adoption.'
   ];
-
-  // User database key in localStorage
-  const USERS_KEY = 'lp_users';
-  const ACTIVE_KEY = 'lp_active';
-
-  /* ── User management ─────────────────────────────────────────── */
-  function loadUsers() {
-    try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch { return {}; }
-  }
-  function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
-  function getActiveUser() {
-    try { return sessionStorage.getItem(ACTIVE_KEY); } catch { return null; }
-  }
-  function setActiveUser(name) {
-    if (name) sessionStorage.setItem(ACTIVE_KEY, name);
-    else sessionStorage.removeItem(ACTIVE_KEY);
-  }
-
-  // Default quick launch links
-  const QL_DEFAULTS = [
-    { label: 'Pandora',          url: 'https://www.pandora.com',          color: '#224b7a', icon: '🎵' },
-    { label: 'Outlook Mail',     url: 'https://outlook.office.com/mail',  color: '#0078d4', icon: '📧' },
-    { label: 'Microsoft Teams',  url: 'https://teams.microsoft.com',      color: '#6264a7', icon: '💬' },
-    { label: 'Facebook',         url: 'https://www.facebook.com',         color: '#1877f2', icon: '📘' },
-  ];
-
-  // localStorage keys
-  const TODO_KEY = 'lp_todos';
-  const QL_KEY = 'lp_quicklinks';
-  const POS_KEY = 'lp_qlPos';
-  const THEME_KEY = 'lp_theme';
-  const LAYOUT_KEY = 'lp_layout';
-
-  /* ── DOM helpers ──────────────────────────────────────────────── */
-  const $ = function (id) { return document.getElementById(id); };
-  const esc = function (s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  var fact=facts[new Date().getDate()%facts.length];
+  
+  var h='';
+  
+  // Stat cards
+  h+='<div class="stat-grid">';
+  h+='<div class="stat-card"><b>'+a.length+'</b><span>Today\'s Appointments</span></div>';
+  h+='<div class="stat-card"><b>'+all.length+'</b><span>Total Appointments</span></div>';
+  h+='<div class="stat-card"><b>'+r.length+'</b><span>Veterans on Roster</span></div>';
+  h+='<div class="stat-card"><b>'+pending.length+'</b><span>Pending Transport</span></div>';
+  h+='<div class="stat-card '+((departing.length>0)?'warn':'')+'"><b>'+departing.length+'</b><span>Active Travel</span></div>';
+  h+='</div>';
+  
+  // Two-column layout
+  h+='<div class="grid-2">';
+  
+  // Left: Today's schedule + alerts
+  h+='<div>';
+  h+='<div class="card"><div class="card-header"><h2>📋 Today\'s Schedule</h2><span>'+iso()+'</span></div>';
+  if(a.length===0){
+    h+='<div class="empty"><div class="empty-icon">📅</div>No appointments scheduled for today.<br><button class="btn-sm btn-gold" style="margin-top:8px" onclick="switchTab(\'appointments\')">+ Add Appointment</button></div>';
+  } else {
+    a.forEach(x=>{
+      var st=x.completed?'complete':x.departed?'departed':x.confirmed?'confirmed':'pending';
+      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':'Pending';
+      h+='<div class="appt-row" onclick="editAppointment(\''+esc(x.id)+'\')">';
+      h+='<span class="appt-time">'+(x.leaveTime||x.time||'TBD')+'</span>';
+      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.location||x.clinic||'')+' · '+esc(x.transportation||'')+'</span></span>';
+      h+='<span class="appt-status status-'+st+'">'+stLabel+'</span>';
+      h+='</div>';
     });
+  }
+  h+='</div></div>';
+  
+  // Alerts
+  h+='<div class="card"><div class="card-header"><h2>⚠️ Needs Attention</h2><span>'+alerts.length+' open</span></div>';
+  if(alerts.length===0){
+    h+='<div class="empty">🟢 All clear. Nothing needs attention.</div>';
+  } else {
+    alerts.forEach(al=>{
+      h+='<div class="alert-item '+(al.level==='red'?'crit':'warn')+'" onclick="if(al.id)editAppointment(\''+esc(al.id||'')+'\')">';
+      h+='<span class="alert-dot"></span><span><strong>'+esc(al.title)+'</strong><br><small>'+esc(al.detail)+'</small></span>';
+      h+='<span style="font-size:10px;color:var(--muted)">'+(al.id?'→':'')+'</span></div>';
+    });
+  }
+  h+='</div></div>';
+  
+  // Right column
+  h+='<div>';
+  
+  // Census
+  h+='<div class="card"><div class="card-header"><h2>📊 Census</h2></div>';
+  h+='<div class="stat-grid" style="grid-template-columns:1fr 1fr">';
+  h+='<div class="stat-card"><b>'+census.LTC+'</b><span>LTC</span></div>';
+  h+='<div class="stat-card"><b>'+census.SSR+'</b><span>SSR</span></div>';
+  h+='<div class="stat-card"><b>'+census.EOL+'</b><span>EOL</span></div>';
+  h+='<div class="stat-card"><b>'+census.Respite+'</b><span>Respite</span></div>';
+  h+='</div></div>';
+  
+  // Quick roster
+  h+='<div class="card"><div class="card-header"><h2>👥 Veteran Roster</h2><button class="btn-sm btn-outline" onclick="switchTab(\'veterans\')">View All</button></div>';
+  if(r.length===0){
+    h+='<div class="empty">No veterans on roster.</div>';
+  } else {
+    r.slice(0,5).forEach(x=>{
+      h+='<div class="roster-row" onclick="switchTab(\'veterans\')"><span class="roster-room">'+esc(x.room||'—')+'</span><span><span class="roster-name">'+esc(x.name)+'</span><br><span class="roster-spec">'+esc(x.specialty||'')+' · '+esc(x.provider||'No provider')+'</span></span><span style="font-size:10px;color:var(--muted)">Shower: '+esc((x.bathDays||[]).join(',')||'—')+'</span></div>';
+    });
+  }
+  h+='</div></div>';
+  
+  // Nursing fact
+  h+='<div class="card"><div class="card-header"><h2>💡 Nursing Fact</h2></div>';
+  h+='<p style="font-size:13px;line-height:1.5">'+fact+'</p></div>';
+  
+  h+='</div></div>'; // end two-column
+  
+  return h;
+}
+
+/* ── ==================== APPOINTMENTS TAB ==================== ── */
+var calDate=new Date();var calView='day';
+
+function renderAppointments(){
+  var d=iso(calDate);
+  var appsForDay=apps(d);
+  var all=allApps();
+  var h='';
+  
+  // Quick actions
+  h+='<div class="quick-bar">';
+  h+='<button class="primary" onclick="openAppointmentEditor()">＋ Add Appointment</button>';
+  h+='<button onclick="printView()">🖨 Print</button>';
+  h+='</div>';
+  
+  // Calendar nav
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  h+='<div class="cal-nav">';
+  h+='<div style="display:flex;gap:4px;align-items:center">';
+  h+='<button onclick="calDate.setDate(calDate.getDate()-1);render()">◀</button>';
+  h+='<button class="today-btn" onclick="calDate=new Date();render()">Today</button>';
+  h+='<button onclick="calDate.setDate(calDate.getDate()+1);render()">▶</button>';
+  h+='</div>';
+  h+='<strong style="font-size:16px;color:var(--gold)">'+months[calDate.getMonth()]+' '+calDate.getDate()+', '+calDate.getFullYear()+'</strong>';
+  h+='<div style="display:flex;gap:4px">';
+  h+='<button class="'+(calView==='day'?'today-btn':'')+'" onclick="calView=\'day\';render()">Day</button>';
+  h+='<button class="'+(calView==='week'?'today-btn':'')+'" onclick="calView=\'week\';render()">Week</button>';
+  h+='</div></div>';
+  
+  // Appointments list
+  h+='<div class="card"><div class="card-header"><h2>📅 Appointments</h2><span>'+appsForDay.length+' on this day</span></div>';
+  if(appsForDay.length===0){
+    h+='<div class="empty"><div class="empty-icon">📅</div>No appointments for this day.</div>';
+  } else {
+    appsForDay.forEach(x=>{
+      var st=x.completed?'complete':x.departed?'departed':x.confirmed?'confirmed':'pending';
+      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':'Pending';
+      h+='<div class="appt-row" onclick="openAppointmentEditor(\''+esc(x.id)+'\')">';
+      h+='<span class="appt-time">'+(x.leaveTime||x.time||'TBD')+'</span>';
+      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.location||x.clinic||'')+' · '+esc(x.transportation||'Transport?')+' · '+esc(x.escort||'')+'</span></span>';
+      h+='<span class="appt-status status-'+st+'">'+stLabel+'</span>';
+      h+='</div>';
+    });
+  }
+  h+='</div>';
+  
+  return h;
+}
+
+/* ── Appointment Editor Modal ── */
+function openAppointmentEditor(id){
+  var a=id?CLCData.appointments().find(x=>x.id===id):{id:'',date:iso(),time:'',leaveTime:'',residentId:'',location:'',clinic:'',provider:'',escort:'',transportation:'',reason:'',wheelchair:false,oxygen:false,transportNeeded:true,returnTime:'',notes:''};
+  var r=residents();
+  var h='<h2>'+(id?'Edit':'New')+' Appointment</h2>';
+  h+='<div class="form-grid">';
+  
+  // Veteran select
+  h+='<div class="form-group full"><label>Veteran</label><select id="aeResident">';
+  h+='<option value="">Select Veteran</option>';
+  r.forEach(x=>h+='<option value="'+esc(x.id)+'"'+(a.residentId===x.id?' selected':'')+'>'+(x.room?'Room '+x.room+' · ':'')+esc(x.name)+'</option>');
+  h+='</select></div>';
+  
+  // Date and times
+  h+='<div class="form-group"><label>Date</label><input type="date" id="aeDate" value="'+esc(a.date)+'"></div>';
+  h+='<div class="form-group"><label>Appointment Time</label><input type="time" id="aeTime" value="'+esc(a.time)+'"></div>';
+  h+='<div class="form-group"><label>Departure Time</label><input type="time" id="aeLeave" value="'+esc(a.leaveTime)+'"></div>';
+  h+='<div class="form-group"><label>Return Time</label><input type="time" id="aeReturn" value="'+esc(a.returnTime)+'"></div>';
+  
+  // Location — SELECT not input
+  h+='<div class="form-group"><label>Location / Destination</label><select id="aeLocation">'+ChargeNurseLists.selectOptions('facilities',a.location||a.clinic)+'</select></div>';
+  h+='<div class="form-group"><label>Clinic</label><select id="aeClinic">'+ChargeNurseLists.selectOptions('clinics',a.clinic)+'</select></div>';
+  
+  // Provider — SELECT not input
+  h+='<div class="form-group"><label>Provider</label><select id="aeProvider" onchange="aeProviderChanged()">'+ChargeNurseLists.selectOptions('providers',a.provider)+'</select></div>';
+  
+  // Escort + Transport — SELECTs
+  h+='<div class="form-group"><label>Escort</label><select id="aeEscort">'+ChargeNurseLists.selectOptions('escorts',a.escort)+'</select></div>';
+  h+='<div class="form-group"><label>Transportation</label><select id="aeTransport">'+ChargeNurseLists.selectOptions('transportation',a.transportation)+'</select></div>';
+  
+  // Reason — SELECT
+  h+='<div class="form-group full"><label>Appointment Reason</label><select id="aeReason">'+ChargeNurseLists.selectOptions('appointmentReasons',a.reason)+'</select></div>';
+  
+  // Checkboxes
+  h+='<div class="form-group full"><label>Status</label><div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px">';
+  h+='<label><input type="checkbox" id="aeNeeded"'+(a.transportNeeded?' checked':'')+'> Transport needed</label>';
+  h+='<label><input type="checkbox" id="aeWheel"'+(a.wheelchair?' checked':'')+'> Wheelchair</label>';
+  h+='<label><input type="checkbox" id="aeOxygen"'+(a.oxygen?' checked':'')+'> Oxygen</label>';
+  h+='<label><input type="checkbox" id="aeTicket"'+(a.ticketPrepared?' checked':'')+'> Ticket ready</label>';
+  h+='<label><input type="checkbox" id="aeTravel"'+(a.travelRequestEmailed?' checked':'')+'> Travel request sent</label>';
+  h+='<label><input type="checkbox" id="aeConfirmed"'+(a.confirmed?' checked':'')+'> Confirmed</label>';
+  h+='<label><input type="checkbox" id="aeDeparted"'+(a.departed?' checked':'')+'> Departed</label>';
+  h+='<label><input type="checkbox" id="aeCompleted"'+(a.completed?' checked':'')+'> Returned</label>';
+  h+='</div></div>';
+  
+  // Notes
+  h+='<div class="form-group full"><label>Notes</label><textarea id="aeNotes" rows="2">'+esc(a.notes)+'</textarea></div>';
+  h+='</div>';
+  
+  // Actions
+  h+='<div class="form-actions">';
+  if(id)h+='<button class="btn-danger btn-sm" onclick="deleteAppointment(\''+esc(id)+'\')">Delete</button>';
+  h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
+  h+='<button class="btn-gold" onclick="saveAppointment(\''+esc(a.id)+'\')">Save Appointment</button>';
+  h+='</div>';
+  
+  showModal(h);
+}
+
+function aeProviderChanged(){
+  var name=$('aeProvider')?.value;
+  if(!name||!ChargeNurseLists)return;
+  var p=ChargeNurseLists.providerProfile(name);
+  // Auto-fill provider details if available
+}
+
+function saveAppointment(id){
+  var a={
+    id:id||CLCData.uid(),residentId:$('aeResident').value,date:$('aeDate').value,
+    time:$('aeTime').value,leaveTime:$('aeLeave').value,returnTime:$('aeReturn').value,
+    location:$('aeLocation').value,clinic:$('aeClinic').value,
+    provider:$('aeProvider').value,escort:$('aeEscort').value,
+    transportation:$('aeTransport').value,reason:$('aeReason').value,
+    wheelchair:$('aeWheel')?.checked||false,oxygen:$('aeOxygen')?.checked||false,
+    transportNeeded:$('aeNeeded')?.checked!==false,
+    ticketPrepared:$('aeTicket')?.checked||false,travelRequestEmailed:$('aeTravel')?.checked||false,
+    confirmed:$('aeConfirmed')?.checked||false,departed:$('aeDeparted')?.checked||false,
+    completed:$('aeCompleted')?.checked||false,notes:$('aeNotes').value
   };
-  function todayStr() {
-    var d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
+  var r=CLCData.resident(a.residentId);
+  if(r){a.residentName=r.name;a.room=r.room}
+  CLCData.upsertAppointment(a);
+  closeModal();render();
+}
 
-  /* ── SHA-256 passcode hashing ────────────────────────────────── */
-  function simpleHash(s) {
-    var h = 0;
-    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
-    return 'f:' + (h >>> 0).toString(16);
-  }
+function deleteAppointment(id){
+  if(!confirm('Delete this appointment?'))return;
+  CLCData.removeAppointment(id);
+  closeModal();render();
+}
 
-  async function hashPw(pw) {
-    if (window.crypto && crypto.subtle) {
-      try {
-        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp|' + pw));
-        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      } catch (_) { /* fallback */ }
-    }
-    return simpleHash('lp|' + pw);
-  }
-
-  async function hashAdminPw(pw) {
-    if (window.crypto && crypto.subtle) {
-      try {
-        var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('lp-admin|' + pw));
-        return 'h:' + Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      } catch (_) { /* fallback */ }
-    }
-    return simpleHash('lp-admin|' + pw);
-  }
-
-  // Admin passcode — change this to your desired master code
-  const ADMIN_PASSCODE = 'CLC-Admin-2024';
-
-  /* ── Passcode lock ───────────────────────────────────────────── */
-  function showLock(which) {
-    document.body.classList.add('locked');
-    var bodyClasses = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
-    document.body.className = 'locked' + (bodyClasses ? ' ' + bodyClasses : '');
-    $('lock-setup').style.display = which === 'setup' ? 'block' : 'none';
-    $('lock-login').style.display = which === 'login' ? 'block' : 'none';
-    $('admin-panel').style.display = 'none';
-    $('setup-err').textContent = '';
-    $('login-err').textContent = '';
-    setTimeout(function () {
-      var el = which === 'setup' ? $('setup-name') : $('login-name');
-      if (el) el.focus();
-    }, 60);
-  }
-
-  function initLock() {
-    var users = loadUsers();
-    var activeUser = getActiveUser();
-    if (activeUser && users[activeUser]) {
-      enterApp(activeUser);
-      return;
-    }
-    var userCount = Object.keys(users).length;
-    if (userCount === 0) {
-      showLock('setup');
-    } else {
-      showLock('login');
-    }
-  }
-
-  function enterApp(name) {
-    setActiveUser(name);
-    if (window.CLCAuth) window.CLCAuth.login(name);
-    document.body.classList.remove('locked');
-    var meta = document.querySelector('.hero-meta');
-    if (meta) { meta.classList.remove('anim-in'); void meta.offsetWidth; meta.classList.add('anim-in'); }
-    renderTodos();
-    renderDock();
-    lastGreeting = '';
-    tick();
-    var params = new URLSearchParams(location.search);
-    var destination = params.get('return') || 'command-center.html';
-    setTimeout(function () { location.href = destination; }, 120);
-  }
-
-  async function doSetup() {
-    var name = $('setup-name').value.trim();
-    var pw = $('setup-pw').value, pw2 = $('setup-pw2').value, err = $('setup-err');
-    err.textContent = '';
-    if (!name) { err.textContent = 'Please enter your name.'; $('setup-name').focus(); return; }
-    if (pw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; $('setup-pw').focus(); return; }
-    if (pw !== pw2) { err.textContent = 'Passcodes do not match.'; $('setup-pw').focus(); return; }
-    var users = loadUsers();
-    if (users[name]) {
-      err.textContent = '"' + name + '" already exists. Use "Sign in" or pick a different name.';
-      return;
-    }
-    users[name] = await hashPw(pw);
-    saveUsers(users);
-    $('setup-pw').value = $('setup-pw2').value = $('setup-name').value = '';
-    enterApp(name);
-  }
-
-  async function doLogin() {
-    var name = $('login-name').value.trim();
-    var pw = $('login-pw').value, err = $('login-err');
-    err.textContent = '';
-    if (!name) { err.textContent = 'Please enter your name.'; $('login-name').focus(); return; }
-    var users = loadUsers();
-    if (!users[name]) {
-      err.textContent = 'No profile found for "' + name + '". First time? Use "Set up profile" below.';
-      return;
-    }
-    if (await hashPw(pw) === users[name]) {
-      $('login-pw').value = $('login-name').value = '';
-      enterApp(name);
-    } else {
-      err.textContent = 'Incorrect passcode.';
-      $('login-pw').value = '';
-      $('login-pw').focus();
-    }
-  }
-
-  async function doAdminUnlock() {
-    var pw = $('admin-pw').value, err = $('login-err');
-    err.textContent = '';
-    var adminHash = await hashAdminPw(ADMIN_PASSCODE);
-    if (await hashAdminPw(pw) !== adminHash) {
-      err.textContent = 'Incorrect admin passcode.';
-      $('admin-pw').value = '';
-      $('admin-pw').focus();
-      return;
-    }
-    var users = loadUsers();
-    var names = Object.keys(users);
-    if (names.length === 0) {
-      err.textContent = 'No user profiles exist. Set up a profile first.';
-      $('admin-pw').value = '';
-      showLock('setup');
-      return;
-    }
-    var choice = prompt('Admin Unlock\n\nExisting users: ' + names.join(', ') + '\n\nType a name to log in as (or leave blank to cancel):');
-    if (!choice) { $('admin-pw').value = ''; err.textContent = ''; return; }
-    var targetName = choice.trim();
-    if (!targetName) { $('admin-pw').value = ''; return; }
-    if (users[targetName]) {
-      $('admin-pw').value = '';
-      enterApp(targetName);
-      return;
-    }
-    var tempPw = prompt('New user "' + targetName + '" — set a temporary passcode for them (min 4 chars):');
-    if (!tempPw || tempPw.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; return; }
-    users[targetName] = await hashPw(tempPw);
-    saveUsers(users);
-    $('admin-pw').value = '';
-    enterApp(targetName);
-  }
-
-  $('setup-btn').addEventListener('click', doSetup);
-  $('login-btn').addEventListener('click', doLogin);
-  $('admin-btn').addEventListener('click', doAdminUnlock);
-  $('setup-pw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSetup(); });
-  $('login-pw').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      if ($('admin-panel').style.display === 'block') { doAdminUnlock(); return; }
-      doLogin();
-    }
-  });
-  $('admin-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doAdminUnlock(); });
-  $('lock-btn').addEventListener('click', function () {
-    setActiveUser(null);
-    if (window.CLCAuth) window.CLCAuth.logout(false);
-    var theme = document.body.className.split(' ').filter(function (c) { return c.startsWith('theme-'); }).join(' ');
-    initLock();
-    document.body.className = 'locked ' + theme;
-  });
-  $('login-newuser').addEventListener('click', function () { showLock('setup'); });
-  $('setup-back').addEventListener('click', function () { showLock('login'); });
-  $('admin-link').addEventListener('click', function () {
-    $('admin-panel').style.display = 'block';
-    $('admin-pw').value = '';
-    setTimeout(function () { $('admin-pw').focus(); }, 60);
-  });
-  $('admin-cancel').addEventListener('click', function () {
-    $('admin-panel').style.display = 'none';
-    $('admin-pw').value = '';
-    $('login-err').textContent = '';
-  });
-
-  /* ── Theme swatches ──────────────────────────────────────────── */
-  function applyTheme(theme) {
-    if (!theme) theme = localStorage.getItem(THEME_KEY) || 'default';
-    document.body.className = document.body.className
-      .split(' ').filter(function (c) { return !c.startsWith('theme-'); }).join(' ') + ' theme-' + theme;
-    localStorage.setItem(THEME_KEY, theme);
-    // re-apply custom bg if it exists
-    var savedBg = localStorage.getItem('custom_bg');
-    if (savedBg) {
-      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    }
-    // update swatch active state
-    var swatches = document.querySelectorAll('.swatch');
-    for (var i = 0; i < swatches.length; i++) {
-      swatches[i].classList.toggle('active', swatches[i].dataset.theme === theme);
-    }
-  }
-
-  function handleBgUpload(event) {
-    var file = event.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      // Scale image down to max 1920px wide for background use
-      var img = new Image();
-      img.onload = function() {
-        var MAX_W = 1920, MAX_H = 1200;
-        var w = img.width, h = img.height;
-        if (w > MAX_W) { h = h * MAX_W / w; w = MAX_W; }
-        if (h > MAX_H) { w = w * MAX_H / h; h = MAX_H; }
-        var c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        var dataUrl = c.toDataURL('image/jpeg', 0.85);
-        localStorage.setItem('custom_bg', dataUrl);
-        document.body.style.setProperty('--custom-bg', 'url(' + dataUrl + ')');
-        applyTheme('custom');
-      };
-      img.src = e.target.result;
-      event.target.value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // Add click listeners to swatches
-  // Load theme
-  applyTheme();
-  // Load custom background
-  var savedBg = localStorage.getItem('custom_bg');
-  if (savedBg) {
-    document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    // If custom background exists, ensure it's applied
-    if (localStorage.getItem(THEME_KEY) === 'custom') {
-      applyTheme('custom');
-    } else {
-      // Still apply the custom background CSS variable even on gradient themes
-      document.body.style.setProperty('--custom-bg', 'url(' + savedBg + ')');
-    }
-  }
-
-  // Handle clicks on swatches via delegation
-  document.getElementById('themeSwatches').addEventListener('click', function (e) {
-    var swatch = e.target.closest('.swatch');
-    if (swatch) applyTheme(swatch.dataset.theme);
-  });
-
-  /* ── Render app tiles ────────────────────────────────────────── */
-  // Note: The "Charge RN" tile opens in a NEW tab (target="_blank")
-  $('app-grid').innerHTML = APPS.map(function (a) {
-    var live = a.url && a.url !== '#';
-    return '<a class="card" style="--accent:' + a.color + '" href="' + esc(a.url) + '" ' +
-      (live ? 'target="_blank" rel="noopener"' : 'onclick="return false"') + '>' +
-      '<div class="card-icon">' + a.icon + '</div>' +
-      '<div class="card-body">' +
-      '<div class="card-title">' + esc(a.name) + '</div>' +
-      '<div class="card-desc">' + esc(a.desc) + '</div>' +
-      '<div class="card-open">' + (live ? 'Open →' : 'Link not set yet') + '</div>' +
-      '</div></a>';
-  }).join('');
-
-  /* ── To-Do & Follow-ups ──────────────────────────────────────── */
-  var todos = [];
-
-  function loadTodos() {
-    try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; }
-    catch (_e) { todos = []; }
-  }
-
-  function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
-
-  function renderTodos() {
-    loadTodos();
-    var today = todayStr();
-    var sorted = [...todos].sort(function (a, b) {
-      if (a.done !== b.done) return a.done ? 1 : -1;
-      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
-      return ad < bd ? -1 : ad > bd ? 1 : 0;
-    });
-    var list = $('todo-list');
-    list.innerHTML = sorted.map(function (t) {
-      var overdue = t.due && !t.done && t.due < today;
-      var dueHtml = '';
-      if (t.due) {
-        var d = new Date(t.due + 'T00:00:00');
-        var lbl = (overdue ? 'Overdue · ' : 'Due ') + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        dueHtml = '<div class="todo-due ' + (overdue ? 'overdue' : '') + '">' + lbl + '</div>';
-      }
-      return '<li class="todo-item ' + (t.done ? 'done' : '') + ' ' + (overdue ? 'overdue' : '') + '" data-id="' + t.id + '">' +
-        '<input type="checkbox" class="todo-cb" ' + (t.done ? 'checked' : '') + '>' +
-        '<div class="todo-main"><div class="todo-text">' + esc(t.text) + '</div>' + dueHtml + '</div>' +
-        '<button class="todo-del" title="Delete">✕</button></li>';
-    }).join('');
-    var open = todos.filter(function (t) { return !t.done; }).length;
-    $('todo-count').textContent = todos.length ? open + ' open · ' + todos.length + ' total' : '';
-    $('todo-empty').style.display = todos.length ? 'none' : 'block';
-    renderTicker();
-  }
-
-  $('todo-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var text = $('todo-input').value.trim();
-    if (!text) return;
-    todos.push({
-      id: Date.now() + '' + Math.floor(performance.now()),
-      text: text,
-      due: $('todo-due').value || '',
-      done: false
-    });
-    saveTodos();
-    renderTodos();
-    $('todo-input').value = '';
-    $('todo-due').value = '';
-    $('todo-input').focus();
-  });
-
-  $('todo-list').addEventListener('click', function (e) {
-    var li = e.target.closest('.todo-item');
-    if (!li) return;
-    var id = li.dataset.id;
-    var t = todos.find(function (x) { return x.id === id; });
-    if (!t) return;
-    if (e.target.classList.contains('todo-cb')) {
-      t.done = !t.done;
-      saveTodos();
-      renderTodos();
-    } else if (e.target.classList.contains('todo-del')) {
-      todos = todos.filter(function (x) { return x.id !== id; });
-      saveTodos();
-      renderTodos();
-    }
-  });
-
-  /* ── Scrolling reminder ticker ───────────────────────────────── */
-  function renderTicker() {
-    var today = todayStr();
-    var openTodos = [...todos].filter(function (t) { return !t.done; }).sort(function (a, b) {
-      var ad = a.due || '9999-99-99', bd = b.due || '9999-99-99';
-      return ad < bd ? -1 : ad > bd ? 1 : 0;
-    });
-    var track = $('ticker-track');
-    if (!openTodos.length) {
-      track.style.animation = 'none';
-      track.style.paddingLeft = '20px';
-      track.innerHTML = '<span class="tick-item">All clear — no open to-dos right now. ✨</span>';
-      return;
-    }
-    var items = openTodos.map(function (t) {
-      var overdue = t.due && t.due < today;
-      var due = '';
-      if (t.due) {
-        var d = new Date(t.due + 'T00:00:00');
-        due = ' <span class="tick-due">(' + (overdue ? 'overdue · ' : 'due ') +
-          d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')</span>';
-      }
-      return '<span class="tick-item ' + (overdue ? 'overdue' : '') + '">' +
-        (overdue ? '⚠️ ' : '• ') + esc(t.text) + due + '</span>';
-    });
-    track.innerHTML = items.join('<span class="tick-sep">◆</span>') +
-      '<span class="tick-sep">◆</span>' + items.join('<span class="tick-sep">◆</span>');
-    track.style.paddingLeft = '100%';
-    track.style.animation = 'none';
-    void track.offsetWidth;
-    var dur = Math.max(14, Math.round(track.scrollWidth / 70));
-    track.style.animation = 'ticker-scroll ' + dur + 's linear infinite';
-  }
-
-  /* ── Greeting + live clock ───────────────────────────────────── */
-  var lastGreeting = '';
-
-  function tick() {
-    var now = new Date(), h = now.getHours();
-    var dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-    
-    // Inspiring daily rotation based on day of year
-    var greetings = [
-      'YOU ARE A HERO 🦸', 'NURSES ROCK THE WORLD 🌍', 'ROCKSTAR STATUS ⭐',
-      'ABSOLUTE LEGEND 🏆', 'SUPERCHARGE THE DAY ⚡', 'BOSS ENERGY 💪',
-      'MAKING MOVES 🔥', 'CHANGE THE GAME 🎯', 'UNSTOPPABLE FORCE 🚀',
-      'POWER UP 💥', 'LEAD THE CHARGE ⚔️', 'DIFFERENCE MAKER 🌟',
-      'FUEL THE FIRE 🔥', 'RISE AND GRIND 💪', 'CRUSH IT TODAY 📈',
-      'KING/QUEEN ENERGY 👑', 'LEGENDARY AHEAD 🏅', 'GO GET IT 🎯',
-      'BRIGHTEST IN THE ROOM 💡', 'WORTH IT ALL 🏔️', 'BUILT FOR THIS 🧱',
-      'SHOW UP AND SHINE ✨', 'NEXT LEVEL GRIT 💎', 'OWN THE DAY 💪',
-      'BE THE DIFFERENCE 🌟', 'STRENGTH WITHIN 🦁', 'KEEP GOING 🏃',
-      'WARRIOR MINDSET 🏹', 'SMASH THE GOALS 📋', 'HEART OF A LION 🦁',
-      'FEARLESS FOCUS 🎯', 'DAILY VICTORY 🏆', 'YOUR TIME NOW ⏰',
-      'ABSOLUTE BEAST 🐻', 'NURSE SUPREME 👩‍⚕️', 'PURE MAGIC ✨',
-      'BORN TO SHINE ☀️', 'UNBREAKABLE SPIRIT 🌪️', 'TROPHY CASE 🏆',
-      'LEAD WITH HEART ❤️', 'IRON WILL 🔩', 'SKY IS THE LIMIT ✈️',
-      'PHENOMENAL VIBES 🌊', 'CHAMPIONSHIP DAY 🏆', 'ON FIRE 🔥',
-      'ELEVATE YOUR GAME 📈', 'WILD SUCCESS 🌿', 'DREAM BIG 😤',
-      'FORCE OF NATURE 🌪️', 'ALL EYES ON YOU 👀', 'TOP OF YOUR GAME 📊',
-      'NO DAYS OFF 💪', 'LEGACY BUILDER 🏛️', 'SERVE WITH GRACE 🕊️',
-      'MAGNET FOR SUCCESS 🧲', 'CHANGE AGENT 🔄', 'INSPIRE GREATNESS 🌋',
-      'BOSS MOVES ONLY 💼', 'HEALING HANDS ✋', 'BEACON OF HOPE 🔦',
-      'LIGHT THE WAY 🔥', 'YOUR MOMENT 🕐', 'GRACE UNDER FIRE 🪖',
-      'UNSHAKEABLE 🏔️', 'IMPACT PLAYER 🎮', 'HEART OF GOLD 🌟',
-      'STEADY HANDS 👐', 'CALM IN THE STORM ⛈️', 'PURPOSE DRIVEN 🎯',
-      'FEARLESS NURSE 🏥', 'YOU GOT THIS 👊', 'RADIATE CONFIDENCE 🌟',
-      'BRILLIANT MOVE ♟️', 'POWERHOUSE 🔋', 'GENEROSITY OF SPIRIT 🌺',
-      'BRAVE AND BOLD 💪', 'VITAL FORCE 🩺', 'RESILIENT SPIRIT 🌱',
-      'MAGNETIC ENERGY 🧲', 'STAR PERFORMER ⭐', 'KINDHEARTED ❤️',
-      'FOCUSED FIRE 🔥', 'BALANCE AND GRACE 🧘', 'TOTAL BADASS 😎',
-    ];
-    var greetIdx = dayOfYear % greetings.length;
-    var greetingText = greetings[greetIdx];
-    
-    if (greetingText !== lastGreeting) {
-      lastGreeting = greetingText;
-      $('greeting').innerHTML =
-        '<span class="greet-emoji">🔥</span> ' + greetingText +
-        ' <span class="greet-name">' + esc(getActiveUser() || 'Nurse') + '</span> <span class="greet-wave">👊</span>';
-    }
-    $('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    $('date').textContent = now.toLocaleDateString([], {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-    });
-    $('footer').textContent = 'VA Charge RN Launchpad · ' + now.getFullYear();
-  }
-  tick();
-  setInterval(tick, 15000);
-
-  /* ── Customizable Quick Launch ───────────────────────────────── */
-  var qlLinks = [];
-
-  function loadQL() {
-    try {
-      var s = JSON.parse(localStorage.getItem(QL_KEY));
-      qlLinks = Array.isArray(s) ? s : QL_DEFAULTS.slice();
-    } catch (_e) { qlLinks = QL_DEFAULTS.slice(); }
-  }
-
-  function saveQL() { localStorage.setItem(QL_KEY, JSON.stringify(qlLinks)); }
-
-  function qlOpen(url) {
-    var w = 1024, h = 768;
-    var left = Math.round(window.screenX + window.outerWidth - w - 20);
-    var top = Math.round(window.screenY + 60);
-    window.open(url, '_blank', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
-  }
-
-  function renderDock() {
-    loadQL();
-    $('ql-buttons').innerHTML = qlLinks.map(function (l, i) {
-      return '<button class="ql-btn" style="background:' + (l.color || '#5b9bf0') + '" data-i="' + i + '">' +
-        '<span class="ql-icon">' + (l.icon || '🔗') + '</span> <span class="ql-name">' + esc(l.label) + '</span></button>';
-    }).join('');
-  }
-
-  $('ql-buttons').addEventListener('click', function (e) {
-    var btn = e.target.closest('.ql-btn');
-    if (!btn) return;
-    var l = qlLinks[+btn.dataset.i];
-    if (l) qlOpen(l.url);
-  });
-
-  /* ── Draggable dock with saved position ──────────────────────── */
-  (function () {
-    var dock = $('ql-dock'), handle = $('ql-handle');
-
-    function clamp(left, top) {
-      var maxLeft = window.innerWidth - dock.offsetWidth;
-      var maxTop = window.innerHeight - dock.offsetHeight;
-      return { left: Math.max(0, Math.min(left, maxLeft)), top: Math.max(0, Math.min(top, maxTop)) };
-    }
-
-    function applyPos(left, top) {
-      var p = clamp(left, top);
-      dock.style.left = p.left + 'px';
-      dock.style.top = p.top + 'px';
-      dock.style.right = 'auto';
-      dock.style.bottom = 'auto';
-    }
-
-    try {
-      var s = JSON.parse(localStorage.getItem(POS_KEY));
-      if (s && typeof s.left === 'number') applyPos(s.left, s.top);
-    } catch (_e) { /* ignore */ }
-
-    var sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
-
-    handle.addEventListener('pointerdown', function (e) {
-      dragging = true;
-      var r = dock.getBoundingClientRect();
-      sl = r.left;
-      st = r.top;
-      sx = e.clientX;
-      sy = e.clientY;
-      dock.classList.add('ql-dragging');
-      handle.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-
-    handle.addEventListener('pointermove', function (e) {
-      if (dragging) applyPos(sl + (e.clientX - sx), st + (e.clientY - sy));
-    });
-
-    function endDrag() {
-      if (!dragging) return;
-      dragging = false;
-      dock.classList.remove('ql-dragging');
-      var r = dock.getBoundingClientRect();
-      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: r.left, top: r.top })); }
-      catch (_e) { /* ignore */ }
-    }
-
-    handle.addEventListener('pointerup', endDrag);
-    handle.addEventListener('pointercancel', endDrag);
-    window.addEventListener('resize', function () {
-      var r = dock.getBoundingClientRect();
-      applyPos(r.left, r.top);
-    });
-  })();
-
-  /* ── Layout picker ──────────────────────────────────────────── */
-  var FLOAT_POS_KEY = 'lp_floatPos';
-  var floatDragging = false;
-
-  function applyLayout(layout) {
-    if (!layout) layout = localStorage.getItem(LAYOUT_KEY) || 'left';
-    var cols = document.querySelector('.cols');
-    if (!cols) return;
-    cols.className = 'cols layout-' + layout;
-    localStorage.setItem(LAYOUT_KEY, layout);
-    var btns = document.querySelectorAll('.lay-btn');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.toggle('active', btns[i].dataset.layout === layout);
-    }
-    if (layout === 'float') { initFloatMode(); }
-  }
-
-  function initFloatMode() {
-    var apps = document.querySelector('.apps-area');
-    var todo = document.querySelector('.todo-area');
-    if (!apps || !todo) return;
-    try { var pos = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)); if (pos) {
-      if (pos.appsLeft) apps.style.left = pos.appsLeft + 'px';
-      if (pos.appsTop) apps.style.top = pos.appsTop + 'px';
-      if (pos.todoLeft) todo.style.left = pos.todoLeft + 'px';
-      if (pos.todoTop) todo.style.top = pos.todoTop + 'px';
-      if (pos.todoRight) todo.style.right = pos.todoRight + 'px';
-    } } catch (_e) {}
-    makeDraggable(apps, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.appsLeft=l; p.appsTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
-    makeDraggable(todo, function(l,t){ try { var p = JSON.parse(localStorage.getItem(FLOAT_POS_KEY)) || {}; p.todoLeft=l; p.todoTop=t; localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(p)); } catch(_e){} });
-  }
-
-  function makeDraggable(el, onMove) {
-    var handle = el.querySelector('.section-label') || el.querySelector('.panel-head');
-    if (!handle) return;
-    handle.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('.lay-btn, .swatch, button, input, select, textarea, a')) return;
-      floatDragging = true;
-      var r = el.getBoundingClientRect();
-      var sx = e.clientX, sy = e.clientY;
-      var sl = el.offsetLeft, st = el.offsetTop;
-      el.classList.add('ql-dragging');
-      handle.setPointerCapture(e.pointerId);
-      e.preventDefault();
-      function onMoveHandler(ev) {
-        if (!floatDragging) return;
-        var nl = sl + (ev.clientX - sx);
-        var nt = st + (ev.clientY - sy);
-        var maxL = window.innerWidth - el.offsetWidth - 10;
-        var maxT = window.innerHeight - el.offsetHeight - 10;
-        nl = Math.max(5, Math.min(nl, maxL));
-        nt = Math.max(60, Math.min(nt, maxT));
-        el.style.left = nl + 'px'; el.style.top = nt + 'px'; el.style.right = 'auto';
-        if (onMove) onMove(nl, nt);
-      }
-      function endHandler() {
-        floatDragging = false; el.classList.remove('ql-dragging');
-        handle.removeEventListener('pointermove', onMoveHandler);
-        handle.removeEventListener('pointerup', endHandler);
-        handle.removeEventListener('pointercancel', endHandler);
-      }
-      handle.addEventListener('pointermove', onMoveHandler);
-      handle.addEventListener('pointerup', endHandler);
-      handle.addEventListener('pointercancel', endHandler);
+/* ── ==================== VETERANS TAB ==================== ── */
+function renderVeterans(){
+  var r=residents();
+  var h='';
+  h+='<div class="quick-bar"><button class="primary" onclick="openVeteranEditor()">＋ Add Veteran</button></div>';
+  h+='<div class="card"><div class="card-header"><h2>👥 Veteran Roster</h2><span>'+r.length+' active</span></div>';
+  if(r.length===0){
+    h+='<div class="empty"><div class="empty-icon">👥</div>No veterans on roster.</div>';
+  } else {
+    r.forEach(x=>{
+      h+='<div class="roster-row" onclick="openVeteranEditor(\''+esc(x.id)+'\')">';
+      h+='<span class="roster-room">'+esc(x.room||'—')+'</span>';
+      h+='<span><span class="roster-name">'+esc(x.name)+'</span><br><span class="roster-spec">'+esc(x.specialty||'')+' · '+esc(x.provider||'No provider')+' · Code: '+esc(x.codeStatus||'—')+' · Diet: '+esc(x.diet||'—')+'</span></span>';
+      h+='<span style="font-size:10px;color:var(--muted)">Shower: '+esc((x.bathDays||[]).join(',')||'—')+'<br>Vitals: '+esc((x.vitalsDays||[]).join(',')||'—')+'</span>';
+      h+='<span style="font-size:12px">→</span></div>';
     });
   }
-  document.getElementById('layoutPicker').addEventListener('click', function (e) {
-    var btn = e.target.closest('.lay-btn');
-    if (btn) applyLayout(btn.dataset.layout);
-  });
+  h+='</div>';
+  return h;
+}
 
-  /* ── Start ───────────────────────────────────────────────────── */
-  // Apply saved theme before initialising the lock screen
-  var savedTheme = localStorage.getItem(THEME_KEY);
-  if (savedTheme) {
-    document.body.classList.add('theme-' + savedTheme);
+function openVeteranEditor(id){
+  var v=id?CLCData.resident(id):{id:'',name:'',room:'',specialty:'LTC',provider:'',codeStatus:'',allergies:'',diet:'',isolation:'None',bathDays:[],vitalsDays:[],weightDays:[],notes:''};
+  var h='<h2>'+(id?'Edit':'Add')+' Veteran</h2>';
+  h+='<div class="form-grid">';
+  h+='<div class="form-group"><label>Name</label><input id="veName" value="'+esc(v.name||'')+'"></div>';
+  h+='<div class="form-group"><label>Room</label><input id="veRoom" value="'+esc(v.room||'')+'"></div>';
+  h+='<div class="form-group"><label>Specialty</label><select id="veSpec"><option>LTC</option><option>SSR</option><option>EOL</option><option>Respite</option></select></div>';
+  h+='<div class="form-group"><label>Provider</label><select id="veProvider">'+ChargeNurseLists.selectOptions('providers',v.provider)+'</select></div>';
+  h+='<div class="form-group"><label>Code Status</label><select id="veCode"><option value="">—</option><option>Full Code</option><option>DNR</option><option>DNI</option></select></div>';
+  h+='<div class="form-group"><label>Diet</label><select id="veDiet"><option value="">—</option><option>Regular</option><option>Soft</option><option>Puree</option><option>PEG</option><option>NPO</option><option>Low NA</option></select></div>';
+  h+='<div class="form-group"><label>Allergies</label><input id="veAllergies" value="'+esc(v.allergies||'')+'"></div>';
+  h+='<div class="form-group"><label>Isolation</label><select id="veIso"><option>None</option><option>Contact</option><option>Droplet</option><option>Airborne</option></select></div>';
+  
+  // Schedule days
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  h+='<div class="form-group full"><label>Shower Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
+  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veBath"'+(v.bathDays&&v.bathDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
+  h+='<div class="form-group full"><label>Vitals Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
+  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veVitals"'+(v.vitalsDays&&v.vitalsDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
+  h+='<div class="form-group full"><label>Weight Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
+  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veWeight"'+(v.weightDays&&v.weightDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
+  
+  h+='<div class="form-group full"><label>Notes</label><textarea id="veNotes" rows="2">'+esc(v.notes||'')+'</textarea></div>';
+  h+='</div>';
+  h+='<div class="form-actions">';
+  if(id)h+='<button class="btn-danger btn-sm" onclick="if(confirm(\'Remove this veteran?\'));CLCData.setResidentActive(\''+esc(id)+'\',false);closeModal();render()">Deactivate</button>';
+  h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
+  h+='<button class="btn-gold" onclick="saveVeteran(\''+esc(v.id)+'\')">Save Veteran</button></div>';
+  showModal(h);document.getElementById('veSpec').value=v.specialty||'LTC';document.getElementById('veCode').value=v.codeStatus||'';document.getElementById('veDiet').value=v.diet||'';document.getElementById('veIso').value=v.isolation||'None';
+}
+
+function saveVeteran(id){
+  var days=function(cls){return $$('.'+cls+':checked').map(function(cb){return cb.value})};
+  var v={id:id||CLCData.uid(),name:$('veName').value,room:$('veRoom').value,specialty:$('veSpec').value,provider:$('veProvider').value,codeStatus:$('veCode').value,diet:$('veDiet').value,allergies:$('veAllergies').value,isolation:$('veIso').value,bathDays:days('veBath'),vitalsDays:days('veVitals'),weightDays:days('veWeight'),notes:$('veNotes').value,active:true};
+  CLCData.upsertResident(v);
+  closeModal();render();
+}
+
+/* ── ==================== TRANSPORT TAB ==================== ── */
+function renderTransport(){
+  var all=allApps();
+  var needing=all.filter(function(a){return a.transportNeeded&&!a.completed});
+  var contacts=ChargeNurseLists.transportContact();
+  var h='';
+  h+='<div class="card"><div class="card-header"><h2>🚐 Transport Contact</h2></div>';
+  h+='<div class="form-grid">';
+  h+='<div class="form-group"><label>Email</label><input id="tcEmail" value="'+esc(contacts.email||'')+'" placeholder="transportation@va.gov"></div>';
+  h+='<div class="form-group"><label>Phone</label><input id="tcPhone" value="'+esc(contacts.phone||'')+'"></div>';
+  h+='<div class="form-group"><label>Fax</label><input id="tcFax" value="'+esc(contacts.fax||'')+'"></div>';
+  h+='<div class="form-group full"><label>Standing Instructions</label><input id="tcInstructions" value="'+esc(contacts.instructions||'')+'"></div>';
+  h+='</div><div style="margin-top:8px"><button class="btn-gold btn-sm" onclick="saveTransportContact()">Save Contact</button></div></div>';
+  
+  h+='<div class="card"><div class="card-header"><h2>🚐 Pending Transport</h2><span>'+needing.length+' need transport</span></div>';
+  if(needing.length===0){
+    h+='<div class="empty">No appointments requiring transport.</div>';
+  } else {
+    needing.forEach(function(a){
+      h+='<div class="appt-row" onclick="openAppointmentEditor(\''+esc(a.id)+'\')">';
+      h+='<span class="appt-time">'+esc(a.leaveTime||'TBD')+'</span>';
+      h+='<span><span class="appt-name">'+esc(residentName(a))+'</span><br><span class="appt-detail">'+esc(a.date)+' · '+esc(a.location||'')+' · '+esc(a.transportation||'')+'</span></span>';
+      h+='<span class="appt-status status-pending">'+esc(a.travelRequestEmailed?'Request sent':'Request needed')+'</span></div>';
+    });
   }
-  initLock();
-  // Apply saved layout after lock screen
-  applyLayout();
+  h+='</div>';
+  return h;
+}
+
+function saveTransportContact(){
+  ChargeNurseLists.saveTransportContact({email:$('tcEmail').value,phone:$('tcPhone').value,fax:$('tcFax').value,instructions:$('tcInstructions').value});
+  render();
+}
+
+/* ── ==================== REPORTS TAB ==================== ── */
+function renderReports(){
+  var r=residents(),appsForDay=apps(),allAp=allApps();
+  var census={LTC:0,SSR:0,EOL:0,Respite:0};
+  r.forEach(function(x){var s=String(x.specialty||'LTC').toUpperCase();if(s==='SSR')census.SSR++;else if(s==='EOL')census.EOL++;else if(s==='RESP'||s==='RESPITE')census.Respite++;else census.LTC++});
+  
+  var h='';
+  h+='<div class="quick-bar"><button onclick="printView()">🖨 Print Report</button></div>';
+  
+  h+='<div class="grid-2">';
+  h+='<div class="card"><div class="card-header"><h2>📊 Census Summary</h2></div>';
+  h+='<div class="stat-grid">';
+  h+='<div class="stat-card"><b>'+census.LTC+'</b><span>LTC</span></div>';
+  h+='<div class="stat-card"><b>'+census.SSR+'</b><span>SSR</span></div>';
+  h+='<div class="stat-card"><b>'+census.EOL+'</b><span>EOL</span></div>';
+  h+='<div class="stat-card"><b>'+census.Respite+'</b><span>Respite</span></div>';
+  h+='</div></div>';
+  
+  h+='<div class="card"><div class="card-header"><h2>📅 Today\'s Summary</h2></div>';
+  h+='<div class="stat-grid">';
+  h+='<div class="stat-card"><b>'+appsForDay.length+'</b><span>Appointments</span></div>';
+  h+='<div class="stat-card"><b>'+allAp.length+'</b><span>Total Scheduled</span></div>';
+  h+='<div class="stat-card"><b>'+r.length+'</b><span>Active Veterans</span></div>';
+  h+='</div></div>';
+  h+='</div>';
+  
+  // Full roster table for printing
+  h+='<div class="card"><div class="card-header"><h2>👥 Full Roster</h2></div>';
+  if(r.length===0)h+='<div class="empty">No veterans on roster.</div>';
+  else {
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="text-align:left;border-bottom:1px solid var(--border)"><th style="padding:6px">Room</th><th style="padding:6px">Name</th><th style="padding:6px">Specialty</th><th style="padding:6px">Provider</th><th style="padding:6px">Code</th><th style="padding:6px">Diet</th><th style="padding:6px">Allergies</th></tr></thead><tbody>';
+    r.forEach(function(x){
+      h+='<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:6px;color:var(--gold);font-weight:700">'+esc(x.room||'—')+'</td><td style="padding:6px">'+esc(x.name)+'</td><td style="padding:6px">'+esc(x.specialty||'')+'</td><td style="padding:6px">'+esc(x.provider||'')+'</td><td style="padding:6px">'+esc(x.codeStatus||'')+'</td><td style="padding:6px">'+esc(x.diet||'')+'</td><td style="padding:6px">'+esc(x.allergies||'')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function printView(){window.print()}
+
+/* ── ==================== SETTINGS TAB ==================== ── */
+function renderSettings(){
+  var h='';
+  h+='<div class="grid-2">';
+  
+  // Provider list management
+  var providers=ChargeNurseLists.items('providers');
+  h+='<div class="card"><div class="card-header"><h2>🩺 Providers</h2></div>';
+  providers.forEach(function(p){h+='<div class="list-item"><span>'+esc(p)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'providers\',\''+esc(p)+'\')">Edit</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newProvider" placeholder="Add provider..."><button class="btn-sm btn-gold" onclick="addListItem(\'providers\')">Add</button></div></div>';
+  
+  // Facilities
+  var facilities=ChargeNurseLists.items('facilities');
+  h+='<div class="card"><div class="card-header"><h2>🏥 Facilities</h2></div>';
+  facilities.forEach(function(f){h+='<div class="list-item"><span>'+esc(f)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'facilities\',\''+esc(f)+'\')">Edit</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newFacility" placeholder="Add facility..."><button class="btn-sm btn-gold" onclick="addListItem(\'facilities\')">Add</button></div></div>';
+  
+  // Clinics
+  var clinics=ChargeNurseLists.items('clinics');
+  h+='<div class="card"><div class="card-header"><h2>🏥 Clinics</h2></div>';
+  clinics.forEach(function(c){h+='<div class="list-item"><span>'+esc(c)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'clinics\',\''+esc(c)+'\')">Edit</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newClinic" placeholder="Add clinic..."><button class="btn-sm btn-gold" onclick="addListItem(\'clinics\')">Add</button></div></div>';
+  
+  // Escorts + Transport
+  var escorts=ChargeNurseLists.items('escorts');
+  var transport=ChargeNurseLists.items('transportation');
+  h+='<div class="card"><div class="card-header"><h2>🚐 Escorts & Transport</h2></div>';
+  h+='<p style="font-size:11px;color:var(--muted);margin-bottom:6px">Escorts</p>';
+  escorts.forEach(function(e){h+='<div class="list-item"><span>'+esc(e)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'escorts\',\''+esc(e)+'\')">Edit</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin:8px 0"><input id="newEscort" placeholder="Add escort..."><button class="btn-sm btn-gold" onclick="addListItem(\'escorts\')">Add</button></div>';
+  h+='<p style="font-size:11px;color:var(--muted);margin-bottom:6px">Transportation</p>';
+  transport.forEach(function(t){h+='<div class="list-item"><span>'+esc(t)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'transportation\',\''+esc(t)+'\')">Edit</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newTransport" placeholder="Add transport..."><button class="btn-sm btn-gold" onclick="addListItem(\'transportation\')">Add</button></div></div>';
+  
+  // Data backup
+  h+='<div class="card"><div class="card-header"><h2>💾 Data</h2></div>';
+  h+='<p style="font-size:12px;margin-bottom:8px;color:var(--muted)">All data is stored in this browser. Back up regularly.</p>';
+  h+='<div style="display:flex;gap:8px"><button class="btn-gold btn-sm" onclick="backupData()">Backup</button><button class="btn-outline btn-sm" onclick="document.getElementById(\'restoreFile\').click()">Restore</button><input type="file" id="restoreFile" accept=".json" hidden onchange="restoreData(event)"></div></div>';
+  
+  h+='</div>';
+  return h;
+}
+
+function editListItem(cat,name){
+  var val=prompt('Edit '+cat.slice(0,-1)+':',name);
+  if(val&&val.trim()&&val!==name)ChargeNurseLists.update(cat,name,val.trim());
+  render();
+}
+function addListItem(cat){
+  var el=$('new'+cat.charAt(0).toUpperCase()+cat.slice(1));
+  if(el&&el.value.trim()){ChargeNurseLists.add(cat,el.value.trim());el.value=''}
+  render();
+}
+function backupData(){
+  var pkg={clcData:CLCData.load(),masterLists:ChargeNurseLists.load(),exported:new Date().toISOString()};
+  var blob=new Blob([JSON.stringify(pkg)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CLC-Backup-'+iso()+'.json';a.click();
+}
+function restoreData(e){
+  var f=e.target.files[0];if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    try{
+      var p=JSON.parse(reader.result);
+      if(p.clcData)CLCData.save(p.clcData);
+      if(p.masterLists)ChargeNurseLists.save(p.masterLists);
+      alert('Data restored. Reloading...');
+      render();
+    }catch(err){alert('Invalid backup file.')}
+    e.target.value='';
+  };
+  reader.readAsText(f);
+}
+
+/* ── ==================== RENDER ==================== ── */
+function render(){
+  if(!checkAuth()){location.reload();return}
+  updateGreeting();
+  var html='';
+  switch(activeTab){
+    case 'home': html=renderHome(); break;
+    case 'appointments': html=renderAppointments(); break;
+    case 'veterans': html=renderVeterans(); break;
+    case 'transport': html=renderTransport(); break;
+    case 'reports': html=renderReports(); break;
+    case 'settings': html=renderSettings(); break;
+    default: html='<div class="card"><div class="empty"><div class="empty-icon">🚧</div>Coming soon.</div></div>';
+  }
+  $('workspace').innerHTML=html;
+}
+
+/* ── Modal ── */
+function showModal(html){$('modalContent').innerHTML=html;$('modalOverlay').classList.add('open')}
+function closeModal(){$('modalOverlay').classList.remove('open')}
+
+/* ── Appointments (shared) ── */
+function editAppointment(id){
+  var a=CLCData.appointments().find(x=>x.id===id);
+  if(!a)return;
+  // Placeholder — full editor coming in Appointments tab
+  alert('Edit: '+residentName(a)+' on '+a.date);
+}
+
+/* ── Init ── */
+render();
+window.addEventListener('clc:datachange',render);
 </script>
-<script src="print-support.js"></script>
 </body>
 </html>
