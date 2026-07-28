@@ -1603,8 +1603,8 @@ body.theme-night .patient-card.active {
 </div>
 
 <script>
-console.log('VA Charge RN RN9: centralized legacy migration active');
-window.CHARGENURSE_BUILD='Phase30-RN9';
+console.log('VA Charge RN RN12: shared Veteran persistence active');
+window.CHARGENURSE_BUILD='Phase30-RN12';
 window.addEventListener('clc:datachange', function(){ if (typeof loadData==='function') { loadData(); if (typeof renderPatientList==='function') renderPatientList(); if (typeof renderContent==='function') renderContent(); } });
 // ============== DATA LAYER ==============
 let data = { patients: [], settings: { nurseName: '', background: 'clinical' }, nextId: Date.now() };
@@ -1686,15 +1686,36 @@ function rnPatchFromPatient(patient) {
   patch.rnAppointments = typeof patient.appointments === 'string' ? patient.appointments : (patient.rnAppointments || '');
   return patch;
 }
+function rnValuesEqual(a, b) {
+  if (a === b) return true;
+  if ((a === undefined || a === null || a === '') && (b === undefined || b === null || b === '')) return true;
+  if (typeof a === 'object' || typeof b === 'object') {
+    try { return JSON.stringify(a) === JSON.stringify(b); } catch (e) { return false; }
+  }
+  return false;
+}
+
+function rnChangedPatch(patient, sharedResident) {
+  var full = rnPatchFromPatient(patient);
+  var patch = {};
+  Object.keys(full).forEach(function(key) {
+    if (!rnValuesEqual(full[key], sharedResident && sharedResident[key])) patch[key] = full[key];
+  });
+  return patch;
+}
+
 function saveData() {
   try {
     if (!window.CLCData) throw new Error('Shared CLCData layer is unavailable.');
     var existing = {};
-    CLCData.residents(false).forEach(function(r){ existing[String(r.id)] = true; });
+    CLCData.residents(false).forEach(function(r){ existing[String(r.id)] = r; });
     var patches = [];
     data.patients.forEach(function(patient) {
-      if (existing[String(patient.id)]) patches.push({id:patient.id,patch:rnPatchFromPatient(patient)});
-      else {
+      var current = existing[String(patient.id)];
+      if (current) {
+        var patch = rnChangedPatch(patient, current);
+        if (Object.keys(patch).length) patches.push({id:patient.id,patch:patch});
+      } else {
         var created = Object.assign({},rnPatchFromPatient(patient),{id:patient.id,active:true});
         CLCData.upsertResident(created);
       }

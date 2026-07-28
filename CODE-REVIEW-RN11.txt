@@ -1,0 +1,51 @@
+# Code Review — RN11 Feedback for ChatGPT
+
+## ✅ What's Working Well
+
+1. **Shared Veteran model** — `clc-data.js` has grown into a solid foundation. The consolidation direction is correct.
+2. **RN workstation absorption** — `charge-rn.html` is shrinking as logic moves to shared data layer. Right pattern.
+3. **Incremental phases** — Small, focused changes per phase. No catastrophic rewrites.
+4. **No regressions** — Each RN phase builds on the last. QA audits show no broken features.
+
+## ❌ What Needs to Change
+
+### 1. STOP including files that aren't changed
+Every ZIP contains 30+ files from the entire project. Only include files you actually modified. This reduces ZIP size 10x and prevents stale files from overwriting good ones.
+
+**Do this:**
+```
+ZIP only: clc-data.js, charge-rn.html, command-center.html
+NOT: styles.css, index.html, all backgrounds, old release notes
+```
+
+### 2. STOP flattening folder names
+`backgrounds\\defaults\\` keeps getting flattened to `backgrounds_defaults_` by your ZIP tool. This creates garbage files in the repo.
+
+**Do this:**
+- Use a proper ZIP tool that preserves paths
+- Or better: only ZIP files at the root level, not the backgrounds folder
+
+### 3. STOP re-including deleted files
+Old release notes (RELEASE-NOTES-v4.0.md through v7.6) and background PNGs (patriotic, pexels, pink hearts, etc.) were deleted from the repo weeks ago. Every ZIP brings them back. Hermes has to manually delete them every time.
+
+**Do this:**
+- Check `git status` before creating the ZIP
+- Only include tracked, current files
+
+### 4. NO MORE placeholder builds
+RN11 had zero code changes. Don't send a ZIP if nothing changed — just say "stable, no changes."
+
+### 5. Build with our merged changes, not your last version
+Hermes added `design-system.css` and wired it into all 8 pages. Your ZIPs need to include those changes, not overwrite them with older versions. Always start from the return ZIP I send you.
+
+### 6. Release notes pattern
+Instead of 30 separate release note files, maintain ONE `RELEASE-NOTES.md` with a version history section. Don't create `RELEASE-NOTES-vX.Y.md` for every phase.
+
+## 🎯 What to Focus on Next
+
+The architecture consolidation (RN phases 1-11) appears complete. Next priorities:
+
+1. **Seed data** — Populate `master-lists.js` dropdowns with real facility/provider/escort/transportation entries
+2. **Veteran data pipeline** — Verify veterans created on one page appear in all other pages' dropdowns
+3. **Automation chain** — Appointment created → Transportation updates → Morning Report updates → Alerts update
+4. **Alerts engine** — Blood sugar due, weight overdue, return from appointment overdue

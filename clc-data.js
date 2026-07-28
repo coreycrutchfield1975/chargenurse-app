@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='7.3-phase30-rn9';
+var VERSION='7.4-phase30-rn12';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -257,6 +257,7 @@ global.CLCData={KEY:KEY,VERSION:VERSION,uid:uid,load:load,save:save,
   residents:residents,resident:resident,normalizeResident:normalizeResident,
   upsertResident:upsertResident,upsertResidents:upsertResidents,
   patchResident:patchResident,patchResidents:patchResidents,
+  importLegacyRN:importLegacyRN,
   setResidentActive:setResidentActive,archiveAllResidents:archiveAllResidents,
   appointments:appointments,appointmentsForDate:appointmentsForDate,
   upsertAppointment:upsertAppointment,removeAppointment:removeAppointment,
