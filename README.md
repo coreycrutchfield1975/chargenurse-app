@@ -90,3 +90,8 @@ Settings supports optional clinic, facility, phone, and fax details for each Pro
 ## v6.3 Provider Contact Coordination
 
 Provider phone and fax can now auto-fill from Settings, remain editable per appointment, save with the appointment record, and appear in the Travel Request email.
+
+
+## v6.4 Printable Ticket to Ride
+
+Scheduler now generates an individual printable Ticket to Ride from either the appointment editor or a saved daily-agenda appointment. Printing does not automatically change the existing workflow status.
