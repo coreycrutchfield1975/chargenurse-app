@@ -50,3 +50,8 @@ Open `veterans.html` to manage the shared Veteran database. Records contain oper
 
 ## v5.5 Print and Connection Cleanup
 Shared print support was added across the connected operational pages. Morning Report was intentionally preserved without content changes.
+
+
+## v5.6 Protected Scheduler Workflow
+
+Appointments requiring transportation now open a Travel Request email draft before saving. Ticket to Ride and all existing transportation statuses remain intact. Appointments that do not require transportation can bypass the request without cancelling the appointment.

@@ -15,6 +15,11 @@
 .calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.calendar-title{font-size:23px;font-weight:900}.week,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.week div{text-align:center;font-size:10px;color:var(--muted);font-weight:900;text-transform:uppercase;padding:5px}.day{min-height:112px;border:1px solid #e0e5e1;border-radius:14px;background:#fbfcfa;padding:8px;cursor:pointer;overflow:hidden}.day:hover{border-color:var(--teal)}.day.out{opacity:.38}.day.today{box-shadow:inset 0 0 0 2px var(--teal)}.day.selected{background:#e5f0ed}.num{font-weight:900;font-size:12px}.event{margin-top:5px;padding:5px 6px;border-radius:8px;background:#dcecea;color:#285e59;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event.pending{background:#fff0dc;color:#84551d}.event.critical{background:#f7e2e4;color:#8b2932}
 .agenda{max-height:650px;overflow:auto}.appt{padding:12px;border:1px solid #e3e5e0;border-radius:14px;margin-bottom:8px;background:#fbfaf6;cursor:pointer}.appt:hover{border-color:var(--teal)}.appt-top{display:flex;justify-content:space-between;gap:8px}.appt b{display:block}.small{font-size:11px;color:var(--muted)}.pill{display:inline-block;font-size:9px;padding:4px 7px;border-radius:999px;background:#e4efec;color:#2b615c;margin-top:6px}.pill.warn{background:#fff0dc;color:#84551d}.pill.done{background:#e5f1e8;color:#356747}
 .modalbg{display:none;position:fixed;inset:0;background:rgba(13,24,29,.68);z-index:20;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}.modalbg.show{display:flex}.modal{width:min(900px,100%);max-height:94vh;overflow:auto;background:var(--surface);border-radius:23px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.3)}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field.span2{grid-column:span 2}.field label{font-size:11px;font-weight:850;color:#52616a}.field input,.field select,.field textarea{border:1px solid #cfd7d2;border-radius:10px;padding:10px;background:#fff}.checks{display:flex;gap:12px;flex-wrap:wrap;padding:8px 0}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.travel-box{border:1px solid #d7dfda;border-left:5px solid var(--amber);background:#fff9ef;border-radius:15px;padding:13px;margin:12px 0}
+.travel-box h3{margin:0 0 5px;font-size:16px}.travel-box p{margin:4px 0;color:var(--muted);font-size:12px;line-height:1.45}
+.email-preview{border:1px solid #d8ded9;background:#fff;border-radius:12px;padding:11px;white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;max-height:250px;overflow:auto}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#fff}
+
 @media(max-width:950px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{padding:14px}.top{flex-direction:column}.week,.days{gap:3px}.day{min-height:82px;padding:5px}.form{grid-template-columns:1fr}.field.full,.field.span2{grid-column:auto}}
 @media print{
 .nav,.calendar-head .btn,.modalbg,.section .btn{display:none!important}
@@ -50,10 +55,84 @@ window.selectDate=function(v){selectedDate=v;render()}
 window.closeEditor=function(){document.getElementById('modalbg').classList.remove('show')}
 window.openEditor=function(id,date){
  var a=id?CLCData.appointments().find(function(x){return x.id===id}):null;a=a||CLCData.normalizeAppointment({date:date||selectedDate,transportNeeded:true});
- var residents=CLCData.residents();document.getElementById('modal').innerHTML='<h2>'+(id?'Edit':'New')+' Appointment</h2><div class="form"><div class="field span2"><label>Veteran</label><select id="fResident"><option value="">Select Veteran</option>'+residents.map(function(r){return '<option value="'+esc(r.id)+'" '+(r.id===a.residentId?'selected':'')+'>'+esc((r.room?('Room '+r.room+' · '):'')+r.name)+'</option>'}).join('')+'</select></div><div class="field"><label>Date</label><input type="date" id="fDate" value="'+esc(a.date)+'"></div><div class="field"><label>Appointment Time</label><input type="time" id="fTime" value="'+esc(a.time)+'"></div><div class="field"><label>Departure Time</label><input type="time" id="fLeave" value="'+esc(a.leaveTime)+'"></div><div class="field"><label>Location / Destination</label><input id="fLocation" value="'+esc(a.location)+'"></div><div class="field"><label>Clinic</label><input id="fClinic" value="'+esc(a.clinic)+'"></div><div class="field"><label>Provider</label><input id="fProvider" value="'+esc(a.provider)+'"></div><div class="field"><label>Escort</label><input id="fEscort" value="'+esc(a.escort)+'"></div><div class="field span2"><label>Transportation</label><input id="fTransport" value="'+esc(a.transportation)+'" placeholder="VA vehicle, wheelchair van, family..."></div><div class="field full"><label>Status</label><div class="checks"><label><input type="checkbox" id="fNeeded" '+(a.transportNeeded?'checked':'')+'> Transportation needed</label><label><input type="checkbox" id="fTicket" '+(a.ticketPrepared?'checked':'')+'> Ticket to Ride</label><label><input type="checkbox" id="fTravel" '+(a.travelRequestEmailed?'checked':'')+'> Travel Request sent</label><label><input type="checkbox" id="fConfirmed" '+(a.confirmed?'checked':'')+'> Confirmed</label><label><input type="checkbox" id="fDeparted" '+(a.departed?'checked':'')+'> Departed</label><label><input type="checkbox" id="fCompleted" '+(a.completed?'checked':'')+'> Returned / completed</label><label><input type="checkbox" id="fNotCompleted" '+(a.notCompleted?'checked':'')+'> Not completed</label><label><input type="checkbox" id="fChart" '+(a.chartFlagged?'checked':'')+'> Chart flagged</label></div></div><div class="field"><label>Return Time</label><input type="time" id="fReturn" value="'+esc(a.returnTime)+'"></div><div class="field full"><label>Notes</label><textarea id="fNotes">'+esc(a.notes)+'</textarea></div></div><div class="actions">'+(id?'<button class="btn danger" onclick="removeAppointment(\''+esc(id)+'\')">Delete</button>':'')+'<button class="btn" onclick="closeEditor()">Cancel</button><button class="btn primary" onclick="saveAppointment(\''+esc(a.id)+'\')">Save Appointment</button></div>';
+ var residents=CLCData.residents();document.getElementById('modal').innerHTML='<h2>'+(id?'Edit':'New')+' Appointment</h2><div class="form"><div class="field span2"><label>Veteran</label><select id="fResident"><option value="">Select Veteran</option>'+residents.map(function(r){return '<option value="'+esc(r.id)+'" '+(r.id===a.residentId?'selected':'')+'>'+esc((r.room?('Room '+r.room+' · '):'')+r.name)+'</option>'}).join('')+'</select></div><div class="field"><label>Date</label><input type="date" id="fDate" value="'+esc(a.date)+'"></div><div class="field"><label>Appointment Time</label><input type="time" id="fTime" value="'+esc(a.time)+'"></div><div class="field"><label>Departure Time</label><input type="time" id="fLeave" value="'+esc(a.leaveTime)+'"></div><div class="field"><label>Location / Destination</label><input id="fLocation" value="'+esc(a.location)+'"></div><div class="field"><label>Clinic</label><input id="fClinic" value="'+esc(a.clinic)+'"></div><div class="field"><label>Provider</label><input id="fProvider" value="'+esc(a.provider)+'"></div><div class="field"><label>Escort</label><input id="fEscort" value="'+esc(a.escort)+'"></div><div class="field span2"><label>Transportation</label><input id="fTransport" value="'+esc(a.transportation)+'" placeholder="VA vehicle, wheelchair van, family..."></div><div class="field"><label>Transportation Email</label><input type="email" id="fEmailTo" value="'+esc(a.emailTo)+'" placeholder="Transportation department email"></div><div class="field full"><label>Travel Request Preparation / Reason</label><textarea id="fReason">'+esc(a.reason)+'</textarea></div><div class="field full"><label>Status</label><div class="checks"><label><input type="checkbox" id="fNeeded" '+(a.transportNeeded?'checked':'')+'> Transportation needed</label><label><input type="checkbox" id="fWheel" '+(a.wheelchair?'checked':'')+'> Wheelchair</label><label><input type="checkbox" id="fOxygen" '+(a.oxygen?'checked':'')+'> Oxygen</label><label><input type="checkbox" id="fTicket" '+(a.ticketPrepared?'checked':'')+'> Ticket to Ride</label><label><input type="checkbox" id="fTravel" '+(a.travelRequestEmailed?'checked':'')+'> Travel Request sent</label><label><input type="checkbox" id="fConfirmed" '+(a.confirmed?'checked':'')+'> Confirmed</label><label><input type="checkbox" id="fDeparted" '+(a.departed?'checked':'')+'> Departed</label><label><input type="checkbox" id="fCompleted" '+(a.completed?'checked':'')+'> Returned / completed</label><label><input type="checkbox" id="fNotCompleted" '+(a.notCompleted?'checked':'')+'> Not completed</label><label><input type="checkbox" id="fChart" '+(a.chartFlagged?'checked':'')+'> Chart flagged</label></div></div><div class="field"><label>Return Time</label><input type="time" id="fReturn" value="'+esc(a.returnTime)+'"></div><div class="field full"><label>Notes</label><textarea id="fNotes">'+esc(a.notes)+'</textarea></div></div><div class="actions">'+(id?'<button class="btn danger" onclick="removeAppointment(\''+esc(id)+'\')">Delete</button>':'')+'<button class="btn" onclick="closeEditor()">Cancel</button><button class="btn primary" onclick="beginSaveAppointment(\''+esc(a.id)+'\')">Save Appointment</button></div>';
  document.getElementById('modalbg').classList.add('show')
 }
-window.saveAppointment=function(id){if(!fResident.value){alert('Select a Veteran.');return}var a={id:id,residentId:fResident.value,date:fDate.value,time:fTime.value,leaveTime:fLeave.value,location:fLocation.value.trim(),clinic:fClinic.value.trim(),provider:fProvider.value.trim(),escort:fEscort.value.trim(),transportation:fTransport.value.trim(),transportNeeded:fNeeded.checked,ticketPrepared:fTicket.checked,travelRequestEmailed:fTravel.checked,confirmed:fConfirmed.checked,departed:fDeparted.checked,completed:fCompleted.checked,notCompleted:fNotCompleted.checked,chartFlagged:fChart.checked,returnTime:fReturn.value,notes:fNotes.value.trim()};CLCData.upsertAppointment(a);selectedDate=a.date;cursor=new Date(a.date+'T12:00:00');closeEditor();render()}
+function collectAppointment(id){
+ return {id:id,residentId:fResident.value,date:fDate.value,time:fTime.value,leaveTime:fLeave.value,location:fLocation.value.trim(),clinic:fClinic.value.trim(),provider:fProvider.value.trim(),escort:fEscort.value.trim(),transportation:fTransport.value.trim(),emailTo:fEmailTo.value.trim(),reason:fReason.value.trim(),wheelchair:fWheel.checked,oxygen:fOxygen.checked,transportNeeded:fNeeded.checked,ticketPrepared:fTicket.checked,travelRequestEmailed:fTravel.checked,confirmed:fConfirmed.checked,departed:fDeparted.checked,completed:fCompleted.checked,notCompleted:fNotCompleted.checked,chartFlagged:fChart.checked,returnTime:fReturn.value,notes:fNotes.value.trim()}
+}
+function appointmentVeteranName(a){
+ var r=CLCData.resident(a.residentId);return r?r.name:'Veteran'
+}
+function travelEmailSubject(a){return 'Travel Request - '+appointmentVeteranName(a)+' - '+a.date}
+function travelEmailBody(a){
+ var r=CLCData.resident(a.residentId)||{};
+ return [
+  'Travel Request',
+  '',
+  'Veteran: '+(r.name||''),
+  'Room: '+(r.room||''),
+  'Appointment Date: '+a.date,
+  'Appointment Time: '+(a.time||'Not entered'),
+  'Requested Departure Time: '+(a.leaveTime||'Not entered'),
+  'Destination / Location: '+(a.location||'Not entered'),
+  'Clinic: '+(a.clinic||'Not entered'),
+  'Provider: '+(a.provider||'Not entered'),
+  'Transportation: '+(a.transportation||'Not entered'),
+  'Escort: '+(a.escort||'None entered'),
+  'Wheelchair: '+(a.wheelchair?'Yes':'No'),
+  'Oxygen: '+(a.oxygen?'Yes':'No'),
+  '',
+  'Preparation / Reason:',
+  a.reason||'None entered'
+ ].join('\n')
+}
+window.beginSaveAppointment=function(id){
+ if(!fResident.value){alert('Select a Veteran.');return}
+ var a=collectAppointment(id);
+ if(!a.date){alert('Enter the appointment date.');return}
+ if(a.transportNeeded&&!a.travelRequestEmailed){openTravelRequestGate(a);return}
+ saveAppointmentRecord(a)
+}
+function openTravelRequestGate(a){
+ var recipient=a.emailTo||localStorage.getItem('clc-transport-email')||'';
+ var subject=travelEmailSubject(a),body=travelEmailBody(a);
+ document.getElementById('modal').innerHTML='<h2>Travel Request Required</h2><div class="travel-box"><h3>Transportation is marked as needed.</h3><p>The Travel Request email must open before this appointment can be saved. Cancel below when this appointment does not require transportation.</p></div><div class="form"><div class="field full"><label>Transportation Email</label><input type="email" id="travelRecipient" value="'+esc(recipient)+'" placeholder="Transportation department email"></div><div class="field full"><label>Email Preview</label><div class="email-preview">'+esc('Subject: '+subject+'\n\n'+body)+'</div></div></div><div class="actions"><button class="btn" onclick="returnToAppointment()">Back</button><button class="btn" onclick="saveWithoutTransportation()">No Transportation Needed</button><button class="btn amber" onclick="openTravelEmail()">Open Travel Request Email</button></div><div class="actions"><button class="btn primary" id="confirmTravelSave" onclick="confirmTravelRequestAndSave()" disabled>Confirm Request Opened/Sent and Save</button></div>';
+ window.pendingAppointment=a;window.pendingTravelSubject=subject;window.pendingTravelBody=body
+}
+window.returnToAppointment=function(){
+ var a=window.pendingAppointment;if(!a)return;
+ openEditor(a.id||null,a.date);
+ setTimeout(function(){
+  fResident.value=a.residentId;fDate.value=a.date;fTime.value=a.time;fLeave.value=a.leaveTime;fLocation.value=a.location;fClinic.value=a.clinic;fProvider.value=a.provider;fEscort.value=a.escort;fTransport.value=a.transportation;fEmailTo.value=a.emailTo;fReason.value=a.reason;fWheel.checked=a.wheelchair;fOxygen.checked=a.oxygen;fNeeded.checked=a.transportNeeded;fTicket.checked=a.ticketPrepared;fTravel.checked=a.travelRequestEmailed;fConfirmed.checked=a.confirmed;fDeparted.checked=a.departed;fCompleted.checked=a.completed;fNotCompleted.checked=a.notCompleted;fChart.checked=a.chartFlagged;fReturn.value=a.returnTime;fNotes.value=a.notes
+ },0)
+}
+window.openTravelEmail=function(){
+ var recipient=document.getElementById('travelRecipient').value.trim();
+ if(!recipient){alert('Enter the transportation email address.');return}
+ localStorage.setItem('clc-transport-email',recipient);
+ window.pendingAppointment.emailTo=recipient;
+ var href='mailto:'+encodeURIComponent(recipient)+'?subject='+encodeURIComponent(window.pendingTravelSubject)+'&body='+encodeURIComponent(window.pendingTravelBody);
+ window.location.href=href;
+ document.getElementById('confirmTravelSave').disabled=false
+}
+window.confirmTravelRequestAndSave=function(){
+ var a=window.pendingAppointment;if(!a)return;
+ a.emailTo=document.getElementById('travelRecipient').value.trim();
+ a.travelRequestEmailed=true;
+ a.emailDate=new Date().toISOString().slice(0,16);
+ saveAppointmentRecord(a)
+}
+window.saveWithoutTransportation=function(){
+ var a=window.pendingAppointment;if(!a)return;
+ if(!confirm('Save this appointment as not requiring transportation?'))return;
+ a.transportNeeded=false;a.travelRequestEmailed=false;a.confirmed=false;
+ saveAppointmentRecord(a)
+}
+function saveAppointmentRecord(a){
+ CLCData.upsertAppointment(a);selectedDate=a.date;cursor=new Date(a.date+'T12:00:00');
+ window.pendingAppointment=null;closeEditor();render()
+}
 window.removeAppointment=function(id){if(confirm('Delete this appointment?')){CLCData.removeAppointment(id);closeEditor();render()}}
 window.addEventListener('clc:datachange',render);
 (function openDeepLink(){

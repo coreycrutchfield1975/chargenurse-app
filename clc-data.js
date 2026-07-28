@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='5.3';
+var VERSION='5.6';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -52,6 +52,8 @@ function normalizeAppointment(a){
     time:a.time||'',leaveTime:a.leaveTime||'',location:a.location||'',
     clinic:a.clinic||'',provider:a.provider||'',escort:a.escort||'',
     transportation:a.transportation||'',transportNeeded:a.transportNeeded!==false,
+    emailTo:a.emailTo||'',emailDate:a.emailDate||'',reason:a.reason||'',
+    wheelchair:!!a.wheelchair,oxygen:!!a.oxygen,
     notes:a.notes||'',ticketPrepared:!!a.ticketPrepared,
     travelRequestEmailed:!!a.travelRequestEmailed,confirmed:!!a.confirmed,
     departed:!!a.departed,completed:!!a.completed,notCompleted:!!a.notCompleted,
