@@ -157,6 +157,39 @@ select option{background:var(--pd);color:#e2e8f0}
 .weather-card{display:flex;align-items:center;gap:12px}
 .weather-icon{font-size:40px}.weather-temp{font-size:28px;font-weight:900}.weather-detail{font-size:11px;color:var(--muted)}
 
+/* ── Theme swatches ── */
+.theme-swatch{width:30px;height:30px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.15s}
+.theme-swatch:hover{transform:scale(1.15);border-color:var(--gold)}
+.theme-swatch.active{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+
+/* ── Theme variants ── */
+body.theme-patriotic{--pd:#002868;--pm:#bf0a30;--pl:#ffffff;--pp:#f0f0f0;--gold:#ffd700;background:linear-gradient(135deg,#002868,#bf0a30)}
+body.theme-patriotic .tab-bar{background:#002868!important}
+body.theme-gold{--pd:#78350f;--pm:#b45309;--pl:#fbbf24;--pp:#fffbeb;--gold:#d97706;background:linear-gradient(135deg,#78350f,#b45309)}
+body.theme-gold .tab-bar{background:#78350f!important}
+body.theme-teal{--pd:#134e4a;--pm:#0f766e;--pl:#5eead4;--pp:#f0fdfa;--gold:#c9a227;background:linear-gradient(135deg,#134e4a,#0f766e)}
+body.theme-teal .tab-bar{background:#134e4a!important}
+body.theme-navy{--pd:#1e3a5f;--pm:#2563eb;--pl:#93c5fd;--pp:#eff6ff;--gold:#c9a227;background:linear-gradient(135deg,#1e3a5f,#2563eb)}
+body.theme-navy .tab-bar{background:#1e3a5f!important}
+
+/* ── Nursing spark card ── */
+.spark-card{background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.spark-label{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:700}
+.spark-text{font-size:14px;line-height:1.5;margin-top:6px;font-weight:600}
+.spark-source{font-size:11px;color:var(--muted);margin-top:6px}
+.spark-next{font-size:10px;padding:4px 10px;border:1px solid var(--gold);border-radius:99px;color:var(--gold);cursor:pointer;margin-top:8px;float:right}
+.spark-next:hover{background:rgba(201,162,39,.15)}
+
+/* ── Daily wins ── */
+.win{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:center;padding:10px;border-radius:8px;background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.2);margin-bottom:6px}
+.win-icon{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-weight:900;font-size:14px}
+.win b{display:block;font-size:13px}.win span{font-size:11px;color:var(--muted)}
+
+/* ── Confetti ── */
+.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.confetti-piece{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confettiFall 1.8s cubic-bezier(.18,.72,.34,1) forwards}
+@keyframes confettiFall{to{transform:translate3d(var(--drift),105vh,0) rotate(var(--spin));opacity:.9}}
+
 /* ── Modal ── */
 .modal-overlay{
   display:none;position:fixed;inset:0;z-index:100;
@@ -205,7 +238,8 @@ select option{background:var(--pd);color:#e2e8f0}
   <span class="phi-badge">🔒 PHI — KEEP CONFIDENTIAL</span>
   <div style="display:flex;align-items:center;gap:8px;font-size:12px">
     <span id="greeting">Good morning</span>
-    <span id="liveClock">--:--</span>
+    <span id="liveDate" style="color:var(--muted);font-size:11px"></span>
+    <strong id="liveClock" style="font-size:18px">--:--</strong>
     <button class="btn-sm btn-outline" onclick="doLock()">🔓 Lock</button>
   </div>
 </header>
@@ -261,11 +295,18 @@ function switchTab(tab){
 }
 $$('#tabBar button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 
-/* ── Greeting ── */
+/* ── Greetings ── */
+var FUN_GREETINGS={
+  morning:['Coffee checked. Census checked. Chaos, please take a number.','The unit is awake. Ready is another question.','Scrubs on, coffee nearby, judgment fully charged.'],
+  afternoon:['Halfway there. The call lights have formed a committee.','Still standing, still charting, still making it happen.','Hydrate, delegate, and never trust a quiet hallway.'],
+  evening:['Night mode activated. Clinical instincts remain fully lit.','The sun clocked out. Nursing did not.','Evening crew online: calm voices, sharp eyes, strong coffee.']
+};
+
 function updateGreeting(){
   var d=new Date(),h=d.getHours(),p=h<12?'morning':h<17?'afternoon':'evening';
-  var msgs={morning:'☀️ Good morning',afternoon:'🌤️ Good afternoon',evening:'🌙 Good evening'};
-  $('greeting').textContent=msgs[p];
+  var list=FUN_GREETINGS[p],seed=(d.getDate()+d.getMonth()*7+d.getHours())%list.length;
+  $('greeting').textContent=list[seed];
+  $('liveDate').textContent=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   $('liveClock').textContent=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 }
 setInterval(updateGreeting,30000);updateGreeting();
@@ -291,7 +332,9 @@ function renderHome(){
   // Alerts
   var alerts=CLCData.alerts?CLCData.alerts():[];
   
-  // Nursing facts
+  // Nursing facts (expanded)
+  var facts=['Florence Nightingale, the founder of modern nursing, was known as "The Lady with the Lamp" during the Crimean War.'
+
   var facts=[
     'More than 60% of the healthcare workforce in VA facilities are nurses or nursing support staff.',
     'The VA is the largest employer of nurses in the United States.',
@@ -795,15 +838,80 @@ function render(){
 function showModal(html){$('modalContent').innerHTML=html;$('modalOverlay').classList.add('open')}
 function closeModal(){$('modalOverlay').classList.remove('open')}
 
-/* ── Appointments (shared) ── */
+/* ── Open appointment from anywhere ── */
 function editAppointment(id){
-  var a=CLCData.appointments().find(x=>x.id===id);
-  if(!a)return;
-  // Placeholder — full editor coming in Appointments tab
-  alert('Edit: '+residentName(a)+' on '+a.date);
+  openAppointmentEditor(id);
 }
 
+/* ── Nursing Spark rotation ── */
+var sparkIndex=0;
+var NURSING_SPARKS=[
+  {label:'From nursing history',text:'Modern nursing grew stronger when careful observation, sanitation, and organized records became part of everyday patient care.',source:'Good systems have always mattered.'},
+  {label:'Nursing spark',text:'A calm nurse does not mean a calm shift. It means someone capable is holding the center.',source:'ChargeNurse original'},
+  {label:'Nursing spark',text:'You cannot prevent every surprise, but you can make sure important details are not hiding in three places.',source:'ChargeNurse original'},
+  {label:'From nursing history',text:'Public health nursing helped move care beyond hospital walls into homes, schools, and communities.',source:'Nursing goes where people need it.'},
+  {label:'Nursing spark',text:'Today\'s goal: fewer mysteries, clearer handoffs, and at least one sip of coffee.',source:'ChargeNurse original'},
+  {label:'Nursing spark',text:'Behind every smooth appointment is someone who checked the time, the ride, the paperwork, and the thing nobody remembered.',source:'ChargeNurse original'},
+  {label:'Nursing spark',text:'Good teamwork is knowing who has the answer. Great teamwork is making sure everyone can find it.',source:'ChargeNurse original'},
+  {label:'From nursing history',text:'Nursing documentation evolved from simple bedside notes into a vital record of assessment and continuity of care.',source:'The chart tells the next clinician what the room cannot.'}
+];
+function nextSpark(){sparkIndex=(sparkIndex+1)%NURSING_SPARKS.length}
+function getSpark(){return NURSING_SPARKS[sparkIndex]}
+
+/* ── Daily Wins ── */
+function getDailyWins(){
+  var wins=[],appsForToday=apps(),allA=allApps();
+  if(appsForToday.length&&appsForToday.every(function(a){return a.completed||a.notCompleted}))
+    wins.push({title:'Today\'s appointments closed out',detail:'No appointment status is still open.'});
+  if(appsForToday.length&&appsForToday.filter(function(a){return a.departed}).every(function(a){return a.completed&&a.returnTime}))
+    wins.push({title:'Every departed Veteran returned',detail:'Return information is complete.'});
+  if(allA.filter(function(a){return a.transportNeeded&&a.travelRequestEmailed}).length===allA.filter(function(a){return a.transportNeeded}).length&&allA.filter(function(a){return a.transportNeeded}).length>0)
+    wins.push({title:'All Travel Requests completed',detail:'Transportation preparation is caught up.'});
+  if(!CLCData.alerts||!CLCData.alerts().length)
+    wins.push({title:'Mission Control is clear',detail:'Nothing needs attention right now.'});
+  return wins;
+}
+function celebrateWins(wins){
+  var key='clc-wins-'+iso(),seen=[];try{seen=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+  if(!Array.isArray(seen))seen=[];
+  var fresh=wins.filter(function(w){return seen.indexOf(w.id||w.title)<0});
+  if(fresh.length){setTimeout(confetti,350);localStorage.setItem(key,JSON.stringify(seen.concat(fresh.map(function(w){return w.id||w.title}))))}
+}
+
+/* ── Confetti ── */
+function confetti(){
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var layer=document.createElement('div');layer.className='confetti-layer';
+  var colors=['#c9a227','#8b5bb8','#5eead4','#fbbf24','#dc2626','#16a34a'];
+  for(var i=0;i<38;i++){var piece=document.createElement('i');piece.className='confetti-piece';piece.style.left=(5+Math.random()*90)+'%';piece.style.background=colors[i%colors.length];piece.style.animationDelay=(Math.random()*.25)+'s';piece.style.setProperty('--drift',(-80+Math.random()*160)+'px');piece.style.setProperty('--spin',(360+Math.random()*720)+'deg');layer.appendChild(piece)}
+  document.body.appendChild(layer);setTimeout(function(){layer.remove()},2300);
+}
+
+/* ── Weather ── */
+function loadWeather(){
+  var el=document.getElementById('home-weather');if(!el)return;
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET','https://wttr.in/63901?format=j1',true);
+  xhr.onload=function(){
+    if(xhr.status!==200){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>';return}
+    try{var w=JSON.parse(xhr.responseText);var cc=w.current_condition[0];
+      el.innerHTML='<div style="font-size:36px;margin-bottom:8px">'+getWeatherEmoji(cc.weatherCode)+'</div><div style="font-size:22px;font-weight:800">'+cc.temp_F+'°F</div><div style="font-size:13px;color:var(--muted);margin-top:4px">'+cc.weatherDesc[0].value+'</div><div style="font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:16px;justify-content:center"><span>💧 Humidity: '+cc.humidity+'%</span><span>🌬 Wind: '+cc.windspeedMiles+' mph</span></div>'}catch(e){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>'}
+  };
+  xhr.onerror=function(){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>'};
+  xhr.send();
+}
+function getWeatherEmoji(code){var c=parseInt(code);if(c>=113)return'☀️';if(c>=116)return'⛅';if(c>=119)return'☁️';if(c>=122)return'☁️';if(c>=143)return'🌫️';if(c>=176)return'🌦️';if(c>=200)return'⛈️';if(c>=227)return'🌨️';if(c>=248)return'🌫️';if(c>=260)return'🌫️';if(c>=263)return'🌦️';if(c>=296)return'🌧️';if(c>=311)return'🌧️';if(c>=317)return'🌧️';if(c>=350)return'🌧️';if(c>=359)return'🌧️';if(c>=368)return'🌨️';if(c>=377)return'🌨️';if(c>=386)return'⛈️';return'🌤️'}
+
+/* ── Theme ── */
+var THEMES=['default','patriotic','gold','teal','navy'];
+function setTheme(t){
+  document.body.className=document.body.className.split(' ').filter(function(c){return c.indexOf('theme-')!==0}).join(' ')+(t&&t!=='default'?' theme-'+t:'');
+  localStorage.setItem('clc_theme',t||'default');
+}
+function initTheme(){var t=localStorage.getItem('clc_theme')||'default';if(t!=='default')document.body.className+=' theme-'+t;}
+
 /* ── Init ── */
+initTheme();
 render();
 window.addEventListener('clc:datachange',render);
 </script>
