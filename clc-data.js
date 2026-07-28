@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='6.2';
+var VERSION='6.3';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -50,7 +50,7 @@ function normalizeAppointment(a){
     id:String(a.id||uid()),residentId:String(a.residentId||''),
     residentName:a.residentName||'',room:a.room||'',date:a.date||'',
     time:a.time||'',leaveTime:a.leaveTime||'',location:a.location||'',
-    clinic:a.clinic||'',provider:a.provider||'',escort:a.escort||'',
+    clinic:a.clinic||'',provider:a.provider||'',providerPhone:a.providerPhone||'',providerFax:a.providerFax||'',escort:a.escort||'',
     transportation:a.transportation||'',transportNeeded:a.transportNeeded!==false,
     emailTo:a.emailTo||'',emailDate:a.emailDate||'',reason:a.reason||'',
     wheelchair:!!a.wheelchair,oxygen:!!a.oxygen,

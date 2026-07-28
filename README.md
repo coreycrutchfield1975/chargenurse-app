@@ -85,3 +85,8 @@ Settings now manages shared suggestions for Providers, Transportation, Escorts, 
 ## v6.2 Optional Provider Defaults
 
 Settings supports optional clinic, facility, phone, and fax details for each Provider. Scheduler fills only blank fields and never overwrites staff-entered information.
+
+
+## v6.3 Provider Contact Coordination
+
+Provider phone and fax can now auto-fill from Settings, remain editable per appointment, save with the appointment record, and appear in the Travel Request email.
