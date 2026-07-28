@@ -349,7 +349,7 @@ button{color:inherit}
 <div class="modalbg" id="modalbg"><div class="modal" id="modal"></div></div>
 <script>
 (function(){'use strict';
-var RN_KEY='va-rn-workstation',VERSION=6.7,currentTask='showers';
+var VERSION=6.8,currentTask='showers';
 function parse(x,f){try{return x?JSON.parse(x):f}catch(e){return f}}
 function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
 function iso(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -386,8 +386,8 @@ window.showView=function(v){['today','residents','transport'].forEach(function(x
 window.openResident=function(id){location.href='veterans.html'+(id?'?resident='+encodeURIComponent(id):'')}
 window.discharge=function(id){location.href='veterans.html?resident='+encodeURIComponent(id)}
 window.syncRN=function(){location.href='veterans.html'}
-window.exportAll=function(){var pkg={app:'ChargeNurse',version:VERSION,exportedAt:new Date().toISOString(),sharedData:shared(),rnWorkstation:parse(localStorage.getItem(RN_KEY),null),morningReport:{}};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('mr_')===0)pkg.morningReport[k]=localStorage.getItem(k)}var blob=new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ChargeNurse-Backup-'+iso()+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
-window.importAll=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(r.result),incoming=p.sharedData||p.commandCenter;if(incoming)CLCData.save(incoming);if(p.rnWorkstation)localStorage.setItem(RN_KEY,JSON.stringify(p.rnWorkstation));if(p.morningReport)Object.keys(p.morningReport).forEach(function(k){localStorage.setItem(k,p.morningReport[k])});render();alert('Backup restored.')}catch(err){alert('Could not restore: '+err.message)}e.target.value=''};r.readAsText(f)}
+window.exportAll=function(){var pkg={app:'ChargeNurse',version:VERSION,exportedAt:new Date().toISOString(),sharedData:shared(),morningReport:{}};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('mr_')===0)pkg.morningReport[k]=localStorage.getItem(k)}var blob=new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ChargeNurse-Backup-'+iso()+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
+window.importAll=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(r.result),incoming=p.sharedData||p.commandCenter,legacyResult=null;if(incoming)CLCData.save(incoming);if(p.rnWorkstation&&CLCData.importLegacyRN)legacyResult=CLCData.importLegacyRN(p.rnWorkstation);if(p.morningReport)Object.keys(p.morningReport).forEach(function(k){localStorage.setItem(k,p.morningReport[k])});localStorage.removeItem('va-rn-workstation');render();alert('Backup restored.'+(legacyResult&&legacyResult.imported+legacyResult.updated?' Legacy RN records were consolidated into shared Veteran records.':''))}catch(err){alert('Could not restore: '+err.message)}e.target.value=''};r.readAsText(f)}
 var FUN_GREETINGS={
  morning:[
   'Coffee checked. Census checked. Chaos, please take a number.',

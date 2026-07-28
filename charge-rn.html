@@ -1603,8 +1603,8 @@ body.theme-night .patient-card.active {
 </div>
 
 <script>
-console.log('VA Charge RN RN8: shared-record patch persistence active');
-window.CHARGENURSE_BUILD='Phase30-RN8';
+console.log('VA Charge RN RN9: centralized legacy migration active');
+window.CHARGENURSE_BUILD='Phase30-RN9';
 window.addEventListener('clc:datachange', function(){ if (typeof loadData==='function') { loadData(); if (typeof renderPatientList==='function') renderPatientList(); if (typeof renderContent==='function') renderContent(); } });
 // ============== DATA LAYER ==============
 let data = { patients: [], settings: { nurseName: '', background: 'clinical' }, nextId: Date.now() };
@@ -1643,20 +1643,12 @@ function migrateLegacyRNDataIfNeeded() {
   if (!window.CLCData || localStorage.getItem('chargenurse-rn-migrated')) return;
   try {
     var legacy = JSON.parse(localStorage.getItem('va-rn-workstation') || 'null');
-    if (!legacy || !Array.isArray(legacy.patients) || !legacy.patients.length) {
-      localStorage.setItem('chargenurse-rn-migrated', new Date().toISOString());
-      localStorage.removeItem('va-rn-workstation');
-      return;
+    if (legacy && CLCData.importLegacyRN) {
+      var result = CLCData.importLegacyRN(legacy);
+      if (result.settings && Object.keys(result.settings).length) {
+        localStorage.setItem('chargenurse-rn-settings', JSON.stringify(result.settings));
+      }
     }
-    var existing = {};
-    CLCData.residents(false).forEach(function(r){ existing[String(r.id)] = true; });
-    legacy.patients.forEach(function(p) {
-      if (existing[String(p.id)]) return;
-      p.active = p.active !== false;
-      p.rnAppointments = typeof p.appointments === 'string' ? p.appointments : '';
-      delete p.appointments;
-      CLCData.upsertResident(p);
-    });
     localStorage.setItem('chargenurse-rn-migrated', new Date().toISOString());
     localStorage.removeItem('va-rn-workstation');
   } catch (e) { console.error('RN migration error:', e); }

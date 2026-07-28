@@ -1,7 +1,7 @@
 (function(global){
 'use strict';
 var KEY='clc-command-center-v3';
-var VERSION='7.2-phase30-rn8';
+var VERSION='7.3-phase30-rn9';
 
 function parse(value,fallback){try{return value?JSON.parse(value):fallback}catch(e){return fallback}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -188,6 +188,36 @@ function patchResidents(items,changeMeta){
     save(d);
   }
   return changed;
+}
+
+
+function importLegacyRN(legacy){
+  if(!legacy||!Array.isArray(legacy.patients))return {imported:0,updated:0,settings:legacy&&legacy.settings||{}};
+  var d=load(), imported=0, updated=0;
+  legacy.patients.forEach(function(patient){
+    if(!patient)return;
+    var raw=Object.assign({},patient);
+    raw.id=String(raw.id||uid());
+    raw.active=raw.active!==false;
+    raw.rnAppointments=typeof raw.appointments==='string'?raw.appointments:(raw.rnAppointments||'');
+    delete raw.appointments;
+    var normalized=normalizeResident(raw,d.residents.length);
+    var i=d.residents.findIndex(function(r){return r.id===normalized.id});
+    if(i>=0){
+      normalized.createdAt=d.residents[i].createdAt||normalized.createdAt;
+      normalized.updatedAt=now();
+      d.residents[i]=normalized;
+      updated++;
+    }else{
+      d.residents.push(normalized);
+      imported++;
+    }
+  });
+  if(imported||updated){
+    addChange(d,'migration','Legacy RN data consolidated',(imported+' added · '+updated+' updated'));
+    save(d);
+  }
+  return {imported:imported,updated:updated,settings:legacy.settings||{}};
 }
 
 function archiveAllResidents(){
