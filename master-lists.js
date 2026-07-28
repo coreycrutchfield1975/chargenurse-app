@@ -3,19 +3,31 @@
 var KEY='chargenurse-master-lists-v5';
 var LEGACY_KEYS=['chargenurse-master-lists-v4','chargenurse-master-lists-v3','chargenurse-master-lists-v2','chargenurse-master-lists-v1'];
 var DEFAULTS={
-  providers:['McCain','Cook'],
-  transportation:['VA Vehicle','Wheelchair Van','Ambulance','Family','Private Vehicle','Taxi / Rideshare','Other'],
-  escorts:['Nursing','CNA','Family','Veteran Independent','Driver Only','Other'],
-  clinics:['Primary Care','Cardiology','Neurology','Dental','Audiology','Optometry / Vision','Mental Health','Community Care','Other'],
-  facilities:['VA Medical Center','Community Care Facility','Hospital','Clinic','Dental Office','Other'],
-  appointmentReasons:['Routine Follow-up','New Patient Visit','Procedure','Imaging','Laboratory','Dental','Mental Health','Specialty Follow-up','Other']
+  providers:['McCain MD','Cook MD','Patel MD','Williams NP','Johnson PA','Rivera MD','Thompson MD'],
+  transportation:['VA Vehicle','Wheelchair Van','Ambulance','Family Transport','Private Vehicle','Taxi / Rideshare','Community Shuttle','Other'],
+  escorts:['Nursing Escort','CNA Escort','Family Member','Veteran Independent','Driver Only','VA Volunteer','Other'],
+  clinics:['Primary Care','Cardiology','Neurology','Dental','Audiology','Optometry / Vision','Mental Health','Community Care','Podiatry','Pulmonary','Dermatology','Endocrinology','Gastroenterology','Oncology','Orthopedics','Pain Management','Physical Therapy','Rheumatology','Urology','Other'],
+  facilities:['VA Medical Center - Main','VA Medical Center - North','Community Care Clinic - Libertyville','Lake County Hospital','Midwest Specialty Clinic','Dental Associates','University Medical Center','VA Community Based Outpatient Clinic','Other'],
+  appointmentReasons:['Routine Follow-up','New Patient Visit','Pre-Op Evaluation','Post-Op Follow-up','Procedure','Imaging / X-Ray','MRI / CT Scan','Laboratory / Blood Work','Dental Cleaning','Dental Procedure','Mental Health Visit','Physical Therapy','Specialty Consultation','Annual Physical','Other']
 };
-var DEFAULT_PROFILES={
-  McCain:{clinic:'',facility:'',phone:'',fax:''},
-  Cook:{clinic:'',facility:'',phone:'',fax:''}
+var DEFAULT_FACILITY_PROFILES={
+  'VA Medical Center - Main':{address:'3001 Green Bay Road, North Chicago, IL 60064',phone:'(847) 688-1900',fax:'(847) 578-6906',contact:'VA Scheduling Desk',directions:'Enter through main entrance. Check in at desk 3.'},
+  'VA Medical Center - North':{address:'5000 W National Ave, Milwaukee, WI 53295',phone:'(414) 384-2000',fax:'(414) 382-5303',contact:'VA North Scheduling',directions:'Take I-94 West to Exit 305B. Visitor parking in Lot A.'},
+  'Community Care Clinic - Libertyville':{address:'890 Garfield Ave, Libertyville, IL 60048',phone:'(224) 555-0140',fax:'(224) 555-0141',contact:'Front Desk',directions:'Corner of Garfield and 4th. Parking behind building.'},
+  'Lake County Hospital':{address:'1000 Lakeview Parkway, Waukegan, IL 60085',phone:'(847) 360-2000',fax:'(847) 360-2001',contact:'Outpatient Scheduling',directions:'Enter through Outpatient Pavilion, east entrance.'},
+  'Midwest Specialty Clinic':{address:'2500 Washington St, Gurnee, IL 60031',phone:'(847) 555-0230',fax:'(847) 555-0231',contact:'Specialty Referral Desk',directions:'Suite 300, third floor.'},
+  'Dental Associates':{address:'412 Center Street, Grayslake, IL 60030',phone:'(847) 555-3500',fax:'(847) 555-3501',contact:'Dental Reception',directions:'Ground floor, wheelchair accessible.'}
 };
-var DEFAULT_TRANSPORT_CONTACT={email:'',phone:'',fax:'',instructions:''};
-var DEFAULT_FACILITY_PROFILES={};
+var DEFAULT_PROVIDER_PROFILES={
+  'McCain MD':{clinic:'Primary Care',facility:'VA Medical Center - Main',phone:'(847) 688-1900 ext 4421',fax:'(847) 578-6906'},
+  'Cook MD':{clinic:'Primary Care',facility:'VA Medical Center - Main',phone:'(847) 688-1900 ext 5512',fax:'(847) 578-6906'},
+  'Patel MD':{clinic:'Cardiology',facility:'VA Medical Center - Main',phone:'(847) 688-1900 ext 3320',fax:'(847) 578-6907'},
+  'Williams NP':{clinic:'Primary Care',facility:'Community Care Clinic - Libertyville',phone:'(224) 555-0140',fax:'(224) 555-0141'},
+  'Johnson PA':{clinic:'Mental Health',facility:'VA Medical Center - North',phone:'(414) 384-2000 ext 2210',fax:'(414) 382-5303'},
+  'Rivera MD':{clinic:'Neurology',facility:'Midwest Specialty Clinic',phone:'(847) 555-0230',fax:'(847) 555-0231'},
+  'Thompson MD':{clinic:'Primary Care',facility:'Lake County Hospital',phone:'(847) 360-2000 ext 450',fax:'(847) 360-2001'}
+};
+var DEFAULT_TRANSPORT_CONTACT={email:'transportation@va.gov',phone:'(847) 688-1900 ext 7100',fax:'(847) 578-6910',instructions:'Call 48 hours in advance to schedule. Confirm pickup time the day before.'};
 function parse(v,f){try{return v?JSON.parse(v):f}catch(e){return f}}
 function clean(items){
   var seen={};
@@ -34,7 +46,6 @@ function cleanProfile(p){
     fax:String(p.fax||'').trim()
   }
 }
-
 function cleanFacilityProfile(p){
   p=p||{};
   return {
@@ -66,7 +77,7 @@ function normalized(data){
   out.providerProfiles={};
   var source=data.providerProfiles||{};
   out.providers.forEach(function(name){
-    out.providerProfiles[name]=cleanProfile(source[name]||source[Object.keys(source).find(function(k){return k.toLowerCase()===name.toLowerCase()})]||DEFAULT_PROFILES[name]||{})
+    out.providerProfiles[name]=cleanProfile(source[name]||source[Object.keys(source).find(function(k){return k.toLowerCase()===name.toLowerCase()})]||DEFAULT_PROVIDER_PROFILES[name]||{})
   });
   return out
 }
@@ -76,7 +87,7 @@ function load(){
     for(var i=0;i<LEGACY_KEYS.length&&!saved;i++)saved=parse(localStorage.getItem(LEGACY_KEYS[i]),null);
     saved=saved||{};
     saved=Object.assign({},DEFAULTS,saved);
-    saved.providerProfiles=saved.providerProfiles||DEFAULT_PROFILES;
+    saved.providerProfiles=saved.providerProfiles||DEFAULT_PROVIDER_PROFILES;
     saved.transportContact=saved.transportContact||DEFAULT_TRANSPORT_CONTACT;
     saved.facilityProfiles=saved.facilityProfiles||DEFAULT_FACILITY_PROFILES;
     localStorage.setItem(KEY,JSON.stringify(normalized(saved)))
@@ -127,17 +138,21 @@ function remove(key,name){
 function options(key,selected){
   var values=items(key);
   if(selected&&!values.some(function(x){return x.toLowerCase()===String(selected).toLowerCase()}))values.push(selected);
-  return values.map(function(x){return '<option value="'+String(x).replace(/"/g,'&quot;')+'"></option>'}).join('')
+  return values.map(function(x){return '<option value=\"'+String(x).replace(/\"/g,'&quot;')+'\">'+String(x).replace(/</g,'&lt;')+'</option>'}).join('')
+}
+function selectOptions(key,selected){
+  var values=items(key);
+  if(selected&&!values.some(function(x){return x.toLowerCase()===String(selected).toLowerCase()}))values.unshift(selected);
+  return '<option value=\"\">Select...</option>'+values.map(function(x){var s=String(x).replace(/\"/g,'&quot;');return '<option value=\"'+s+'\"'+(String(selected||'')===String(x)?' selected':'')+'>'+s+'</option>'}).join('')
 }
 function fill(id,key,selected){
   var el=document.getElementById(id);
-  if(el)el.innerHTML=options(key,selected)
+  if(el)el.innerHTML=selectOptions(key,selected)
 }
 function providerProfile(name){
   var d=load(),needle=String(name||'').trim().toLowerCase(),key=Object.keys(d.providerProfiles||{}).find(function(k){return k.toLowerCase()===needle});
   return cleanProfile(key?d.providerProfiles[key]:{})
 }
-
 function facilityProfile(name){
   var d=load(),needle=String(name||'').trim().toLowerCase(),key=Object.keys(d.facilityProfiles||{}).find(function(k){return k.toLowerCase()===needle});
   return cleanFacilityProfile(key?d.facilityProfiles[key]:{})
@@ -169,7 +184,7 @@ function saveProviderProfile(name,profile){
 }
 global.ChargeNurseLists={
   load:load,save:save,items:items,add:add,update:update,remove:remove,
-  options:options,fill:fill,defaults:DEFAULTS,
+  options:options,selectOptions:selectOptions,fill:fill,defaults:DEFAULTS,
   providers:function(){return items('providers')},
   addProvider:function(name){return add('providers',name)},
   updateProvider:function(oldName,newName){return update('providers',oldName,newName)},
