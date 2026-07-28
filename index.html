@@ -528,6 +528,8 @@ function openAppointmentEditor(id){
   // Footer
   h+='<div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">';
   if(id)h+='<button class="btn-danger btn-sm" onclick="deleteAppointment(\''+esc(id)+'\')" style="margin-right:auto">🗑 Delete</button>';
+  h+='<button class="btn-outline btn-sm" onclick="saveAsTemplate()">⭐ Save as Template</button>';
+  if(id)h+='<button class="btn-outline btn-sm" onclick="printTicket(\''+esc(id)+'\')">🎫 Print Ticket</button>';
   h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
   h+='<button class="btn-gold" onclick="saveAppointment(\''+esc(a.id||'')+'\')">💾 Save Appointment</button></div>';
   
@@ -545,6 +547,7 @@ function vetAutoFill(){
   var name=sel.value;var r=residents().find(function(x){return x.name===name;});
   if(r&&r.notes){if(box&&txt){txt.textContent=r.notes;box.style.display='block'}}
   else{if(box)box.style.display='none'}
+  refreshTemplateDropdown();
 }
 
 function providerAutoFill(){
@@ -909,6 +912,146 @@ function setTheme(t){
   localStorage.setItem('clc_theme',t||'default');
 }
 function initTheme(){var t=localStorage.getItem('clc_theme')||'default';if(t!=='default')document.body.className+=' theme-'+t;}
+
+/* ── Per-Veteran Templates ── */
+var TEMPLATES_KEY='clc_appt_templates';
+function getTemplates(){
+  try{return JSON.parse(localStorage.getItem(TEMPLATES_KEY)||'{}')}catch(e){return{}}
+}
+function templatesForVet(vetName){
+  var all=getTemplates();return all[vetName]||[];
+}
+function saveAsTemplate(){
+  var vet=document.getElementById('m-vet')?.value?.trim();if(!vet){alert('Select a veteran first.');return}
+  var name=prompt('Template name (e.g. "Cardiology with Dr. Patel"):');if(!name||!name.trim())return;
+  var t={
+    name:name.trim(),
+    reason:document.getElementById('m-type')?.value||'',
+    provider:document.getElementById('m-doctor')?.value||'',
+    clinic:document.getElementById('m-spec')?.value||'',
+    location:document.getElementById('m-loc')?.value||'',
+    cityTown:document.getElementById('m-city')?.value||'',
+    phone:document.getElementById('m-phone')?.value||'',
+    transportation:document.getElementById('m-transport')?.value||'',
+    escort:document.getElementById('m-escort')?.value||'',
+    prepInstructions:document.getElementById('m-prep')?.value||'',
+    notes:document.getElementById('m-notes')?.value||''
+  };
+  var all=getTemplates();if(!all[vet])all[vet]=[];all[vet].push(t);
+  localStorage.setItem(TEMPLATES_KEY,JSON.stringify(all));
+  refreshTemplateDropdown();alert('Template "'+t.name+'" saved for '+vet+'.');
+}
+function loadTemplate(){
+  var sel=document.getElementById('m-template-sel');if(!sel||!sel.value)return;
+  var vet=document.getElementById('m-vet')?.value?.trim();if(!vet)return;
+  var templates=templatesForVet(vet);var t=templates.find(function(x){return x.name===sel.value});if(!t)return;
+  ['m-type','m-doctor','m-spec','m-loc','m-city','m-phone','m-transport','m-escort'].forEach(function(id){
+    var el=document.getElementById(id);if(el&&t[id.replace('m-','')])el.value=t[id.replace('m-','')];
+  });
+  if(t.prepInstructions)document.getElementById('m-prep').value=t.prepInstructions;
+  if(t.notes)document.getElementById('m-notes').value=t.notes;
+  providerAutoFill();locationAutoFill();
+}
+function refreshTemplateDropdown(){
+  var sel=document.getElementById('m-template-sel');if(!sel)return;
+  var vet=document.getElementById('m-vet')?.value?.trim()||'';
+  var templates=vet?templatesForVet(vet):[];
+  sel.innerHTML='<option value="">— Load Template —</option>'+templates.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+'</option>'}).join('');
+}
+
+/* ── Recurring Appointments ── */
+var recurSettings={freq:'',endDate:''};
+
+/* ── Conflict Detection ── */
+function checkConflict(vetName,date,apptTime,excludeId){
+  var conflicts=allApps().filter(function(a){
+    return a.residentName===vetName&&a.date===date&&a.time===apptTime&&a.id!==excludeId;
+  });
+  if(conflicts.length)return conflicts[0];return null;
+}
+
+/* ── Change History ── */
+function recordChangeHistory(oldA,newA){
+  var watched=['date','time','leaveTime','location','provider','transportation','transportStatus'];
+  var changes=[];
+  watched.forEach(function(f){if((oldA[f]||'')!==(newA[f]||''))changes.push({field:f,from:oldA[f]||'',to:newA[f]||''})});
+  return changes.length?[{changedAt:new Date().toISOString(),changes:changes}]:[];
+}
+
+/* ── Updated saveAppointment with conflict + history ── */
+var _origSaveAppointment=saveAppointment;
+saveAppointment=function(id){
+  var vet=document.getElementById('m-vet')?.value?.trim();
+  var date=document.getElementById('m-date')?.value;
+  var apptTime=document.getElementById('m-time')?.value;
+  if(!vet){alert('Veteran name is required.');return}
+  if(!date){alert('Date is required.');return}
+  
+  // Conflict check
+  if(apptTime){
+    var conflict=checkConflict(vet,date,apptTime,id);
+    if(conflict&&!confirm('⚠️ '+vet+' already has an appointment on this date at this time.\n\nSave anyway?'))return;
+  }
+  
+  // Build appointment (same as original)
+  var sel=document.getElementById('m-vet');var opt=sel?.options[sel.selectedIndex];
+  var residentId=opt?.dataset?.id||'';
+  var a={
+    id:id||CLCData.uid(),residentId:residentId,date:date,
+    time:apptTime,
+    leaveTime:document.getElementById('m-leave')?.value||'',
+    returnTime:document.getElementById('m-return-time')?.value||'',
+    reason:document.getElementById('m-type')?.value||'',
+    provider:document.getElementById('m-doctor')?.value||'',
+    clinic:document.getElementById('m-spec')?.value||'',
+    location:document.getElementById('m-loc')?.value||'',
+    cityTown:document.getElementById('m-city')?.value||'',
+    phone:document.getElementById('m-phone')?.value||'',
+    transportation:document.getElementById('m-transport')?.value||'',
+    transportStatus:document.getElementById('m-transport-status')?.value||'',
+    escort:document.getElementById('m-escort')?.value||'',
+    prepInstructions:document.getElementById('m-prep')?.value||'',
+    notes:document.getElementById('m-notes')?.value||'',
+    changed:document.getElementById('m-changed')?.checked||false,
+    changeReason:document.getElementById('m-changereason')?.value||'',
+    transportNeeded:!!(document.getElementById('m-transport')?.value),
+    completed:document.getElementById('m-transport-status')?.value==='returned',
+    departed:document.getElementById('m-transport-status')?.value==='departed',
+    confirmed:document.getElementById('m-transport-status')?.value==='confirmed'
+  };
+  
+  // Change history
+  if(id){
+    var oldA=CLCData.appointments().find(function(x){return x.id===id});
+    if(oldA)a.changeHistory=(oldA.changeHistory||[]).concat(recordChangeHistory(oldA,a));
+  }
+  
+  var r=CLCData.resident(a.residentId);
+  if(r){a.residentName=r.name;a.room=r.room}
+  CLCData.upsertAppointment(a);
+  closeModal();render();
+};
+
+/* ── Ticket to Ride Print ── */
+function printTicket(id){
+  var a=id?CLCData.appointments().find(function(x){return x.id===id}):null;
+  if(!a){alert('Appointment not found.');return}
+  var w=window.open('','_blank','width=700,height=600');
+  w.document.write('<html><head><title>Ticket to Ride</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:650px;margin:0 auto}h1{font-size:20px;border-bottom:2px solid #000;padding-bottom:8px}h2{font-size:16px;color:#333}table{width:100%;border-collapse:collapse;margin:16px 0}td{padding:6px;border-bottom:1px solid #ddd;font-size:13px}td:first-child{font-weight:700;width:40%}.footer{margin-top:30px;font-size:11px;color:#666}</style></head><body>');
+  w.document.write('<h1>🚑 TICKET TO RIDE</h1><h2>'+esc(a.residentName||'Veteran')+' — '+esc(a.date)+'</h2><table>');
+  w.document.write('<tr><td>Veteran</td><td>'+esc(a.residentName||'')+' (Rm '+esc(a.room||'')+')</td></tr>');
+  w.document.write('<tr><td>Appointment</td><td>'+esc(a.reason||'')+' at '+esc(a.time||'TBD')+'</td></tr>');
+  w.document.write('<tr><td>Leave Time</td><td>'+esc(a.leaveTime||'TBD')+'</td></tr>');
+  w.document.write('<tr><td>Return Time</td><td>'+esc(a.returnTime||'TBD')+'</td></tr>');
+  w.document.write('<tr><td>Location</td><td>'+esc(a.location||'')+' — '+esc(a.cityTown||'')+'</td></tr>');
+  w.document.write('<tr><td>Provider</td><td>'+esc(a.provider||'')+'</td></tr>');
+  w.document.write('<tr><td>Transport</td><td>'+esc(a.transportation||'')+' — '+esc(a.transportStatus||'Not Set')+'</td></tr>');
+  w.document.write('<tr><td>Escort</td><td>'+esc(a.escort||'')+'</td></tr>');
+  w.document.write('<tr><td>Prep</td><td>'+esc(a.prepInstructions||'None')+'</td></tr>');
+  w.document.write('<tr><td>Notes</td><td>'+esc(a.notes||'')+'</td></tr></table>');
+  w.document.write('<div class="footer">Printed '+new Date().toLocaleString()+' · CLC Command Center · PHI — Keep Confidential</div>');
+  w.document.write('</body></html>');w.document.close();setTimeout(function(){w.print()},300);
+}
 
 /* ── Init ── */
 initTheme();
