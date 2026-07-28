@@ -75,3 +75,8 @@ Scheduler supports Day, Week, Month, and Year views while preserving transportat
 ## v6.0 Editable Provider List
 
 Settings now maintains shared Provider suggestions. McCain and Cook are the defaults, Chang has been removed, and provider fields remain editable so staff can type an unlisted name.
+
+
+## v6.1 Shared Scheduler Suggestions
+
+Settings now manages shared suggestions for Providers, Transportation, Escorts, Clinics, Facilities, and Appointment Reasons. Scheduler fields remain free-text and accept custom entries.

@@ -8,55 +8,63 @@
 <script src="master-lists.js"></script>
 <style>
 :root{--nav:#274e49;--teal:#447d76;--bg:#eef2ef;--card:#fff;--line:#d9e1dc;--muted:#66746d;--danger:#9b343d}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#26332e}.shell{max-width:1050px;margin:auto;padding:24px}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#26332e}.shell{max-width:1180px;margin:auto;padding:24px}
 .top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);font-weight:800}.title{font-size:31px;font-weight:900;margin-top:5px}.sub{color:var(--muted);margin-top:5px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .btn{appearance:none;border:1px solid var(--line);background:#fff;color:#26332e;padding:9px 13px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}.btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}.btn.danger{color:var(--danger)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab.active{background:var(--nav);color:#fff;border-color:var(--nav)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(37,66,55,.06)}.section{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.section h2{margin:0;font-size:19px}
 .add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:14px}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit}
 .list{display:grid;gap:8px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fafcfb}.name{font-weight:850}.small{font-size:12px;color:var(--muted);line-height:1.45}.notice{margin-top:14px;padding:12px;border-radius:12px;background:#edf5f3;color:#315d57}
-@media(max-width:650px){.top{flex-direction:column}.nav{justify-content:flex-start}.row{grid-template-columns:1fr auto}.row .edit{grid-column:2}.row .danger{grid-column:2}.add{grid-template-columns:1fr}}
+@media(max-width:650px){.top{flex-direction:column}.nav{justify-content:flex-start}.row{grid-template-columns:1fr auto}.add{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="shell">
 <header class="top">
-  <div><div class="eyebrow">ChargeNurse · Administration</div><div class="title">Settings</div><div class="sub">Maintain shared names without changing application code.</div></div>
+  <div><div class="eyebrow">ChargeNurse · Administration</div><div class="title">Settings</div><div class="sub">Maintain shared suggestions without changing application code.</div></div>
   <div class="nav"><a class="btn" href="command-center.html">Command Center</a><a class="btn" href="scheduler.html">Scheduler</a><a class="btn" href="veterans.html">Veterans</a></div>
 </header>
+
+<div class="tabs" id="tabs"></div>
+
 <section class="panel">
-  <div class="section"><div><h2>Providers</h2><div class="small">Provider names appear as suggestions while staff may still type another name.</div></div><button class="btn" onclick="restoreDefaults()">Restore Defaults</button></div>
-  <div class="add"><input id="newProvider" placeholder="Enter provider last name" onkeydown="if(event.key==='Enter')addProvider()"><button class="btn primary" onclick="addProvider()">Add Provider</button></div>
-  <div class="list" id="providerRows"></div>
-  <div class="notice">Current defaults are <b>McCain</b> and <b>Cook</b>. Chang has been removed. Changes made here become available in Scheduler, Veteran Records, and Morning Report.</div>
+  <div class="section">
+    <div><h2 id="listTitle"></h2><div class="small" id="listHelp"></div></div>
+    <button class="btn" onclick="restoreCurrent()">Restore Defaults</button>
+  </div>
+  <div class="add"><input id="newItem" onkeydown="if(event.key==='Enter')addItem()"><button class="btn primary" onclick="addItem()">Add</button></div>
+  <div class="list" id="rows"></div>
+  <div class="notice">These are suggestions only. Staff may still type an unlisted value in Scheduler or Veteran Records.</div>
 </section>
 </div>
+
 <script>
 (function(){
 'use strict';
+var CONFIG={
+ providers:{title:'Providers',singular:'Provider',help:'Current provider suggestions. Defaults: McCain and Cook.'},
+ transportation:{title:'Transportation',singular:'Transportation option',help:'Common transportation methods used for appointments.'},
+ escorts:{title:'Escorts',singular:'Escort option',help:'Common escort arrangements.'},
+ clinics:{title:'Clinics',singular:'Clinic',help:'Frequently used clinic or service names.'},
+ facilities:{title:'Facilities',singular:'Facility',help:'Common appointment destinations and facilities.'},
+ appointmentReasons:{title:'Appointment Reasons',singular:'Appointment reason',help:'Frequently used appointment types or reasons.'}
+};
+var current=localStorage.getItem('chargenurse-settings-tab')||'providers';
 function esc(x){return String(x||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
+function jsq(x){return String(x||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function renderTabs(){
+ tabs.innerHTML=Object.keys(CONFIG).map(function(k){return '<button class="btn tab '+(k===current?'active':'')+'" onclick="chooseTab(\''+k+'\')">'+CONFIG[k].title+'</button>'}).join('')
+}
 function render(){
- var rows=ChargeNurseLists.providers();
- providerRows.innerHTML=rows.length?rows.map(function(name){
-   return '<div class="row"><span class="name">'+esc(name)+'</span><button class="btn edit" onclick="renameProvider(\''+esc(name).replace(/'/g,"\\'")+'\')">Edit</button><button class="btn danger" onclick="deleteProvider(\''+esc(name).replace(/'/g,"\\'")+'\')">Remove</button></div>'
- }).join(''):'<div class="small">No providers are configured. Staff can still type provider names manually.</div>'
+ var cfg=CONFIG[current],items=ChargeNurseLists.items(current);
+ renderTabs();listTitle.textContent=cfg.title;listHelp.textContent=cfg.help;newItem.placeholder='Enter '+cfg.singular.toLowerCase();
+ rows.innerHTML=items.length?items.map(function(name){return '<div class="row"><span class="name">'+esc(name)+'</span><button class="btn" onclick="renameItem(\''+jsq(name)+'\')">Edit</button><button class="btn danger" onclick="deleteItem(\''+jsq(name)+'\')">Remove</button></div>'}).join(''):'<div class="small">No suggestions configured.</div>'
 }
-window.addProvider=function(){
- var value=newProvider.value.trim();if(!value)return;
- ChargeNurseLists.addProvider(value);newProvider.value='';render()
-}
-window.renameProvider=function(oldName){
- var value=prompt('Update provider name:',oldName);
- if(value===null)return;value=value.trim();if(!value)return;
- ChargeNurseLists.updateProvider(oldName,value);render()
-}
-window.deleteProvider=function(name){
- if(!confirm('Remove '+name+' from the provider suggestions? Existing records will not be changed.'))return;
- ChargeNurseLists.removeProvider(name);render()
-}
-window.restoreDefaults=function(){
- if(!confirm('Restore McCain and Cook as the provider suggestions?'))return;
- ChargeNurseLists.save({providers:['McCain','Cook']});render()
-}
+window.chooseTab=function(k){current=k;localStorage.setItem('chargenurse-settings-tab',k);render()}
+window.addItem=function(){var value=newItem.value.trim();if(!value)return;ChargeNurseLists.add(current,value);newItem.value='';render()}
+window.renameItem=function(oldName){var value=prompt('Update '+CONFIG[current].singular.toLowerCase()+':',oldName);if(value===null)return;value=value.trim();if(!value)return;ChargeNurseLists.update(current,oldName,value);render()}
+window.deleteItem=function(name){if(!confirm('Remove '+name+' from the suggestions? Existing records will not be changed.'))return;ChargeNurseLists.remove(current,name);render()}
+window.restoreCurrent=function(){if(!confirm('Restore the default '+CONFIG[current].title.toLowerCase()+' list?'))return;var data=ChargeNurseLists.load();data[current]=ChargeNurseLists.defaults[current].slice();ChargeNurseLists.save(data);render()}
 render()
 })();
 </script>
