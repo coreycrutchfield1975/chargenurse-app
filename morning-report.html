@@ -206,6 +206,7 @@
 @media print{.operations-shortcut{display:none!important}}
 </style>
 <script src="auth-session.js"></script>
+<script src="clc-data.js"></script>
 <script src="appearance.js"></script>
 <script>if (!window.CLCAuth || !CLCAuth.requireAuth()) throw new Error("Authentication required");</script>
 </head>
@@ -276,7 +277,7 @@
   <div class="section census-section">
     <div class="section-title">
       <span>👥 Patient Census</span>
-      <span class="no-print" style="display:flex;gap:6px"><button style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="syncFromCommandCenter(true)">↻ Sync Command Center</button><button style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddPatient()">+ Add</button></span>
+      <span class="no-print" style="display:flex;gap:6px"><button style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="syncFromCommandCenter(true)">↻ Sync ChargeNurse</button><button style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddPatient()">+ Add</button></span>
     </div>
     <div style="overflow-x:auto">
       <table>
@@ -326,7 +327,7 @@
   <div class="section">
     <div class="section-title">
       <span>📅 Appointments</span>
-      <button class="no-print" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="showAddAppt()">+ Add</button>
+      <button class="no-print" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(10,16,24,0.55);color:#eaf0f6;cursor:pointer" onclick="openSchedulerForToday()">Open Scheduler</button>
     </div>
     <div style="overflow-x:auto">
       <table>
@@ -337,7 +338,7 @@
             <th style="width:80px">Appt Time</th>
             <th style="width:120px">Location</th>
             <th style="width:120px">With Who</th>
-            <th class="no-print" style="width:30px"></th>
+            <th style="width:130px">Transportation Status</th>
           </tr>
         </thead>
         <tbody id="apptBody"></tbody>
@@ -427,20 +428,21 @@ function normalizeKey(p) {
   return String((p && p.id) || ((p && p.room)||'') + '|' + ((p && p.name)||'')).toLowerCase();
 }
 function syncFromCommandCenter(showMessage) {
-  var cc = getData(CC_KEY, null);
-  if (!cc || !Array.isArray(cc.residents)) {
-    if (showMessage) alert('No Command Center resident data was found on this workstation.');
+  if (!window.CLCData) {
+    if (showMessage) alert('The shared ChargeNurse data layer could not be loaded.');
     return false;
   }
   var nurse = localStorage.getItem(MR_NURSE_KEY) || (window.CLCAuth && CLCAuth.currentUser()) || 'Nurse';
   localStorage.setItem(MR_NURSE_KEY, nurse);
+
   var existing = getData(MR_ROSTER_KEY + '_' + nurse, []);
   var byId = {}, byRoomName = {};
   existing.forEach(function(p){
     if (p.sourceResidentId) byId[String(p.sourceResidentId)] = p;
     byRoomName[(String(p.room||'').trim()+'|'+String(p.name||'').trim()).toLowerCase()] = p;
   });
-  var active = cc.residents.filter(function(r){ return r.active !== false; });
+
+  var active = CLCData.residents(true);
   var merged = active.map(function(r){
     var old = byId[String(r.id)] || byRoomName[(String(r.room||'').trim()+'|'+String(r.name||'').trim()).toLowerCase()] || {};
     return Object.assign({}, old, {
@@ -456,21 +458,35 @@ function syncFromCommandCenter(showMessage) {
   setData(MR_ROSTER_KEY + '_' + nurse, merged);
 
   var today = new Date().toISOString().slice(0,10);
-  var existingAppts = getData(MR_APPT_KEY + '_' + nurse, []);
-  var manual = existingAppts.filter(function(a){ return !a.sourceAppointmentId; });
-  var synced = (cc.appointments || []).filter(function(a){ return a.date === today; }).map(function(a){
+  var synced = CLCData.appointmentsForDate(today).map(function(a){
+    var resident = CLCData.resident(a.residentId) || {};
+    var status = !a.transportNeeded ? 'No transportation needed'
+      : a.completed ? 'Returned / completed'
+      : a.departed ? 'Departed'
+      : a.confirmed ? 'Transportation confirmed'
+      : a.travelRequestEmailed ? 'Travel Request sent'
+      : 'Travel Request pending';
+    if (a.ticketPrepared) status += ' · Ticket to Ride ready';
     return {
       sourceAppointmentId: a.id,
-      name: a.residentName || '', leaveTime: a.leaveTime || '', apptTime: a.time || '',
-      location: a.location || '', withWho: a.escort || a.transportation || '',
-      transportStatus: a.completed ? 'Completed' : (a.travelRequestEmailed ? 'Travel Request emailed' : 'Travel Request pending')
+      name: a.residentName || resident.name || '',
+      leaveTime: a.leaveTime || '',
+      apptTime: a.time || '',
+      location: a.location || a.clinic || '',
+      withWho: a.escort || a.transportation || '',
+      transportStatus: status
     };
   });
-  setData(MR_APPT_KEY + '_' + nurse, manual.concat(synced));
+  setData(MR_APPT_KEY + '_' + nurse, synced);
   localStorage.setItem(MR_SYNC_KEY, new Date().toISOString());
   render();
-  if (showMessage) alert('Morning Report synchronized: '+merged.length+' active residents and '+synced.length+' appointments for today.');
+  if (showMessage) alert('Morning Report synchronized: '+merged.length+' active residents and '+synced.length+' Scheduler appointments for today.');
   return true;
+}
+
+function openSchedulerForToday() {
+  var today = new Date().toISOString().slice(0,10);
+  window.location.href = 'scheduler.html?date=' + encodeURIComponent(today);
 }
 
 /* ── Auth ── */
@@ -664,12 +680,12 @@ function render() {
 
   // Appointments
   if (appts.length === 0) {
-    $('apptBody').innerHTML = '<tr class="empty-row"><td colspan="6">No appointments. Click "+ Add" to schedule.</td></tr>';
+    $('apptBody').innerHTML = '<tr class="empty-row"><td colspan="6">No appointments scheduled for today. Use Scheduler to add or update appointments.</td></tr>';
   } else {
     appts.sort(function(a,b){return (a.leaveTime||'').localeCompare(b.leaveTime||'');});
     var ahtml = '';
     appts.forEach(function(a,i){
-      ahtml += '<tr><td style="font-weight:600">' + esc(a.name||'—') + '</td><td style="font-weight:600">' + esc(a.leaveTime||'—') + '</td><td>' + esc(a.apptTime||'—') + '</td><td>' + esc(a.location||'—') + '</td><td>' + esc(a.withWho||'—') + '</td><td class="no-print" style="text-align:center"><button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="editAppt(' + i + ')" title="Edit">✏️</button> <button class="no-print" style="background:none;border:none;color:#ff8a7a;cursor:pointer;font-size:14px" onclick="deleteAppt(' + i + ')" title="Remove">✕</button></td></tr>';
+      ahtml += '<tr><td style="font-weight:600">' + esc(a.name||'—') + '</td><td style="font-weight:600">' + esc(a.leaveTime||'—') + '</td><td>' + esc(a.apptTime||'—') + '</td><td>' + esc(a.location||'—') + '</td><td>' + esc(a.withWho||'—') + '</td><td style="font-size:11px">' + esc(a.transportStatus||'—') + '</td></tr>';
     });
     $('apptBody').innerHTML = ahtml;
   }
@@ -916,91 +932,15 @@ function saveAssignments() {
   render();
 }
 
-/* ── Appointments ── */
-function showAddAppt() {
-  showModal(
-    '<h2>+ Add Appointment</h2>' +
-    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Resident Name</label><input id="mApptName" placeholder="Last, First"></div></div>' +
-    '<div class="form-row">' +
-    '<div><label>Leave Time</label><input id="mLeaveTime" placeholder="e.g., 9:30 AM"></div>' +
-    '<div><label>Appt Time</label><input id="mApptTime" placeholder="e.g., 10:00 AM"></div>' +
-    '</div>' +
-    '<div class="form-row">' +
-    '<div><label>Location</label><input id="mLoc" placeholder="e.g., PT Gym, Radiology"></div>' +
-    '<div><label>With Who</label><input id="mWithWho" placeholder="e.g., PT, Dietitian"></div>' +
-    '</div>' +
-    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveNewAppt()">Add Appointment</button></div>'
-  );
-  setTimeout(function(){ $('mApptName').focus(); }, 100);
-}
-
-function saveNewAppt() {
-  var name = $('mApptName').value.trim();
-  var t = $('mLeaveTime').value.trim();
-  if (!name) { alert('Resident Name is required.'); return; }
-  if (!t) { alert('Leave Time is required.'); return; }
-  var nurse = localStorage.getItem(MR_NURSE_KEY);
-  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
-  appts.push({
-    name: name,
-    leaveTime: t,
-    apptTime: $('mApptTime').value.trim(),
-    location: $('mLoc').value.trim(),
-    withWho: $('mWithWho').value.trim()
-  });
-  setData(MR_APPT_KEY + '_' + nurse, appts);
-  closeModal();
-  render();
-}
-
-function editAppt(idx) {
-  var nurse = localStorage.getItem(MR_NURSE_KEY);
-  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
-  var a = appts[idx];
-  if (!a) return;
-  showModal(
-    '<h2>✏️ Edit Appointment</h2>' +
-    '<div class="form-row"><div class="form-group" style="grid-column:1/-1"><label>Resident Name</label><input id="mApptName" value="' + esc(a.name||'') + '"></div></div>' +
-    '<div class="form-row">' +
-    '<div><label>Leave Time</label><input id="mLeaveTime" value="' + esc(a.leaveTime||'') + '"></div>' +
-    '<div><label>Appt Time</label><input id="mApptTime" value="' + esc(a.apptTime||'') + '"></div>' +
-    '</div>' +
-    '<div class="form-row">' +
-    '<div><label>Location</label><input id="mLoc" value="' + esc(a.location||'') + '"></div>' +
-    '<div><label>With Who</label><input id="mWithWho" value="' + esc(a.withWho||'') + '"></div>' +
-    '</div>' +
-    '<div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-delete" onclick="deleteApptConfirm(' + idx + ')">Delete</button><button class="btn-save" onclick="saveEditAppt(' + idx + ')">Save</button></div>'
-  );
-}
-
-function saveEditAppt(idx) {
-  var nurse = localStorage.getItem(MR_NURSE_KEY);
-  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
-  var a = appts[idx];
-  if (!a) return;
-  a.name = $('mApptName').value.trim();
-  a.leaveTime = $('mLeaveTime').value.trim();
-  a.apptTime = $('mApptTime').value.trim();
-  a.location = $('mLoc').value.trim();
-  a.withWho = $('mWithWho').value.trim();
-  setData(MR_APPT_KEY + '_' + nurse, appts);
-  closeModal();
-  render();
-}
-
-function deleteAppt(idx) {
-  var nurse = localStorage.getItem(MR_NURSE_KEY);
-  var appts = getData(MR_APPT_KEY + '_' + nurse, []);
-  if (!appts[idx]) return;
-  if (!confirm('Remove this appointment?')) return;
-  appts.splice(idx, 1);
-  setData(MR_APPT_KEY + '_' + nurse, appts);
-  render();
-}
-
-function deleteApptConfirm(idx) {
-  deleteAppt(idx);
-}
+/* ── Appointments ──
+   Scheduler is the only appointment editor. Morning Report is read-only and
+   synchronizes the current day's appointment and transportation information. */
+function showAddAppt() { openSchedulerForToday(); }
+function saveNewAppt() { openSchedulerForToday(); }
+function editAppt() { openSchedulerForToday(); }
+function saveEditAppt() { openSchedulerForToday(); }
+function deleteAppt() { alert('Appointments are managed in Scheduler.'); }
+function deleteApptConfirm() { alert('Appointments are managed in Scheduler.'); }
 
 /* ── CSV Export/Import ── */
 function exportCSV() {
