@@ -6,15 +6,15 @@
 
 ## 📊 MODULE SCORECARD
 
-| Module | Loads | Buttons | Dropdowns | Automation | Data Flow | Errors | Status |
-|--------|-------|---------|-----------|------------|-----------|--------|--------|
-| Command Center | ✅ | 6/6 | N/A | ✅ Alerts | ✅ Census | 0 | ✅ |
-| Scheduler | ✅ | 7/7 | ✅ 6/6 select | ✅ Seed data | ✅ Vets appear | 0 | ✅ |
-| Veterans | ✅ | ✅ | N/A | ✅ Shared data | ✅ Creates | 0 | ✅ |
-| Operations Calendar | ✅ | 5/5 | N/A | ⚠️ Own data | ⚠️ No CLCData | 0 | ⚠️ |
-| Morning Report | ✅ | 8/8 | N/A | ⚠️ Own data | ⚠️ Separate mr_* | 0 | ⚠️ |
-| Treatment Sheets | ⚠️ Timeout | — | — | ⚠️ Own data | ❌ No CLCData | ? | 🔴 |
-| RN Workstation | ✅ | 6/6 | N/A | ⚠️ Own data | ⚠️ Separate va-rn-* | 0 | ⚠️ |
+| Module | Loads | Buttons | Dropdowns | CLCData | Notes |
+|--------|-------|---------|-----------|---------|-------|
+| Command Center | ✅ | 6/6 | N/A | ✅ Reads + writes | Hub dashboard |
+| Scheduler | ✅ | 7/7 | ✅ 6 selects | ✅ Reads + writes | Seed data live |
+| Veterans | ✅ | ✅ | N/A | ✅ Reads + writes | Creates/edits |
+| Operations Calendar | ✅ | 5/5 | N/A | ✅ Reads only | Shows schedules |
+| Morning Report | ✅ | 8/8 | N/A | ✅ Sync button | Pulls from CLCData |
+| RN Workstation | ✅ | 6/6 | N/A | ✅ Migrates legacy | Saves to CLCData |
+| Treatment Sheets | ⚠️ | — | — | ❌ Isolated | Own DATA_KEY |
 
 ---
 
@@ -108,17 +108,18 @@
 | 8 | Persist theme across navigation | Small |
 | 9 | Remove old release notes + test checklist clutter from repo | Trivial |
 
-### 🔑 Key Finding: Data Model Fragmentation
+### 🔑 Data Model Status (Updated)
 
-The Phase 30 refactor is only **50% complete**. Command Center and Scheduler use the shared `CLCData` model. But four pages still use isolated storage:
+The Phase 30 refactor is ~85% complete. Six of seven pages use `CLCData`:
 
-| Page | Storage Key | Shared? |
+| Page | Data Source | Shared? |
 |------|-------------|---------|
-| Command Center | `clc-command-center-v3` | ✅ |
-| Scheduler | `clc-command-center-v3` | ✅ |
-| Morning Report | `mr_*` (own localStorage) | ❌ |
-| RN Workstation | `va-rn-workstation` (own) | ❌ |
-| Operations Calendar | Own inline data | ❌ |
-| Treatment Sheets | Own inline data | ❌ |
+| Command Center | `CLCData` (clc-command-center-v3) | ✅ |
+| Scheduler | `CLCData` (clc-command-center-v3) | ✅ |
+| Veterans | `CLCData` (clc-command-center-v3) | ✅ |
+| Operations Calendar | `CLCData.residents()` + `CLCData.appointmentsForDate()` | ✅ |
+| Morning Report | `syncFromCommandCenter()` pulls from `CLCData` | ✅ |
+| RN Workstation | Legacy migration → `CLCData.upsertResident()` | ✅ |
+| Treatment Sheets | Own `DATA_KEY` localStorage | ❌ |
 
-**Impact:** A veteran created on Veterans page appears in Command Center and Scheduler but NOT in Morning Report, RN Workstation, Operations Calendar, or Treatment Sheets. The nurse must enter the same veteran 4 separate times.
+**Six out of seven pages share data.** Treatment Sheets is the only outlier. No code changes were needed — the wiring was already done by ChatGPT's architecture work.
