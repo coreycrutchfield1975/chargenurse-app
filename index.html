@@ -1,1061 +1,216 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CLC Command Center</title>
-<link rel="stylesheet" href="design-system.css">
+<title>ChargeNurse — CLC Workstation</title>
+<link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-/* ── CLC Scheduler-inspired palette ── */
-:root{
-  --pd:#0f172a;--pm:#1e1b4b;--pl:#8b5bb8;--pp:#f0e8ff;
-  --gold:#c9a227;--gl:#f5e06e;--gp:#fef9e7;
-  --text:#1a1a2e;--muted:#6b6b8a;
-  --red:#dc2626;--green:#16a34a;--white:#fff;
-  --card:rgba(255,255,255,.06);--border:rgba(255,255,255,.08);
-  --radius:12px;--font:system-ui,-apple-system,sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{background:linear-gradient(135deg,var(--pd),var(--pm));min-height:100vh}
-body{
-  font-family:var(--font);color:#e2e8f0;min-height:100vh;
-  display:flex;flex-direction:column;
-  background:radial-gradient(circle at 72% 18%,rgba(139,91,184,.13),transparent 45%),
-             radial-gradient(circle at 28% 78%,rgba(201,162,39,.08),transparent 40%);
-}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer;border:none;background:none;color:inherit}
-input,select,textarea{
-  background:rgba(255,255,255,.07);border:1px solid var(--border);
-  color:#e2e8f0;border-radius:8px;padding:10px 12px;width:100%;
-}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.15)}
-select option{background:var(--pd);color:#e2e8f0}
-
-/* ── Header ── */
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:10px 16px;background:rgba(15,23,42,.85);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);flex-wrap:wrap;
-}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;color:var(--gold)}
-.brand small{font-size:10px;display:block;color:var(--muted);font-weight:400;letter-spacing:.08em}
-.phi-badge{font-size:9px;background:var(--red);color:#fff;padding:3px 8px;border-radius:99px;font-weight:800;letter-spacing:.06em}
-
-/* ── Tab navigation ── */
-.tab-bar{
-  display:flex;gap:2px;padding:8px 12px;background:rgba(0,0,0,.3);
-  border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;
-}
-.tab-bar button{
-  padding:10px 18px;border-radius:8px 8px 0 0;font-size:13px;font-weight:700;
-  color:var(--muted);white-space:nowrap;transition:.15s;
-}
-.tab-bar button:hover{color:#e2e8f0;background:rgba(255,255,255,.04)}
-.tab-bar button.active{color:var(--gold);background:rgba(201,162,39,.1);border-bottom:2px solid var(--gold)}
-
-/* ── Main workspace ── */
-.workspace{flex:1;padding:16px;overflow:auto}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ── Stat cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
-.stat-card{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px;text-align:center;
-}
-.stat-card b{display:block;font-size:36px;font-weight:900;color:var(--gold);line-height:1}
-.stat-card span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
-.stat-card.warn b{color:var(--red)}
-
-/* ── Cards / panels ── */
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius);padding:16px;margin-bottom:12px;
-}
-.card-header{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
-  font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
-}
-.card-header h2{font-size:15px;color:#e2e8f0;text-transform:none;letter-spacing:0}
-
-/* ── Grid layouts ── */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
-
-/* ── Alert items ── */
-.alert-item{
-  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-  padding:10px;margin-bottom:6px;border-radius:8px;font-size:13px;
-}
-.alert-item.crit{background:rgba(220,38,38,.12);border-left:3px solid var(--red)}
-.alert-item.warn{background:rgba(201,162,39,.1);border-left:3px solid var(--gold)}
-.alert-item .alert-dot{width:8px;height:8px;border-radius:50%}
-.alert-item.crit .alert-dot{background:var(--red)}
-.alert-item.warn .alert-dot{background:var(--gold)}
-
-/* ── Appointment row ── */
-.appt-row{
-  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-  padding:10px;border-radius:8px;margin-bottom:4px;cursor:pointer;font-size:13px;
-  border:1px solid transparent;transition:.15s;
-}
-.appt-row:hover{background:rgba(255,255,255,.04);border-color:var(--border)}
-.appt-time{font-weight:800;color:var(--gold);min-width:70px}
-.appt-name{font-weight:700}.appt-detail{font-size:11px;color:var(--muted)}
-.appt-status{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
-.status-pending{background:rgba(201,162,39,.15);color:var(--gold)}
-.status-confirmed{background:rgba(22,163,74,.15);color:var(--green)}
-.status-departed{background:rgba(139,91,184,.15);color:var(--pl)}
-.status-complete{background:rgba(100,116,139,.12);color:var(--muted)}
-
-/* ── Calendar ── */
-.cal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-.cal-nav button{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border)}
-.cal-nav button:hover{background:rgba(255,255,255,.06)}
-.cal-nav .today-btn{background:var(--gold);color:var(--pd);border-color:var(--gold)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-day{
-  min-height:60px;padding:6px;border-radius:6px;background:rgba(255,255,255,.03);
-  border:1px solid transparent;cursor:pointer;text-align:center;font-size:12px;
-}
-.cal-day:hover{border-color:var(--border)}
-.cal-day.today{background:rgba(201,162,39,.12);border-color:var(--gold)}
-.cal-day.has-appts{font-weight:800}
-.cal-day .day-num{display:block;font-size:16px;font-weight:700;margin-bottom:2px}
-.cal-day .day-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin:1px}
-.cal-day-header{text-align:center;font-size:10px;text-transform:uppercase;color:var(--muted);padding:6px}
-
-/* ── Roster ── */
-.roster-row{
-  display:grid;grid-template-columns:50px 1fr auto auto;gap:8px;align-items:center;
-  padding:10px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13px;
-}
-.roster-row:hover{background:rgba(255,255,255,.04)}
-.roster-room{font-weight:900;color:var(--gold)}
-.roster-name{font-weight:700}.roster-spec{font-size:10px;color:var(--muted)}
-
-/* ── Forms ── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-grid .full{grid-column:1/-1}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-.form-actions button{padding:10px 20px;border-radius:8px;font-weight:700;font-size:13px}
-.btn-gold{background:var(--gold);color:var(--pd)}
-.btn-outline{border:1px solid var(--border);background:rgba(255,255,255,.04)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;font-weight:700}
-
-/* ── Empty state ── */
-.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
-.empty-icon{font-size:36px;margin-bottom:8px}
-
-/* ── Weather ── */
-.weather-card{display:flex;align-items:center;gap:12px}
-.weather-icon{font-size:40px}.weather-temp{font-size:28px;font-weight:900}.weather-detail{font-size:11px;color:var(--muted)}
-
-/* ── Theme swatches ── */
-.theme-swatch{width:30px;height:30px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.15s}
-.theme-swatch:hover{transform:scale(1.15);border-color:var(--gold)}
-.theme-swatch.active{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
-
-/* ── Theme variants ── */
-body.theme-patriotic{--pd:#002868;--pm:#bf0a30;--pl:#ffffff;--pp:#f0f0f0;--gold:#ffd700;background:linear-gradient(135deg,#002868,#bf0a30)}
-body.theme-patriotic .tab-bar{background:#002868!important}
-body.theme-gold{--pd:#78350f;--pm:#b45309;--pl:#fbbf24;--pp:#fffbeb;--gold:#d97706;background:linear-gradient(135deg,#78350f,#b45309)}
-body.theme-gold .tab-bar{background:#78350f!important}
-body.theme-teal{--pd:#134e4a;--pm:#0f766e;--pl:#5eead4;--pp:#f0fdfa;--gold:#c9a227;background:linear-gradient(135deg,#134e4a,#0f766e)}
-body.theme-teal .tab-bar{background:#134e4a!important}
-body.theme-navy{--pd:#1e3a5f;--pm:#2563eb;--pl:#93c5fd;--pp:#eff6ff;--gold:#c9a227;background:linear-gradient(135deg,#1e3a5f,#2563eb)}
-body.theme-navy .tab-bar{background:#1e3a5f!important}
-
-/* ── Nursing spark card ── */
-.spark-card{background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px}
-.spark-label{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:700}
-.spark-text{font-size:14px;line-height:1.5;margin-top:6px;font-weight:600}
-.spark-source{font-size:11px;color:var(--muted);margin-top:6px}
-.spark-next{font-size:10px;padding:4px 10px;border:1px solid var(--gold);border-radius:99px;color:var(--gold);cursor:pointer;margin-top:8px;float:right}
-.spark-next:hover{background:rgba(201,162,39,.15)}
-
-/* ── Daily wins ── */
-.win{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:center;padding:10px;border-radius:8px;background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.2);margin-bottom:6px}
-.win-icon{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-weight:900;font-size:14px}
-.win b{display:block;font-size:13px}.win span{font-size:11px;color:var(--muted)}
-
-/* ── Confetti ── */
-.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
-.confetti-piece{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confettiFall 1.8s cubic-bezier(.18,.72,.34,1) forwards}
-@keyframes confettiFall{to{transform:translate3d(var(--drift),105vh,0) rotate(var(--spin));opacity:.9}}
-
-/* ── Modal ── */
-.modal-overlay{
-  display:none;position:fixed;inset:0;z-index:100;
-  background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:20px;
-}
-.modal-overlay.open{display:flex}
-.modal{
-  width:min(800px,100%);max-height:90vh;overflow:auto;
-  background:var(--pd);border:1px solid var(--border);border-radius:14px;
-  padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);
-}
-.modal h2{margin-bottom:14px;color:var(--gold)}
-
-/* ── Quick actions ── */
-.quick-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.quick-bar button{
-  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
-  border:1px solid var(--border);transition:.15s;
-}
-.quick-bar button:hover{background:rgba(255,255,255,.06)}
-.quick-bar button.primary{background:var(--gold);color:var(--pd);border-color:var(--gold)}
-
-/* ── Settings ── */
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:700px){.settings-grid{grid-template-columns:1fr}}
-.list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
-.list-item button{font-size:10px;padding:3px 8px;border-radius:4px}
-
-/* ── Print ── */
-@media print{
-  .topbar,.tab-bar,.tab-bar button:not(.active),.quick-bar,.modal-overlay,.btn-sm,.no-print{display:none!important}
-  body{background:#fff;color:#000}
-  .card{background:#fff;border:1px solid #ccc;box-shadow:none}
-  .stat-card b,.appt-time{color:#000}
-}
+/* ── ChargeNurse overrides ── */
+body{background:#f0f4f8}
+.usa-header{background:#112e51;border-bottom:4px solid #fdb81e}
+.usa-header .usa-logo a{color:#fff;font-weight:700}
+.cn-nav{background:#fff;border-bottom:1px solid #dfe1e2;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.cn-nav .usa-nav__link{font-size:13px;padding:.75rem 1rem;color:#3d4551}
+.cn-nav .usa-nav__link.usa-current{color:#005ea2;border-bottom:3px solid #005ea2;font-weight:700}
+.cn-section{display:none}
+.cn-section.active{display:block}
+.cn-card{background:#fff;border:1px solid #dfe1e2;border-radius:6px;padding:1.25rem;margin-bottom:1rem}
+.cn-stat{background:#fff;border:1px solid #dfe1e2;border-radius:6px;padding:1rem;text-align:center}
+.cn-stat-value{font-size:1.75rem;font-weight:700;color:#112e51}
+.cn-stat-label{font-size:.75rem;color:#5c6a7a;text-transform:uppercase;letter-spacing:.5px}
+.alert-critical{border-left:4px solid #e52207}
+.alert-warning{border-left:4px solid #fdb81e}
+.alert-info{border-left:4px solid #00bde3}
+.cn-toast{position:fixed;bottom:1rem;right:1rem;z-index:9999;background:#112e51;color:#fff;padding:.75rem 1.25rem;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;animation:slideUp .3s ease}
+.cn-toast.show{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.cn-scheduler{background:#f8fafc;border:1px solid #dfe1e2;border-radius:8px;padding:1.5rem}
+.cn-scheduler label{font-weight:600;font-size:.85rem;color:#1b1b1b}
+.cn-ticket{border:2px dashed #dfe1e2;background:#fff;border-radius:8px;padding:1.5rem}
+@media print{body{background:#fff}.usa-header,.cn-nav,.cn-toast{display:none!important}.cn-section{display:block!important;padding:0!important}}
 </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
-<header class="topbar">
-  <div class="brand">
-    <span>⚕</span>
-    <div><strong>CLC COMMAND CENTER</strong><small>Community Living Center · VA</small></div>
-  </div>
-  <span class="phi-badge">🔒 PHI — KEEP CONFIDENTIAL</span>
-  <div style="display:flex;align-items:center;gap:8px;font-size:12px">
-    <span id="greeting">Good morning</span>
-    <span id="liveDate" style="color:var(--muted);font-size:11px"></span>
-    <strong id="liveClock" style="font-size:18px">--:--</strong>
-    <button class="btn-sm btn-outline" onclick="doLock()">🔓 Lock</button>
+<!-- HEADER -->
+<header class="usa-header usa-header--basic">
+  <div class="usa-nav-container">
+    <div class="usa-logo">
+      <em class="usa-logo__text"><a href="#" title="Home">⚕️ ChargeNurse <small style="font-weight:400;opacity:.75">CLC Workstation</small></a></em>
+    </div>
   </div>
 </header>
 
-<!-- ── Tab navigation ── -->
-<nav class="tab-bar" id="tabBar">
-  <button class="active" data-tab="home">🏠 Home</button>
-  <button data-tab="appointments">📅 Appointments</button>
-  <button data-tab="veterans">👥 Veterans</button>
-  <button data-tab="transport">🚐 Transport</button>
-  <button data-tab="reports">📋 Reports</button>
-  <button data-tab="settings">⚙️ Settings</button>
+<!-- TAB NAVIGATION -->
+<nav class="cn-nav">
+  <div class="usa-nav-container" style="padding:0">
+    <ul class="usa-nav__primary usa-accordion" style="display:flex;list-style:none;margin:0;padding:0;overflow-x:auto">
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link usa-current" onclick="showTab('home',this)"><span>🏠</span> Home</a></li>
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link" onclick="showTab('appointments',this)"><span>📅</span> Appointments</a></li>
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link" onclick="showTab('veterans',this)"><span>👥</span> Veterans</a></li>
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link" onclick="showTab('transport',this)"><span>🚐</span> Transport</a></li>
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link" onclick="showTab('reports',this)"><span>📊</span> Reports</a></li>
+      <li class="usa-nav__primary-item"><a href="#" class="usa-nav__link" onclick="showTab('settings',this)"><span>⚙️</span> Settings</a></li>
+    </ul>
+  </div>
 </nav>
 
-<!-- ── Workspace ── -->
-<main class="workspace" id="workspace">
+<!-- MAIN CONTENT -->
+<main class="usa-section" style="padding-top:1.5rem;max-width:1400px;margin:0 auto">
+
+  <!-- ── HOME ── -->
+  <div id="tab-home" class="cn-section active">
+    <div class="grid-row grid-gap">
+      <!-- Stats -->
+      <div class="tablet:grid-col-3 cn-stat"><div class="cn-stat-value" id="home-vet-count">0</div><div class="cn-stat-label">Active Veterans</div></div>
+      <div class="tablet:grid-col-3 cn-stat"><div class="cn-stat-value" id="home-apt-count">0</div><div class="cn-stat-label">Today's Appointments</div></div>
+      <div class="tablet:grid-col-3 cn-stat"><div class="cn-stat-value" id="home-transport-count">0</div><div class="cn-stat-label">Transport Pending</div></div>
+      <div class="tablet:grid-col-3 cn-stat"><div class="cn-stat-value" id="home-alert-count">0</div><div class="cn-stat-label">Active Alerts</div></div>
+    </div>
+    <!-- Alerts Feed -->
+    <h2 class="font-heading-lg margin-top-4">⚠️ Alerts</h2>
+    <div id="home-alerts"></div>
+    <!-- Daily Wins -->
+    <h2 class="font-heading-lg margin-top-4">🏆 Daily Wins</h2>
+    <div class="cn-card" id="daily-wins">Loading…</div>
+    <!-- Weather -->
+    <h2 class="font-heading-lg margin-top-4">🌤️ Weather</h2>
+    <div class="cn-card" id="weather-widget">Loading…</div>
+  </div>
+
+  <!-- ── APPOINTMENTS ── -->
+  <div id="tab-appointments" class="cn-section">
+    <h2 class="font-heading-lg">📅 CLC Appointment Scheduler</h2>
+    <div class="cn-scheduler">
+      <div class="grid-row grid-gap">
+        <div class="tablet:grid-col-4">
+          <label class="usa-label" for="m-vet">Veteran</label>
+          <select class="usa-select" id="m-vet"></select>
+        </div>
+        <div class="tablet:grid-col-4">
+          <label class="usa-label" for="m-loc">Location</label>
+          <select class="usa-select" id="m-loc"></select>
+        </div>
+        <div class="tablet:grid-col-4">
+          <label class="usa-label" for="m-doctor">Provider</label>
+          <select class="usa-select" id="m-doctor"></select>
+        </div>
+      </div>
+      <div class="grid-row grid-gap margin-top-2">
+        <div class="tablet:grid-col-3">
+          <label class="usa-label" for="m-date">Date</label>
+          <input class="usa-input" type="date" id="m-date">
+        </div>
+        <div class="tablet:grid-col-3">
+          <label class="usa-label" for="m-time">Time</label>
+          <input class="usa-input" type="time" id="m-time">
+        </div>
+        <div class="tablet:grid-col-3">
+          <label class="usa-label" for="m-duration">Duration</label>
+          <select class="usa-select" id="m-duration">
+            <option>30 min</option><option>60 min</option><option>90 min</option><option>120 min</option>
+          </select>
+        </div>
+        <div class="tablet:grid-col-3">
+          <label class="usa-label" for="m-type">Type</label>
+          <select class="usa-select" id="m-type">
+            <option>Medical</option><option>Dental</option><option>Mental Health</option><option>Podiatry</option><option>Optometry</option><option>Audiology</option><option>Physical Therapy</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-row grid-gap margin-top-2">
+        <div class="tablet:grid-col-6">
+          <label class="usa-label" for="m-transport-status">Transport</label>
+          <select class="usa-select" id="m-transport-status">
+            <option value="">None needed</option>
+            <option>VA Shuttle</option><option>VTS</option><option>Ambulance</option><option>Wheelchair Van</option>
+          </select>
+        </div>
+        <div class="tablet:grid-col-6">
+          <label class="usa-label" for="m-notes">Notes</label>
+          <textarea class="usa-textarea" id="m-notes" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="margin-top-3">
+        <button class="usa-button" onclick="saveAppointment()">💾 Save Appointment</button>
+        <button class="usa-button usa-button--outline margin-left-1" onclick="saveTemplate()">📋 Save as Template</button>
+        <button class="usa-button usa-button--outline margin-left-1" onclick="printTicket()">🖨️ Print Ticket</button>
+        <button class="usa-button usa-button--secondary margin-left-1" onclick="clearAppointmentForm()">Clear</button>
+      </div>
+    </div>
+    <!-- Today's Appointments List -->
+    <h3 class="font-heading-md margin-top-4">Today's Schedule</h3>
+    <div id="apt-list"></div>
+  </div>
+
+  <!-- ── VETERANS ── -->
+  <div id="tab-veterans" class="cn-section">
+    <div class="grid-row" style="justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h2 class="font-heading-lg margin-0">👥 Veterans</h2>
+      <button class="usa-button" onclick="openNewVeteranModal()">+ Add Veteran</button>
+    </div>
+    <div id="vet-roster"></div>
+  </div>
+
+  <!-- ── TRANSPORT ── -->
+  <div id="tab-transport" class="cn-section">
+    <h2 class="font-heading-lg">🚐 Transport</h2>
+    <div id="transport-list"></div>
+  </div>
+
+  <!-- ── REPORTS ── -->
+  <div id="tab-reports" class="cn-section">
+    <h2 class="font-heading-lg">📊 Reports</h2>
+    <div class="cn-card">
+      <button class="usa-button" onclick="generateMorningReport()">📄 Morning Report</button>
+      <button class="usa-button usa-button--outline margin-left-1" onclick="window.print()">🖨️ Print</button>
+    </div>
+    <div id="report-output" class="margin-top-3"></div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div id="tab-settings" class="cn-section">
+    <h2 class="font-heading-lg">⚙️ Settings</h2>
+    <div class="cn-card">
+      <button class="usa-button usa-button--secondary" onclick="clearAllData()">🗑️ Reset All Data</button>
+      <button class="usa-button usa-button--outline margin-left-1" onclick="exportData()">📤 Export Data</button>
+    </div>
+  </div>
 </main>
 
-<!-- ── Modal ── -->
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal" id="modalContent"></div>
+<!-- TOAST NOTIFICATION -->
+<div class="cn-toast" id="toast"></div>
+
+<!-- NEW VETERAN MODAL -->
+<div class="usa-modal" id="vet-modal" aria-hidden="true">
+  <div class="usa-modal__content">
+    <div class="usa-modal__main">
+      <h2 class="usa-modal__heading">New Veteran</h2>
+      <div class="usa-form">
+        <label class="usa-label" for="new-vet-name">Full Name</label>
+        <input class="usa-input" id="new-vet-name">
+        <label class="usa-label margin-top-2" for="new-vet-last4">Last 4 SSN</label>
+        <input class="usa-input" id="new-vet-last4" maxlength="4">
+        <label class="usa-label margin-top-2" for="new-vet-room">Room</label>
+        <input class="usa-input" id="new-vet-room">
+        <label class="usa-label margin-top-2" for="new-vet-dob">DOB</label>
+        <input class="usa-input" type="date" id="new-vet-dob">
+        <div class="margin-top-3">
+          <button class="usa-button" onclick="saveNewVeteran()">Save</button>
+          <button class="usa-button usa-button--outline margin-left-1" onclick="closeVetModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <button class="usa-modal__close" aria-label="Close" onclick="closeVetModal()">×</button>
+  </div>
 </div>
 
+<script src="uswds/package/dist/js/uswds-init.js"></script>
+<script src="uswds/package/dist/js/uswds.min.js"></script>
 <script src="clc-data.js"></script>
 <script src="master-lists.js"></script>
-<script>
-/* ══════════════════════════════════════════════════════
-   CLC Command Center — Unified App Shell
-   ══════════════════════════════════════════════════════ */
-var $=id=>document.getElementById(id);
-var $$=sel=>[...document.querySelectorAll(sel)];
-var esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-var iso=d=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-var today=iso();
-var activeTab='home';
-
-/* ── Auth ── */
-var PASSCODE='CLC-Admin-2024';
-function checkAuth(){
-  if(sessionStorage.getItem('clc_auth')==='1')return true;
-  var p=prompt('Enter access password:');
-  if(p===PASSCODE){sessionStorage.setItem('clc_auth','1');return true}
-  if(p)alert('Incorrect password.');
-  return false;
-}
-function doLock(){sessionStorage.removeItem('clc_auth');location.reload()}
-
-/* ── Tab switching ── */
-function switchTab(tab){
-  activeTab=tab;
-  $$('#tabBar button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  render();
-}
-$$('#tabBar button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-
-/* ── Greetings ── */
-var FUN_GREETINGS={
-  morning:['Coffee checked. Census checked. Chaos, please take a number.','The unit is awake. Ready is another question.','Scrubs on, coffee nearby, judgment fully charged.'],
-  afternoon:['Halfway there. The call lights have formed a committee.','Still standing, still charting, still making it happen.','Hydrate, delegate, and never trust a quiet hallway.'],
-  evening:['Night mode activated. Clinical instincts remain fully lit.','The sun clocked out. Nursing did not.','Evening crew online: calm voices, sharp eyes, strong coffee.']
-};
-
-function updateGreeting(){
-  var d=new Date(),h=d.getHours(),p=h<12?'morning':h<17?'afternoon':'evening';
-  var list=FUN_GREETINGS[p],seed=(d.getDate()+d.getMonth()*7+d.getHours())%list.length;
-  $('greeting').textContent=list[seed];
-  $('liveDate').textContent=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  $('liveClock').textContent=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-}
-setInterval(updateGreeting,30000);updateGreeting();
-
-/* ── Helpers ── */
-function residents(){return window.CLCData?CLCData.residents(true):[]}
-function apps(d){return window.CLCData?CLCData.appointmentsForDate(d||today):[]}
-function allApps(){return window.CLCData?CLCData.appointments():[]}
-
-function residentName(a){
-  if(a.residentName)return a.residentName;
-  var r=CLCData.resident(a.residentId);return r?r.name:'Unknown';
-}
-
-/* ── ==================== HOME TAB ==================== ── */
-function renderHome(){
-  var r=residents(),a=apps(),all=allApps();
-  var pending=a.filter(x=>!x.completed&&!x.notCompleted);
-  var departing=a.filter(x=>x.departed&&!x.completed);
-  var census={LTC:0,SSR:0,EOL:0,Respite:0};
-  r.forEach(x=>{var s=String(x.specialty||'LTC').toUpperCase();if(s==='SSR')census.SSR++;else if(s==='EOL')census.EOL++;else if(s==='RESP'||s==='RESPITE')census.Respite++;else census.LTC++});
-  
-  // Alerts
-  var alerts=CLCData.alerts?CLCData.alerts():[];
-  
-  // Nursing facts
-  var facts=[
-    'Florence Nightingale, the founder of modern nursing, was known as "The Lady with the Lamp" during the Crimean War.',
-    'More than 60% of the healthcare workforce in VA facilities are nurses or nursing support staff.',
-    'The VA is the largest employer of nurses in the United States.',
-    'VA nurses pioneered telehealth programs that now serve rural veterans nationwide.',
-    'The first VA nursing school opened in 1923 — before many civilian nursing programs existed.',
-    'CLC nurses provide 24/7 skilled care to veterans with complex medical needs.',
-    'VA nursing documentation standards influenced nationwide EHR adoption.'
-  ];
-  var fact=facts[new Date().getDate()%facts.length];
-  
-  var h='';
-  
-  // Stat cards
-  h+='<div class="stat-grid">';
-  h+='<div class="stat-card"><b>'+a.length+'</b><span>Today\'s Appointments</span></div>';
-  h+='<div class="stat-card"><b>'+all.length+'</b><span>Total Appointments</span></div>';
-  h+='<div class="stat-card"><b>'+r.length+'</b><span>Veterans on Roster</span></div>';
-  h+='<div class="stat-card"><b>'+pending.length+'</b><span>Pending Transport</span></div>';
-  h+='<div class="stat-card '+((departing.length>0)?'warn':'')+'"><b>'+departing.length+'</b><span>Active Travel</span></div>';
-  h+='</div>';
-  
-  // Two-column layout
-  h+='<div class="grid-2">';
-  
-  // Left: Today's schedule + alerts
-  h+='<div>';
-  h+='<div class="card"><div class="card-header"><h2>📋 Today\'s Schedule</h2><span>'+iso()+'</span></div>';
-  if(a.length===0){
-    h+='<div class="empty"><div class="empty-icon">📅</div>No appointments scheduled for today.<br><button class="btn-sm btn-gold" style="margin-top:8px" onclick="switchTab(\'appointments\')">+ Add Appointment</button></div>';
-  } else {
-    a.forEach(x=>{
-      var st=x.completed?'complete':x.departed?'departed':x.confirmed?'confirmed':'pending';
-      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':'Pending';
-      h+='<div class="appt-row" onclick="editAppointment(\''+esc(x.id)+'\')">';
-      h+='<span class="appt-time">'+(x.leaveTime||x.time||'TBD')+'</span>';
-      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.location||x.clinic||'')+' · '+esc(x.transportation||'')+'</span></span>';
-      h+='<span class="appt-status status-'+st+'">'+stLabel+'</span>';
-      h+='</div>';
-    });
-  }
-  h+='</div></div>';
-  
-  // Alerts
-  h+='<div class="card"><div class="card-header"><h2>⚠️ Needs Attention</h2><span>'+alerts.length+' open</span></div>';
-  if(alerts.length===0){
-    h+='<div class="empty">🟢 All clear. Nothing needs attention.</div>';
-  } else {
-    alerts.forEach(al=>{
-      h+='<div class="alert-item '+(al.level==='red'?'crit':'warn')+'" onclick="if(al.id)editAppointment(\''+esc(al.id||'')+'\')">';
-      h+='<span class="alert-dot"></span><span><strong>'+esc(al.title)+'</strong><br><small>'+esc(al.detail)+'</small></span>';
-      h+='<span style="font-size:10px;color:var(--muted)">'+(al.id?'→':'')+'</span></div>';
-    });
-  }
-  h+='</div></div>';
-  
-  // Right column
-  h+='<div>';
-  
-  // Census
-  h+='<div class="card"><div class="card-header"><h2>📊 Census</h2></div>';
-  h+='<div class="stat-grid" style="grid-template-columns:1fr 1fr">';
-  h+='<div class="stat-card"><b>'+census.LTC+'</b><span>LTC</span></div>';
-  h+='<div class="stat-card"><b>'+census.SSR+'</b><span>SSR</span></div>';
-  h+='<div class="stat-card"><b>'+census.EOL+'</b><span>EOL</span></div>';
-  h+='<div class="stat-card"><b>'+census.Respite+'</b><span>Respite</span></div>';
-  h+='</div></div>';
-  
-  // Quick roster
-  h+='<div class="card"><div class="card-header"><h2>👥 Veteran Roster</h2><button class="btn-sm btn-outline" onclick="switchTab(\'veterans\')">View All</button></div>';
-  if(r.length===0){
-    h+='<div class="empty">No veterans on roster.</div>';
-  } else {
-    r.slice(0,5).forEach(x=>{
-      h+='<div class="roster-row" onclick="switchTab(\'veterans\')"><span class="roster-room">'+esc(x.room||'—')+'</span><span><span class="roster-name">'+esc(x.name)+'</span><br><span class="roster-spec">'+esc(x.specialty||'')+' · '+esc(x.provider||'No provider')+'</span></span><span style="font-size:10px;color:var(--muted)">Shower: '+esc((x.bathDays||[]).join(',')||'—')+'</span></div>';
-    });
-  }
-  h+='</div></div>';
-  
-  // Nursing fact
-  h+='<div class="card"><div class="card-header"><h2>💡 Nursing Fact</h2></div>';
-  h+='<p style="font-size:13px;line-height:1.5">'+fact+'</p></div>';
-  
-  h+='</div></div>'; // end two-column
-  
-  return h;
-}
-
-/* ── ==================== APPOINTMENTS TAB ==================== ── */
-var calDate=new Date();var calView='day';
-
-function renderAppointments(){
-  var d=iso(calDate);
-  var appsForDay=apps(d);
-  var all=allApps();
-  var h='';
-  
-  // Quick actions
-  h+='<div class="quick-bar">';
-  h+='<button class="primary" onclick="openAppointmentEditor()">＋ Add Appointment</button>';
-  h+='<button onclick="printView()">🖨 Print</button>';
-  h+='</div>';
-  
-  // Calendar nav
-  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  h+='<div class="cal-nav">';
-  h+='<div style="display:flex;gap:4px;align-items:center">';
-  h+='<button onclick="calDate.setDate(calDate.getDate()-1);render()">◀</button>';
-  h+='<button class="today-btn" onclick="calDate=new Date();render()">Today</button>';
-  h+='<button onclick="calDate.setDate(calDate.getDate()+1);render()">▶</button>';
-  h+='</div>';
-  h+='<strong style="font-size:16px;color:var(--gold)">'+months[calDate.getMonth()]+' '+calDate.getDate()+', '+calDate.getFullYear()+'</strong>';
-  h+='<div style="display:flex;gap:4px">';
-  h+='<button class="'+(calView==='day'?'today-btn':'')+'" onclick="calView=\'day\';render()">Day</button>';
-  h+='<button class="'+(calView==='week'?'today-btn':'')+'" onclick="calView=\'week\';render()">Week</button>';
-  h+='</div></div>';
-  
-  // Appointments list
-  h+='<div class="card"><div class="card-header"><h2>📅 Appointments</h2><span>'+appsForDay.length+' on this day</span></div>';
-  if(appsForDay.length===0){
-    h+='<div class="empty"><div class="empty-icon">📅</div>No appointments for this day.</div>';
-  } else {
-    appsForDay.forEach(x=>{
-      var st=x.completed?'returned':x.departed?'departed':x.confirmed?'confirmed':x.transportStatus||'pending';
-      var stLabel=x.completed?'Returned':x.departed?'Departed':x.confirmed?'Confirmed':(x.transportStatus||'Pending');
-      h+='<div class="appt-row" onclick="openAppointmentEditor(\''+esc(x.id)+'\')">';
-      h+='<span class="appt-time">'+(x.leaveTime||x.time||'TBD')+'</span>';
-      h+='<span><span class="appt-name">'+esc(residentName(x))+'</span><br><span class="appt-detail">'+esc(x.reason||x.appointmentType||'')+' · '+esc(x.provider||x.doctorNP||'')+' · '+esc(x.location||'')+'</span></span>';
-      h+='<span class="appt-status status-'+st+'">'+stLabel+'</span>';
-      h+='</div>';
-    });
-  }
-  h+='</div>';
-  
-  return h;
-}
-
-/* ── Appointment Editor Modal ── */
-function openAppointmentEditor(id){
-  var a=id?CLCData.appointments().find(x=>x.id===id):{id:'',date:iso(),time:'',leaveTime:'',returnTime:'',residentId:'',location:'',clinic:'',provider:'',escort:'',transportation:'',reason:'',transportStatus:'',escortName:'',prepInstructions:'',notes:'',changed:false,changeReason:''};
-  var r=residents();
-  var h='';
-  
-  // Match original CLC Scheduler modal structure exactly
-  h+='<input type="hidden" id="m-id" value="'+esc(a.id||'')+'">';
-  
-  // Veteran standing notes
-  h+='<div class="standing-notes-box" id="m-standing-notes-box" style="display:none;background:var(--gp);border:1px solid var(--gold);border-radius:6px;padding:8px 10px;margin-bottom:10px">';
-  h+='<div class="standing-notes-label" style="font-size:11px;font-weight:700;color:#92400e">📌 Standing Notes for this Veteran</div>';
-  h+='<div class="standing-notes-text" id="m-standing-notes-text" style="font-size:12px;margin-top:4px"></div></div>';
-  
-  h+='<div class="form-grid">';
-  
-  // Core fields
-  h+='<div class="fg form-full"><label class="fl">Veteran Name *</label>';
-  h+='<select id="m-vet" onchange="vetAutoFill()"><option value="">Select Veteran</option>';
-  r.forEach(function(x){h+='<option value="'+esc(x.name)+'" data-id="'+esc(x.id)+'" data-room="'+esc(x.room||'')+'"'+(a.residentId===x.id?' selected':'')+'>'+(x.room?'Rm '+x.room+' · ':'')+esc(x.name)+'</option>';});
-  h+='</select></div>';
-  
-  h+='<div class="fg"><label class="fl">Date *</label><input type="date" id="m-date" value="'+esc(a.date)+'"></div>';
-  h+='<div class="fg"><label class="fl">Appointment Time</label><input type="time" id="m-time" value="'+esc(a.time)+'"></div>';
-  h+='<div class="fg"><label class="fl" style="color:var(--gold)">★ Leave Time</label><input type="time" id="m-leave" value="'+esc(a.leaveTime)+'" style="border-color:var(--gold);background:var(--gp)"></div>';
-  h+='<div class="fg"><label class="fl">Expected Return Time</label><input type="time" id="m-return-time" value="'+esc(a.returnTime||'')+'"></div>';
-  
-  // Provider & Location section
-  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Provider & Location</div>';
-  h+='<div class="fg"><label class="fl">Appointment Type</label><select id="m-type">'+ChargeNurseLists.selectOptions('appointmentReasons',a.reason||a.appointmentType)+'</select></div>';
-  h+='<div class="fg"><label class="fl">Doctor / NP / Provider</label><select id="m-doctor" onchange="providerAutoFill()">'+ChargeNurseLists.selectOptions('providers',a.provider||a.doctorNP)+'</select></div>';
-  h+='<div class="fg"><label class="fl">Specialty</label><select id="m-spec">'+ChargeNurseLists.selectOptions('clinics',a.clinic||a.specialty)+'</select></div>';
-  h+='<div class="fg"><label class="fl">Location / Facility</label><select id="m-loc" onchange="locationAutoFill()">'+ChargeNurseLists.selectOptions('facilities',a.location)+'</select></div>';
-  h+='<div class="fg"><label class="fl">City / Town</label><input type="text" id="m-city" value="'+esc(a.cityTown||'')+'"></div>';
-  h+='<div class="fg"><label class="fl">Facility Phone</label><input type="tel" id="m-phone" value="'+esc(a.phone||'')+'"></div>';
-  
-  // Transport section
-  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Transport & Escort</div>';
-  h+='<div class="fg"><label class="fl">Transport Type</label><select id="m-transport">'+ChargeNurseLists.selectOptions('transportation',a.transportation||a.transport)+'</select></div>';
-  h+='<div class="fg"><label class="fl">Transport Status</label><select id="m-transport-status">';
-  h+='<option value="">Not Set</option><option value="requested">🟡 Transport Requested</option><option value="confirmed">🔵 Transport Confirmed</option><option value="departed">🟠 Departed</option><option value="returned">✅ Returned</option></select></div>';
-  h+='<div class="fg form-full"><label class="fl">Escort / Attendant Name</label><input type="text" id="m-escort" value="'+esc(a.escortName||a.escort||'')+'"></div>';
-  
-  // Clinical notes
-  h+='<div class="modal-section-hdr form-full" style="grid-column:1/-1;font-size:11px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:6px">Clinical Notes</div>';
-  h+='<div class="fg form-full"><label class="fl" style="color:var(--red)">Prep Instructions (NPO, hold meds, etc.)</label><textarea id="m-prep" style="min-height:50px;border-color:#fecaca;background:#fef2f2">'+esc(a.prepInstructions||'')+'</textarea></div>';
-  h+='<div class="fg form-full"><label class="fl">Notes</label><textarea id="m-notes">'+esc(a.notes||'')+'</textarea></div>';
-  
-  // Change tracking
-  h+='<div class="fg form-full"><div class="cb-row"><input type="checkbox" id="m-changed" onchange="toggleChange()"'+(a.changed?' checked':'')+'><label for="m-changed" class="fl" style="text-transform:none;letter-spacing:0;font-size:13px">⚠️ This appointment was changed or rescheduled</label></div>';
-  h+='<div class="change-box" id="change-box" style="display:'+(a.changed?'block':'none')+'"><label class="fl">Reason for Change</label><textarea id="m-changereason" style="min-height:50px;margin-top:5px">'+esc(a.changeReason||'')+'</textarea></div></div>';
-  
-  h+='</div>'; // end form-grid
-  
-  // Footer
-  h+='<div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">';
-  if(id)h+='<button class="btn-danger btn-sm" onclick="deleteAppointment(\''+esc(id)+'\')" style="margin-right:auto">🗑 Delete</button>';
-  h+='<button class="btn-outline btn-sm" onclick="saveAsTemplate()">⭐ Save as Template</button>';
-  if(id)h+='<button class="btn-outline btn-sm" onclick="printTicket(\''+esc(id)+'\')">🎫 Print Ticket</button>';
-  h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
-  h+='<button class="btn-gold" onclick="saveAppointment(\''+esc(a.id||'')+'\')">💾 Save Appointment</button></div>';
-  
-  showModal(h);
-  document.getElementById('m-transport-status').value=a.transportStatus||'';
-  if(id&&a.residentId){vetAutoFill();}
-}
-
-/* ── Auto-fill helpers ── */
-function vetAutoFill(){
-  var sel=document.getElementById('m-vet');if(!sel)return;
-  var opt=sel.options[sel.selectedIndex];if(!opt)return;
-  var box=document.getElementById('m-standing-notes-box');
-  var txt=document.getElementById('m-standing-notes-text');
-  var name=sel.value;var r=residents().find(function(x){return x.name===name;});
-  if(r&&r.notes){if(box&&txt){txt.textContent=r.notes;box.style.display='block'}}
-  else{if(box)box.style.display='none'}
-  refreshTemplateDropdown();
-}
-
-function providerAutoFill(){
-  var name=document.getElementById('m-doctor')?.value;if(!name||!ChargeNurseLists)return;
-  var p=ChargeNurseLists.providerProfile(name);
-  if(p.facility){var loc=document.getElementById('m-loc');if(loc)loc.value=p.facility}
-  if(p.clinic){var spec=document.getElementById('m-spec');if(spec)spec.value=p.clinic}
-  if(p.phone){var phone=document.getElementById('m-phone');if(phone)phone.value=p.phone}
-}
-
-function locationAutoFill(){
-  var name=document.getElementById('m-loc')?.value;if(!name||!ChargeNurseLists)return;
-  var p=ChargeNurseLists.facilityProfile(name);
-  if(p.phone){var ph=document.getElementById('m-phone');if(ph&&!ph.value)ph.value=p.phone}
-  if(p.address){var c=document.getElementById('m-city');if(c&&!c.value)c.value=p.address}
-}
-
-function toggleChange(){
-  var box=document.getElementById('change-box');if(box)box.style.display=document.getElementById('m-changed')?.checked?'block':'none';
-}
-
-function saveAppointment(id){
-  var vet=document.getElementById('m-vet')?.value?.trim();
-  var date=document.getElementById('m-date')?.value;
-  if(!vet){alert('Veteran name is required.');return}
-  if(!date){alert('Date is required.');return}
-  var sel=document.getElementById('m-vet');var opt=sel?.options[sel.selectedIndex];
-  var residentId=opt?.dataset?.id||'';
-  var a={
-    id:id||CLCData.uid(),residentId:residentId,date:date,
-    time:document.getElementById('m-time')?.value||'',
-    leaveTime:document.getElementById('m-leave')?.value||'',
-    returnTime:document.getElementById('m-return-time')?.value||'',
-    reason:document.getElementById('m-type')?.value||'',
-    provider:document.getElementById('m-doctor')?.value||'',
-    clinic:document.getElementById('m-spec')?.value||'',
-    location:document.getElementById('m-loc')?.value||'',
-    cityTown:document.getElementById('m-city')?.value||'',
-    phone:document.getElementById('m-phone')?.value||'',
-    transportation:document.getElementById('m-transport')?.value||'',
-    transportStatus:document.getElementById('m-transport-status')?.value||'',
-    escort:document.getElementById('m-escort')?.value||'',
-    prepInstructions:document.getElementById('m-prep')?.value||'',
-    notes:document.getElementById('m-notes')?.value||'',
-    changed:document.getElementById('m-changed')?.checked||false,
-    changeReason:document.getElementById('m-changereason')?.value||'',
-    transportNeeded:!!(document.getElementById('m-transport')?.value),
-    completed:document.getElementById('m-transport-status')?.value==='returned',
-    departed:document.getElementById('m-transport-status')?.value==='departed',
-    confirmed:document.getElementById('m-transport-status')?.value==='confirmed'
-  };
-  var r=CLCData.resident(a.residentId);
-  if(r){a.residentName=r.name;a.room=r.room}
-  CLCData.upsertAppointment(a);
-  closeModal();render();
-}
-
-function deleteAppointment(id){
-  if(!confirm('Delete this appointment?'))return;
-  CLCData.removeAppointment(id);
-  closeModal();render();
-}
-
-/* ── ==================== VETERANS TAB ==================== ── */
-function renderVeterans(){
-  var r=residents();
-  var h='';
-  h+='<div class="quick-bar"><button class="primary" onclick="openVeteranEditor()">＋ Add Veteran</button></div>';
-  h+='<div class="card"><div class="card-header"><h2>👥 Veteran Roster</h2><span>'+r.length+' active</span></div>';
-  if(r.length===0){
-    h+='<div class="empty"><div class="empty-icon">👥</div>No veterans on roster.</div>';
-  } else {
-    r.forEach(x=>{
-      h+='<div class="roster-row" onclick="openVeteranEditor(\''+esc(x.id)+'\')">';
-      h+='<span class="roster-room">'+esc(x.room||'—')+'</span>';
-      h+='<span><span class="roster-name">'+esc(x.name)+'</span><br><span class="roster-spec">'+esc(x.specialty||'')+' · '+esc(x.provider||'No provider')+' · Code: '+esc(x.codeStatus||'—')+' · Diet: '+esc(x.diet||'—')+'</span></span>';
-      h+='<span style="font-size:10px;color:var(--muted)">Shower: '+esc((x.bathDays||[]).join(',')||'—')+'<br>Vitals: '+esc((x.vitalsDays||[]).join(',')||'—')+'</span>';
-      h+='<span style="font-size:12px">→</span></div>';
-    });
-  }
-  h+='</div>';
-  return h;
-}
-
-function openVeteranEditor(id){
-  var v=id?CLCData.resident(id):{id:'',name:'',room:'',specialty:'LTC',provider:'',codeStatus:'',allergies:'',diet:'',isolation:'None',bathDays:[],vitalsDays:[],weightDays:[],notes:''};
-  var h='<h2>'+(id?'Edit':'Add')+' Veteran</h2>';
-  h+='<div class="form-grid">';
-  h+='<div class="form-group"><label>Name</label><input id="veName" value="'+esc(v.name||'')+'"></div>';
-  h+='<div class="form-group"><label>Room</label><input id="veRoom" value="'+esc(v.room||'')+'"></div>';
-  h+='<div class="form-group"><label>Specialty</label><select id="veSpec"><option>LTC</option><option>SSR</option><option>EOL</option><option>Respite</option></select></div>';
-  h+='<div class="form-group"><label>Provider</label><select id="veProvider">'+ChargeNurseLists.selectOptions('providers',v.provider)+'</select></div>';
-  h+='<div class="form-group"><label>Code Status</label><select id="veCode"><option value="">—</option><option>Full Code</option><option>DNR</option><option>DNI</option></select></div>';
-  h+='<div class="form-group"><label>Diet</label><select id="veDiet"><option value="">—</option><option>Regular</option><option>Soft</option><option>Puree</option><option>PEG</option><option>NPO</option><option>Low NA</option></select></div>';
-  h+='<div class="form-group"><label>Allergies</label><input id="veAllergies" value="'+esc(v.allergies||'')+'"></div>';
-  h+='<div class="form-group"><label>Isolation</label><select id="veIso"><option>None</option><option>Contact</option><option>Droplet</option><option>Airborne</option></select></div>';
-  
-  // Schedule days
-  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  h+='<div class="form-group full"><label>Shower Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
-  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veBath"'+(v.bathDays&&v.bathDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
-  h+='<div class="form-group full"><label>Vitals Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
-  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veVitals"'+(v.vitalsDays&&v.vitalsDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
-  h+='<div class="form-group full"><label>Weight Days</label><div style="display:flex;gap:6px;flex-wrap:wrap">';
-  days.forEach(function(d){h+='<label style="font-size:12px"><input type="checkbox" value="'+d+'" class="veWeight"'+(v.weightDays&&v.weightDays.indexOf(d)>=0?' checked':'')+'> '+d+'</label>'});h+='</div></div>';
-  
-  h+='<div class="form-group full"><label>Notes</label><textarea id="veNotes" rows="2">'+esc(v.notes||'')+'</textarea></div>';
-  h+='</div>';
-  h+='<div class="form-actions">';
-  if(id)h+='<button class="btn-danger btn-sm" onclick="if(confirm(\'Remove this veteran?\'));CLCData.setResidentActive(\''+esc(id)+'\',false);closeModal();render()">Deactivate</button>';
-  h+='<button class="btn-outline" onclick="closeModal()">Cancel</button>';
-  h+='<button class="btn-gold" onclick="saveVeteran(\''+esc(v.id)+'\')">Save Veteran</button></div>';
-  showModal(h);document.getElementById('veSpec').value=v.specialty||'LTC';document.getElementById('veCode').value=v.codeStatus||'';document.getElementById('veDiet').value=v.diet||'';document.getElementById('veIso').value=v.isolation||'None';
-}
-
-function saveVeteran(id){
-  var days=function(cls){return $$('.'+cls+':checked').map(function(cb){return cb.value})};
-  var v={id:id||CLCData.uid(),name:$('veName').value,room:$('veRoom').value,specialty:$('veSpec').value,provider:$('veProvider').value,codeStatus:$('veCode').value,diet:$('veDiet').value,allergies:$('veAllergies').value,isolation:$('veIso').value,bathDays:days('veBath'),vitalsDays:days('veVitals'),weightDays:days('veWeight'),notes:$('veNotes').value,active:true};
-  CLCData.upsertResident(v);
-  closeModal();render();
-}
-
-/* ── ==================== TRANSPORT TAB ==================== ── */
-function renderTransport(){
-  var all=allApps();
-  var needing=all.filter(function(a){return a.transportNeeded&&!a.completed});
-  var contacts=ChargeNurseLists.transportContact();
-  var h='';
-  h+='<div class="card"><div class="card-header"><h2>🚐 Transport Contact</h2></div>';
-  h+='<div class="form-grid">';
-  h+='<div class="form-group"><label>Email</label><input id="tcEmail" value="'+esc(contacts.email||'')+'" placeholder="transportation@va.gov"></div>';
-  h+='<div class="form-group"><label>Phone</label><input id="tcPhone" value="'+esc(contacts.phone||'')+'"></div>';
-  h+='<div class="form-group"><label>Fax</label><input id="tcFax" value="'+esc(contacts.fax||'')+'"></div>';
-  h+='<div class="form-group full"><label>Standing Instructions</label><input id="tcInstructions" value="'+esc(contacts.instructions||'')+'"></div>';
-  h+='</div><div style="margin-top:8px"><button class="btn-gold btn-sm" onclick="saveTransportContact()">Save Contact</button></div></div>';
-  
-  h+='<div class="card"><div class="card-header"><h2>🚐 Pending Transport</h2><span>'+needing.length+' need transport</span></div>';
-  if(needing.length===0){
-    h+='<div class="empty">No appointments requiring transport.</div>';
-  } else {
-    needing.forEach(function(a){
-      h+='<div class="appt-row" onclick="openAppointmentEditor(\''+esc(a.id)+'\')">';
-      h+='<span class="appt-time">'+esc(a.leaveTime||'TBD')+'</span>';
-      h+='<span><span class="appt-name">'+esc(residentName(a))+'</span><br><span class="appt-detail">'+esc(a.date)+' · '+esc(a.location||'')+' · '+esc(a.transportation||'')+'</span></span>';
-      h+='<span class="appt-status status-pending">'+esc(a.travelRequestEmailed?'Request sent':'Request needed')+'</span></div>';
-    });
-  }
-  h+='</div>';
-  return h;
-}
-
-function saveTransportContact(){
-  ChargeNurseLists.saveTransportContact({email:$('tcEmail').value,phone:$('tcPhone').value,fax:$('tcFax').value,instructions:$('tcInstructions').value});
-  render();
-}
-
-/* ── ==================== REPORTS TAB ==================== ── */
-function renderReports(){
-  var r=residents(),appsForDay=apps(),allAp=allApps();
-  var census={LTC:0,SSR:0,EOL:0,Respite:0};
-  r.forEach(function(x){var s=String(x.specialty||'LTC').toUpperCase();if(s==='SSR')census.SSR++;else if(s==='EOL')census.EOL++;else if(s==='RESP'||s==='RESPITE')census.Respite++;else census.LTC++});
-  
-  var h='';
-  h+='<div class="quick-bar"><button onclick="printView()">🖨 Print Report</button></div>';
-  
-  h+='<div class="grid-2">';
-  h+='<div class="card"><div class="card-header"><h2>📊 Census Summary</h2></div>';
-  h+='<div class="stat-grid">';
-  h+='<div class="stat-card"><b>'+census.LTC+'</b><span>LTC</span></div>';
-  h+='<div class="stat-card"><b>'+census.SSR+'</b><span>SSR</span></div>';
-  h+='<div class="stat-card"><b>'+census.EOL+'</b><span>EOL</span></div>';
-  h+='<div class="stat-card"><b>'+census.Respite+'</b><span>Respite</span></div>';
-  h+='</div></div>';
-  
-  h+='<div class="card"><div class="card-header"><h2>📅 Today\'s Summary</h2></div>';
-  h+='<div class="stat-grid">';
-  h+='<div class="stat-card"><b>'+appsForDay.length+'</b><span>Appointments</span></div>';
-  h+='<div class="stat-card"><b>'+allAp.length+'</b><span>Total Scheduled</span></div>';
-  h+='<div class="stat-card"><b>'+r.length+'</b><span>Active Veterans</span></div>';
-  h+='</div></div>';
-  h+='</div>';
-  
-  // Full roster table for printing
-  h+='<div class="card"><div class="card-header"><h2>👥 Full Roster</h2></div>';
-  if(r.length===0)h+='<div class="empty">No veterans on roster.</div>';
-  else {
-    h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="text-align:left;border-bottom:1px solid var(--border)"><th style="padding:6px">Room</th><th style="padding:6px">Name</th><th style="padding:6px">Specialty</th><th style="padding:6px">Provider</th><th style="padding:6px">Code</th><th style="padding:6px">Diet</th><th style="padding:6px">Allergies</th></tr></thead><tbody>';
-    r.forEach(function(x){
-      h+='<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:6px;color:var(--gold);font-weight:700">'+esc(x.room||'—')+'</td><td style="padding:6px">'+esc(x.name)+'</td><td style="padding:6px">'+esc(x.specialty||'')+'</td><td style="padding:6px">'+esc(x.provider||'')+'</td><td style="padding:6px">'+esc(x.codeStatus||'')+'</td><td style="padding:6px">'+esc(x.diet||'')+'</td><td style="padding:6px">'+esc(x.allergies||'')+'</td></tr>';
-    });
-    h+='</tbody></table>';
-  }
-  h+='</div>';
-  return h;
-}
-
-function printView(){window.print()}
-
-/* ── ==================== SETTINGS TAB ==================== ── */
-function renderSettings(){
-  var h='';
-  h+='<div class="grid-2">';
-  
-  // Provider list management
-  var providers=ChargeNurseLists.items('providers');
-  h+='<div class="card"><div class="card-header"><h2>🩺 Providers</h2></div>';
-  providers.forEach(function(p){h+='<div class="list-item"><span>'+esc(p)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'providers\',\''+esc(p)+'\')">Edit</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newProvider" placeholder="Add provider..."><button class="btn-sm btn-gold" onclick="addListItem(\'providers\')">Add</button></div></div>';
-  
-  // Facilities
-  var facilities=ChargeNurseLists.items('facilities');
-  h+='<div class="card"><div class="card-header"><h2>🏥 Facilities</h2></div>';
-  facilities.forEach(function(f){h+='<div class="list-item"><span>'+esc(f)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'facilities\',\''+esc(f)+'\')">Edit</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newFacility" placeholder="Add facility..."><button class="btn-sm btn-gold" onclick="addListItem(\'facilities\')">Add</button></div></div>';
-  
-  // Clinics
-  var clinics=ChargeNurseLists.items('clinics');
-  h+='<div class="card"><div class="card-header"><h2>🏥 Clinics</h2></div>';
-  clinics.forEach(function(c){h+='<div class="list-item"><span>'+esc(c)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'clinics\',\''+esc(c)+'\')">Edit</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newClinic" placeholder="Add clinic..."><button class="btn-sm btn-gold" onclick="addListItem(\'clinics\')">Add</button></div></div>';
-  
-  // Escorts + Transport
-  var escorts=ChargeNurseLists.items('escorts');
-  var transport=ChargeNurseLists.items('transportation');
-  h+='<div class="card"><div class="card-header"><h2>🚐 Escorts & Transport</h2></div>';
-  h+='<p style="font-size:11px;color:var(--muted);margin-bottom:6px">Escorts</p>';
-  escorts.forEach(function(e){h+='<div class="list-item"><span>'+esc(e)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'escorts\',\''+esc(e)+'\')">Edit</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin:8px 0"><input id="newEscort" placeholder="Add escort..."><button class="btn-sm btn-gold" onclick="addListItem(\'escorts\')">Add</button></div>';
-  h+='<p style="font-size:11px;color:var(--muted);margin-bottom:6px">Transportation</p>';
-  transport.forEach(function(t){h+='<div class="list-item"><span>'+esc(t)+'</span><button class="btn-sm btn-outline" onclick="editListItem(\'transportation\',\''+esc(t)+'\')">Edit</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin-top:8px"><input id="newTransport" placeholder="Add transport..."><button class="btn-sm btn-gold" onclick="addListItem(\'transportation\')">Add</button></div></div>';
-  
-  // Data backup
-  h+='<div class="card"><div class="card-header"><h2>💾 Data</h2></div>';
-  h+='<p style="font-size:12px;margin-bottom:8px;color:var(--muted)">All data is stored in this browser. Back up regularly.</p>';
-  h+='<div style="display:flex;gap:8px"><button class="btn-gold btn-sm" onclick="backupData()">Backup</button><button class="btn-outline btn-sm" onclick="document.getElementById(\'restoreFile\').click()">Restore</button><input type="file" id="restoreFile" accept=".json" hidden onchange="restoreData(event)"></div></div>';
-  
-  h+='</div>';
-  return h;
-}
-
-function editListItem(cat,name){
-  var val=prompt('Edit '+cat.slice(0,-1)+':',name);
-  if(val&&val.trim()&&val!==name)ChargeNurseLists.update(cat,name,val.trim());
-  render();
-}
-function addListItem(cat){
-  var el=$('new'+cat.charAt(0).toUpperCase()+cat.slice(1));
-  if(el&&el.value.trim()){ChargeNurseLists.add(cat,el.value.trim());el.value=''}
-  render();
-}
-function backupData(){
-  var pkg={clcData:CLCData.load(),masterLists:ChargeNurseLists.load(),exported:new Date().toISOString()};
-  var blob=new Blob([JSON.stringify(pkg)],{type:'application/json'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CLC-Backup-'+iso()+'.json';a.click();
-}
-function restoreData(e){
-  var f=e.target.files[0];if(!f)return;
-  var reader=new FileReader();
-  reader.onload=function(){
-    try{
-      var p=JSON.parse(reader.result);
-      if(p.clcData)CLCData.save(p.clcData);
-      if(p.masterLists)ChargeNurseLists.save(p.masterLists);
-      alert('Data restored. Reloading...');
-      render();
-    }catch(err){alert('Invalid backup file.')}
-    e.target.value='';
-  };
-  reader.readAsText(f);
-}
-
-/* ── ==================== RENDER ==================== ── */
-function render(){
-  if(!checkAuth()){location.reload();return}
-  updateGreeting();
-  var html='';
-  switch(activeTab){
-    case 'home': html=renderHome(); break;
-    case 'appointments': html=renderAppointments(); break;
-    case 'veterans': html=renderVeterans(); break;
-    case 'transport': html=renderTransport(); break;
-    case 'reports': html=renderReports(); break;
-    case 'settings': html=renderSettings(); break;
-    default: html='<div class="card"><div class="empty"><div class="empty-icon">🚧</div>Coming soon.</div></div>';
-  }
-  $('workspace').innerHTML=html;
-}
-
-/* ── Modal ── */
-function showModal(html){$('modalContent').innerHTML=html;$('modalOverlay').classList.add('open')}
-function closeModal(){$('modalOverlay').classList.remove('open')}
-
-/* ── Open appointment from anywhere ── */
-function editAppointment(id){
-  openAppointmentEditor(id);
-}
-
-/* ── Nursing Spark rotation ── */
-var sparkIndex=0;
-var NURSING_SPARKS=[
-  {label:'From nursing history',text:'Modern nursing grew stronger when careful observation, sanitation, and organized records became part of everyday patient care.',source:'Good systems have always mattered.'},
-  {label:'Nursing spark',text:'A calm nurse does not mean a calm shift. It means someone capable is holding the center.',source:'ChargeNurse original'},
-  {label:'Nursing spark',text:'You cannot prevent every surprise, but you can make sure important details are not hiding in three places.',source:'ChargeNurse original'},
-  {label:'From nursing history',text:'Public health nursing helped move care beyond hospital walls into homes, schools, and communities.',source:'Nursing goes where people need it.'},
-  {label:'Nursing spark',text:'Today\'s goal: fewer mysteries, clearer handoffs, and at least one sip of coffee.',source:'ChargeNurse original'},
-  {label:'Nursing spark',text:'Behind every smooth appointment is someone who checked the time, the ride, the paperwork, and the thing nobody remembered.',source:'ChargeNurse original'},
-  {label:'Nursing spark',text:'Good teamwork is knowing who has the answer. Great teamwork is making sure everyone can find it.',source:'ChargeNurse original'},
-  {label:'From nursing history',text:'Nursing documentation evolved from simple bedside notes into a vital record of assessment and continuity of care.',source:'The chart tells the next clinician what the room cannot.'}
-];
-function nextSpark(){sparkIndex=(sparkIndex+1)%NURSING_SPARKS.length}
-function getSpark(){return NURSING_SPARKS[sparkIndex]}
-
-/* ── Daily Wins ── */
-function getDailyWins(){
-  var wins=[],appsForToday=apps(),allA=allApps();
-  if(appsForToday.length&&appsForToday.every(function(a){return a.completed||a.notCompleted}))
-    wins.push({title:'Today\'s appointments closed out',detail:'No appointment status is still open.'});
-  if(appsForToday.length&&appsForToday.filter(function(a){return a.departed}).every(function(a){return a.completed&&a.returnTime}))
-    wins.push({title:'Every departed Veteran returned',detail:'Return information is complete.'});
-  if(allA.filter(function(a){return a.transportNeeded&&a.travelRequestEmailed}).length===allA.filter(function(a){return a.transportNeeded}).length&&allA.filter(function(a){return a.transportNeeded}).length>0)
-    wins.push({title:'All Travel Requests completed',detail:'Transportation preparation is caught up.'});
-  if(!CLCData.alerts||!CLCData.alerts().length)
-    wins.push({title:'Mission Control is clear',detail:'Nothing needs attention right now.'});
-  return wins;
-}
-function celebrateWins(wins){
-  var key='clc-wins-'+iso(),seen=[];try{seen=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
-  if(!Array.isArray(seen))seen=[];
-  var fresh=wins.filter(function(w){return seen.indexOf(w.id||w.title)<0});
-  if(fresh.length){setTimeout(confetti,350);localStorage.setItem(key,JSON.stringify(seen.concat(fresh.map(function(w){return w.id||w.title}))))}
-}
-
-/* ── Confetti ── */
-function confetti(){
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  var layer=document.createElement('div');layer.className='confetti-layer';
-  var colors=['#c9a227','#8b5bb8','#5eead4','#fbbf24','#dc2626','#16a34a'];
-  for(var i=0;i<38;i++){var piece=document.createElement('i');piece.className='confetti-piece';piece.style.left=(5+Math.random()*90)+'%';piece.style.background=colors[i%colors.length];piece.style.animationDelay=(Math.random()*.25)+'s';piece.style.setProperty('--drift',(-80+Math.random()*160)+'px');piece.style.setProperty('--spin',(360+Math.random()*720)+'deg');layer.appendChild(piece)}
-  document.body.appendChild(layer);setTimeout(function(){layer.remove()},2300);
-}
-
-/* ── Weather ── */
-function loadWeather(){
-  var el=document.getElementById('home-weather');if(!el)return;
-  var xhr=new XMLHttpRequest();
-  xhr.open('GET','https://wttr.in/63901?format=j1',true);
-  xhr.onload=function(){
-    if(xhr.status!==200){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>';return}
-    try{var w=JSON.parse(xhr.responseText);var cc=w.current_condition[0];
-      el.innerHTML='<div style="font-size:36px;margin-bottom:8px">'+getWeatherEmoji(cc.weatherCode)+'</div><div style="font-size:22px;font-weight:800">'+cc.temp_F+'°F</div><div style="font-size:13px;color:var(--muted);margin-top:4px">'+cc.weatherDesc[0].value+'</div><div style="font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:16px;justify-content:center"><span>💧 Humidity: '+cc.humidity+'%</span><span>🌬 Wind: '+cc.windspeedMiles+' mph</span></div>'}catch(e){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>'}
-  };
-  xhr.onerror=function(){el.innerHTML='<div style="color:var(--muted)">Weather unavailable</div>'};
-  xhr.send();
-}
-function getWeatherEmoji(code){var c=parseInt(code);if(c>=113)return'☀️';if(c>=116)return'⛅';if(c>=119)return'☁️';if(c>=122)return'☁️';if(c>=143)return'🌫️';if(c>=176)return'🌦️';if(c>=200)return'⛈️';if(c>=227)return'🌨️';if(c>=248)return'🌫️';if(c>=260)return'🌫️';if(c>=263)return'🌦️';if(c>=296)return'🌧️';if(c>=311)return'🌧️';if(c>=317)return'🌧️';if(c>=350)return'🌧️';if(c>=359)return'🌧️';if(c>=368)return'🌨️';if(c>=377)return'🌨️';if(c>=386)return'⛈️';return'🌤️'}
-
-/* ── Theme ── */
-var THEMES=['default','patriotic','gold','teal','navy'];
-function setTheme(t){
-  document.body.className=document.body.className.split(' ').filter(function(c){return c.indexOf('theme-')!==0}).join(' ')+(t&&t!=='default'?' theme-'+t:'');
-  localStorage.setItem('clc_theme',t||'default');
-}
-function initTheme(){var t=localStorage.getItem('clc_theme')||'default';if(t!=='default')document.body.className+=' theme-'+t;}
-
-/* ── Per-Veteran Templates ── */
-var TEMPLATES_KEY='clc_appt_templates';
-function getTemplates(){
-  try{return JSON.parse(localStorage.getItem(TEMPLATES_KEY)||'{}')}catch(e){return{}}
-}
-function templatesForVet(vetName){
-  var all=getTemplates();return all[vetName]||[];
-}
-function saveAsTemplate(){
-  var vet=document.getElementById('m-vet')?.value?.trim();if(!vet){alert('Select a veteran first.');return}
-  var name=prompt('Template name (e.g. "Cardiology with Dr. Patel"):');if(!name||!name.trim())return;
-  var t={
-    name:name.trim(),
-    reason:document.getElementById('m-type')?.value||'',
-    provider:document.getElementById('m-doctor')?.value||'',
-    clinic:document.getElementById('m-spec')?.value||'',
-    location:document.getElementById('m-loc')?.value||'',
-    cityTown:document.getElementById('m-city')?.value||'',
-    phone:document.getElementById('m-phone')?.value||'',
-    transportation:document.getElementById('m-transport')?.value||'',
-    escort:document.getElementById('m-escort')?.value||'',
-    prepInstructions:document.getElementById('m-prep')?.value||'',
-    notes:document.getElementById('m-notes')?.value||''
-  };
-  var all=getTemplates();if(!all[vet])all[vet]=[];all[vet].push(t);
-  localStorage.setItem(TEMPLATES_KEY,JSON.stringify(all));
-  refreshTemplateDropdown();alert('Template "'+t.name+'" saved for '+vet+'.');
-}
-function loadTemplate(){
-  var sel=document.getElementById('m-template-sel');if(!sel||!sel.value)return;
-  var vet=document.getElementById('m-vet')?.value?.trim();if(!vet)return;
-  var templates=templatesForVet(vet);var t=templates.find(function(x){return x.name===sel.value});if(!t)return;
-  ['m-type','m-doctor','m-spec','m-loc','m-city','m-phone','m-transport','m-escort'].forEach(function(id){
-    var el=document.getElementById(id);if(el&&t[id.replace('m-','')])el.value=t[id.replace('m-','')];
-  });
-  if(t.prepInstructions)document.getElementById('m-prep').value=t.prepInstructions;
-  if(t.notes)document.getElementById('m-notes').value=t.notes;
-  providerAutoFill();locationAutoFill();
-}
-function refreshTemplateDropdown(){
-  var sel=document.getElementById('m-template-sel');if(!sel)return;
-  var vet=document.getElementById('m-vet')?.value?.trim()||'';
-  var templates=vet?templatesForVet(vet):[];
-  sel.innerHTML='<option value="">— Load Template —</option>'+templates.map(function(t){return'<option value="'+esc(t.name)+'">'+esc(t.name)+'</option>'}).join('');
-}
-
-/* ── Recurring Appointments ── */
-var recurSettings={freq:'',endDate:''};
-
-/* ── Conflict Detection ── */
-function checkConflict(vetName,date,apptTime,excludeId){
-  var conflicts=allApps().filter(function(a){
-    return a.residentName===vetName&&a.date===date&&a.time===apptTime&&a.id!==excludeId;
-  });
-  if(conflicts.length)return conflicts[0];return null;
-}
-
-/* ── Change History ── */
-function recordChangeHistory(oldA,newA){
-  var watched=['date','time','leaveTime','location','provider','transportation','transportStatus'];
-  var changes=[];
-  watched.forEach(function(f){if((oldA[f]||'')!==(newA[f]||''))changes.push({field:f,from:oldA[f]||'',to:newA[f]||''})});
-  return changes.length?[{changedAt:new Date().toISOString(),changes:changes}]:[];
-}
-
-/* ── Updated saveAppointment with conflict + history ── */
-var _origSaveAppointment=saveAppointment;
-saveAppointment=function(id){
-  var vet=document.getElementById('m-vet')?.value?.trim();
-  var date=document.getElementById('m-date')?.value;
-  var apptTime=document.getElementById('m-time')?.value;
-  if(!vet){alert('Veteran name is required.');return}
-  if(!date){alert('Date is required.');return}
-  
-  // Conflict check
-  if(apptTime){
-    var conflict=checkConflict(vet,date,apptTime,id);
-    if(conflict&&!confirm('⚠️ '+vet+' already has an appointment on this date at this time.\n\nSave anyway?'))return;
-  }
-  
-  // Build appointment (same as original)
-  var sel=document.getElementById('m-vet');var opt=sel?.options[sel.selectedIndex];
-  var residentId=opt?.dataset?.id||'';
-  var a={
-    id:id||CLCData.uid(),residentId:residentId,date:date,
-    time:apptTime,
-    leaveTime:document.getElementById('m-leave')?.value||'',
-    returnTime:document.getElementById('m-return-time')?.value||'',
-    reason:document.getElementById('m-type')?.value||'',
-    provider:document.getElementById('m-doctor')?.value||'',
-    clinic:document.getElementById('m-spec')?.value||'',
-    location:document.getElementById('m-loc')?.value||'',
-    cityTown:document.getElementById('m-city')?.value||'',
-    phone:document.getElementById('m-phone')?.value||'',
-    transportation:document.getElementById('m-transport')?.value||'',
-    transportStatus:document.getElementById('m-transport-status')?.value||'',
-    escort:document.getElementById('m-escort')?.value||'',
-    prepInstructions:document.getElementById('m-prep')?.value||'',
-    notes:document.getElementById('m-notes')?.value||'',
-    changed:document.getElementById('m-changed')?.checked||false,
-    changeReason:document.getElementById('m-changereason')?.value||'',
-    transportNeeded:!!(document.getElementById('m-transport')?.value),
-    completed:document.getElementById('m-transport-status')?.value==='returned',
-    departed:document.getElementById('m-transport-status')?.value==='departed',
-    confirmed:document.getElementById('m-transport-status')?.value==='confirmed'
-  };
-  
-  // Change history
-  if(id){
-    var oldA=CLCData.appointments().find(function(x){return x.id===id});
-    if(oldA)a.changeHistory=(oldA.changeHistory||[]).concat(recordChangeHistory(oldA,a));
-  }
-  
-  var r=CLCData.resident(a.residentId);
-  if(r){a.residentName=r.name;a.room=r.room}
-  CLCData.upsertAppointment(a);
-  closeModal();render();
-};
-
-/* ── Ticket to Ride Print ── */
-function printTicket(id){
-  var a=id?CLCData.appointments().find(function(x){return x.id===id}):null;
-  if(!a){alert('Appointment not found.');return}
-  var w=window.open('','_blank','width=700,height=600');
-  w.document.write('<html><head><title>Ticket to Ride</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:650px;margin:0 auto}h1{font-size:20px;border-bottom:2px solid #000;padding-bottom:8px}h2{font-size:16px;color:#333}table{width:100%;border-collapse:collapse;margin:16px 0}td{padding:6px;border-bottom:1px solid #ddd;font-size:13px}td:first-child{font-weight:700;width:40%}.footer{margin-top:30px;font-size:11px;color:#666}</style></head><body>');
-  w.document.write('<h1>🚑 TICKET TO RIDE</h1><h2>'+esc(a.residentName||'Veteran')+' — '+esc(a.date)+'</h2><table>');
-  w.document.write('<tr><td>Veteran</td><td>'+esc(a.residentName||'')+' (Rm '+esc(a.room||'')+')</td></tr>');
-  w.document.write('<tr><td>Appointment</td><td>'+esc(a.reason||'')+' at '+esc(a.time||'TBD')+'</td></tr>');
-  w.document.write('<tr><td>Leave Time</td><td>'+esc(a.leaveTime||'TBD')+'</td></tr>');
-  w.document.write('<tr><td>Return Time</td><td>'+esc(a.returnTime||'TBD')+'</td></tr>');
-  w.document.write('<tr><td>Location</td><td>'+esc(a.location||'')+' — '+esc(a.cityTown||'')+'</td></tr>');
-  w.document.write('<tr><td>Provider</td><td>'+esc(a.provider||'')+'</td></tr>');
-  w.document.write('<tr><td>Transport</td><td>'+esc(a.transportation||'')+' — '+esc(a.transportStatus||'Not Set')+'</td></tr>');
-  w.document.write('<tr><td>Escort</td><td>'+esc(a.escort||'')+'</td></tr>');
-  w.document.write('<tr><td>Prep</td><td>'+esc(a.prepInstructions||'None')+'</td></tr>');
-  w.document.write('<tr><td>Notes</td><td>'+esc(a.notes||'')+'</td></tr></table>');
-  w.document.write('<div class="footer">Printed '+new Date().toLocaleString()+' · CLC Command Center · PHI — Keep Confidential</div>');
-  w.document.write('</body></html>');w.document.close();setTimeout(function(){w.print()},300);
-}
-
-/* ── Init ── */
-initTheme();
-render();
-window.addEventListener('clc:datachange',render);
-</script>
+<script src="app-uswds.js"></script>
 </body>
 </html>
