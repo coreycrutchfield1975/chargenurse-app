@@ -52,7 +52,6 @@ tr.archived{opacity:.55} tr.archived td{text-decoration:none}
 /* USWDS */
 body{font-family:Source Sans Pro,Segoe UI,Arial,sans-serif}
 header{background:#112e51;border-bottom:4px solid #fdb81e}
-nav{background:#fff;border-bottom:1px solid #dfe1e2}
 nav button{color:#3d4551;font-size:.9rem}
 nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
 .card,.panel{border:1px solid #dfe1e2;border-radius:8px}
@@ -193,7 +192,9 @@ button.primary{border-radius:6px;font-weight:700}
 
 <div id="ticketModal" class="modal"><div class="modalbox">
 <div class="toolbar no-print"><h2>Ticket to Ride</h2><button class="secondary right" onclick="closeModal('ticketModal')">Close</button></div>
-<div id="ticketSheet" class="printsheet"></div><div class="toolbar no-print"><button class="primary teal" onclick="printElement('ticketSheet')">Print One Page</button></div>
+<div id="ticketEditor" class="panel no-print"></div>
+<div id="ticketSheet" class="printsheet"></div>
+<div class="toolbar no-print"><button class="primary" onclick="saveTicket()">Save Ticket</button><button class="primary teal" onclick="saveTicket(true)">Save & Print</button></div>
 </div></div>
 
 <div id="travelModal" class="modal"><div class="modalbox">
@@ -207,7 +208,7 @@ let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  veterans:[],appointments:[],staff:{},providers:[
  {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
  {id:'p2',name:'Example Eye Clinic',specialty:'Ophthalmology',facility:'Community Clinic',city:'Example City',phone:'555-0102',active:true}
- ],travel:{},managedLists:{}
+ ],travel:{},tickets:{},managedLists:{}
 };
 const managedListDefaults={
  specialties:['LTC','RESP','EOL','SSR','Cardiology','Ophthalmology'],
@@ -225,6 +226,7 @@ const managedListDefaults={
 };
 const managedListLabels={specialties:'Specialties',medicationMethods:'Medication Methods',diets:'Diets',isolationTypes:'Isolation Types',assistLevels:'Assist Levels',mobilityOptions:'Mobility Options',fallRiskLevels:'Fall Risk Levels',toiletingOptions:'Toileting Options',transportationModes:'Transportation Modes',appointmentReasons:'Appointment Reasons',facilities:'Facilities / Destinations',treatmentTypes:'Treatment Types'};
 if(!db.managedLists)db.managedLists={};
+if(!db.tickets)db.tickets={};
 Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard'});
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
@@ -312,18 +314,47 @@ function renderStaffSummary(){let x=db.staff[today()]||{day:{},night:{}};staffSu
 function openDocPicker(t){docType=t;docAppt.innerHTML='<option value="">Select…</option>'+db.appointments.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(a=>`<option value="${a.id}">${a.date} ${a.time} — ${vetLabel(a.vetId)}</option>`).join('');openModal('docPicker')}
 function openSelectedDoc(){if(!docAppt.value)return;closeModal('docPicker');directDoc(docType,docAppt.value)}
 function directDoc(t,id){currentDocAppt=db.appointments.find(a=>a.id===id);if(t==='ticket')buildTicket();else buildTravel()}
-function buildTicket(){
- let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);
+function ticketValue(id){let e=document.getElementById(id);return e?e.value:''}
+function ticketChecked(id){let e=document.getElementById(id);return !!e?.checked}
+function renderTicketSheet(data){
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
+ let mark=x=>x?'☒':'☐', line=x=>esc(x||'________________');
  ticketSheet.innerHTML=`<link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
-<style>@page{size:landscape;margin:.25in}</style><h2 style="margin:0;text-align:center">TICKET TO RIDE</h2><div class="smalltext"><b>Veteran:</b> ${esc(v?.name||'')} &nbsp; <b>Room:</b> ${esc(v?.room||'')} &nbsp; <b>Last 4:</b> ${esc(v?.last4||'')} &nbsp; <b>Date:</b> ${a.date} &nbsp; <b>Time:</b> ${a.time}<br><b>Destination:</b> ${esc(a.destination||p?.facility||'')} &nbsp; <b>Clinic:</b> ${esc(a.clinic||p?.name||'')} &nbsp; <b>Escort:</b> ${esc(a.escort||'')}</div>
+<style>@page{size:landscape;margin:.25in}</style><h2 style="margin:0;text-align:center">TICKET TO RIDE</h2>
+ <div class="smalltext"><b>Veteran:</b> ${esc(v?.name||'')} &nbsp; <b>Room:</b> ${esc(v?.room||'')} &nbsp; <b>Last 4:</b> ${esc(v?.last4||'')} &nbsp; <b>Date:</b> ${esc(a.date)} &nbsp; <b>Time:</b> ${esc(a.time)}<br><b>Destination:</b> ${esc(a.destination||p?.facility||'')} &nbsp; <b>Clinic:</b> ${esc(a.clinic||p?.name||'')} &nbsp; <b>Pickup:</b> ${esc(tr.pickup||a.pickup||'')} &nbsp; <b>Transportation:</b> ${esc(tr.mode||a.transport||'')} &nbsp; <b>Escort:</b> ${esc(tr.escort||a.escort||'')}</div>
  <div class="printgrid">
- <div class="printcard"><h3>Clinical Flags</h3><b>Allergies:</b> ☐ NKDA ☐ Yes—see band<br><b>Fall Risk:</b> ☐ N/A ☐ Assistance Needed ☐ Close Observation<br><b>Special Needs:</b> ☐ N/A ☐ Confused/Dementia ☐ Elopement Risk ☐ Combative ☐ Other <span class="line"></span><br><b>Language:</b> <span class="line"></span><br><b>Isolation:</b> ☐ N/A ☐ Yes <span class="line"></span></div>
- <div class="printcard"><h3>Sensory and Respiratory</h3><b>Hearing:</b> ☐ N/A ☐ Hearing Aid ☐ Right ☐ Left<br><b>Vision:</b> ☐ N/A ☐ Glasses ☐ Blind<br><b>Respiratory:</b> ☐ ET Tube ☐ Trach ☐ Chest Tube</div>
- <div class="printcard"><h3>Positioning and Comfort</h3><b>Position:</b> ☐ Supine ☐ Seated ☐ HOB 30° ☐ 45° ☐ 90° ☐ Other <span class="line"></span><br><b>Pain/Behavior MGMT:</b> ☐ None<br>Last Pain Med <span class="line"></span> @ <span class="line"></span><br>Last Sedation Med <span class="line"></span> @ <span class="line"></span></div>
- <div class="printcard"><h3>Monitoring</h3><b>Vitals and Access:</b><br>SaO₂ <span class="line"></span> Cardiac Rhythm <span class="line"></span> BP <span class="line"></span><br>IV Access # <span class="line"></span> Location <span class="line"></span><br>IV Pump(s) Rate @ <span class="line"></span><br>Other <span class="line"></span></div>
- <div class="printcard" style="grid-column:1/3"><h3>Transport Details</h3>Nurse Sending <span class="line"></span> Phone Number <span class="line"></span><br><b>Return Trip:</b> ☐ Status Unchanged ☐ Changes in Status—Explain <span class="line" style="min-width:350px"></span><br>Recorder (Print Name) <span class="line" style="min-width:240px"></span></div></div>`;
- openModal('ticketModal')
+ <div class="printcard"><h3>Clinical Flags</h3><b>Allergies:</b> ${mark(data.nkda)} NKDA &nbsp; ${mark(data.allergies)} Yes—see current record<br><b>Fall Risk:</b> ${esc(v?.fallRisk||'See current care plan')}<br><b>Special Needs:</b> ${line(data.specialNeeds)}<br><b>Language:</b> ${line(data.language)}<br><b>Isolation:</b> ${esc(v?.isolation||'Standard')}</div>
+ <div class="printcard"><h3>Sensory and Respiratory</h3><b>Hearing:</b> ${line(data.hearing)}<br><b>Vision:</b> ${line(data.vision)}<br><b>Respiratory:</b> ${line(data.respiratory)}</div>
+ <div class="printcard"><h3>Positioning and Comfort</h3><b>Position:</b> ${line(data.position)}<br><b>Pain / Behavior Management:</b> ${line(data.painPlan)}<br><b>Last Pain Medication:</b> ${line(data.lastPainMed)} @ ${line(data.lastPainTime)}<br><b>Last Sedation Medication:</b> ${line(data.lastSedationMed)} @ ${line(data.lastSedationTime)}</div>
+ <div class="printcard"><h3>Monitoring</h3><b>SaO₂:</b> ${line(data.sao2)} &nbsp; <b>Cardiac Rhythm:</b> ${line(data.rhythm)} &nbsp; <b>BP:</b> ${line(data.bp)}<br><b>IV Access:</b> ${line(data.ivAccess)} &nbsp; <b>Location:</b> ${line(data.ivLocation)}<br><b>IV Pump / Rate:</b> ${line(data.ivRate)}<br><b>Other:</b> ${line(data.monitoringOther)}</div>
+ <div class="printcard" style="grid-column:1/3"><h3>Transport and Return</h3><b>Nurse Sending:</b> ${line(data.sendingNurse)} &nbsp; <b>Phone / Extension:</b> ${line(data.phone)}<br><b>Return Status:</b> ${esc(data.returnStatus||'Pending return')} &nbsp; <b>Changes / Notes:</b> ${line(data.returnNotes)}<br><b>Recorder:</b> ${line(data.recorder)} &nbsp; <b>Prepared:</b> ${esc(data.preparedAt?new Date(data.preparedAt).toLocaleString():'')}</div></div>`;
 }
+function collectTicket(){return {
+ nkda:ticketChecked('tkNkda'),allergies:ticketChecked('tkAllergies'),specialNeeds:ticketValue('tkSpecialNeeds'),language:ticketValue('tkLanguage'),hearing:ticketValue('tkHearing'),vision:ticketValue('tkVision'),respiratory:ticketValue('tkRespiratory'),position:ticketValue('tkPosition'),painPlan:ticketValue('tkPainPlan'),lastPainMed:ticketValue('tkLastPainMed'),lastPainTime:ticketValue('tkLastPainTime'),lastSedationMed:ticketValue('tkLastSedationMed'),lastSedationTime:ticketValue('tkLastSedationTime'),sao2:ticketValue('tkSao2'),rhythm:ticketValue('tkRhythm'),bp:ticketValue('tkBp'),ivAccess:ticketValue('tkIvAccess'),ivLocation:ticketValue('tkIvLocation'),ivRate:ticketValue('tkIvRate'),monitoringOther:ticketValue('tkMonitoringOther'),sendingNurse:ticketValue('tkSendingNurse'),phone:ticketValue('tkPhone'),returnStatus:ticketValue('tkReturnStatus'),returnNotes:ticketValue('tkReturnNotes'),recorder:ticketValue('tkRecorder'),preparedAt:new Date().toISOString()
+}}
+function updateTicketPreview(){renderTicketSheet(collectTicket())}
+function buildTicket(){
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),data=db.tickets[a.id]||{};
+ ticketEditor.innerHTML=`<h3>Prepare Transport Handoff</h3><p class="muted">Veteran, appointment, destination, pickup, escort, transportation, fall risk, and isolation are pulled from existing records.</p>
+ <div class="formgrid">
+ <div><label>Allergies</label><label><input id="tkNkda" type="checkbox" ${data.nkda?'checked':''}> NKDA</label><label><input id="tkAllergies" type="checkbox" ${data.allergies?'checked':''}> Allergies—see current record</label></div>
+ <div><label>Special Needs</label><input id="tkSpecialNeeds" value="${esc(data.specialNeeds||'')}"><label>Language / Communication</label><input id="tkLanguage" value="${esc(data.language||'')}"></div>
+ <div><label>Hearing</label><input id="tkHearing" value="${esc(data.hearing||'')}"><label>Vision</label><input id="tkVision" value="${esc(data.vision||'')}"></div>
+ <div><label>Respiratory</label><input id="tkRespiratory" value="${esc(data.respiratory||'')}"><label>Position</label><input id="tkPosition" value="${esc(data.position||'')}"></div>
+ <div><label>Pain / Behavior Plan</label><input id="tkPainPlan" value="${esc(data.painPlan||'')}"><label>Last Pain Medication</label><input id="tkLastPainMed" value="${esc(data.lastPainMed||'')}"></div>
+ <div><label>Last Pain Medication Time</label><input id="tkLastPainTime" type="time" value="${esc(data.lastPainTime||'')}"><label>Last Sedation Medication</label><input id="tkLastSedationMed" value="${esc(data.lastSedationMed||'')}"></div>
+ <div><label>Last Sedation Time</label><input id="tkLastSedationTime" type="time" value="${esc(data.lastSedationTime||'')}"><label>SaO₂</label><input id="tkSao2" value="${esc(data.sao2||'')}"></div>
+ <div><label>Cardiac Rhythm</label><input id="tkRhythm" value="${esc(data.rhythm||'')}"><label>Blood Pressure</label><input id="tkBp" value="${esc(data.bp||'')}"></div>
+ <div><label>IV Access</label><input id="tkIvAccess" value="${esc(data.ivAccess||'')}"><label>IV Location</label><input id="tkIvLocation" value="${esc(data.ivLocation||'')}"></div>
+ <div><label>IV Pump / Rate</label><input id="tkIvRate" value="${esc(data.ivRate||'')}"><label>Other Monitoring</label><input id="tkMonitoringOther" value="${esc(data.monitoringOther||'')}"></div>
+ <div><label>Sending Nurse</label><input id="tkSendingNurse" value="${esc(data.sendingNurse||'')}"><label>Phone / Extension</label><input id="tkPhone" value="${esc(data.phone||'')}"></div>
+ <div><label>Return Status</label><select id="tkReturnStatus"><option>Pending return</option><option>Status unchanged</option><option>Changes in status</option><option>Admitted / did not return</option></select><label>Recorder</label><input id="tkRecorder" value="${esc(data.recorder||'')}"></div>
+ <div class="span2"><label>Return Changes / Notes</label><textarea id="tkReturnNotes">${esc(data.returnNotes||'')}</textarea></div></div>
+ <div class="toolbar"><button class="secondary" onclick="updateTicketPreview()">Refresh Preview</button></div>`;
+ document.getElementById('tkReturnStatus').value=data.returnStatus||'Pending return';
+ renderTicketSheet(data);openModal('ticketModal')
+}
+function saveTicket(printAfter=false){if(!currentDocAppt)return;let data=collectTicket();db.tickets[currentDocAppt.id]=data;persist();renderTicketSheet(data);if(printAfter)printElement('ticketSheet');else alert('Ticket to Ride saved.')}
 function buildTravel(){
  let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
  travelForm.innerHTML=`<div id="travelSheet" class="printsheet"><h2 style="text-align:center">TRAVEL REQUEST FOR TRANSPORTATION SERVICES</h2>
