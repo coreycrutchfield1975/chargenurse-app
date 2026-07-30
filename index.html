@@ -48,7 +48,7 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
  .printsheet{border:0;margin:0;padding:0}.printcard{break-inside:avoid}.landscape{size:landscape;margin:.35in}
 }
 tr.archived{opacity:.55} tr.archived td{text-decoration:none}
-/* USWDS overrides — VA.gov approved look */
+/* USWDS overrides */
 body{font-family:Source Sans Pro,Segoe UI,Arial,sans-serif}
 header{background:#112e51;border-bottom:4px solid #fdb81e}
 nav{background:#fff;border-bottom:1px solid #dfe1e2}
@@ -57,14 +57,14 @@ nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
 .card,.panel{border:1px solid #dfe1e2;border-radius:8px}
 .stat b{color:#112e51}
 button.primary{border-radius:6px;font-weight:700}
-.alert{border-radius:8px}
+.button{font-weight:700}
 .warning{background:#fff4cf;border-left:6px solid #fdb81e;font-weight:700;border-radius:8px}
 @page{size:landscape;margin:.3in}
 @media print{body{background:#fff;font-size:12px}}
 </style>
 </head>
 <body>
-<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">Clinical workflow prototype using fictional test data only</div></header>
+<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.2 Managed Lists · Fictional test data only</div></header>
 <div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
 <nav class="no-print">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
@@ -125,8 +125,8 @@ button.primary{border-radius:6px;font-weight:700}
 <section id="lists" class="tab">
 <div class="toolbar"><h2>Managed Lists</h2></div>
 <div class="grid">
-<div class="panel"><h3>Providers / Clinics</h3><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Specialty</label><input id="pSpecialty"></div><div><label>Facility</label><input id="pFacility"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div><div><label>&nbsp;</label><button class="primary" onclick="addProvider()">Add Provider</button></div></div><div id="providerList"></div></div>
-<div class="panel"><h3>Other Managed Lists</h3><p class="muted">These list types are prepared for future management using the same add/edit/archive model.</p><div id="otherLists"></div></div>
+<div class="panel"><h3>Providers / Clinics</h3><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Specialty</label><input id="pSpecialty" list="specialtyData"></div><div><label>Facility</label><input id="pFacility" list="facilityData"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div><div><label>&nbsp;</label><button class="primary" onclick="addProvider()">Add Provider</button></div></div><datalist id="specialtyData"></datalist><datalist id="facilityData"></datalist><div id="providerList"></div></div>
+<div class="panel"><h3>Clinical & Workflow Lists</h3><p class="muted">Add values once and reuse them throughout BravoShift. Archive values to remove them from new entries without changing historical records.</p><div class="formgrid"><div class="span2"><label>List</label><select id="mlCategory" onchange="renderManagedListEditor()"></select></div><div class="span2"><label>New Value</label><input id="mlValue" placeholder="Enter a new list value" onkeydown="if(event.key==='Enter'){event.preventDefault();addManagedValue()}"></div><div class="span4"><button class="primary" onclick="addManagedValue()">Add Value</button></div></div><div id="managedListEditor"></div></div>
 </div>
 </section>
 </main>
@@ -136,15 +136,15 @@ button.primary{border-radius:6px;font-weight:700}
 <input type="hidden" id="vId">
 <div class="formgrid">
 <div><label>Room *</label><input id="vRoom" type="number"></div><div class="span2"><label>Name *</label><input id="vName"></div><div><label>Last 4 *</label><input id="vLast4" maxlength="4"></div>
-<div><label>Specialty</label><select id="vSpecialty"><option>LTC</option><option>RESP</option><option>EOL</option><option>SSR</option></select></div>
+<div><label>Specialty</label><select id="vSpecialty"></select></div>
 <div><label>Provider</label><select id="vProvider"></select></div><div><label>Admission Date</label><input id="vAdmission" type="date"></div><div><label>Days on Unit</label><input id="vDays" disabled></div>
 <div><label>Record Status</label><select id="vStatus"><option>Active</option><option>At Appointment</option><option>Leave of Absence</option><option>Hospital</option><option>Discharged / Archived</option></select></div><div><label>Code Status</label><select id="vCode"><option></option><option>Full Code</option><option>DNR</option><option>DNAR</option><option>Comfort Measures</option><option>See Current Orders</option></select></div>
-<div><label>Meds</label><select id="vMeds"><option>Whole</option><option>Crushed</option><option>Whole in Applesauce</option><option>Crushed in Applesauce</option><option>Whole in Pudding</option><option>Crushed in Pudding</option><option>Liquid</option><option>Via PEG/G-Tube</option><option>Other</option></select></div>
-<div><label>Diet</label><select id="vDiet"><option>Regular</option><option>Low NA</option><option>Low Fat</option><option>Finger Foods</option><option>Puree</option><option>PEG</option><option>G-Tube</option><option>Soft and Bite Sized</option><option>Other</option></select></div>
-<div><label>Isolation</label><select id="vIsolation"><option>Standard</option><option>Contact</option><option>Enhanced</option><option>Airborne</option><option>Droplet</option><option>Reverse</option></select></div>
-<div><label>Assist</label><select id="vAssist"><option>Independent</option><option>1</option><option>2</option><option>1 to 2</option><option>Total</option><option>SBA</option></select></div>
-<div><label>Mobility</label><select id="vMobility"><option>Ambulatory</option><option>Wheelchair</option><option>Walker</option><option>Cane</option><option>Bedbound</option><option>Mechanical Lift</option><option>Other</option></select></div><div><label>Fall Risk</label><select id="vFallRisk"><option>Standard</option><option>Moderate</option><option>High</option><option>See Current Care Plan</option></select></div>
-<div><label>Toileting</label><select id="vToileting"><option>Continent</option><option>Incontinent</option><option>Incontinent at Times</option><option>Incontinent of BM</option></select></div>
+<div><label>Meds</label><select id="vMeds"></select></div>
+<div><label>Diet</label><select id="vDiet"></select></div>
+<div><label>Isolation</label><select id="vIsolation"></select></div>
+<div><label>Assist</label><select id="vAssist"></select></div>
+<div><label>Mobility</label><select id="vMobility"></select></div><div><label>Fall Risk</label><select id="vFallRisk"></select></div>
+<div><label>Toileting</label><select id="vToileting"></select></div>
 <div class="span4"><label>Notes</label><textarea id="vNotes"></textarea></div>
 <div class="span2"><fieldset><legend>Skin Assessment Days</legend><div class="days" id="daysSkin"></div></fieldset></div>
 <div class="span2"><fieldset><legend>Weight Days</legend><div class="days" id="daysWeight"></div></fieldset></div>
@@ -158,8 +158,8 @@ button.primary{border-radius:6px;font-weight:700}
 <input type="hidden" id="aId"><div class="formgrid">
 <div class="span2"><label>Veteran *</label><select id="aVet"></select></div><div class="span2"><label>Provider / Clinic *</label><select id="aProvider" onchange="fillProvider()"></select></div>
 <div><label>Specialty</label><input id="aSpecialty" readonly></div><div><label>Facility</label><input id="aFacility" readonly></div><div><label>City</label><input id="aCity" readonly></div><div><label>Phone</label><input id="aPhone" readonly></div>
-<div><label>Date *</label><input id="aDate" type="date"></div><div><label>Time *</label><input id="aTime" type="time"></div><div><label>Clinic</label><input id="aClinic"></div><div><label>Reason</label><select id="aReason"><option>Consult</option><option>Procedure</option><option>Discharge</option><option>Admission</option><option>Follow Up</option><option>Testing</option></select></div>
-<div><label>Destination</label><input id="aDestination"></div><div><label>Pickup Time</label><input id="aPickup" type="time"></div><div><label>Transportation</label><select id="aTransport"><option></option><option>JC Shuttle Bus</option><option>Wheelchair Van</option><option>Ambulance - ALS</option><option>Ambulance - BLS</option><option>JJP - VTS</option><option>Other</option></select></div><div><label>Escort</label><input id="aEscort"></div>
+<div><label>Date *</label><input id="aDate" type="date"></div><div><label>Time *</label><input id="aTime" type="time"></div><div><label>Clinic</label><input id="aClinic"></div><div><label>Reason</label><select id="aReason"></select></div>
+<div><label>Destination</label><input id="aDestination"></div><div><label>Pickup Time</label><input id="aPickup" type="time"></div><div><label>Transportation</label><select id="aTransport"></select></div><div><label>Escort</label><input id="aEscort"></div>
 <div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Draft</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
 <div class="span2"><label>Notes</label><textarea id="aNotes"></textarea></div>
 </div><div class="toolbar"><button class="primary" onclick="saveAppointment()">Save Appointment</button><button class="secondary" onclick="closeModal('apptModal')">Cancel</button></div>
@@ -190,8 +190,25 @@ let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  veterans:[],appointments:[],staff:{},providers:[
  {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
  {id:'p2',name:'Example Eye Clinic',specialty:'Ophthalmology',facility:'Community Clinic',city:'Example City',phone:'555-0102',active:true}
- ],travel:{}
+ ],travel:{},managedLists:{}
 };
+const managedListDefaults={
+ specialties:['LTC','RESP','EOL','SSR','Cardiology','Ophthalmology'],
+ medicationMethods:['Whole','Crushed','Whole in Applesauce','Crushed in Applesauce','Whole in Pudding','Crushed in Pudding','Liquid','Via PEG/G-Tube','Other'],
+ diets:['Regular','Low NA','Low Fat','Finger Foods','Puree','PEG','G-Tube','Soft and Bite Sized','Other'],
+ isolationTypes:['Standard','Contact','Enhanced','Airborne','Droplet','Reverse'],
+ assistLevels:['Independent','1','2','1 to 2','Total','SBA'],
+ mobilityOptions:['Ambulatory','Wheelchair','Walker','Cane','Bedbound','Mechanical Lift','Other'],
+ fallRiskLevels:['Standard','Moderate','High','See Current Care Plan'],
+ toiletingOptions:['Continent','Incontinent','Incontinent at Times','Incontinent of BM'],
+ transportationModes:['JC Shuttle Bus','Wheelchair Van','Ambulance - ALS','Ambulance - BLS','JJP - VTS','Other'],
+ appointmentReasons:['Consult','Procedure','Discharge','Admission','Follow Up','Testing'],
+ facilities:['VA Medical Center','Community Clinic'],
+ treatmentTypes:['PICC','Foley','PEG','Trach','Wound Care','Oral Care','Lotion','Range of Motion','TED Hose','Shampoo']
+};
+const managedListLabels={specialties:'Specialties',medicationMethods:'Medication Methods',diets:'Diets',isolationTypes:'Isolation Types',assistLevels:'Assist Levels',mobilityOptions:'Mobility Options',fallRiskLevels:'Fall Risk Levels',toiletingOptions:'Toileting Options',transportationModes:'Transportation Modes',appointmentReasons:'Appointment Reasons',facilities:'Facilities / Destinations',treatmentTypes:'Treatment Types'};
+if(!db.managedLists)db.managedLists={};
+Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard'});
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
@@ -205,10 +222,12 @@ function checkedDays(id){return [...document.querySelectorAll('#'+id+' input:che
 function makeDays(id){document.getElementById(id).innerHTML=D.slice(1).concat(D[0]).map(x=>`<label><input type="checkbox" value="${x}"> ${x}</label>`).join('')}
 ['daysSkin','daysWeight','daysVitals','daysShower'].forEach(makeDays);
 document.getElementById('vAdmission').onchange=()=>document.getElementById('vDays').value=daysOnUnit(document.getElementById('vAdmission').value);
-function providerOptions(sel,blank=true){sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.specialty)}</option>`).join('')}
-function vetOptions(sel){sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>+a.room-+b.room).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('')}
-function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderStaffSummary();renderProviders();populateSelects()}
-function populateSelects(){providerOptions(document.getElementById('vProvider'));providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'))}
+function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.specialty)}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
+function vetOptions(sel){let current=sel.value;sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>+a.room-+b.room).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
+function activeList(key){return (db.managedLists[key]||[]).filter(x=>x.active).map(x=>x.value)}
+function managedOptions(sel,key,blank=false){let current=sel.value;sel.innerHTML=(blank?'<option value=""></option>':'')+activeList(key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(current&&!activeList(key).includes(current))sel.insertAdjacentHTML('beforeend',`<option value="${esc(current)}">${esc(current)} (archived)</option>`);if(current)sel.value=current}
+function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor()}
+function populateSelects(){providerOptions(document.getElementById('vProvider'));providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'));managedOptions(vSpecialty,'specialties');managedOptions(vMeds,'medicationMethods');managedOptions(vDiet,'diets');managedOptions(vIsolation,'isolationTypes');managedOptions(vAssist,'assistLevels');managedOptions(vMobility,'mobilityOptions');managedOptions(vFallRisk,'fallRiskLevels');managedOptions(vToileting,'toiletingOptions');managedOptions(aReason,'appointmentReasons');managedOptions(aTransport,'transportationModes',true);specialtyData.innerHTML=activeList('specialties').map(v=>`<option value="${esc(v)}"></option>`).join('');facilityData.innerHTML=activeList('facilities').map(v=>`<option value="${esc(v)}"></option>`).join('');if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}
 function renderHome(){
  let ta=db.appointments.filter(a=>a.date===today()&&a.status!=='Cancelled'), alerts=getAlerts();
  statVets.textContent=db.veterans.filter(v=>v.status!=='Discharged / Archived').length;statAppts.textContent=ta.length;statTrans.textContent=Object.values(db.travel).filter(x=>x.status==='Draft'||x.status==='Failed').length;statAlerts.textContent=alerts.length;
@@ -284,9 +303,9 @@ function buildTravel(){
  let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
  travelForm.innerHTML=`<div id="travelSheet" class="printsheet"><h2 style="text-align:center">TRAVEL REQUEST FOR TRANSPORTATION SERVICES</h2>
  <div class="printcard"><h3>Patient Information</h3><div class="formgrid"><div><label>Name</label><input value="${esc(v?.name||'')}" readonly></div><div><label>Last 4</label><input value="${esc(v?.last4||'')}" readonly></div><div><label>Current Location</label><input id="trCurrent" value="${esc(tr.currentLocation||'CLC')}"></div><div><label>Destination</label><input id="trDest" value="${esc(tr.destination||a.destination||p?.facility||'')}"></div></div></div>
- <div class="printcard"><h3>Reason for Transport</h3><label>Reason</label><select id="trReason">${['Consult','Procedure','Discharge','Admission','Follow Up','Testing'].map(x=>`<option ${x===(tr.reason||a.reason)?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div class="printcard"><h3>Reason for Transport</h3><label>Reason</label><select id="trReason">${activeList('appointmentReasons').map(x=>`<option ${x===(tr.reason||a.reason)?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
  <div class="printcard"><h3>Appointment Details</h3><div class="formgrid"><div><label>Date of Travel</label><input id="trDate" type="date" value="${tr.date||a.date}"></div><div><label>Time of Appointment</label><input id="trTime" type="time" value="${tr.time||a.time}"></div><div class="span2"><label>Clinic</label><input id="trClinic" value="${esc(tr.clinic||a.clinic||p?.name||'')}"></div></div></div>
- <div class="printcard"><h3>Transportation</h3><div class="formgrid"><div class="span2"><label>Mode of Transportation</label><select id="trMode">${['JC Shuttle Bus','Wheelchair Van','Ambulance - ALS','Ambulance - BLS','JJP - VTS','Other'].map(x=>`<option ${x===(tr.mode||a.transport)?'selected':''}>${x}</option>`).join('')}</select></div><div class="span2"><label>Attendant / Escort</label><input id="trEscort" value="${esc(tr.escort||a.escort||'')}"></div></div></div>
+ <div class="printcard"><h3>Transportation</h3><div class="formgrid"><div class="span2"><label>Mode of Transportation</label><select id="trMode">${activeList('transportationModes').map(x=>`<option ${x===(tr.mode||a.transport)?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="span2"><label>Attendant / Escort</label><input id="trEscort" value="${esc(tr.escort||a.escort||'')}"></div></div></div>
  <div class="printcard"><h3>Comments</h3><textarea id="trComments">${esc(tr.comments||'')}</textarea></div></div>`;openModal('travelModal')
 }
 function saveTravel(status){
@@ -309,9 +328,12 @@ function generateReport(){
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
 function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
 <style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
-function addProvider(){if(!pName.value)return;db.providers.push({id:'p'+Date.now(),name:pName.value,specialty:pSpecialty.value,facility:pFacility.value,city:pCity.value,phone:pPhone.value,active:true});['pName','pSpecialty','pFacility','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
+function addProvider(){if(!pName.value.trim())return;db.providers.push({id:'p'+Date.now(),name:pName.value.trim(),specialty:pSpecialty.value.trim(),facility:pFacility.value.trim(),city:pCity.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pSpecialty','pFacility','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
 function archiveProvider(id){let p=db.providers.find(x=>x.id===id);if(p){p.active=!p.active;persist();renderAll()}}
-function renderProviders(){providerList.innerHTML='<table><thead><tr><th>Name</th><th>Specialty</th><th>Facility</th><th>City</th><th>Phone</th><th>Status</th></tr></thead><tbody>'+db.providers.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.specialty)}</td><td>${esc(p.facility)}</td><td>${esc(p.city)}</td><td>${esc(p.phone)}</td><td><button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button></td></tr>`).join('')+'</tbody></table>';otherLists.innerHTML=['Specialties','Medication Methods','Diets','Isolation Types','Assist Levels','Toileting Options','Transportation Modes','Appointment Reasons','Facilities / Destinations','Treatment Types'].map(x=>`<div class="card">${x} <span class="badge confirmed">Managed</span></div>`).join('')}
+function renderProviders(){providerList.innerHTML='<table><thead><tr><th>Name</th><th>Specialty</th><th>Facility</th><th>City</th><th>Phone</th><th>Status</th></tr></thead><tbody>'+db.providers.map(p=>`<tr class="${p.active?'':'archived'}"><td>${esc(p.name)}</td><td>${esc(p.specialty)}</td><td>${esc(p.facility)}</td><td>${esc(p.city)}</td><td>${esc(p.phone)}</td><td><span class="badge ${p.active?'confirmed':'cancelled'}">${p.active?'Active':'Archived'}</span> <button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button></td></tr>`).join('')+'</tbody></table>'}
+function renderManagedListEditor(){if(!document.getElementById('mlCategory'))return;if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');let key=mlCategory.value||Object.keys(managedListLabels)[0],items=db.managedLists[key]||[];managedListEditor.innerHTML=`<h4>${esc(managedListLabels[key])}</h4><table><thead><tr><th>Value</th><th>Status</th><th>Action</th></tr></thead><tbody>${items.map(x=>`<tr class="${x.active?'':'archived'}"><td>${esc(x.value)}</td><td><span class="badge ${x.active?'confirmed':'cancelled'}">${x.active?'Active':'Archived'}</span></td><td><button class="secondary" onclick="toggleManagedValue('${key}','${x.id}')">${x.active?'Archive':'Restore'}</button></td></tr>`).join('')}</tbody></table>`}
+function addManagedValue(){let key=mlCategory.value,value=mlValue.value.trim();if(!value)return;let duplicate=(db.managedLists[key]||[]).find(x=>x.value.toLowerCase()===value.toLowerCase());if(duplicate){if(!duplicate.active){duplicate.active=true;mlValue.value='';persist();renderAll();return}alert('That value already exists in this list.');return}db.managedLists[key].push({id:key+'-'+Date.now(),value,active:true});mlValue.value='';persist();renderAll()}
+function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(item){item.active=!item.active;persist();renderAll()}}
 function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
 reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();
 </script>
