@@ -42,6 +42,7 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
 .year{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.monthmini{background:white;border:1px solid var(--line);border-radius:8px;padding:10px}.monthmini b{display:block;font-size:18px}.apptcount{font-size:26px;color:var(--blue)}
 .printsheet{background:white;border:1px solid var(--line);padding:12px;margin-top:12px}.printgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.printcard{border:1px solid #555;padding:7px}.printcard h3{font-size:14px;margin:0 0 6px;background:#eef3f7;padding:5px}.line{display:inline-block;min-width:105px;border-bottom:1px solid #333;height:16px}
 .smalltext{font-size:12px}
+.linkbtn{border:0;background:transparent;font-weight:900;cursor:pointer;padding:0}.monthmini{font:inherit;text-align:left;cursor:pointer}.badge.inprogress{background:#e8f0ff;color:#174ea6}.badge.noshow{background:#fff0d6;color:#8a4b00}.badge.upcoming{background:#e8f0ff;color:#174ea6}.badge.completed{background:#e6f4ea;color:#176b35}
 @media(max-width:900px){.stats,.grid,.formgrid,.year{grid-template-columns:1fr 1fr}.span4{grid-column:span 2}.calendar,.week{grid-template-columns:1fr}}
 @media print{
  body{background:white}.no-print,header,.warning,nav,.toolbar{display:none!important}main{padding:0;max-width:none}.tab{display:none!important}.tab.print-active{display:block!important}
@@ -57,14 +58,13 @@ nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
 .card,.panel{border:1px solid #dfe1e2;border-radius:8px}
 .stat b{color:#112e51}
 button.primary{border-radius:6px;font-weight:700}
-.button{font-weight:700}
 .warning{background:#fff4cf;border-left:6px solid #fdb81e;font-weight:700;border-radius:8px}
 @page{size:landscape;margin:.3in}
 @media print{body{background:#fff;font-size:12px}}
 </style>
 </head>
 <body>
-<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.2 Managed Lists · Fictional test data only</div></header>
+<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.3 Managed Lists · Fictional test data only</div></header>
 <div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
 <nav class="no-print">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
@@ -90,18 +90,23 @@ button.primary{border-radius:6px;font-weight:700}
 </section>
 
 <section id="appointments" class="tab">
-<div class="toolbar"><h2>Appointments & Search</h2><button class="primary right" onclick="openAppointment()">Add Appointment</button></div>
+<div class="toolbar"><h2>Appointments & Search</h2><button class="secondary" onclick="resetAppointmentFilters()">Clear Filters</button><button class="primary right" onclick="openAppointment()">Add Appointment</button></div>
 <div class="panel"><div class="formgrid">
 <div><label>Search</label><input id="searchText" placeholder="Veteran, last 4, room, provider, clinic..." oninput="renderAppointments()"></div>
-<div><label>Status</label><select id="searchStatus" onchange="renderAppointments()"><option value="">All</option><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></div>
+<div><label>Status</label><select id="searchStatus" onchange="renderAppointments()"><option value="">All</option><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div>
+<div><label>Provider</label><select id="searchProvider" onchange="renderAppointments()"><option value="">All Providers</option></select></div>
+<div><label>Specialty</label><select id="searchSpecialty" onchange="renderAppointments()"><option value="">All Specialties</option></select></div>
+<div><label>Transportation</label><select id="searchTransport" onchange="renderAppointments()"><option value="">All Modes</option></select></div>
+<div><label>Travel Request</label><select id="searchTravel" onchange="renderAppointments()"><option value="">All</option><option>Not Created</option><option>Draft</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
 <div><label>From</label><input id="searchFrom" type="date" onchange="renderAppointments()"></div>
 <div><label>To</label><input id="searchTo" type="date" onchange="renderAppointments()"></div>
+<div><label>Quick Range</label><select id="searchRange" onchange="applyAppointmentRange()"><option value="">Custom / All</option><option value="today">Today</option><option value="7">Next 7 Days</option><option value="30">Next 30 Days</option><option value="past">Past Appointments</option></select></div>
 </div></div>
-<div class="scroll"><table><thead><tr><th>Date</th><th>Time</th><th>Room</th><th>Veteran</th><th>Provider / Clinic</th><th>Location</th><th>Transport</th><th>Status</th><th>Actions</th></tr></thead><tbody id="apptRows"></tbody></table></div>
+<div class="scroll"><table><thead><tr><th>Date</th><th>Time</th><th>Pickup</th><th>Room</th><th>Veteran</th><th>Provider / Clinic</th><th>Reason</th><th>Location</th><th>Transportation</th><th>Travel</th><th>Status</th><th>Actions</th></tr></thead><tbody id="apptRows"></tbody></table></div>
 </section>
 
 <section id="calendar" class="tab">
-<div class="toolbar"><h2>Appointment Calendar</h2></div>
+<div class="toolbar"><h2>Appointment Calendar</h2><button class="primary right" onclick="openAppointmentForDate()">Add Appointment</button></div>
 <div class="panel">
 <div class="calendar-controls">
 <button class="secondary" onclick="changeCal(-1)">◀</button><button class="secondary" onclick="goToday()">Today</button><button class="secondary" onclick="changeCal(1)">▶</button>
@@ -160,7 +165,7 @@ button.primary{border-radius:6px;font-weight:700}
 <div><label>Specialty</label><input id="aSpecialty" readonly></div><div><label>Facility</label><input id="aFacility" readonly></div><div><label>City</label><input id="aCity" readonly></div><div><label>Phone</label><input id="aPhone" readonly></div>
 <div><label>Date *</label><input id="aDate" type="date"></div><div><label>Time *</label><input id="aTime" type="time"></div><div><label>Clinic</label><input id="aClinic"></div><div><label>Reason</label><select id="aReason"></select></div>
 <div><label>Destination</label><input id="aDestination"></div><div><label>Pickup Time</label><input id="aPickup" type="time"></div><div><label>Transportation</label><select id="aTransport"></select></div><div><label>Escort</label><input id="aEscort"></div>
-<div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Draft</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
+<div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Draft</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
 <div class="span2"><label>Notes</label><textarea id="aNotes"></textarea></div>
 </div><div class="toolbar"><button class="primary" onclick="saveAppointment()">Save Appointment</button><button class="secondary" onclick="closeModal('apptModal')">Cancel</button></div>
 </div></div>
@@ -258,27 +263,35 @@ function openAppointment(id=''){
 function fillProvider(){let p=db.providers.find(x=>x.id===aProvider.value);aSpecialty.value=p?.specialty||'';aFacility.value=p?.facility||'';aCity.value=p?.city||'';aPhone.value=p?.phone||'';if(p&&!aDestination.value)aDestination.value=[p.facility,p.city].filter(Boolean).join(', ')}
 function saveAppointment(){
  if(!aVet.value||!aProvider.value||!aDate.value||!aTime.value){alert('Veteran, provider, date, and time are required.');return}
- let obj={id:aId.value||'a'+Date.now(),vetId:aVet.value,providerId:aProvider.value,date:aDate.value,time:aTime.value,clinic:aClinic.value,reason:aReason.value,destination:aDestination.value,pickup:aPickup.value,transport:aTransport.value,escort:aEscort.value,status:aStatus.value,notes:aNotes.value};
+ let duplicate=db.appointments.find(x=>x.id!==aId.value&&x.vetId===aVet.value&&x.date===aDate.value&&x.time===aTime.value&&x.status!=='Cancelled');
+ if(duplicate&&!confirm('This Veteran already has an appointment at the same date and time. Save another appointment anyway?'))return;
+ let now=new Date().toISOString(),existing=db.appointments.find(x=>x.id===aId.value);
+ let obj={id:aId.value||'a'+Date.now(),vetId:aVet.value,providerId:aProvider.value,date:aDate.value,time:aTime.value,clinic:aClinic.value.trim(),reason:aReason.value,destination:aDestination.value.trim(),pickup:aPickup.value,transport:aTransport.value,escort:aEscort.value.trim(),status:aStatus.value,notes:aNotes.value.trim(),createdAt:existing?.createdAt||now,updatedAt:now};
  let i=db.appointments.findIndex(x=>x.id===obj.id);if(i>=0)db.appointments[i]=obj;else db.appointments.push(obj);
- if(aTravelStatus.value){db.travel[obj.id]=db.travel[obj.id]||{};db.travel[obj.id].status=aTravelStatus.value}
+ if(aTravelStatus.value){db.travel[obj.id]=db.travel[obj.id]||{};db.travel[obj.id].status=aTravelStatus.value}else if(db.travel[obj.id]&&Object.keys(db.travel[obj.id]).length===1)delete db.travel[obj.id];
  persist();closeModal('apptModal');renderAll()
 }
+function applyAppointmentRange(){let v=searchRange.value,t=today();if(!v){searchFrom.value='';searchTo.value=''}else if(v==='today'){searchFrom.value=t;searchTo.value=t}else if(v==='past'){searchFrom.value='';searchTo.value=t}else{searchFrom.value=t;let d=new Date(t+'T12:00:00');d.setDate(d.getDate()+(+v-1));searchTo.value=d.toISOString().slice(0,10)}renderAppointments()}
+function resetAppointmentFilters(){searchText.value='';searchStatus.value='';searchProvider.value='';searchSpecialty.value='';searchTransport.value='';searchTravel.value='';searchFrom.value='';searchTo.value='';searchRange.value='';renderAppointments()}
 function renderAppointments(){
- let q=(searchText.value||'').toLowerCase(),from=searchFrom.value,to=searchTo.value,st=searchStatus.value;
- let rows=db.appointments.filter(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),hay=[v?.name,v?.last4,v?.room,p?.name,p?.specialty,p?.facility,p?.city,a.clinic,a.destination,a.reason].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!from||a.date>=from)&&(!to||a.date<=to)&&(!st||a.status===st)}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
- apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr><td>${a.date}</td><td>${a.time}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}</td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.destination||p?.facility||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase()}">${tr.status}</span>`:''}</td><td>${esc(a.status)}</td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')
+ let q=(searchText.value||'').toLowerCase(),from=searchFrom.value,to=searchTo.value,st=searchStatus.value,provider=searchProvider.value,specialty=searchSpecialty.value,transport=searchTransport.value,travel=searchTravel.value;
+ let rows=db.appointments.filter(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id],hay=[v?.name,v?.last4,v?.room,p?.name,p?.specialty,p?.facility,p?.city,a.clinic,a.destination,a.reason,a.escort,a.transport].join(' ').toLowerCase();let travelMatch=!travel||(travel==='Not Created'?!tr:tr?.status===travel);return(!q||hay.includes(q))&&(!from||a.date>=from)&&(!to||a.date<=to)&&(!st||a.status===st)&&(!provider||a.providerId===provider)&&(!specialty||p?.specialty===specialty)&&(!transport||a.transport===transport)&&travelMatch}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase()}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
 }
 function setCalView(v){calView=v;renderCalendar()}function changeCal(n){if(calView==='year')currentCal.setFullYear(currentCal.getFullYear()+n);else if(calView==='month')currentCal.setMonth(currentCal.getMonth()+n);else currentCal.setDate(currentCal.getDate()+n*(calView==='week'?7:1));renderCalendar()}function goToday(){currentCal=new Date();renderCalendar()}
+function localDateString(d){let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function openAppointmentForDate(ds=''){openAppointment();if(ds)aDate.value=ds}
+function openCalendarMonth(month){currentCal=new Date(currentCal.getFullYear(),month,1);calView='month';renderCalendar()}
 function apptsFor(date){return db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time))}
 function renderCalendar(){
- let y=currentCal.getFullYear(),m=currentCal.getMonth();calTitle.textContent=currentCal.toLocaleDateString(undefined,calView==='year'?{year:'numeric'}:{month:'long',year:'numeric'});
- if(calView==='day'){let ds=currentCal.toISOString().slice(0,10),a=apptsFor(ds);calendarBody.innerHTML=`<h3>${currentCal.toLocaleDateString()}</h3>`+(a.length?a.map(eventHtml).join(''):'<div class="card">No appointments.</div>');return}
- if(calView==='week'){let d=new Date(currentCal),day=d.getDay();d.setDate(d.getDate()-day);let cols='';for(let i=0;i<7;i++){let x=new Date(d);x.setDate(d.getDate()+i);let ds=x.toISOString().slice(0,10);cols+=`<div class="weekcol"><h4>${x.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</h4>${apptsFor(ds).map(eventHtml).join('')}</div>`}calendarBody.innerHTML=`<div class="week">${cols}</div>`;return}
- if(calView==='year'){calendarBody.innerHTML='<div class="year">'+Array.from({length:12},(_,i)=>{let c=db.appointments.filter(a=>new Date(a.date).getFullYear()===y&&new Date(a.date).getMonth()===i&&a.status!=='Cancelled').length;return `<div class="monthmini"><b>${new Date(y,i,1).toLocaleDateString(undefined,{month:'long'})}</b><span class="apptcount">${c}</span><div>appointments</div></div>`}).join('')+'</div>';return}
- let first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),cells='';for(let i=0;i<42;i++){let d=new Date(start);d.setDate(start.getDate()+i);let ds=d.toISOString().slice(0,10),mut=d.getMonth()!==m?' mutedday':'';cells+=`<div class="calday${mut}"><div class="date-num">${d.getDate()}</div>${apptsFor(ds).slice(0,4).map(a=>eventHtml(a,true)).join('')}</div>`}
+ let y=currentCal.getFullYear(),m=currentCal.getMonth();calTitle.textContent=currentCal.toLocaleDateString(undefined,calView==='year'?{year:'numeric'}:{month:'long',year:'numeric'});document.querySelectorAll('.calbtn').forEach(b=>b.classList.toggle('primary',b.textContent.toLowerCase()===calView));
+ if(calView==='day'){let ds=localDateString(currentCal),a=apptsFor(ds);calendarBody.innerHTML=`<div class="toolbar"><h3>${currentCal.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</h3><button class="primary right" onclick="openAppointmentForDate('${ds}')">Add for this date</button></div>`+(a.length?a.map(eventHtml).join(''):'<div class="card">No appointments.</div>');return}
+ if(calView==='week'){let d=new Date(currentCal),day=d.getDay();d.setDate(d.getDate()-day);let cols='';for(let i=0;i<7;i++){let x=new Date(d);x.setDate(d.getDate()+i);let ds=localDateString(x);cols+=`<div class="weekcol"><h4>${x.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</h4><button class="secondary" onclick="openAppointmentForDate('${ds}')">+ Add</button>${apptsFor(ds).map(eventHtml).join('')}</div>`}calendarBody.innerHTML=`<div class="week">${cols}</div>`;return}
+ if(calView==='year'){calendarBody.innerHTML='<div class="year">'+Array.from({length:12},(_,i)=>{let c=db.appointments.filter(a=>new Date(a.date+'T12:00:00').getFullYear()===y&&new Date(a.date+'T12:00:00').getMonth()===i&&a.status!=='Cancelled').length;return `<button class="monthmini" onclick="openCalendarMonth(${i})"><b>${new Date(y,i,1).toLocaleDateString(undefined,{month:'long'})}</b><span class="apptcount">${c}</span><div>appointments</div></button>`}).join('')+'</div>';return}
+ let first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),cells='';for(let i=0;i<42;i++){let d=new Date(start);d.setDate(start.getDate()+i);let ds=localDateString(d),mut=d.getMonth()!==m?' mutedday':'',events=apptsFor(ds);cells+=`<div class="calday${mut}" ondblclick="openAppointmentForDate('${ds}')"><div class="date-num"><button class="linkbtn" onclick="currentCal=new Date('${ds}T12:00:00');setCalView('day')">${d.getDate()}</button></div>${events.slice(0,4).map(a=>eventHtml(a,true)).join('')}${events.length>4?`<div class="muted">+${events.length-4} more</div>`:''}</div>`}
  calendarBody.innerHTML='<div class="calendar">'+D.map(x=>`<div class="dayhead">${x}</div>`).join('')+cells+'</div>'
 }
-function eventHtml(a,compact=false){let v=db.veterans.find(v=>v.id===a.vetId);return `<div class="event" onclick="openAppointment('${a.id}')">${esc(a.time)} ${compact?'':`— `}${esc(v?.name||'')} ${compact?'':'— '+esc(a.clinic||a.destination||'')}</div>`}
+function eventHtml(a,compact=false){let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<div class="event" title="${esc(p?.name||'')} — ${esc(a.destination||'')}" onclick="openAppointment('${a.id}')">${esc(a.time)} ${compact?'':`— `}${esc(v?.name||'')} ${compact?'':'— '+esc(a.clinic||a.destination||'')}</div>`}
 function openStaff(){sDate.value=sDate.value||today();buildStaffFields();loadStaffForm();openModal('staffModal')}
 function buildStaffFields(){dayStaffFields.innerHTML=roles.map((r,i)=>`<label>${r}</label><input id="sd${i}">`).join('');nightStaffFields.innerHTML=roles.map((r,i)=>`<label>${r}</label><input id="sn${i}">`).join('')}
 function loadStaffForm(){let x=db.staff[sDate.value]||{day:{},night:{}};roles.forEach((r,i)=>{document.getElementById('sd'+i).value=x.day?.[r]||'';document.getElementById('sn'+i).value=x.night?.[r]||''})}
