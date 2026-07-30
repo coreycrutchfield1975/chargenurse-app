@@ -445,15 +445,36 @@ function renderTreatments(){
 }
 
 function generateReport(){
- let date=reportDate.value||today();reportDate.value=date;let day=D[new Date(date+'T12:00:00').getDay()],vets=db.veterans.slice().sort((a,b)=>a.room-b.room),ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time)),s=db.staff[date]||{day:{},night:{}};
+ let date=reportDate.value||today();reportDate.value=date;
+ let day=D[new Date(date+'T12:00:00').getDay()];
+ let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>(+a.room||999)-(+b.room||999));
+ let ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+ let s=db.staff[date]||{day:{},night:{}};
  let due=(k)=>vets.filter(v=>(v.schedules?.[k]||[]).includes(day));
+ let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
+ let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
+ let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['Draft','Failed'].includes(tr.status))});
+ let offUnit=vets.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
+ let newAdmissions=vets.filter(v=>v.admission&&Math.floor((new Date(date+'T12:00:00')-new Date(v.admission+'T12:00:00'))/86400000)<=1&&new Date(v.admission+'T12:00:00')<=new Date(date+'T12:00:00'));
+ let highRisk=vets.filter(v=>/high/i.test(v.fallRisk||'')||/isolation/i.test(v.isolation||'')&&!/none|standard/i.test(v.isolation||''));
+ let priority=[];
+ travelAttention.forEach(a=>priority.push({level:'HIGH',text:`Transportation follow-up: ${vetLabel(a.vetId)} — ${a.time||''} ${a.destination||a.clinic||''}`}));
+ txOutstanding.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);priority.push({level:t.category==='Licensed'?'HIGH':'DUE',text:`Room ${v?.room||''} — ${v?.name||''}: ${t.type} (${t.shift})`})});
+ offUnit.forEach(v=>priority.push({level:'STATUS',text:`Room ${v.room} — ${v.name}: ${v.status}`}));
+ let rosterRows=vets.map(v=>{let p=db.providers.find(p=>p.id===v.providerId);return `<tr><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.specialty)}</td><td>${esc(p?.name||'')}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.toileting)}</td><td>${esc(v.status||'Active')}</td><td>${esc(v.notes)}</td></tr>`}).join('');
+ let apRows=ap.map(a=>{let tr=db.travel[a.id],v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<tr><td>${esc(a.time||'')}</td><td>${esc(v?.room||'')} — ${esc(v?.name||'')}</td><td>${esc(a.clinic||a.destination||p?.facility||'')}</td><td>${esc(a.pickup||tr?.pickup||'')}</td><td>${esc(a.transport||tr?.mode||'')}</td><td>${esc(a.escort||tr?.escort||'')}</td><td>${esc(tr?.status||a.travelStatus||'Not Started')}</td><td>${esc(a.status||'Upcoming')}</td></tr>`}).join('');
  reportOutput.innerHTML=`<div id="morningPrint" class="printsheet"><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
-<style>@page{size:landscape;margin:.3in}</style><h2 style="text-align:center">BRAVOSHIFT — CLC MORNING REPORT — ${date}</h2>
- <div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Spec.</th><th>Provider</th><th>Days</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Toileting</th><th>Notes</th></tr></thead><tbody>${vets.map(v=>{let p=db.providers.find(p=>p.id===v.providerId);return `<tr><td>${v.room}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.specialty)}</td><td>${esc(p?.name||'')}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.toileting)}</td><td>${esc(v.notes)}</td></tr>`}).join('')}</tbody></table></div>
+<style>@page{size:landscape;margin:.3in}</style>
+ <h2 style="text-align:center;margin-bottom:2px">BRAVOSHIFT — CLC MORNING REPORT — ${date}</h2>
+ <p style="text-align:center;margin-top:0"><b>Census:</b> ${vets.length} &nbsp; | &nbsp; <b>Appointments:</b> ${ap.length} &nbsp; | &nbsp; <b>Treatments Due:</b> ${txDue.length} &nbsp; | &nbsp; <b>Priority Follow-ups:</b> ${travelAttention.length+txOutstanding.length}</p>
+ <h3>Veteran Census — Shift Handoff Review</h3>
+ <div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Spec.</th><th>Provider</th><th>Days</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Toileting</th><th>Status</th><th>Notes</th></tr></thead><tbody>${rosterRows}</tbody></table></div>
+ <div class="printgrid"><div class="printcard"><h3>Shift Intelligence / Priority Follow-up</h3>${priority.length?priority.map(x=>`<b>${x.level}:</b> ${esc(x.text)}`).join('<br>'):'No outstanding priority items identified.'}</div><div class="printcard"><h3>Recent / Higher-Risk Review</h3><b>New admissions (24 hours):</b> ${newAdmissions.map(v=>`Room ${v.room} — ${esc(v.name)}`).join('; ')||'None'}<br><b>Higher-risk flags:</b> ${highRisk.map(v=>`Room ${v.room} — ${esc(v.name)}`).join('; ')||'None'}<br><b>Veterans off unit:</b> ${offUnit.map(v=>`Room ${v.room} — ${esc(v.name)} (${esc(v.status)})`).join('; ')||'None'}</div></div>
+ <div class="printcard"><h3>Today's Appointments</h3>${ap.length?`<table><thead><tr><th>Time</th><th>Veteran</th><th>Destination</th><th>Pickup</th><th>Transport</th><th>Escort</th><th>Travel Status</th><th>Appt Status</th></tr></thead><tbody>${apRows}</tbody></table>`:'None'}</div>
  <div class="printgrid"><div class="printcard"><h3>Day Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.day?.[r]||'')}<br>`).join('')}</div><div class="printcard"><h3>Night Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.night?.[r]||'')}<br>`).join('')}</div></div>
- <div class="printcard"><h3>Appointments</h3>${ap.length?ap.map(a=>`${a.time} — ${vetLabel(a.vetId)} — ${esc(a.clinic||a.destination||'')}<br>`).join(''):'None'}</div>
- <div class="printgrid"><div class="printcard"><h3>Skin Assessments</h3>${due('skin').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Weights</h3>${due('weight').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Vitals</h3>${due('vitals').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Showers</h3>${due('shower').map(v=>`Room ${v.room} — ${esc(v.name)} (${v.showerShift})`).join('<br>')||'None'}</div></div>
- <div class="printcard"><h3>Treatments Due</h3>${db.treatments.filter(t=>treatmentDueOn(t,date)).map(t=>{let v=db.veterans.find(v=>v.id===t.vetId);return `Room ${esc(v?.room||'')} — ${esc(v?.name||'')} — ${esc(t.type)} (${esc(t.category)}, ${esc(t.shift)})${t.instructions?' — '+esc(t.instructions):''}`}).join('<br>')||'None'}</div>
+ <div class="printgrid"><div class="printcard"><h3>Skin Assessments</h3>${due('skin').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Weights</h3>${due('weight').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Vitals</h3>${due('vitals').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Showers</h3>${due('shower').map(v=>`Room ${v.room} — ${esc(v.name)} (${esc(v.showerShift)})`).join('<br>')||'None'}</div></div>
+ <div class="printcard"><h3>Treatments Due</h3>${txDue.map(t=>{let v=db.veterans.find(v=>v.id===t.vetId),done=treatmentCompleted(t,date);return `Room ${esc(v?.room||'')} — ${esc(v?.name||'')} — ${esc(t.type)} (${esc(t.category)}, ${esc(t.shift)}) — ${done?'Completed':'Outstanding'}${t.instructions?' — '+esc(t.instructions):''}`}).join('<br>')||'None'}</div>
+ <div class="printcard"><h3>Shift Change Notes / Changes Since Prior Shift</h3><div style="height:70px;border-bottom:1px solid #888"></div></div>
  <p><b>Day Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p><p><b>Night Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p></div>`
 }
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
