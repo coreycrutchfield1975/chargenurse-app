@@ -1,7 +1,0 @@
-ChargeNurse Phase 30 RN12
-
-- Exported CLCData.importLegacyRN so the one-time RN migration actually runs.
-- Updated the shared data schema version to 7.4-phase30-rn12.
-- Changed Charge RN saves to write only fields that actually changed.
-- Prevents unchanged RN records from overwriting newer shared Veteran data.
-- Updated Charge RN build marker to Phase30-RN12.
