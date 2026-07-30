@@ -49,7 +49,7 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
  .printsheet{border:0;margin:0;padding:0}.printcard{break-inside:avoid}.landscape{size:landscape;margin:.35in}
 }
 tr.archived{opacity:.55} tr.archived td{text-decoration:none}
-/* USWDS overrides */
+/* USWDS */
 body{font-family:Source Sans Pro,Segoe UI,Arial,sans-serif}
 header{background:#112e51;border-bottom:4px solid #fdb81e}
 nav{background:#fff;border-bottom:1px solid #dfe1e2}
@@ -58,13 +58,13 @@ nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
 .card,.panel{border:1px solid #dfe1e2;border-radius:8px}
 .stat b{color:#112e51}
 button.primary{border-radius:6px;font-weight:700}
-.warning{background:#fff4cf;border-left:6px solid #fdb81e;font-weight:700;border-radius:8px}
+.warning{background:#fff4cf;border-left:6px solid #fdb81e;border-radius:8px}
 @page{size:landscape;margin:.3in}
 @media print{body{background:#fff;font-size:12px}}
 </style>
 </head>
 <body>
-<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.3 Managed Lists · Fictional test data only</div></header>
+<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.4 Transportation & Travel Requests · Fictional test data only</div></header>
 <div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
 <nav class="no-print">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
@@ -116,8 +116,20 @@ button.primary{border-radius:6px;font-weight:700}
 </section>
 
 <section id="transport" class="tab">
-<div class="toolbar"><h2>Transportation</h2></div>
-<div class="grid"><div class="panel"><h3>Travel Requests</h3><div id="travelList"></div></div><div class="panel"><h3>Quick Documents</h3><p>Select an appointment from the appointment table, then generate either document.</p><div class="toolbar"><button class="primary teal" onclick="openDocPicker('ticket')">Ticket to Ride</button><button class="primary orange" onclick="openDocPicker('travel')">Travel Request</button></div></div></div>
+<div class="toolbar"><h2>Transportation & Travel Requests</h2><button class="secondary" onclick="resetTravelFilters()">Clear Filters</button><button class="primary orange right" onclick="openDocPicker('travel')">Create Travel Request</button></div>
+<div class="stats">
+<div class="card stat"><span>Needs Request</span><b id="travelNeedCount">0</b></div>
+<div class="card stat"><span>Draft / Failed</span><b id="travelActionCount">0</b></div>
+<div class="card stat"><span>Confirmed</span><b id="travelConfirmedCount">0</b></div>
+<div class="card stat"><span>Today Pickups</span><b id="travelTodayCount">0</b></div>
+</div>
+<div class="panel"><div class="formgrid">
+<div><label>Search</label><input id="travelSearch" placeholder="Veteran, room, destination, escort..." oninput="renderTravel()"></div>
+<div><label>Request Status</label><select id="travelFilterStatus" onchange="renderTravel()"><option value="">All Statuses</option><option>Needs Request</option><option>Draft</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
+<div><label>Transportation</label><select id="travelFilterMode" onchange="renderTravel()"><option value="">All Modes</option></select></div>
+<div><label>Date</label><input id="travelFilterDate" type="date" onchange="renderTravel()"></div>
+</div></div>
+<div class="grid"><div class="panel span2"><h3>Transportation Work Queue</h3><div id="travelList"></div></div><div class="panel"><h3>Quick Documents</h3><p>Travel Requests reuse appointment, Veteran, provider, pickup, escort, and destination information.</p><div class="toolbar"><button class="primary teal" onclick="openDocPicker('ticket')">Ticket to Ride</button><button class="primary orange" onclick="openDocPicker('travel')">Travel Request</button></div><hr><p class="muted">A request remains on the action queue until confirmed or cancelled.</p></div></div>
 </section>
 
 <section id="staff" class="tab"><div class="toolbar"><h2>Staff Assignments</h2><button class="primary teal right" onclick="openStaff()">Enter / Edit Assignments</button></div><div id="staffSummary"></div></section>
@@ -318,15 +330,25 @@ function buildTravel(){
  <div class="printcard"><h3>Patient Information</h3><div class="formgrid"><div><label>Name</label><input value="${esc(v?.name||'')}" readonly></div><div><label>Last 4</label><input value="${esc(v?.last4||'')}" readonly></div><div><label>Current Location</label><input id="trCurrent" value="${esc(tr.currentLocation||'CLC')}"></div><div><label>Destination</label><input id="trDest" value="${esc(tr.destination||a.destination||p?.facility||'')}"></div></div></div>
  <div class="printcard"><h3>Reason for Transport</h3><label>Reason</label><select id="trReason">${activeList('appointmentReasons').map(x=>`<option ${x===(tr.reason||a.reason)?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
  <div class="printcard"><h3>Appointment Details</h3><div class="formgrid"><div><label>Date of Travel</label><input id="trDate" type="date" value="${tr.date||a.date}"></div><div><label>Time of Appointment</label><input id="trTime" type="time" value="${tr.time||a.time}"></div><div class="span2"><label>Clinic</label><input id="trClinic" value="${esc(tr.clinic||a.clinic||p?.name||'')}"></div></div></div>
- <div class="printcard"><h3>Transportation</h3><div class="formgrid"><div class="span2"><label>Mode of Transportation</label><select id="trMode">${activeList('transportationModes').map(x=>`<option ${x===(tr.mode||a.transport)?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="span2"><label>Attendant / Escort</label><input id="trEscort" value="${esc(tr.escort||a.escort||'')}"></div></div></div>
- <div class="printcard"><h3>Comments</h3><textarea id="trComments">${esc(tr.comments||'')}</textarea></div></div>`;openModal('travelModal')
+ <div class="printcard"><h3>Transportation</h3><div class="formgrid"><div><label>Pickup Time</label><input id="trPickup" type="time" value="${esc(tr.pickup||a.pickup||'')}"></div><div><label>Mode of Transportation</label><select id="trMode"><option value=""></option>${activeList('transportationModes').map(x=>`<option ${x===(tr.mode||a.transport)?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="span2"><label>Attendant / Escort</label><input id="trEscort" value="${esc(tr.escort||a.escort||'')}"></div></div></div>
+ <div class="printcard"><h3>Request Tracking</h3><div class="formgrid"><div><label>Requested By</label><input id="trRequestedBy" value="${esc(tr.requestedBy||'')}"></div><div><label>Contact / Extension</label><input id="trContact" value="${esc(tr.contact||'')}"></div><div class="span2"><label>Confirmation / Reference Number</label><input id="trReference" value="${esc(tr.reference||'')}"></div></div></div>
+ <div class="printcard"><h3>Comments</h3><textarea id="trComments">${esc(tr.comments||'')}</textarea>${tr.updated?`<p class="muted">Last updated: ${new Date(tr.updated).toLocaleString()}</p>`:''}</div></div>`;openModal('travelModal')
 }
 function saveTravel(status){
- let a=currentDocAppt;if(!a)return;db.travel[a.id]={status,currentLocation:trCurrent.value,destination:trDest.value,reason:trReason.value,date:trDate.value,time:trTime.value,clinic:trClinic.value,mode:trMode.value,escort:trEscort.value,comments:trComments.value,updated:new Date().toISOString()};persist();renderAll();if(status==='Cancelled')closeModal('travelModal')
+ let a=currentDocAppt;if(!a)return;db.travel[a.id]={...(db.travel[a.id]||{}),status,currentLocation:trCurrent.value.trim(),destination:trDest.value.trim(),reason:trReason.value,date:trDate.value,time:trTime.value,pickup:trPickup.value,clinic:trClinic.value.trim(),mode:trMode.value,escort:trEscort.value.trim(),requestedBy:trRequestedBy.value.trim(),contact:trContact.value.trim(),reference:trReference.value.trim(),comments:trComments.value.trim(),updated:new Date().toISOString(),confirmedAt:status==='Confirmed'?new Date().toISOString():(db.travel[a.id]?.confirmedAt||'')};persist();renderAll();if(status==='Cancelled')closeModal('travelModal')
 }
-function emailTravel(){saveTravel('Confirmed');let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];let subject=encodeURIComponent(`Transportation Request - ${v?.name||''} - ${tr.date} ${tr.time}`),body=encodeURIComponent(`Transportation Request\n\nPatient: ${v?.name||''}\nLast 4: ${v?.last4||''}\nCurrent Location: ${tr.currentLocation}\nDestination: ${tr.destination}\nReason: ${tr.reason}\nDate: ${tr.date}\nTime: ${tr.time}\nClinic: ${tr.clinic}\nMode: ${tr.mode}\nEscort: ${tr.escort}\nComments: ${tr.comments}`);location.href=`mailto:?subject=${subject}&body=${body}`;closeModal('travelModal')}
+function emailTravel(){saveTravel('Confirmed');let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];let subject=encodeURIComponent(`Transportation Request - ${v?.name||''} - ${tr.date} ${tr.time}`),body=encodeURIComponent(`Transportation Request\n\nPatient: ${v?.name||''}\nLast 4: ${v?.last4||''}\nCurrent Location: ${tr.currentLocation}\nDestination: ${tr.destination}\nReason: ${tr.reason}\nDate: ${tr.date}\nAppointment Time: ${tr.time}\nPickup Time: ${tr.pickup||''}\nClinic: ${tr.clinic}\nMode: ${tr.mode}\nEscort: ${tr.escort}\nRequested By: ${tr.requestedBy||''}\nContact: ${tr.contact||''}\nReference: ${tr.reference||''}\nComments: ${tr.comments}`);location.href=`mailto:?subject=${subject}&body=${body}`;closeModal('travelModal')}
 function attemptCloseTravel(){let tr=db.travel[currentDocAppt?.id];if(!tr||tr.status==='Draft'){alert('This transportation request has not been confirmed. Email it, cancel it, or continue editing.');return}closeModal('travelModal')}
-function renderTravel(){let items=db.appointments.map(a=>({a,tr:db.travel[a.id]})).filter(x=>x.tr);travelList.innerHTML=items.length?items.map(x=>`<div class="card"><b>${vetLabel(x.a.vetId)}</b><div>${x.a.date} ${x.a.time}</div><span class="badge ${x.tr.status.toLowerCase()}">${x.tr.status}</span> <button class="secondary" onclick="directDoc('travel','${x.a.id}')">Open</button></div>`).join(''):'<div class="card">No travel requests created.</div>'}
+function resetTravelFilters(){travelSearch.value='';travelFilterStatus.value='';travelFilterMode.value='';travelFilterDate.value='';renderTravel()}
+function renderTravel(){
+ let q=(travelSearch?.value||'').toLowerCase(),status=travelFilterStatus?.value||'',mode=travelFilterMode?.value||'',date=travelFilterDate?.value||'';
+ if(travelFilterMode){let cur=travelFilterMode.value;travelFilterMode.innerHTML='<option value="">All Modes</option>'+activeList('transportationModes').map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');travelFilterMode.value=cur}
+ let relevant=db.appointments.filter(a=>a.status!=='Cancelled'&&a.status!=='Completed'&&a.date>=today()).map(a=>({a,tr:db.travel[a.id],v:db.veterans.find(v=>v.id===a.vetId),p:db.providers.find(p=>p.id===a.providerId)}));
+ let needs=relevant.filter(x=>x.a.transport&&!x.tr),action=relevant.filter(x=>['Draft','Failed'].includes(x.tr?.status)),confirmed=relevant.filter(x=>x.tr?.status==='Confirmed'),todayItems=relevant.filter(x=>x.a.date===today()&&(x.tr?.status==='Confirmed'||x.a.transport));
+ travelNeedCount.textContent=needs.length;travelActionCount.textContent=action.length;travelConfirmedCount.textContent=confirmed.length;travelTodayCount.textContent=todayItems.length;
+ let rows=relevant.filter(x=>{let effective=x.tr?.status||'Needs Request',hay=[x.v?.name,x.v?.last4,x.v?.room,x.a.destination,x.p?.facility,x.a.escort,x.tr?.escort,x.a.transport,x.tr?.mode,x.tr?.reference].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!status||effective===status)&&(!mode||(x.tr?.mode||x.a.transport)===mode)&&(!date||x.a.date===date)}).sort((x,y)=>(x.a.date+(x.tr?.pickup||x.a.pickup||x.a.time)).localeCompare(y.a.date+(y.tr?.pickup||y.a.pickup||y.a.time)));
+ travelList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Pickup</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th><th>Action</th></tr></thead><tbody>${rows.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')} — ${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td><span class="badge ${st.toLowerCase().replaceAll(' ','')}">${esc(st)}</span></td><td>${esc(x.tr?.reference||'')}</td><td><button class="secondary" onclick="directDoc('travel','${x.a.id}')">${x.tr?'Open':'Create'}</button> <button class="secondary" onclick="directDoc('ticket','${x.a.id}')">Ticket</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No transportation items match the selected filters.</div>'
+}
 function generateReport(){
  let date=reportDate.value||today();reportDate.value=date;let day=D[new Date(date+'T12:00:00').getDay()],vets=db.veterans.slice().sort((a,b)=>a.room-b.room),ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time)),s=db.staff[date]||{day:{},night:{}};
  let due=(k)=>vets.filter(v=>(v.schedules?.[k]||[]).includes(day));
