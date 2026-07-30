@@ -5,18 +5,29 @@ export type VeteranStatus =
   | 'Hospital'
   | 'Discharged / Archived';
 
+export type FallRisk = 'Low' | 'Moderate' | 'High' | '';
+
 export interface Veteran {
   id: string;
   name: string;
   last4: string;
   room: string;
   status: VeteranStatus;
-  admissionDate?: string;
-  provider?: string;
-  specialty?: string;
-  codeStatus?: string;
-  mobility?: string;
-  fallRisk?: string;
+  admissionDate: string;
+  provider: string;
+  specialty: string;
+  codeStatus: string;
+  mobility: string;
+  fallRisk: FallRisk;
+  medicationMethod: string;
+  diet: string;
+  isolation: string;
+  assistLevel: string;
+  toileting: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string;
 }
 
 export type AppointmentStatus =

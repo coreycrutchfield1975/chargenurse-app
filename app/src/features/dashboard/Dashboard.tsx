@@ -3,13 +3,14 @@ import { selectDashboardMetrics } from './dashboardSelectors';
 
 interface DashboardProps {
   state: BravoShiftState;
+  onAddVeteran: () => void;
 }
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function Dashboard({ state }: DashboardProps) {
+export function Dashboard({ state, onAddVeteran }: DashboardProps) {
   const metrics = selectDashboardMetrics(state, todayIso());
   const cards = [
     ['Active Veterans', metrics.activeVeterans],
@@ -39,29 +40,29 @@ export function Dashboard({ state }: DashboardProps) {
       </div>
 
       <div className="action-row">
-        <button type="button">Add Veteran</button>
-        <button type="button">Add Appointment</button>
-        <button type="button">Assign Treatment</button>
-        <button type="button">Shift Assignment</button>
-        <button type="button">Morning Report</button>
+        <button type="button" onClick={onAddVeteran}>Add Veteran</button>
+        <button type="button" disabled>Add Appointment</button>
+        <button type="button" disabled>Assign Treatment</button>
+        <button type="button" disabled>Shift Assignment</button>
+        <button type="button" disabled>Morning Report</button>
       </div>
 
       <div className="panel-grid">
         <article className="panel">
           <h2>Priority Action Board</h2>
-          <p>No production data is connected yet.</p>
+          <p>{metrics.priorityActions ? `${metrics.priorityActions} item(s) require review.` : 'No priority actions identified.'}</p>
         </article>
         <article className="panel">
           <h2>Today's Schedule</h2>
-          <p>Appointments will appear here after migration.</p>
+          <p>Appointments will appear here after the appointments migration.</p>
         </article>
         <article className="panel">
           <h2>Treatments Due Today</h2>
-          <p>Treatment workflow will be migrated in a dedicated PR.</p>
+          <p>Treatment workflow will be migrated in a dedicated package.</p>
         </article>
         <article className="panel">
           <h2>Unit Status</h2>
-          <p>Veteran and shift status will appear here.</p>
+          <p>{metrics.activeVeterans} active Veteran(s), {metrics.offUnit} currently off unit.</p>
         </article>
       </div>
     </section>

@@ -1,29 +1,30 @@
-# BravoShift 2.0 Foundation
+# BravoShift 2.0 — Veteran Master Record
 
-Production-oriented React + TypeScript foundation for BravoShift Nurse CommandPost Center.
+This package is the second production migration step for BravoShift. It builds on the React/TypeScript foundation and implements the first complete operational module.
 
-This package is intentionally additive. It does not replace the working v1.8 prototype.
+## Working features
 
-## Run locally
+- Dashboard and Veteran Master Record navigation
+- Add and edit Veteran records
+- Required-field validation
+- Exactly-four-digit Last 4 validation
+- Duplicate active-room protection
+- Active, off-unit, hospital, leave, and archived statuses
+- Search across name, last 4, room, provider, specialty, and status
+- Active, archived, and all-record filters
+- Archive and restore workflow; no hard deletion
+- Local-storage persistence and normalization of earlier foundation data
+- Dashboard metrics driven by the same state
+- Responsive VA-appropriate interface
+
+## Safety
+
+This remains a public development build. Do not enter real PHI or Veteran information.
+
+## Validation
 
 ```bash
 npm install
+npm run build
 npm run dev
 ```
-
-## Build
-
-```bash
-npm run build
-```
-
-## Current scope
-
-- App shell
-- VA-appropriate visual foundation
-- Typed core domain models
-- Local persistence adapter
-- Dashboard selectors and starter dashboard
-- Migration documentation
-
-The remaining workflows should be migrated one module at a time with feature parity tests.

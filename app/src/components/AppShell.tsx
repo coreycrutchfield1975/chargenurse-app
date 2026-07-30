@@ -1,22 +1,26 @@
 import type { ReactNode } from 'react';
 
+export type AppPage = 'dashboard' | 'veterans';
+
 interface AppShellProps {
+  activePage: AppPage;
+  onNavigate: (page: AppPage) => void;
   children: ReactNode;
 }
 
-const navItems = [
-  'Dashboard',
-  'Veterans',
-  'Appointments',
-  'Calendar',
-  'Transport',
-  'Treatments',
-  'Staff Assignments',
-  'Morning Report',
-  'Managed Lists',
+const navItems: Array<{ label: string; page?: AppPage }> = [
+  { label: 'Dashboard', page: 'dashboard' },
+  { label: 'Veterans', page: 'veterans' },
+  { label: 'Appointments' },
+  { label: 'Calendar' },
+  { label: 'Transport' },
+  { label: 'Treatments' },
+  { label: 'Staff Assignments' },
+  { label: 'Morning Report' },
+  { label: 'Managed Lists' },
 ];
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -25,7 +29,7 @@ export function AppShell({ children }: AppShellProps) {
           <p>Nurse CommandPost Center</p>
           <span>Caring for those on Libertyville CLC</span>
         </div>
-        <div className="version-badge">v2.0 Foundation</div>
+        <div className="version-badge">v2.0 Veteran Master Record</div>
       </header>
 
       <div className="phi-warning">
@@ -33,11 +37,21 @@ export function AppShell({ children }: AppShellProps) {
       </div>
 
       <nav className="top-nav" aria-label="Primary navigation">
-        {navItems.map((item, index) => (
-          <button key={item} className={index === 0 ? 'active' : ''} type="button">
-            {item}
-          </button>
-        ))}
+        {navItems.map((item) => {
+          const active = item.page === activePage;
+          return (
+            <button
+              key={item.label}
+              className={active ? 'active' : ''}
+              type="button"
+              disabled={!item.page}
+              title={!item.page ? 'Scheduled for a later migration package' : undefined}
+              onClick={() => item.page && onNavigate(item.page)}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
 
       <main>{children}</main>
