@@ -63,11 +63,11 @@ button.primary{border-radius:6px;font-weight:700}
 </style>
 </head>
 <body>
-<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.4 Transportation & Travel Requests · Fictional test data only</div></header>
+<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.6 Treatments · Fictional test data only</div></header>
 <div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
 <nav class="no-print">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
-<button data-tab="calendar">Calendar</button><button data-tab="transport">Transport</button><button data-tab="staff">Staff Assignments</button>
+<button data-tab="calendar">Calendar</button><button data-tab="transport">Transport</button><button data-tab="treatments">Treatments</button><button data-tab="staff">Staff Assignments</button>
 <button data-tab="reports">Morning Report</button><button data-tab="lists">Managed Lists</button>
 </nav>
 <main>
@@ -131,6 +131,24 @@ button.primary{border-radius:6px;font-weight:700}
 <div class="grid"><div class="panel span2"><h3>Transportation Work Queue</h3><div id="travelList"></div></div><div class="panel"><h3>Quick Documents</h3><p>Travel Requests reuse appointment, Veteran, provider, pickup, escort, and destination information.</p><div class="toolbar"><button class="primary teal" onclick="openDocPicker('ticket')">Ticket to Ride</button><button class="primary orange" onclick="openDocPicker('travel')">Travel Request</button></div><hr><p class="muted">A request remains on the action queue until confirmed or cancelled.</p></div></div>
 </section>
 
+
+<section id="treatments" class="tab">
+<div class="toolbar"><h2>Treatments</h2><button class="secondary" onclick="resetTreatmentFilters()">Clear Filters</button><button class="primary green right" onclick="openTreatment()">Assign Treatment</button></div>
+<div class="stats">
+<div class="card stat"><span>Due Today</span><b id="txDueCount">0</b></div>
+<div class="card stat"><span>Licensed</span><b id="txLicensedCount">0</b></div>
+<div class="card stat"><span>Non-Licensed</span><b id="txNonLicensedCount">0</b></div>
+<div class="card stat"><span>Overdue</span><b id="txOverdueCount">0</b></div>
+</div>
+<div class="panel"><div class="formgrid">
+<div><label>Search</label><input id="txSearch" placeholder="Veteran, room, treatment..." oninput="renderTreatments()"></div>
+<div><label>Category</label><select id="txFilterCategory" onchange="renderTreatments()"><option value="">All</option><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div><label>Status</label><select id="txFilterStatus" onchange="renderTreatments()"><option value="">All</option><option>Active</option><option>Completed Today</option><option>Archived</option></select></div>
+<div><label>Due</label><select id="txFilterDue" onchange="renderTreatments()"><option value="">All</option><option value="today">Due Today</option><option value="overdue">Overdue</option></select></div>
+</div></div>
+<div id="treatmentList"></div>
+</section>
+
 <section id="staff" class="tab"><div class="toolbar"><h2>Staff Assignments</h2><button class="primary teal right" onclick="openStaff()">Enter / Edit Assignments</button></div><div id="staffSummary"></div></section>
 
 <section id="reports" class="tab">
@@ -190,6 +208,25 @@ button.primary{border-radius:6px;font-weight:700}
 
 <div id="docPicker" class="modal"><div class="modalbox small"><div class="toolbar"><h2>Select Appointment</h2><button class="secondary right" onclick="closeModal('docPicker')">Close</button></div><label>Appointment</label><select id="docAppt"></select><div class="toolbar"><button class="primary" onclick="openSelectedDoc()">Continue</button></div></div></div>
 
+
+<div id="treatmentModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Assign / Edit Treatment</h2><button class="secondary right" onclick="closeModal('treatmentModal')">Close</button></div>
+<input type="hidden" id="txId">
+<div class="formgrid">
+<div class="span2"><label>Veteran *</label><select id="txVet"></select></div>
+<div><label>Treatment *</label><select id="txType"></select></div>
+<div><label>Category *</label><select id="txCategory"><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div><label>Frequency</label><select id="txFrequency"><option>Daily</option><option>Weekly</option><option>As Scheduled</option><option>PRN</option></select></div>
+<div><label>Start Date</label><input id="txStart" type="date"></div>
+<div><label>End Date</label><input id="txEnd" type="date"></div>
+<div><label>Shift</label><select id="txShift"><option>Day</option><option>Night</option><option>Both</option></select></div>
+<div class="span4"><label>Scheduled Days</label><div id="txDays" class="days"></div></div>
+<div class="span4"><label>Instructions / Parameters</label><textarea id="txInstructions"></textarea></div>
+<div class="span4"><label>Notes</label><textarea id="txNotes"></textarea></div>
+</div>
+<div class="toolbar"><button class="primary green" onclick="saveTreatment()">Save Treatment</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
+</div></div>
+
 <div id="ticketModal" class="modal"><div class="modalbox">
 <div class="toolbar no-print"><h2>Ticket to Ride</h2><button class="secondary right" onclick="closeModal('ticketModal')">Close</button></div>
 <div id="ticketEditor" class="panel no-print"></div>
@@ -208,7 +245,7 @@ let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  veterans:[],appointments:[],staff:{},providers:[
  {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
  {id:'p2',name:'Example Eye Clinic',specialty:'Ophthalmology',facility:'Community Clinic',city:'Example City',phone:'555-0102',active:true}
- ],travel:{},tickets:{},managedLists:{}
+ ],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
 };
 const managedListDefaults={
  specialties:['LTC','RESP','EOL','SSR','Cardiology','Ophthalmology'],
@@ -227,6 +264,8 @@ const managedListDefaults={
 const managedListLabels={specialties:'Specialties',medicationMethods:'Medication Methods',diets:'Diets',isolationTypes:'Isolation Types',assistLevels:'Assist Levels',mobilityOptions:'Mobility Options',fallRiskLevels:'Fall Risk Levels',toiletingOptions:'Toileting Options',transportationModes:'Transportation Modes',appointmentReasons:'Appointment Reasons',facilities:'Facilities / Destinations',treatmentTypes:'Treatment Types'};
 if(!db.managedLists)db.managedLists={};
 if(!db.tickets)db.tickets={};
+if(!Array.isArray(db.treatments))db.treatments=[];
+if(!db.treatmentCompletions)db.treatmentCompletions={};
 Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard'});
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
@@ -239,14 +278,14 @@ function openModal(id){document.getElementById(id).classList.add('open')}functio
 function daysOnUnit(d){if(!d)return'';return Math.max(0,Math.floor((new Date(today())-new Date(d))/86400000))}
 function checkedDays(id){return [...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value)}
 function makeDays(id){document.getElementById(id).innerHTML=D.slice(1).concat(D[0]).map(x=>`<label><input type="checkbox" value="${x}"> ${x}</label>`).join('')}
-['daysSkin','daysWeight','daysVitals','daysShower'].forEach(makeDays);
+['daysSkin','daysWeight','daysVitals','daysShower','txDays'].forEach(makeDays);
 document.getElementById('vAdmission').onchange=()=>document.getElementById('vDays').value=daysOnUnit(document.getElementById('vAdmission').value);
 function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.specialty)}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function vetOptions(sel){let current=sel.value;sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>+a.room-+b.room).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function activeList(key){return (db.managedLists[key]||[]).filter(x=>x.active).map(x=>x.value)}
 function managedOptions(sel,key,blank=false){let current=sel.value;sel.innerHTML=(blank?'<option value=""></option>':'')+activeList(key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(current&&!activeList(key).includes(current))sel.insertAdjacentHTML('beforeend',`<option value="${esc(current)}">${esc(current)} (archived)</option>`);if(current)sel.value=current}
-function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor()}
-function populateSelects(){providerOptions(document.getElementById('vProvider'));providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'));managedOptions(vSpecialty,'specialties');managedOptions(vMeds,'medicationMethods');managedOptions(vDiet,'diets');managedOptions(vIsolation,'isolationTypes');managedOptions(vAssist,'assistLevels');managedOptions(vMobility,'mobilityOptions');managedOptions(vFallRisk,'fallRiskLevels');managedOptions(vToileting,'toiletingOptions');managedOptions(aReason,'appointmentReasons');managedOptions(aTransport,'transportationModes',true);specialtyData.innerHTML=activeList('specialties').map(v=>`<option value="${esc(v)}"></option>`).join('');facilityData.innerHTML=activeList('facilities').map(v=>`<option value="${esc(v)}"></option>`).join('');if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}
+function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderTreatments();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor()}
+function populateSelects(){providerOptions(document.getElementById('vProvider'));providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'));managedOptions(vSpecialty,'specialties');managedOptions(vMeds,'medicationMethods');managedOptions(vDiet,'diets');managedOptions(vIsolation,'isolationTypes');managedOptions(vAssist,'assistLevels');managedOptions(vMobility,'mobilityOptions');managedOptions(vFallRisk,'fallRiskLevels');managedOptions(vToileting,'toiletingOptions');managedOptions(aReason,'appointmentReasons');managedOptions(aTransport,'transportationModes',true);vetOptions(txVet);managedOptions(txType,'treatmentTypes');specialtyData.innerHTML=activeList('specialties').map(v=>`<option value="${esc(v)}"></option>`).join('');facilityData.innerHTML=activeList('facilities').map(v=>`<option value="${esc(v)}"></option>`).join('');if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}
 function renderHome(){
  let ta=db.appointments.filter(a=>a.date===today()&&a.status!=='Cancelled'), alerts=getAlerts();
  statVets.textContent=db.veterans.filter(v=>v.status!=='Discharged / Archived').length;statAppts.textContent=ta.length;statTrans.textContent=Object.values(db.travel).filter(x=>x.status==='Draft'||x.status==='Failed').length;statAlerts.textContent=alerts.length;
@@ -380,6 +419,31 @@ function renderTravel(){
  let rows=relevant.filter(x=>{let effective=x.tr?.status||'Needs Request',hay=[x.v?.name,x.v?.last4,x.v?.room,x.a.destination,x.p?.facility,x.a.escort,x.tr?.escort,x.a.transport,x.tr?.mode,x.tr?.reference].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!status||effective===status)&&(!mode||(x.tr?.mode||x.a.transport)===mode)&&(!date||x.a.date===date)}).sort((x,y)=>(x.a.date+(x.tr?.pickup||x.a.pickup||x.a.time)).localeCompare(y.a.date+(y.tr?.pickup||y.a.pickup||y.a.time)));
  travelList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Pickup</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th><th>Action</th></tr></thead><tbody>${rows.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')} — ${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td><span class="badge ${st.toLowerCase().replaceAll(' ','')}">${esc(st)}</span></td><td>${esc(x.tr?.reference||'')}</td><td><button class="secondary" onclick="directDoc('travel','${x.a.id}')">${x.tr?'Open':'Create'}</button> <button class="secondary" onclick="directDoc('ticket','${x.a.id}')">Ticket</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No transportation items match the selected filters.</div>'
 }
+
+function treatmentDueOn(t,date){
+ if(!t.active)return false;if(t.start&&date<t.start)return false;if(t.end&&date>t.end)return false;if(t.frequency==='PRN')return false;if(t.frequency==='Daily')return true;let day=D[new Date(date+'T12:00:00').getDay()];return (t.days||[]).includes(day)
+}
+function treatmentCompleted(t,date){return !!db.treatmentCompletions[`${t.id}|${date}`]}
+function openTreatment(id=''){
+ txId.value=id;let t=db.treatments.find(x=>x.id===id);vetOptions(txVet);managedOptions(txType,'treatmentTypes');
+ txVet.value=t?.vetId||'';txType.value=t?.type||activeList('treatmentTypes')[0]||'';txCategory.value=t?.category||'Licensed';txFrequency.value=t?.frequency||'Daily';txStart.value=t?.start||today();txEnd.value=t?.end||'';txShift.value=t?.shift||'Day';txInstructions.value=t?.instructions||'';txNotes.value=t?.notes||'';
+ document.querySelectorAll('#txDays input').forEach(c=>c.checked=(t?.days||[]).includes(c.value));openModal('treatmentModal')
+}
+function saveTreatment(){
+ if(!txVet.value||!txType.value){alert('Veteran and treatment are required.');return}
+ let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,type:txType.value,category:txCategory.value,frequency:txFrequency.value,start:txStart.value,end:txEnd.value,shift:txShift.value,days:checkedDays('txDays'),instructions:txInstructions.value.trim(),notes:txNotes.value.trim(),active:true};
+ let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
+}
+function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
+function toggleTreatmentComplete(id,date){let key=`${id}|${date}`;if(db.treatmentCompletions[key])delete db.treatmentCompletions[key];else db.treatmentCompletions[key]={completedAt:new Date().toISOString()};persist();renderAll()}
+function resetTreatmentFilters(){txSearch.value='';txFilterCategory.value='';txFilterStatus.value='';txFilterDue.value='';renderTreatments()}
+function renderTreatments(){
+ if(!document.getElementById('treatmentList'))return;let date=today(),q=(txSearch?.value||'').toLowerCase(),cat=txFilterCategory?.value||'',status=txFilterStatus?.value||'',due=txFilterDue?.value||'';
+ let rows=db.treatments.map(t=>({t,v:db.veterans.find(v=>v.id===t.vetId),isDue:treatmentDueOn(t,date),done:treatmentCompleted(t,date)})).filter(x=>{let st=!x.t.active?'Archived':x.done?'Completed Today':'Active',hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.type,x.t.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)&&(!status||st===status)&&(!due||(due==='today'&&x.isDue)||(due==='overdue'&&x.isDue&&!x.done))}).sort((a,b)=>(+a.v?.room||999)-(+b.v?.room||999));
+ let dueRows=db.treatments.filter(t=>treatmentDueOn(t,date));txDueCount.textContent=dueRows.length;txLicensedCount.textContent=dueRows.filter(t=>t.category==='Licensed').length;txNonLicensedCount.textContent=dueRows.filter(t=>t.category==='Non-Licensed').length;txOverdueCount.textContent=dueRows.filter(t=>!treatmentCompleted(t,date)).length;
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Treatment</th><th>Category</th><th>Frequency</th><th>Shift</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.type)}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.t.frequency)}${x.t.days?.length?'<br><span class="muted">'+esc(x.t.days.join(', '))+'</span>':''}</td><td>${esc(x.t.shift)}</td><td>${esc(x.t.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleTreatmentComplete('${x.t.id}','${date}')">${x.done?'Completed':'Mark Complete'}</button>`:'Not due'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatments match the selected filters.</div>'
+}
+
 function generateReport(){
  let date=reportDate.value||today();reportDate.value=date;let day=D[new Date(date+'T12:00:00').getDay()],vets=db.veterans.slice().sort((a,b)=>a.room-b.room),ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time)),s=db.staff[date]||{day:{},night:{}};
  let due=(k)=>vets.filter(v=>(v.schedules?.[k]||[]).includes(day));
@@ -389,6 +453,7 @@ function generateReport(){
  <div class="printgrid"><div class="printcard"><h3>Day Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.day?.[r]||'')}<br>`).join('')}</div><div class="printcard"><h3>Night Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.night?.[r]||'')}<br>`).join('')}</div></div>
  <div class="printcard"><h3>Appointments</h3>${ap.length?ap.map(a=>`${a.time} — ${vetLabel(a.vetId)} — ${esc(a.clinic||a.destination||'')}<br>`).join(''):'None'}</div>
  <div class="printgrid"><div class="printcard"><h3>Skin Assessments</h3>${due('skin').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Weights</h3>${due('weight').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Vitals</h3>${due('vitals').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Showers</h3>${due('shower').map(v=>`Room ${v.room} — ${esc(v.name)} (${v.showerShift})`).join('<br>')||'None'}</div></div>
+ <div class="printcard"><h3>Treatments Due</h3>${db.treatments.filter(t=>treatmentDueOn(t,date)).map(t=>{let v=db.veterans.find(v=>v.id===t.vetId);return `Room ${esc(v?.room||'')} — ${esc(v?.name||'')} — ${esc(t.type)} (${esc(t.category)}, ${esc(t.shift)})${t.instructions?' — '+esc(t.instructions):''}`}).join('<br>')||'None'}</div>
  <p><b>Day Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p><p><b>Night Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p></div>`
 }
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
