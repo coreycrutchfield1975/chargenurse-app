@@ -1,26 +1,31 @@
-# Hermes Upload Instructions — BravoShift 2.6
+# Hermes Upload Instructions — BravoShift 2.7
 
-Repository: `coreycrutchfield1975/chargenurse-app`
+## Source branch
+Start from the branch that contains BravoShift 2.6 Morning Report Intelligence.
 
-1. Start from the branch containing Module 2.5 Staff Assignments.
-2. Create branch: `agent/bravoshift-2-morning-report`
-3. Replace the repository `/app` directory with the contents of this package.
-4. Preserve `legacy/index-v1.8.html` and all historical files.
-5. Run:
-   ```bash
-   cd app
-   npm install
-   npm run build
-   npm run dev
-   ```
-6. Verify:
-   - Morning Report navigation opens.
-   - Date and shift filters update report values.
-   - Handoff notes persist after refresh.
-   - Critical and urgent notes affect readiness.
-   - Missing charge nurse and uncovered Veterans create priorities.
-   - Print view hides navigation and controls.
-7. Commit: `Add Morning Report Intelligence`
-8. Open a draft PR into `main` titled: `BravoShift 2.6 Morning Report Intelligence`
+## Recommended Git metadata
+- Branch: `agent/bravoshift-2-shift-intelligence`
+- Commit: `Add Shift Intelligence Engine`
+- PR title: `BravoShift 2.7 Shift Intelligence Engine`
 
-Do not claim successful validation unless both build and browser checks pass.
+## Upload procedure
+1. Copy this package into the repository's `app` directory, replacing the prior app contents.
+2. Preserve repository-level files outside `app` unless they conflict with the existing project structure.
+3. Run:
+
+```bash
+cd app
+npm install
+npm run build
+npm run dev
+```
+
+4. Verify navigation to **Shift Intelligence**.
+5. Test Day, Evening, and Night forecasts.
+6. Create a staff call-off and confirm the staffing risk changes.
+7. Remove charge-nurse coverage and confirm a critical warning appears.
+8. Add pending/failed transport records and confirm the transport-risk metric changes.
+9. Confirm the print view hides navigation and controls.
+
+## Important
+The risk model is transparent, deterministic decision support. It must not be described as a clinical AI diagnosis or as a substitute for charge-nurse judgment.
