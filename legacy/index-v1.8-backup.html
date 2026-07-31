@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BravoShift — Nurse CommandPost Center</title>
+<link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
+<style>
+:root{
+  --navy:#17365d;--blue:#1f6feb;--purple:#7c4dff;--teal:#009688;--green:#2e9d50;
+  --yellow:#f6c344;--orange:#ef7d23;--red:#cf3f3f;--pink:#d7559b;--indigo:#4656d8;
+  --bg:#f4f7fb;--ink:#18212b;--muted:#637282;--line:#d9e1ea;--white:#fff
+}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:18px 24px;color:white;background:linear-gradient(100deg,var(--navy),var(--blue),var(--purple),var(--pink))}
+header h1{margin:0;font-size:30px;letter-spacing:.8px}.brandline{margin-top:3px;font-size:15px;font-weight:800}.unitline{margin-top:5px;font-size:14px;opacity:.96}.sub{margin-top:7px;opacity:.9;font-size:12px}.greeting{margin:0 0 14px;padding:14px 16px;border-left:6px solid var(--blue);background:white;border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}.greeting strong{display:block;font-size:19px;color:var(--navy)}.greeting span{display:block;margin-top:4px;color:var(--muted)}.warning{padding:10px 20px;background:#fff4cf;border-left:6px solid var(--yellow);font-weight:700}
+nav{display:flex;gap:4px;overflow:auto;background:white;border-bottom:1px solid var(--line);padding:8px 14px;position:sticky;top:0;z-index:4}
+nav button{border:0;background:transparent;padding:10px 13px;font-weight:800;border-bottom:4px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.active{background:#f7f9fc;border-color:currentColor}
+main{max-width:1550px;margin:auto;padding:20px}.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card,.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:0 2px 8px rgba(20,40,70,.06)}
+.stat{border-top:7px solid}.stat:nth-child(1){border-color:var(--purple)}.stat:nth-child(2){border-color:var(--blue)}.stat:nth-child(3){border-color:var(--teal)}.stat:nth-child(4){border-color:var(--red)}
+.stat b{display:block;font-size:30px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+button.primary,button.secondary{border-radius:7px;padding:9px 13px;font-weight:800;cursor:pointer}
+button.primary{border:0;background:var(--blue);color:white}.secondary{background:white;border:1px solid #7f8a96}
+.green{background:var(--green)!important}.purple{background:var(--purple)!important}.teal{background:var(--teal)!important}.pink{background:var(--pink)!important}.orange{background:var(--orange)!important}.red{background:var(--red)!important}
+table{width:100%;border-collapse:collapse;background:white}th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left;font-size:13px}th{background:#edf4fa}
+.scroll{overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800}
+.draft{background:#fff1bf;color:#6f5500}.confirmed{background:#d8f3df;color:#17652a}.cancelled{background:#e8ebef;color:#4e5964}.failed{background:#ffd9d9;color:#8a1717}
+.alert{border-left:7px solid var(--orange)}.alert.critical{border-color:var(--red)}.muted{color:var(--muted)}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:24px;overflow:auto;z-index:20;align-items:flex-start;justify-content:center}
+.modal.open{display:flex}.modalbox{width:min(1150px,100%);background:white;border-radius:14px;padding:18px;border-top:10px solid var(--purple)}
+.modalbox.small{width:min(760px,100%)}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.span2{grid-column:span 2}.span4{grid-column:span 4}
+label{display:block;font-weight:800;font-size:13px;margin-bottom:4px}input,select,textarea{width:100%;padding:8px;border:1px solid #8a96a3;border-radius:6px;background:white;font:inherit}
+textarea{min-height:70px}.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.inline input{width:auto}.days{display:flex;gap:5px;flex-wrap:wrap}.days label{font-weight:500;padding:5px 7px;border:1px solid var(--line);border-radius:5px}.days input{width:auto}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}legend{font-weight:900}.right{margin-left:auto}.hidden{display:none}
+.calendar-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.dayhead{background:var(--navy);color:white;padding:7px;text-align:center;font-weight:800}.calday{min-height:105px;background:white;border:1px solid var(--line);padding:6px}
+.calday.mutedday{background:#f4f5f7;color:#a0a8b0}.date-num{font-weight:900}.event{font-size:11px;padding:3px 4px;margin-top:4px;border-radius:4px;background:#dfeaff;border-left:4px solid var(--blue);cursor:pointer}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.weekcol{background:white;border:1px solid var(--line);min-height:250px}.weekcol h4{margin:0;padding:7px;background:#edf4fa}
+.year{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.monthmini{background:white;border:1px solid var(--line);border-radius:8px;padding:10px}.monthmini b{display:block;font-size:18px}.apptcount{font-size:26px;color:var(--blue)}
+.printsheet{background:white;border:1px solid var(--line);padding:12px;margin-top:12px}.printgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.printcard{border:1px solid #555;padding:7px}.printcard h3{font-size:14px;margin:0 0 6px;background:#eef3f7;padding:5px}.line{display:inline-block;min-width:105px;border-bottom:1px solid #333;height:16px}
+.smalltext{font-size:12px}
+.linkbtn{border:0;background:transparent;font-weight:900;cursor:pointer;padding:0}.monthmini{font:inherit;text-align:left;cursor:pointer}.badge.inprogress{background:#e8f0ff;color:#174ea6}.badge.noshow{background:#fff0d6;color:#8a4b00}.badge.upcoming{background:#e8f0ff;color:#174ea6}.badge.completed{background:#e6f4ea;color:#176b35}
+@media(max-width:900px){.stats,.grid,.formgrid,.year{grid-template-columns:1fr 1fr}.span4{grid-column:span 2}.calendar,.week{grid-template-columns:1fr}}
+@media print{
+ body{background:white}.no-print,header,.warning,nav,.toolbar{display:none!important}main{padding:0;max-width:none}.tab{display:none!important}.tab.print-active{display:block!important}
+ .printsheet{border:0;margin:0;padding:0}.printcard{break-inside:avoid}.landscape{size:landscape;margin:.35in}
+}
+tr.archived{opacity:.55} tr.archived td{text-decoration:none}
+/* USWDS */
+body{font-family:Source Sans Pro,Segoe UI,Arial,sans-serif}
+header{background:#112e51;border-bottom:4px solid #fdb81e}
+nav button{color:#3d4551;font-size:.9rem}
+nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
+.card,.panel{border:1px solid #dfe1e2;border-radius:8px}
+.stat b{color:#112e51}
+button.primary{border-radius:6px;font-weight:700}
+.warning{background:#fff4cf;border-left:6px solid #fdb81e;border-radius:8px}
+@page{size:landscape;margin:.3in}
+@media print{body{background:#fff;font-size:12px}}
+</style>
+</head>
+<body>
+<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">v1.8 Dashboard Intelligence · Fictional test data only</div></header>
+<div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
+<nav class="no-print">
+<button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
+<button data-tab="calendar">Calendar</button><button data-tab="transport">Transport</button><button data-tab="treatments">Treatments</button><button data-tab="staff">Staff Assignments</button>
+<button data-tab="reports">Morning Report</button><button data-tab="lists">Managed Lists</button>
+</nav>
+<main>
+<section id="home" class="tab active">
+<div class="greeting"><strong id="shiftGreeting">BravoShift is ready.</strong><span id="shiftStatus">Your command post is ready for review.</span></div>
+<div class="stats">
+<div class="card stat"><span>Active Veterans</span><b id="statVets">0</b></div>
+<div class="card stat"><span>Today's Appointments</span><b id="statAppts">0</b></div>
+<div class="card stat"><span>Treatments Due</span><b id="statTxDue">0</b></div>
+<div class="card stat"><span>Priority Actions</span><b id="statAlerts">0</b></div>
+</div>
+<div class="stats">
+<div class="card stat"><span>Off Unit</span><b id="statOffUnit">0</b></div>
+<div class="card stat"><span>New Admissions 24h</span><b id="statNewAdmissions">0</b></div>
+<div class="card stat"><span>Transport Follow-up</span><b id="statTrans">0</b></div>
+<div class="card stat"><span>Completed Treatments</span><b id="statTxDone">0</b></div>
+</div>
+<div class="toolbar"><button class="primary purple" onclick="openVeteran()">Add Veteran</button><button class="primary" onclick="openAppointment()">Add Appointment</button><button class="primary green" onclick="openTreatment()">Assign Treatment</button><button class="primary teal" onclick="openStaff()">Shift Assignment</button><button class="primary pink" onclick="showTab('reports')">Morning Report</button></div>
+<div class="grid">
+<div class="panel"><h2>Priority Action Board</h2><div id="alerts"></div></div>
+<div class="panel"><h2>Today's Schedule</h2><div id="todayList"></div></div>
+<div class="panel"><h2>Treatments Due Today</h2><div id="dashboardTreatments"></div></div>
+<div class="panel"><h2>Unit Status</h2><div id="unitStatus"></div></div>
+</div>
+</section>
+
+<section id="veterans" class="tab">
+<div class="toolbar"><h2>Veteran Roster</h2><button class="primary purple right" onclick="openVeteran()">Add Veteran</button></div>
+<div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Specialty</th><th>Provider</th><th>Days on Unit</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Toileting</th><th>Notes</th><th></th></tr></thead><tbody id="vetRows"></tbody></table></div>
+</section>
+
+<section id="appointments" class="tab">
+<div class="toolbar"><h2>Appointments & Search</h2><button class="secondary" onclick="resetAppointmentFilters()">Clear Filters</button><button class="primary right" onclick="openAppointment()">Add Appointment</button></div>
+<div class="panel"><div class="formgrid">
+<div><label>Search</label><input id="searchText" placeholder="Veteran, last 4, room, provider, clinic..." oninput="renderAppointments()"></div>
+<div><label>Status</label><select id="searchStatus" onchange="renderAppointments()"><option value="">All</option><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div>
+<div><label>Provider</label><select id="searchProvider" onchange="renderAppointments()"><option value="">All Providers</option></select></div>
+<div><label>Specialty</label><select id="searchSpecialty" onchange="renderAppointments()"><option value="">All Specialties</option></select></div>
+<div><label>Transportation</label><select id="searchTransport" onchange="renderAppointments()"><option value="">All Modes</option></select></div>
+<div><label>Travel Request</label><select id="searchTravel" onchange="renderAppointments()"><option value="">All</option><option>Not Created</option><option>Draft</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
+<div><label>From</label><input id="searchFrom" type="date" onchange="renderAppointments()"></div>
+<div><label>To</label><input id="searchTo" type="date" onchange="renderAppointments()"></div>
+<div><label>Quick Range</label><select id="searchRange" onchange="applyAppointmentRange()"><option value="">Custom / All</option><option value="today">Today</option><option value="7">Next 7 Days</option><option value="30">Next 30 Days</option><option value="past">Past Appointments</option></select></div>
+</div></div>
+<div class="scroll"><table><thead><tr><th>Date</th><th>Time</th><th>Pickup</th><th>Room</th><th>Veteran</th><th>Provider / Clinic</th><th>Reason</th><th>Location</th><th>Transportation</th><th>Travel</th><th>Status</th><th>Actions</th></tr></thead><tbody id="apptRows"></tbody></table></div>
+</section>
+
+<section id="calendar" class="tab">
+<div class="toolbar"><h2>Appointment Calendar</h2><button class="primary right" onclick="openAppointmentForDate()">Add Appointment</button></div>
+<div class="panel">
+<div class="calendar-controls">
+<button class="secondary" onclick="changeCal(-1)">◀</button><button class="secondary" onclick="goToday()">Today</button><button class="secondary" onclick="changeCal(1)">▶</button>
+<strong id="calTitle"></strong><span class="right"></span>
+<button class="secondary calbtn" onclick="setCalView('day')">Day</button><button class="secondary calbtn" onclick="setCalView('week')">Week</button><button class="secondary calbtn" onclick="setCalView('month')">Month</button><button class="secondary calbtn" onclick="setCalView('year')">Year</button>
+</div><div id="calendarBody"></div></div>
+</section>
+
+<section id="transport" class="tab">
+<div class="toolbar"><h2>Transportation & Travel Requests</h2><button class="secondary" onclick="resetTravelFilters()">Clear Filters</button><button class="primary orange right" onclick="openDocPicker('travel')">Create Travel Request</button></div>
+<div class="stats">
+<div class="card stat"><span>Needs Request</span><b id="travelNeedCount">0</b></div>
+<div class="card stat"><span>Draft / Failed</span><b id="travelActionCount">0</b></div>
+<div class="card stat"><span>Confirmed</span><b id="travelConfirmedCount">0</b></div>
+<div class="card stat"><span>Today Pickups</span><b id="travelTodayCount">0</b></div>
+</div>
+<div class="panel"><div class="formgrid">
+<div><label>Search</label><input id="travelSearch" placeholder="Veteran, room, destination, escort..." oninput="renderTravel()"></div>
+<div><label>Request Status</label><select id="travelFilterStatus" onchange="renderTravel()"><option value="">All Statuses</option><option>Needs Request</option><option>Draft</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
+<div><label>Transportation</label><select id="travelFilterMode" onchange="renderTravel()"><option value="">All Modes</option></select></div>
+<div><label>Date</label><input id="travelFilterDate" type="date" onchange="renderTravel()"></div>
+</div></div>
+<div class="grid"><div class="panel span2"><h3>Transportation Work Queue</h3><div id="travelList"></div></div><div class="panel"><h3>Quick Documents</h3><p>Travel Requests reuse appointment, Veteran, provider, pickup, escort, and destination information.</p><div class="toolbar"><button class="primary teal" onclick="openDocPicker('ticket')">Ticket to Ride</button><button class="primary orange" onclick="openDocPicker('travel')">Travel Request</button></div><hr><p class="muted">A request remains on the action queue until confirmed or cancelled.</p></div></div>
+</section>
+
+
+<section id="treatments" class="tab">
+<div class="toolbar"><h2>Treatments</h2><button class="secondary" onclick="resetTreatmentFilters()">Clear Filters</button><button class="primary green right" onclick="openTreatment()">Assign Treatment</button></div>
+<div class="stats">
+<div class="card stat"><span>Due Today</span><b id="txDueCount">0</b></div>
+<div class="card stat"><span>Licensed</span><b id="txLicensedCount">0</b></div>
+<div class="card stat"><span>Non-Licensed</span><b id="txNonLicensedCount">0</b></div>
+<div class="card stat"><span>Overdue</span><b id="txOverdueCount">0</b></div>
+</div>
+<div class="panel"><div class="formgrid">
+<div><label>Search</label><input id="txSearch" placeholder="Veteran, room, treatment..." oninput="renderTreatments()"></div>
+<div><label>Category</label><select id="txFilterCategory" onchange="renderTreatments()"><option value="">All</option><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div><label>Status</label><select id="txFilterStatus" onchange="renderTreatments()"><option value="">All</option><option>Active</option><option>Completed Today</option><option>Archived</option></select></div>
+<div><label>Due</label><select id="txFilterDue" onchange="renderTreatments()"><option value="">All</option><option value="today">Due Today</option><option value="overdue">Overdue</option></select></div>
+</div></div>
+<div id="treatmentList"></div>
+</section>
+
+<section id="staff" class="tab"><div class="toolbar"><h2>Staff Assignments</h2><button class="primary teal right" onclick="openStaff()">Enter / Edit Assignments</button></div><div id="staffSummary"></div></section>
+
+<section id="reports" class="tab">
+<div class="toolbar no-print"><h2>Morning Report</h2><input id="reportDate" type="date"><button class="primary pink" onclick="generateReport()">Generate</button><button class="secondary" onclick="printReport()">Print</button></div>
+<div id="reportOutput"></div>
+</section>
+
+<section id="lists" class="tab">
+<div class="toolbar"><h2>Managed Lists</h2></div>
+<div class="grid">
+<div class="panel"><h3>Providers / Clinics</h3><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Specialty</label><input id="pSpecialty" list="specialtyData"></div><div><label>Facility</label><input id="pFacility" list="facilityData"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div><div><label>&nbsp;</label><button class="primary" onclick="addProvider()">Add Provider</button></div></div><datalist id="specialtyData"></datalist><datalist id="facilityData"></datalist><div id="providerList"></div></div>
+<div class="panel"><h3>Clinical & Workflow Lists</h3><p class="muted">Add values once and reuse them throughout BravoShift. Archive values to remove them from new entries without changing historical records.</p><div class="formgrid"><div class="span2"><label>List</label><select id="mlCategory" onchange="renderManagedListEditor()"></select></div><div class="span2"><label>New Value</label><input id="mlValue" placeholder="Enter a new list value" onkeydown="if(event.key==='Enter'){event.preventDefault();addManagedValue()}"></div><div class="span4"><button class="primary" onclick="addManagedValue()">Add Value</button></div></div><div id="managedListEditor"></div></div>
+</div>
+</section>
+</main>
+
+<div id="vetModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Add / Edit Veteran</h2><button class="secondary right" onclick="closeModal('vetModal')">Close</button></div>
+<input type="hidden" id="vId">
+<div class="formgrid">
+<div><label>Room *</label><input id="vRoom" type="number"></div><div class="span2"><label>Name *</label><input id="vName"></div><div><label>Last 4 *</label><input id="vLast4" maxlength="4"></div>
+<div><label>Specialty</label><select id="vSpecialty"></select></div>
+<div><label>Provider</label><select id="vProvider"></select></div><div><label>Admission Date</label><input id="vAdmission" type="date"></div><div><label>Days on Unit</label><input id="vDays" disabled></div>
+<div><label>Record Status</label><select id="vStatus"><option>Active</option><option>At Appointment</option><option>Leave of Absence</option><option>Hospital</option><option>Discharged / Archived</option></select></div><div><label>Code Status</label><select id="vCode"><option></option><option>Full Code</option><option>DNR</option><option>DNAR</option><option>Comfort Measures</option><option>See Current Orders</option></select></div>
+<div><label>Meds</label><select id="vMeds"></select></div>
+<div><label>Diet</label><select id="vDiet"></select></div>
+<div><label>Isolation</label><select id="vIsolation"></select></div>
+<div><label>Assist</label><select id="vAssist"></select></div>
+<div><label>Mobility</label><select id="vMobility"></select></div><div><label>Fall Risk</label><select id="vFallRisk"></select></div>
+<div><label>Toileting</label><select id="vToileting"></select></div>
+<div class="span4"><label>Notes</label><textarea id="vNotes"></textarea></div>
+<div class="span2"><fieldset><legend>Skin Assessment Days</legend><div class="days" id="daysSkin"></div></fieldset></div>
+<div class="span2"><fieldset><legend>Weight Days</legend><div class="days" id="daysWeight"></div></fieldset></div>
+<div class="span2"><fieldset><legend>Vitals Days</legend><div class="days" id="daysVitals"></div></fieldset></div>
+<div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
+</div><div class="toolbar"><button class="primary purple" onclick="saveVeteran()">Save Veteran</button><button class="secondary" onclick="closeModal('vetModal')">Cancel</button></div>
+</div></div>
+
+<div id="apptModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Add / Edit Appointment</h2><button class="secondary right" onclick="closeModal('apptModal')">Close</button></div>
+<input type="hidden" id="aId"><div class="formgrid">
+<div class="span2"><label>Veteran *</label><select id="aVet"></select></div><div class="span2"><label>Provider / Clinic *</label><select id="aProvider" onchange="fillProvider()"></select></div>
+<div><label>Specialty</label><input id="aSpecialty" readonly></div><div><label>Facility</label><input id="aFacility" readonly></div><div><label>City</label><input id="aCity" readonly></div><div><label>Phone</label><input id="aPhone" readonly></div>
+<div><label>Date *</label><input id="aDate" type="date"></div><div><label>Time *</label><input id="aTime" type="time"></div><div><label>Clinic</label><input id="aClinic"></div><div><label>Reason</label><select id="aReason"></select></div>
+<div><label>Destination</label><input id="aDestination"></div><div><label>Pickup Time</label><input id="aPickup" type="time"></div><div><label>Transportation</label><select id="aTransport"></select></div><div><label>Escort</label><input id="aEscort"></div>
+<div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Draft</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
+<div class="span2"><label>Notes</label><textarea id="aNotes"></textarea></div>
+</div><div class="toolbar"><button class="primary" onclick="saveAppointment()">Save Appointment</button><button class="secondary" onclick="closeModal('apptModal')">Cancel</button></div>
+</div></div>
+
+<div id="staffModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Shift Assignments</h2><button class="secondary right" onclick="closeModal('staffModal')">Close</button></div>
+<div><label>Date</label><input id="sDate" type="date" onchange="loadStaffForm()"></div><div class="grid">
+<div class="panel"><h3>Day Shift</h3><div id="dayStaffFields"></div></div><div class="panel"><h3>Night Shift</h3><div id="nightStaffFields"></div></div></div>
+<div class="toolbar"><button class="primary teal" onclick="saveStaff()">Save Assignments</button><button class="secondary" onclick="closeModal('staffModal')">Cancel</button></div>
+</div></div>
+
+<div id="docPicker" class="modal"><div class="modalbox small"><div class="toolbar"><h2>Select Appointment</h2><button class="secondary right" onclick="closeModal('docPicker')">Close</button></div><label>Appointment</label><select id="docAppt"></select><div class="toolbar"><button class="primary" onclick="openSelectedDoc()">Continue</button></div></div></div>
+
+
+<div id="treatmentModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Assign / Edit Treatment</h2><button class="secondary right" onclick="closeModal('treatmentModal')">Close</button></div>
+<input type="hidden" id="txId">
+<div class="formgrid">
+<div class="span2"><label>Veteran *</label><select id="txVet"></select></div>
+<div><label>Treatment *</label><select id="txType"></select></div>
+<div><label>Category *</label><select id="txCategory"><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div><label>Frequency</label><select id="txFrequency"><option>Daily</option><option>Weekly</option><option>As Scheduled</option><option>PRN</option></select></div>
+<div><label>Start Date</label><input id="txStart" type="date"></div>
+<div><label>End Date</label><input id="txEnd" type="date"></div>
+<div><label>Shift</label><select id="txShift"><option>Day</option><option>Night</option><option>Both</option></select></div>
+<div class="span4"><label>Scheduled Days</label><div id="txDays" class="days"></div></div>
+<div class="span4"><label>Instructions / Parameters</label><textarea id="txInstructions"></textarea></div>
+<div class="span4"><label>Notes</label><textarea id="txNotes"></textarea></div>
+</div>
+<div class="toolbar"><button class="primary green" onclick="saveTreatment()">Save Treatment</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
+</div></div>
+
+<div id="ticketModal" class="modal"><div class="modalbox">
+<div class="toolbar no-print"><h2>Ticket to Ride</h2><button class="secondary right" onclick="closeModal('ticketModal')">Close</button></div>
+<div id="ticketEditor" class="panel no-print"></div>
+<div id="ticketSheet" class="printsheet"></div>
+<div class="toolbar no-print"><button class="primary" onclick="saveTicket()">Save Ticket</button><button class="primary teal" onclick="saveTicket(true)">Save & Print</button></div>
+</div></div>
+
+<div id="travelModal" class="modal"><div class="modalbox">
+<div class="toolbar no-print"><h2>Travel Request for Transportation Services</h2><button class="secondary right" onclick="attemptCloseTravel()">Close</button></div>
+<div id="travelForm"></div><div class="toolbar no-print"><button class="primary orange" onclick="saveTravel('Draft')">Save Draft</button><button class="primary green" onclick="emailTravel()">Email to Transportation</button><button class="secondary" onclick="saveTravel('Cancelled')">Cancel Request</button><button class="secondary" onclick="printElement('travelSheet')">Print</button></div>
+</div></div>
+
+<script>
+const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','Block 1','Block 2','Block 3','Float'];
+let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
+ veterans:[],appointments:[],staff:{},providers:[
+ {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
+ {id:'p2',name:'Example Eye Clinic',specialty:'Ophthalmology',facility:'Community Clinic',city:'Example City',phone:'555-0102',active:true}
+ ],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
+};
+const managedListDefaults={
+ specialties:['LTC','RESP','EOL','SSR','Cardiology','Ophthalmology'],
+ medicationMethods:['Whole','Crushed','Whole in Applesauce','Crushed in Applesauce','Whole in Pudding','Crushed in Pudding','Liquid','Via PEG/G-Tube','Other'],
+ diets:['Regular','Low NA','Low Fat','Finger Foods','Puree','PEG','G-Tube','Soft and Bite Sized','Other'],
+ isolationTypes:['Standard','Contact','Enhanced','Airborne','Droplet','Reverse'],
+ assistLevels:['Independent','1','2','1 to 2','Total','SBA'],
+ mobilityOptions:['Ambulatory','Wheelchair','Walker','Cane','Bedbound','Mechanical Lift','Other'],
+ fallRiskLevels:['Standard','Moderate','High','See Current Care Plan'],
+ toiletingOptions:['Continent','Incontinent','Incontinent at Times','Incontinent of BM'],
+ transportationModes:['JC Shuttle Bus','Wheelchair Van','Ambulance - ALS','Ambulance - BLS','JJP - VTS','Other'],
+ appointmentReasons:['Consult','Procedure','Discharge','Admission','Follow Up','Testing'],
+ facilities:['VA Medical Center','Community Clinic'],
+ treatmentTypes:['PICC','Foley','PEG','Trach','Wound Care','Oral Care','Lotion','Range of Motion','TED Hose','Shampoo']
+};
+const managedListLabels={specialties:'Specialties',medicationMethods:'Medication Methods',diets:'Diets',isolationTypes:'Isolation Types',assistLevels:'Assist Levels',mobilityOptions:'Mobility Options',fallRiskLevels:'Fall Risk Levels',toiletingOptions:'Toileting Options',transportationModes:'Transportation Modes',appointmentReasons:'Appointment Reasons',facilities:'Facilities / Destinations',treatmentTypes:'Treatment Types'};
+if(!db.managedLists)db.managedLists={};
+if(!db.tickets)db.tickets={};
+if(!Array.isArray(db.treatments))db.treatments=[];
+if(!db.treatmentCompletions)db.treatmentCompletions={};
+Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
+db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard'});
+let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
+function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
+function today(){return new Date().toISOString().slice(0,10)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let b=[...document.querySelectorAll('nav button')].find(x=>x.dataset.tab===id);if(b)b.classList.add('active');renderAll()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function openModal(id){document.getElementById(id).classList.add('open')}function closeModal(id){document.getElementById(id).classList.remove('open')}
+function daysOnUnit(d){if(!d)return'';return Math.max(0,Math.floor((new Date(today())-new Date(d))/86400000))}
+function checkedDays(id){return [...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value)}
+function makeDays(id){document.getElementById(id).innerHTML=D.slice(1).concat(D[0]).map(x=>`<label><input type="checkbox" value="${x}"> ${x}</label>`).join('')}
+['daysSkin','daysWeight','daysVitals','daysShower','txDays'].forEach(makeDays);
+document.getElementById('vAdmission').onchange=()=>document.getElementById('vDays').value=daysOnUnit(document.getElementById('vAdmission').value);
+function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.specialty)}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
+function vetOptions(sel){let current=sel.value;sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>+a.room-+b.room).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
+function activeList(key){return (db.managedLists[key]||[]).filter(x=>x.active).map(x=>x.value)}
+function managedOptions(sel,key,blank=false){let current=sel.value;sel.innerHTML=(blank?'<option value=""></option>':'')+activeList(key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(current&&!activeList(key).includes(current))sel.insertAdjacentHTML('beforeend',`<option value="${esc(current)}">${esc(current)} (archived)</option>`);if(current)sel.value=current}
+function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderTreatments();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor()}
+function populateSelects(){providerOptions(document.getElementById('vProvider'));providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'));managedOptions(vSpecialty,'specialties');managedOptions(vMeds,'medicationMethods');managedOptions(vDiet,'diets');managedOptions(vIsolation,'isolationTypes');managedOptions(vAssist,'assistLevels');managedOptions(vMobility,'mobilityOptions');managedOptions(vFallRisk,'fallRiskLevels');managedOptions(vToileting,'toiletingOptions');managedOptions(aReason,'appointmentReasons');managedOptions(aTransport,'transportationModes',true);vetOptions(txVet);managedOptions(txType,'treatmentTypes');specialtyData.innerHTML=activeList('specialties').map(v=>`<option value="${esc(v)}"></option>`).join('');facilityData.innerHTML=activeList('facilities').map(v=>`<option value="${esc(v)}"></option>`).join('');if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}
+function renderHome(){
+ let active=db.veterans.filter(v=>v.status!=='Discharged / Archived');
+ let ta=db.appointments.filter(a=>a.date===today()&&a.status!=='Cancelled');
+ let due=db.treatments.filter(t=>t.active!==false&&treatmentDueOn(t,today()));
+ let done=due.filter(t=>isTreatmentComplete(t,today()));
+ let outstanding=due.filter(t=>!isTreatmentComplete(t,today()));
+ let offUnit=active.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
+ let cutoff=Date.now()-24*60*60*1000;
+ let newAdmissions=active.filter(v=>v.admission&&new Date(v.admission+'T12:00:00').getTime()>=cutoff);
+ let alerts=getDashboardAlerts(outstanding,offUnit,newAdmissions);
+ let travelFollow=db.appointments.filter(a=>a.status!=='Cancelled'&&db.travel[a.id]&&['Draft','Failed'].includes(db.travel[a.id].status));
+ statVets.textContent=active.length;statAppts.textContent=ta.length;statTxDue.textContent=outstanding.length;statAlerts.textContent=alerts.length;
+ statOffUnit.textContent=offUnit.length;statNewAdmissions.textContent=newAdmissions.length;statTrans.textContent=travelFollow.length;statTxDone.textContent=done.length;
+ document.getElementById('alerts').innerHTML=alerts.length?alerts.slice(0,10).map(a=>`<div class="card alert ${a.level==='critical'?'critical':''}"><b>${esc(a.title)}</b><div>${esc(a.message)}</div></div>`).join(''):'<div class="card"><b>Operational Readiness: Green</b><div>No priority follow-up identified.</div></div>';
+ document.getElementById('todayList').innerHTML=ta.length?ta.sort((a,b)=>a.time.localeCompare(b.time)).map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];return `<div class="card"><b>${esc(a.time)} — Room ${esc(v?.room||'')} ${esc(v?.name||'')}</b><div>${esc(a.clinic||a.destination||'')}</div><span class="muted">Pickup ${esc(a.pickup||'Not set')} · ${esc(a.transport||'Transport not set')} · Travel ${esc(tr?.status||'Not created')}</span></div>`}).join(''):'<div class="card">No appointments today.</div>';
+ document.getElementById('dashboardTreatments').innerHTML=outstanding.length?outstanding.slice(0,10).map(t=>{let v=db.veterans.find(v=>v.id===t.vetId);return `<div class="card"><b>Room ${esc(v?.room||'')} — ${esc(v?.name||'')}</b><div>${esc(t.type)} · ${esc(t.category)} · ${esc(t.shift)}</div></div>`}).join(''):'<div class="card">No outstanding treatments due today.</div>';
+ document.getElementById('unitStatus').innerHTML=`<div class="card"><b>Veterans off unit</b><div>${offUnit.length?offUnit.map(v=>`Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.status)})`).join('<br>'):'None'}</div></div><div class="card"><b>Admissions within 24 hours</b><div>${newAdmissions.length?newAdmissions.map(v=>`Room ${esc(v.room)} — ${esc(v.name)}`).join('<br>'):'None'}</div></div><div class="card"><b>Shift assignments</b><div>${shiftAssignmentReadiness()}</div></div>`;
+}
+function getDashboardAlerts(outstanding=[],offUnit=[],newAdmissions=[]){
+ let out=getAlerts();
+ outstanding.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);out.push({title:t.category==='Licensed'?'Licensed Treatment Due':'Treatment Due',message:`Room ${v?.room||''} — ${v?.name||''}: ${t.type} (${t.shift})`,level:t.category==='Licensed'?'critical':'warning'})});
+ offUnit.forEach(v=>out.push({title:'Veteran Off Unit',message:`Room ${v.room} — ${v.name}: ${v.status}`,level:'info'}));
+ newAdmissions.forEach(v=>out.push({title:'New Admission Review',message:`Room ${v.room} — ${v.name} admitted within 24 hours`,level:'info'}));
+ return out;
+}
+function shiftAssignmentReadiness(){
+ let x=db.staff[today()]||{day:{},night:{}};
+ let day=roles.filter(r=>String(x.day?.[r]||'').trim()).length,night=roles.filter(r=>String(x.night?.[r]||'').trim()).length;
+ return `Day shift ${day}/${roles.length} positions entered<br>Night shift ${night}/${roles.length} positions entered`;
+}
+function getAlerts(){
+ let out=[];db.appointments.forEach(a=>{let tr=db.travel[a.id];if(tr&&tr.status==='Draft')out.push({title:'Transportation Request Not Confirmed',message:`${vetLabel(a.vetId)} — ${a.date} ${a.time}`,level:'warning'});if(tr&&tr.status==='Failed')out.push({title:'Transportation Email Failed',message:`${vetLabel(a.vetId)} — action required`,level:'critical'})});return out
+}
+function vetLabel(id){let v=db.veterans.find(x=>x.id===id);return v?`Room ${v.room} — ${v.name}`:'Unknown Veteran'}
+function openVeteran(id=''){
+ let v=db.veterans.find(x=>x.id===id);vId.value=v?.id||'';vRoom.value=v?.room||'';vName.value=v?.name||'';vLast4.value=v?.last4||'';vSpecialty.value=v?.specialty||'LTC';vProvider.value=v?.providerId||'';vAdmission.value=v?.admission||'';vDays.value=daysOnUnit(v?.admission);vStatus.value=v?.status||'Active';vCode.value=v?.codeStatus||'';vMeds.value=v?.meds||'Whole';vDiet.value=v?.diet||'Regular';vIsolation.value=v?.isolation||'Standard';vAssist.value=v?.assist||'Independent';vMobility.value=v?.mobility||'Ambulatory';vFallRisk.value=v?.fallRisk||'Standard';vToileting.value=v?.toileting||'Continent';vNotes.value=v?.notes||'';
+ ['Skin','Weight','Vitals','Shower'].forEach(k=>document.querySelectorAll('#days'+k+' input').forEach(i=>i.checked=(v?.schedules?.[k.toLowerCase()]||[]).includes(i.value)));
+ document.querySelector(`input[name=showerShift][value="${v?.showerShift||'Day'}"]`).checked=true;openModal('vetModal')
+}
+function saveVeteran(){
+ if(!vRoom.value||!vName.value||!/^\d{4}$/.test(vLast4.value)){alert('Room, name, and a four-digit Last 4 are required.');return}
+ let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
+ let obj={id:vId.value||'v'+Date.now(),room:+vRoom.value,name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,specialty:vSpecialty.value,providerId:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,notes:vNotes.value,schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
+ let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
+}
+function renderVeterans(){
+ vetRows.innerHTML=db.veterans.slice().sort((a,b)=>a.room-b.room).map(v=>{let p=db.providers.find(p=>p.id===v.providerId);return `<tr class="${v.status==='Discharged / Archived'?'archived':''}"><td>${v.room}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(v.specialty)}</td><td>${esc(p?.name||'')}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button></td></tr>`}).join('')
+}
+function openAppointment(id=''){
+ let a=db.appointments.find(x=>x.id===id);aId.value=a?.id||'';vetOptions(aVet);providerOptions(aProvider);aVet.value=a?.vetId||'';aProvider.value=a?.providerId||'';fillProvider();aDate.value=a?.date||today();aTime.value=a?.time||'';aClinic.value=a?.clinic||'';aReason.value=a?.reason||'Consult';aDestination.value=a?.destination||'';aPickup.value=a?.pickup||'';aTransport.value=a?.transport||'';aEscort.value=a?.escort||'';aStatus.value=a?.status||'Upcoming';aTravelStatus.value=db.travel[a?.id]?.status||'';aNotes.value=a?.notes||'';openModal('apptModal')
+}
+function fillProvider(){let p=db.providers.find(x=>x.id===aProvider.value);aSpecialty.value=p?.specialty||'';aFacility.value=p?.facility||'';aCity.value=p?.city||'';aPhone.value=p?.phone||'';if(p&&!aDestination.value)aDestination.value=[p.facility,p.city].filter(Boolean).join(', ')}
+function saveAppointment(){
+ if(!aVet.value||!aProvider.value||!aDate.value||!aTime.value){alert('Veteran, provider, date, and time are required.');return}
+ let duplicate=db.appointments.find(x=>x.id!==aId.value&&x.vetId===aVet.value&&x.date===aDate.value&&x.time===aTime.value&&x.status!=='Cancelled');
+ if(duplicate&&!confirm('This Veteran already has an appointment at the same date and time. Save another appointment anyway?'))return;
+ let now=new Date().toISOString(),existing=db.appointments.find(x=>x.id===aId.value);
+ let obj={id:aId.value||'a'+Date.now(),vetId:aVet.value,providerId:aProvider.value,date:aDate.value,time:aTime.value,clinic:aClinic.value.trim(),reason:aReason.value,destination:aDestination.value.trim(),pickup:aPickup.value,transport:aTransport.value,escort:aEscort.value.trim(),status:aStatus.value,notes:aNotes.value.trim(),createdAt:existing?.createdAt||now,updatedAt:now};
+ let i=db.appointments.findIndex(x=>x.id===obj.id);if(i>=0)db.appointments[i]=obj;else db.appointments.push(obj);
+ if(aTravelStatus.value){db.travel[obj.id]=db.travel[obj.id]||{};db.travel[obj.id].status=aTravelStatus.value}else if(db.travel[obj.id]&&Object.keys(db.travel[obj.id]).length===1)delete db.travel[obj.id];
+ persist();closeModal('apptModal');renderAll()
+}
+function applyAppointmentRange(){let v=searchRange.value,t=today();if(!v){searchFrom.value='';searchTo.value=''}else if(v==='today'){searchFrom.value=t;searchTo.value=t}else if(v==='past'){searchFrom.value='';searchTo.value=t}else{searchFrom.value=t;let d=new Date(t+'T12:00:00');d.setDate(d.getDate()+(+v-1));searchTo.value=d.toISOString().slice(0,10)}renderAppointments()}
+function resetAppointmentFilters(){searchText.value='';searchStatus.value='';searchProvider.value='';searchSpecialty.value='';searchTransport.value='';searchTravel.value='';searchFrom.value='';searchTo.value='';searchRange.value='';renderAppointments()}
+function renderAppointments(){
+ let q=(searchText.value||'').toLowerCase(),from=searchFrom.value,to=searchTo.value,st=searchStatus.value,provider=searchProvider.value,specialty=searchSpecialty.value,transport=searchTransport.value,travel=searchTravel.value;
+ let rows=db.appointments.filter(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id],hay=[v?.name,v?.last4,v?.room,p?.name,p?.specialty,p?.facility,p?.city,a.clinic,a.destination,a.reason,a.escort,a.transport].join(' ').toLowerCase();let travelMatch=!travel||(travel==='Not Created'?!tr:tr?.status===travel);return(!q||hay.includes(q))&&(!from||a.date>=from)&&(!to||a.date<=to)&&(!st||a.status===st)&&(!provider||a.providerId===provider)&&(!specialty||p?.specialty===specialty)&&(!transport||a.transport===transport)&&travelMatch}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase()}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
+}
+function setCalView(v){calView=v;renderCalendar()}function changeCal(n){if(calView==='year')currentCal.setFullYear(currentCal.getFullYear()+n);else if(calView==='month')currentCal.setMonth(currentCal.getMonth()+n);else currentCal.setDate(currentCal.getDate()+n*(calView==='week'?7:1));renderCalendar()}function goToday(){currentCal=new Date();renderCalendar()}
+function localDateString(d){let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function openAppointmentForDate(ds=''){openAppointment();if(ds)aDate.value=ds}
+function openCalendarMonth(month){currentCal=new Date(currentCal.getFullYear(),month,1);calView='month';renderCalendar()}
+function apptsFor(date){return db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time))}
+function renderCalendar(){
+ let y=currentCal.getFullYear(),m=currentCal.getMonth();calTitle.textContent=currentCal.toLocaleDateString(undefined,calView==='year'?{year:'numeric'}:{month:'long',year:'numeric'});document.querySelectorAll('.calbtn').forEach(b=>b.classList.toggle('primary',b.textContent.toLowerCase()===calView));
+ if(calView==='day'){let ds=localDateString(currentCal),a=apptsFor(ds);calendarBody.innerHTML=`<div class="toolbar"><h3>${currentCal.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</h3><button class="primary right" onclick="openAppointmentForDate('${ds}')">Add for this date</button></div>`+(a.length?a.map(eventHtml).join(''):'<div class="card">No appointments.</div>');return}
+ if(calView==='week'){let d=new Date(currentCal),day=d.getDay();d.setDate(d.getDate()-day);let cols='';for(let i=0;i<7;i++){let x=new Date(d);x.setDate(d.getDate()+i);let ds=localDateString(x);cols+=`<div class="weekcol"><h4>${x.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</h4><button class="secondary" onclick="openAppointmentForDate('${ds}')">+ Add</button>${apptsFor(ds).map(eventHtml).join('')}</div>`}calendarBody.innerHTML=`<div class="week">${cols}</div>`;return}
+ if(calView==='year'){calendarBody.innerHTML='<div class="year">'+Array.from({length:12},(_,i)=>{let c=db.appointments.filter(a=>new Date(a.date+'T12:00:00').getFullYear()===y&&new Date(a.date+'T12:00:00').getMonth()===i&&a.status!=='Cancelled').length;return `<button class="monthmini" onclick="openCalendarMonth(${i})"><b>${new Date(y,i,1).toLocaleDateString(undefined,{month:'long'})}</b><span class="apptcount">${c}</span><div>appointments</div></button>`}).join('')+'</div>';return}
+ let first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),cells='';for(let i=0;i<42;i++){let d=new Date(start);d.setDate(start.getDate()+i);let ds=localDateString(d),mut=d.getMonth()!==m?' mutedday':'',events=apptsFor(ds);cells+=`<div class="calday${mut}" ondblclick="openAppointmentForDate('${ds}')"><div class="date-num"><button class="linkbtn" onclick="currentCal=new Date('${ds}T12:00:00');setCalView('day')">${d.getDate()}</button></div>${events.slice(0,4).map(a=>eventHtml(a,true)).join('')}${events.length>4?`<div class="muted">+${events.length-4} more</div>`:''}</div>`}
+ calendarBody.innerHTML='<div class="calendar">'+D.map(x=>`<div class="dayhead">${x}</div>`).join('')+cells+'</div>'
+}
+function eventHtml(a,compact=false){let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<div class="event" title="${esc(p?.name||'')} — ${esc(a.destination||'')}" onclick="openAppointment('${a.id}')">${esc(a.time)} ${compact?'':`— `}${esc(v?.name||'')} ${compact?'':'— '+esc(a.clinic||a.destination||'')}</div>`}
+function openStaff(){sDate.value=sDate.value||today();buildStaffFields();loadStaffForm();openModal('staffModal')}
+function buildStaffFields(){dayStaffFields.innerHTML=roles.map((r,i)=>`<label>${r}</label><input id="sd${i}">`).join('');nightStaffFields.innerHTML=roles.map((r,i)=>`<label>${r}</label><input id="sn${i}">`).join('')}
+function loadStaffForm(){let x=db.staff[sDate.value]||{day:{},night:{}};roles.forEach((r,i)=>{document.getElementById('sd'+i).value=x.day?.[r]||'';document.getElementById('sn'+i).value=x.night?.[r]||''})}
+function saveStaff(){let x={day:{},night:{}};roles.forEach((r,i)=>{x.day[r]=document.getElementById('sd'+i).value;x.night[r]=document.getElementById('sn'+i).value});db.staff[sDate.value]=x;persist();closeModal('staffModal');renderAll()}
+function renderStaffSummary(){let x=db.staff[today()]||{day:{},night:{}};staffSummary.innerHTML=`<div class="grid"><div class="panel"><h3>Day Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.day?.[r]||'')}</p>`).join('')}</div><div class="panel"><h3>Night Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.night?.[r]||'')}</p>`).join('')}</div></div>`}
+function openDocPicker(t){docType=t;docAppt.innerHTML='<option value="">Select…</option>'+db.appointments.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(a=>`<option value="${a.id}">${a.date} ${a.time} — ${vetLabel(a.vetId)}</option>`).join('');openModal('docPicker')}
+function openSelectedDoc(){if(!docAppt.value)return;closeModal('docPicker');directDoc(docType,docAppt.value)}
+function directDoc(t,id){currentDocAppt=db.appointments.find(a=>a.id===id);if(t==='ticket')buildTicket();else buildTravel()}
+function ticketValue(id){let e=document.getElementById(id);return e?e.value:''}
+function ticketChecked(id){let e=document.getElementById(id);return !!e?.checked}
+function renderTicketSheet(data){
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
+ let mark=x=>x?'☒':'☐', line=x=>esc(x||'________________');
+ ticketSheet.innerHTML=`<link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
+<style>@page{size:landscape;margin:.25in}</style><h2 style="margin:0;text-align:center">TICKET TO RIDE</h2>
+ <div class="smalltext"><b>Veteran:</b> ${esc(v?.name||'')} &nbsp; <b>Room:</b> ${esc(v?.room||'')} &nbsp; <b>Last 4:</b> ${esc(v?.last4||'')} &nbsp; <b>Date:</b> ${esc(a.date)} &nbsp; <b>Time:</b> ${esc(a.time)}<br><b>Destination:</b> ${esc(a.destination||p?.facility||'')} &nbsp; <b>Clinic:</b> ${esc(a.clinic||p?.name||'')} &nbsp; <b>Pickup:</b> ${esc(tr.pickup||a.pickup||'')} &nbsp; <b>Transportation:</b> ${esc(tr.mode||a.transport||'')} &nbsp; <b>Escort:</b> ${esc(tr.escort||a.escort||'')}</div>
+ <div class="printgrid">
+ <div class="printcard"><h3>Clinical Flags</h3><b>Allergies:</b> ${mark(data.nkda)} NKDA &nbsp; ${mark(data.allergies)} Yes—see current record<br><b>Fall Risk:</b> ${esc(v?.fallRisk||'See current care plan')}<br><b>Special Needs:</b> ${line(data.specialNeeds)}<br><b>Language:</b> ${line(data.language)}<br><b>Isolation:</b> ${esc(v?.isolation||'Standard')}</div>
+ <div class="printcard"><h3>Sensory and Respiratory</h3><b>Hearing:</b> ${line(data.hearing)}<br><b>Vision:</b> ${line(data.vision)}<br><b>Respiratory:</b> ${line(data.respiratory)}</div>
+ <div class="printcard"><h3>Positioning and Comfort</h3><b>Position:</b> ${line(data.position)}<br><b>Pain / Behavior Management:</b> ${line(data.painPlan)}<br><b>Last Pain Medication:</b> ${line(data.lastPainMed)} @ ${line(data.lastPainTime)}<br><b>Last Sedation Medication:</b> ${line(data.lastSedationMed)} @ ${line(data.lastSedationTime)}</div>
+ <div class="printcard"><h3>Monitoring</h3><b>SaO₂:</b> ${line(data.sao2)} &nbsp; <b>Cardiac Rhythm:</b> ${line(data.rhythm)} &nbsp; <b>BP:</b> ${line(data.bp)}<br><b>IV Access:</b> ${line(data.ivAccess)} &nbsp; <b>Location:</b> ${line(data.ivLocation)}<br><b>IV Pump / Rate:</b> ${line(data.ivRate)}<br><b>Other:</b> ${line(data.monitoringOther)}</div>
+ <div class="printcard" style="grid-column:1/3"><h3>Transport and Return</h3><b>Nurse Sending:</b> ${line(data.sendingNurse)} &nbsp; <b>Phone / Extension:</b> ${line(data.phone)}<br><b>Return Status:</b> ${esc(data.returnStatus||'Pending return')} &nbsp; <b>Changes / Notes:</b> ${line(data.returnNotes)}<br><b>Recorder:</b> ${line(data.recorder)} &nbsp; <b>Prepared:</b> ${esc(data.preparedAt?new Date(data.preparedAt).toLocaleString():'')}</div></div>`;
+}
+function collectTicket(){return {
+ nkda:ticketChecked('tkNkda'),allergies:ticketChecked('tkAllergies'),specialNeeds:ticketValue('tkSpecialNeeds'),language:ticketValue('tkLanguage'),hearing:ticketValue('tkHearing'),vision:ticketValue('tkVision'),respiratory:ticketValue('tkRespiratory'),position:ticketValue('tkPosition'),painPlan:ticketValue('tkPainPlan'),lastPainMed:ticketValue('tkLastPainMed'),lastPainTime:ticketValue('tkLastPainTime'),lastSedationMed:ticketValue('tkLastSedationMed'),lastSedationTime:ticketValue('tkLastSedationTime'),sao2:ticketValue('tkSao2'),rhythm:ticketValue('tkRhythm'),bp:ticketValue('tkBp'),ivAccess:ticketValue('tkIvAccess'),ivLocation:ticketValue('tkIvLocation'),ivRate:ticketValue('tkIvRate'),monitoringOther:ticketValue('tkMonitoringOther'),sendingNurse:ticketValue('tkSendingNurse'),phone:ticketValue('tkPhone'),returnStatus:ticketValue('tkReturnStatus'),returnNotes:ticketValue('tkReturnNotes'),recorder:ticketValue('tkRecorder'),preparedAt:new Date().toISOString()
+}}
+function updateTicketPreview(){renderTicketSheet(collectTicket())}
+function buildTicket(){
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),data=db.tickets[a.id]||{};
+ ticketEditor.innerHTML=`<h3>Prepare Transport Handoff</h3><p class="muted">Veteran, appointment, destination, pickup, escort, transportation, fall risk, and isolation are pulled from existing records.</p>
+ <div class="formgrid">
+ <div><label>Allergies</label><label><input id="tkNkda" type="checkbox" ${data.nkda?'checked':''}> NKDA</label><label><input id="tkAllergies" type="checkbox" ${data.allergies?'checked':''}> Allergies—see current record</label></div>
+ <div><label>Special Needs</label><input id="tkSpecialNeeds" value="${esc(data.specialNeeds||'')}"><label>Language / Communication</label><input id="tkLanguage" value="${esc(data.language||'')}"></div>
+ <div><label>Hearing</label><input id="tkHearing" value="${esc(data.hearing||'')}"><label>Vision</label><input id="tkVision" value="${esc(data.vision||'')}"></div>
+ <div><label>Respiratory</label><input id="tkRespiratory" value="${esc(data.respiratory||'')}"><label>Position</label><input id="tkPosition" value="${esc(data.position||'')}"></div>
+ <div><label>Pain / Behavior Plan</label><input id="tkPainPlan" value="${esc(data.painPlan||'')}"><label>Last Pain Medication</label><input id="tkLastPainMed" value="${esc(data.lastPainMed||'')}"></div>
+ <div><label>Last Pain Medication Time</label><input id="tkLastPainTime" type="time" value="${esc(data.lastPainTime||'')}"><label>Last Sedation Medication</label><input id="tkLastSedationMed" value="${esc(data.lastSedationMed||'')}"></div>
+ <div><label>Last Sedation Time</label><input id="tkLastSedationTime" type="time" value="${esc(data.lastSedationTime||'')}"><label>SaO₂</label><input id="tkSao2" value="${esc(data.sao2||'')}"></div>
+ <div><label>Cardiac Rhythm</label><input id="tkRhythm" value="${esc(data.rhythm||'')}"><label>Blood Pressure</label><input id="tkBp" value="${esc(data.bp||'')}"></div>
+ <div><label>IV Access</label><input id="tkIvAccess" value="${esc(data.ivAccess||'')}"><label>IV Location</label><input id="tkIvLocation" value="${esc(data.ivLocation||'')}"></div>
+ <div><label>IV Pump / Rate</label><input id="tkIvRate" value="${esc(data.ivRate||'')}"><label>Other Monitoring</label><input id="tkMonitoringOther" value="${esc(data.monitoringOther||'')}"></div>
+ <div><label>Sending Nurse</label><input id="tkSendingNurse" value="${esc(data.sendingNurse||'')}"><label>Phone / Extension</label><input id="tkPhone" value="${esc(data.phone||'')}"></div>
+ <div><label>Return Status</label><select id="tkReturnStatus"><option>Pending return</option><option>Status unchanged</option><option>Changes in status</option><option>Admitted / did not return</option></select><label>Recorder</label><input id="tkRecorder" value="${esc(data.recorder||'')}"></div>
+ <div class="span2"><label>Return Changes / Notes</label><textarea id="tkReturnNotes">${esc(data.returnNotes||'')}</textarea></div></div>
+ <div class="toolbar"><button class="secondary" onclick="updateTicketPreview()">Refresh Preview</button></div>`;
+ document.getElementById('tkReturnStatus').value=data.returnStatus||'Pending return';
+ renderTicketSheet(data);openModal('ticketModal')
+}
+function saveTicket(printAfter=false){if(!currentDocAppt)return;let data=collectTicket();db.tickets[currentDocAppt.id]=data;persist();renderTicketSheet(data);if(printAfter)printElement('ticketSheet');else alert('Ticket to Ride saved.')}
+function buildTravel(){
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
+ travelForm.innerHTML=`<div id="travelSheet" class="printsheet"><h2 style="text-align:center">TRAVEL REQUEST FOR TRANSPORTATION SERVICES</h2>
+ <div class="printcard"><h3>Patient Information</h3><div class="formgrid"><div><label>Name</label><input value="${esc(v?.name||'')}" readonly></div><div><label>Last 4</label><input value="${esc(v?.last4||'')}" readonly></div><div><label>Current Location</label><input id="trCurrent" value="${esc(tr.currentLocation||'CLC')}"></div><div><label>Destination</label><input id="trDest" value="${esc(tr.destination||a.destination||p?.facility||'')}"></div></div></div>
+ <div class="printcard"><h3>Reason for Transport</h3><label>Reason</label><select id="trReason">${activeList('appointmentReasons').map(x=>`<option ${x===(tr.reason||a.reason)?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
+ <div class="printcard"><h3>Appointment Details</h3><div class="formgrid"><div><label>Date of Travel</label><input id="trDate" type="date" value="${tr.date||a.date}"></div><div><label>Time of Appointment</label><input id="trTime" type="time" value="${tr.time||a.time}"></div><div class="span2"><label>Clinic</label><input id="trClinic" value="${esc(tr.clinic||a.clinic||p?.name||'')}"></div></div></div>
+ <div class="printcard"><h3>Transportation</h3><div class="formgrid"><div><label>Pickup Time</label><input id="trPickup" type="time" value="${esc(tr.pickup||a.pickup||'')}"></div><div><label>Mode of Transportation</label><select id="trMode"><option value=""></option>${activeList('transportationModes').map(x=>`<option ${x===(tr.mode||a.transport)?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="span2"><label>Attendant / Escort</label><input id="trEscort" value="${esc(tr.escort||a.escort||'')}"></div></div></div>
+ <div class="printcard"><h3>Request Tracking</h3><div class="formgrid"><div><label>Requested By</label><input id="trRequestedBy" value="${esc(tr.requestedBy||'')}"></div><div><label>Contact / Extension</label><input id="trContact" value="${esc(tr.contact||'')}"></div><div class="span2"><label>Confirmation / Reference Number</label><input id="trReference" value="${esc(tr.reference||'')}"></div></div></div>
+ <div class="printcard"><h3>Comments</h3><textarea id="trComments">${esc(tr.comments||'')}</textarea>${tr.updated?`<p class="muted">Last updated: ${new Date(tr.updated).toLocaleString()}</p>`:''}</div></div>`;openModal('travelModal')
+}
+function saveTravel(status){
+ let a=currentDocAppt;if(!a)return;db.travel[a.id]={...(db.travel[a.id]||{}),status,currentLocation:trCurrent.value.trim(),destination:trDest.value.trim(),reason:trReason.value,date:trDate.value,time:trTime.value,pickup:trPickup.value,clinic:trClinic.value.trim(),mode:trMode.value,escort:trEscort.value.trim(),requestedBy:trRequestedBy.value.trim(),contact:trContact.value.trim(),reference:trReference.value.trim(),comments:trComments.value.trim(),updated:new Date().toISOString(),confirmedAt:status==='Confirmed'?new Date().toISOString():(db.travel[a.id]?.confirmedAt||'')};persist();renderAll();if(status==='Cancelled')closeModal('travelModal')
+}
+function emailTravel(){saveTravel('Confirmed');let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];let subject=encodeURIComponent(`Transportation Request - ${v?.name||''} - ${tr.date} ${tr.time}`),body=encodeURIComponent(`Transportation Request\n\nPatient: ${v?.name||''}\nLast 4: ${v?.last4||''}\nCurrent Location: ${tr.currentLocation}\nDestination: ${tr.destination}\nReason: ${tr.reason}\nDate: ${tr.date}\nAppointment Time: ${tr.time}\nPickup Time: ${tr.pickup||''}\nClinic: ${tr.clinic}\nMode: ${tr.mode}\nEscort: ${tr.escort}\nRequested By: ${tr.requestedBy||''}\nContact: ${tr.contact||''}\nReference: ${tr.reference||''}\nComments: ${tr.comments}`);location.href=`mailto:?subject=${subject}&body=${body}`;closeModal('travelModal')}
+function attemptCloseTravel(){let tr=db.travel[currentDocAppt?.id];if(!tr||tr.status==='Draft'){alert('This transportation request has not been confirmed. Email it, cancel it, or continue editing.');return}closeModal('travelModal')}
+function resetTravelFilters(){travelSearch.value='';travelFilterStatus.value='';travelFilterMode.value='';travelFilterDate.value='';renderTravel()}
+function renderTravel(){
+ let q=(travelSearch?.value||'').toLowerCase(),status=travelFilterStatus?.value||'',mode=travelFilterMode?.value||'',date=travelFilterDate?.value||'';
+ if(travelFilterMode){let cur=travelFilterMode.value;travelFilterMode.innerHTML='<option value="">All Modes</option>'+activeList('transportationModes').map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');travelFilterMode.value=cur}
+ let relevant=db.appointments.filter(a=>a.status!=='Cancelled'&&a.status!=='Completed'&&a.date>=today()).map(a=>({a,tr:db.travel[a.id],v:db.veterans.find(v=>v.id===a.vetId),p:db.providers.find(p=>p.id===a.providerId)}));
+ let needs=relevant.filter(x=>x.a.transport&&!x.tr),action=relevant.filter(x=>['Draft','Failed'].includes(x.tr?.status)),confirmed=relevant.filter(x=>x.tr?.status==='Confirmed'),todayItems=relevant.filter(x=>x.a.date===today()&&(x.tr?.status==='Confirmed'||x.a.transport));
+ travelNeedCount.textContent=needs.length;travelActionCount.textContent=action.length;travelConfirmedCount.textContent=confirmed.length;travelTodayCount.textContent=todayItems.length;
+ let rows=relevant.filter(x=>{let effective=x.tr?.status||'Needs Request',hay=[x.v?.name,x.v?.last4,x.v?.room,x.a.destination,x.p?.facility,x.a.escort,x.tr?.escort,x.a.transport,x.tr?.mode,x.tr?.reference].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!status||effective===status)&&(!mode||(x.tr?.mode||x.a.transport)===mode)&&(!date||x.a.date===date)}).sort((x,y)=>(x.a.date+(x.tr?.pickup||x.a.pickup||x.a.time)).localeCompare(y.a.date+(y.tr?.pickup||y.a.pickup||y.a.time)));
+ travelList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Pickup</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th><th>Action</th></tr></thead><tbody>${rows.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')} — ${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td><span class="badge ${st.toLowerCase().replaceAll(' ','')}">${esc(st)}</span></td><td>${esc(x.tr?.reference||'')}</td><td><button class="secondary" onclick="directDoc('travel','${x.a.id}')">${x.tr?'Open':'Create'}</button> <button class="secondary" onclick="directDoc('ticket','${x.a.id}')">Ticket</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No transportation items match the selected filters.</div>'
+}
+
+function treatmentDueOn(t,date){
+ if(!t.active)return false;if(t.start&&date<t.start)return false;if(t.end&&date>t.end)return false;if(t.frequency==='PRN')return false;if(t.frequency==='Daily')return true;let day=D[new Date(date+'T12:00:00').getDay()];return (t.days||[]).includes(day)
+}
+function treatmentCompleted(t,date){return !!db.treatmentCompletions[`${t.id}|${date}`]}
+function openTreatment(id=''){
+ txId.value=id;let t=db.treatments.find(x=>x.id===id);vetOptions(txVet);managedOptions(txType,'treatmentTypes');
+ txVet.value=t?.vetId||'';txType.value=t?.type||activeList('treatmentTypes')[0]||'';txCategory.value=t?.category||'Licensed';txFrequency.value=t?.frequency||'Daily';txStart.value=t?.start||today();txEnd.value=t?.end||'';txShift.value=t?.shift||'Day';txInstructions.value=t?.instructions||'';txNotes.value=t?.notes||'';
+ document.querySelectorAll('#txDays input').forEach(c=>c.checked=(t?.days||[]).includes(c.value));openModal('treatmentModal')
+}
+function saveTreatment(){
+ if(!txVet.value||!txType.value){alert('Veteran and treatment are required.');return}
+ let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,type:txType.value,category:txCategory.value,frequency:txFrequency.value,start:txStart.value,end:txEnd.value,shift:txShift.value,days:checkedDays('txDays'),instructions:txInstructions.value.trim(),notes:txNotes.value.trim(),active:true};
+ let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
+}
+function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
+function toggleTreatmentComplete(id,date){let key=`${id}|${date}`;if(db.treatmentCompletions[key])delete db.treatmentCompletions[key];else db.treatmentCompletions[key]={completedAt:new Date().toISOString()};persist();renderAll()}
+function resetTreatmentFilters(){txSearch.value='';txFilterCategory.value='';txFilterStatus.value='';txFilterDue.value='';renderTreatments()}
+function renderTreatments(){
+ if(!document.getElementById('treatmentList'))return;let date=today(),q=(txSearch?.value||'').toLowerCase(),cat=txFilterCategory?.value||'',status=txFilterStatus?.value||'',due=txFilterDue?.value||'';
+ let rows=db.treatments.map(t=>({t,v:db.veterans.find(v=>v.id===t.vetId),isDue:treatmentDueOn(t,date),done:treatmentCompleted(t,date)})).filter(x=>{let st=!x.t.active?'Archived':x.done?'Completed Today':'Active',hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.type,x.t.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)&&(!status||st===status)&&(!due||(due==='today'&&x.isDue)||(due==='overdue'&&x.isDue&&!x.done))}).sort((a,b)=>(+a.v?.room||999)-(+b.v?.room||999));
+ let dueRows=db.treatments.filter(t=>treatmentDueOn(t,date));txDueCount.textContent=dueRows.length;txLicensedCount.textContent=dueRows.filter(t=>t.category==='Licensed').length;txNonLicensedCount.textContent=dueRows.filter(t=>t.category==='Non-Licensed').length;txOverdueCount.textContent=dueRows.filter(t=>!treatmentCompleted(t,date)).length;
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Treatment</th><th>Category</th><th>Frequency</th><th>Shift</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.type)}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.t.frequency)}${x.t.days?.length?'<br><span class="muted">'+esc(x.t.days.join(', '))+'</span>':''}</td><td>${esc(x.t.shift)}</td><td>${esc(x.t.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleTreatmentComplete('${x.t.id}','${date}')">${x.done?'Completed':'Mark Complete'}</button>`:'Not due'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatments match the selected filters.</div>'
+}
+
+function generateReport(){
+ let date=reportDate.value||today();reportDate.value=date;
+ let day=D[new Date(date+'T12:00:00').getDay()];
+ let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>(+a.room||999)-(+b.room||999));
+ let ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+ let s=db.staff[date]||{day:{},night:{}};
+ let due=(k)=>vets.filter(v=>(v.schedules?.[k]||[]).includes(day));
+ let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
+ let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
+ let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['Draft','Failed'].includes(tr.status))});
+ let offUnit=vets.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
+ let newAdmissions=vets.filter(v=>v.admission&&Math.floor((new Date(date+'T12:00:00')-new Date(v.admission+'T12:00:00'))/86400000)<=1&&new Date(v.admission+'T12:00:00')<=new Date(date+'T12:00:00'));
+ let highRisk=vets.filter(v=>/high/i.test(v.fallRisk||'')||/isolation/i.test(v.isolation||'')&&!/none|standard/i.test(v.isolation||''));
+ let priority=[];
+ travelAttention.forEach(a=>priority.push({level:'HIGH',text:`Transportation follow-up: ${vetLabel(a.vetId)} — ${a.time||''} ${a.destination||a.clinic||''}`}));
+ txOutstanding.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);priority.push({level:t.category==='Licensed'?'HIGH':'DUE',text:`Room ${v?.room||''} — ${v?.name||''}: ${t.type} (${t.shift})`})});
+ offUnit.forEach(v=>priority.push({level:'STATUS',text:`Room ${v.room} — ${v.name}: ${v.status}`}));
+ let rosterRows=vets.map(v=>{let p=db.providers.find(p=>p.id===v.providerId);return `<tr><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.specialty)}</td><td>${esc(p?.name||'')}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.toileting)}</td><td>${esc(v.status||'Active')}</td><td>${esc(v.notes)}</td></tr>`}).join('');
+ let apRows=ap.map(a=>{let tr=db.travel[a.id],v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<tr><td>${esc(a.time||'')}</td><td>${esc(v?.room||'')} — ${esc(v?.name||'')}</td><td>${esc(a.clinic||a.destination||p?.facility||'')}</td><td>${esc(a.pickup||tr?.pickup||'')}</td><td>${esc(a.transport||tr?.mode||'')}</td><td>${esc(a.escort||tr?.escort||'')}</td><td>${esc(tr?.status||a.travelStatus||'Not Started')}</td><td>${esc(a.status||'Upcoming')}</td></tr>`}).join('');
+ reportOutput.innerHTML=`<div id="morningPrint" class="printsheet"><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
+<style>@page{size:landscape;margin:.3in}</style>
+ <h2 style="text-align:center;margin-bottom:2px">BRAVOSHIFT — CLC MORNING REPORT — ${date}</h2>
+ <p style="text-align:center;margin-top:0"><b>Census:</b> ${vets.length} &nbsp; | &nbsp; <b>Appointments:</b> ${ap.length} &nbsp; | &nbsp; <b>Treatments Due:</b> ${txDue.length} &nbsp; | &nbsp; <b>Priority Follow-ups:</b> ${travelAttention.length+txOutstanding.length}</p>
+ <h3>Veteran Census — Shift Handoff Review</h3>
+ <div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Spec.</th><th>Provider</th><th>Days</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Toileting</th><th>Status</th><th>Notes</th></tr></thead><tbody>${rosterRows}</tbody></table></div>
+ <div class="printgrid"><div class="printcard"><h3>Shift Intelligence / Priority Follow-up</h3>${priority.length?priority.map(x=>`<b>${x.level}:</b> ${esc(x.text)}`).join('<br>'):'No outstanding priority items identified.'}</div><div class="printcard"><h3>Recent / Higher-Risk Review</h3><b>New admissions (24 hours):</b> ${newAdmissions.map(v=>`Room ${v.room} — ${esc(v.name)}`).join('; ')||'None'}<br><b>Higher-risk flags:</b> ${highRisk.map(v=>`Room ${v.room} — ${esc(v.name)}`).join('; ')||'None'}<br><b>Veterans off unit:</b> ${offUnit.map(v=>`Room ${v.room} — ${esc(v.name)} (${esc(v.status)})`).join('; ')||'None'}</div></div>
+ <div class="printcard"><h3>Today's Appointments</h3>${ap.length?`<table><thead><tr><th>Time</th><th>Veteran</th><th>Destination</th><th>Pickup</th><th>Transport</th><th>Escort</th><th>Travel Status</th><th>Appt Status</th></tr></thead><tbody>${apRows}</tbody></table>`:'None'}</div>
+ <div class="printgrid"><div class="printcard"><h3>Day Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.day?.[r]||'')}<br>`).join('')}</div><div class="printcard"><h3>Night Shift Assignments</h3>${roles.map(r=>`<b>${r}:</b> ${esc(s.night?.[r]||'')}<br>`).join('')}</div></div>
+ <div class="printgrid"><div class="printcard"><h3>Skin Assessments</h3>${due('skin').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Weights</h3>${due('weight').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Vitals</h3>${due('vitals').map(v=>`Room ${v.room} — ${esc(v.name)}`).join('<br>')||'None'}</div><div class="printcard"><h3>Showers</h3>${due('shower').map(v=>`Room ${v.room} — ${esc(v.name)} (${esc(v.showerShift)})`).join('<br>')||'None'}</div></div>
+ <div class="printcard"><h3>Treatments Due</h3>${txDue.map(t=>{let v=db.veterans.find(v=>v.id===t.vetId),done=treatmentCompleted(t,date);return `Room ${esc(v?.room||'')} — ${esc(v?.name||'')} — ${esc(t.type)} (${esc(t.category)}, ${esc(t.shift)}) — ${done?'Completed':'Outstanding'}${t.instructions?' — '+esc(t.instructions):''}`}).join('<br>')||'None'}</div>
+ <div class="printcard"><h3>Shift Change Notes / Changes Since Prior Shift</h3><div style="height:70px;border-bottom:1px solid #888"></div></div>
+ <p><b>Day Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p><p><b>Night Charge RN Signature:</b> <span class="line" style="min-width:260px"></span> Date/Time <span class="line"></span></p></div>`
+}
+function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
+function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
+<style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
+function addProvider(){if(!pName.value.trim())return;db.providers.push({id:'p'+Date.now(),name:pName.value.trim(),specialty:pSpecialty.value.trim(),facility:pFacility.value.trim(),city:pCity.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pSpecialty','pFacility','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
+function archiveProvider(id){let p=db.providers.find(x=>x.id===id);if(p){p.active=!p.active;persist();renderAll()}}
+function renderProviders(){providerList.innerHTML='<table><thead><tr><th>Name</th><th>Specialty</th><th>Facility</th><th>City</th><th>Phone</th><th>Status</th></tr></thead><tbody>'+db.providers.map(p=>`<tr class="${p.active?'':'archived'}"><td>${esc(p.name)}</td><td>${esc(p.specialty)}</td><td>${esc(p.facility)}</td><td>${esc(p.city)}</td><td>${esc(p.phone)}</td><td><span class="badge ${p.active?'confirmed':'cancelled'}">${p.active?'Active':'Archived'}</span> <button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button></td></tr>`).join('')+'</tbody></table>'}
+function renderManagedListEditor(){if(!document.getElementById('mlCategory'))return;if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');let key=mlCategory.value||Object.keys(managedListLabels)[0],items=db.managedLists[key]||[];managedListEditor.innerHTML=`<h4>${esc(managedListLabels[key])}</h4><table><thead><tr><th>Value</th><th>Status</th><th>Action</th></tr></thead><tbody>${items.map(x=>`<tr class="${x.active?'':'archived'}"><td>${esc(x.value)}</td><td><span class="badge ${x.active?'confirmed':'cancelled'}">${x.active?'Active':'Archived'}</span></td><td><button class="secondary" onclick="toggleManagedValue('${key}','${x.id}')">${x.active?'Archive':'Restore'}</button></td></tr>`).join('')}</tbody></table>`}
+function addManagedValue(){let key=mlCategory.value,value=mlValue.value.trim();if(!value)return;let duplicate=(db.managedLists[key]||[]).find(x=>x.value.toLowerCase()===value.toLowerCase());if(duplicate){if(!duplicate.active){duplicate.active=true;mlValue.value='';persist();renderAll();return}alert('That value already exists in this list.');return}db.managedLists[key].push({id:key+'-'+Date.now(),value,active:true});mlValue.value='';persist();renderAll()}
+function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(item){item.active=!item.active;persist();renderAll()}}
+function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
+reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();
+</script>
+</body></html>
