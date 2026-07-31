@@ -1,4 +1,4 @@
-import type { Appointment, BravoShiftState, StaffAssignmentRecord, TravelRequest, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, NotificationRecord, ShiftBroadcast, StaffAssignmentRecord, StaffMessage, TaskReminder, TravelRequest, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
 
@@ -10,6 +10,10 @@ export const emptyState: BravoShiftState = {
   shiftAssignments: [],
   staffAssignmentRecords: [],
   morningReportNotes: [],
+  notifications: [],
+  messages: [],
+  broadcasts: [],
+  reminders: [],
 };
 
 function normalizeVeteran(value: Partial<Veteran>): Veteran {
@@ -84,6 +88,21 @@ function normalizeStaffAssignment(value: Partial<StaffAssignmentRecord>): StaffA
   };
 }
 
+
+function normalizeNotification(value: Partial<NotificationRecord>): NotificationRecord {
+  const now = new Date().toISOString();
+  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', details: value.details ?? '', category: value.category ?? 'Administrative', priority: value.priority ?? 'Routine', status: value.status ?? 'Unread', veteranId: value.veteranId, assignedTo: value.assignedTo ?? '', source: value.source ?? 'Manual', escalationLevel: value.escalationLevel ?? 0, createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now, dueAt: value.dueAt };
+}
+function normalizeMessage(value: Partial<StaffMessage>): StaffMessage {
+  return { id: value.id ?? crypto.randomUUID(), from: value.from ?? '', to: value.to ?? '', subject: value.subject ?? '', body: value.body ?? '', priority: value.priority ?? 'Routine', veteranId: value.veteranId, read: value.read ?? false, createdAt: value.createdAt ?? new Date().toISOString() };
+}
+function normalizeBroadcast(value: Partial<ShiftBroadcast>): ShiftBroadcast {
+  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', message: value.message ?? '', shift: value.shift ?? 'All', priority: value.priority ?? 'Routine', active: value.active ?? true, expiresAt: value.expiresAt, createdAt: value.createdAt ?? new Date().toISOString() };
+}
+function normalizeReminder(value: Partial<TaskReminder>): TaskReminder {
+  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', assignedTo: value.assignedTo ?? '', dueAt: value.dueAt ?? '', veteranId: value.veteranId, category: value.category ?? 'Administrative', completed: value.completed ?? false, createdAt: value.createdAt ?? new Date().toISOString() };
+}
+
 export function loadState(): BravoShiftState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -97,6 +116,10 @@ export function loadState(): BravoShiftState {
       shiftAssignments: parsed.shiftAssignments ?? [],
       staffAssignmentRecords: (parsed.staffAssignmentRecords ?? []).map(normalizeStaffAssignment),
       morningReportNotes: parsed.morningReportNotes ?? [],
+      notifications: (parsed.notifications ?? []).map(normalizeNotification),
+      messages: (parsed.messages ?? []).map(normalizeMessage),
+      broadcasts: (parsed.broadcasts ?? []).map(normalizeBroadcast),
+      reminders: (parsed.reminders ?? []).map(normalizeReminder),
     };
   } catch {
     return emptyState;

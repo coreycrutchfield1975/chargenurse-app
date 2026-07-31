@@ -1,24 +1,25 @@
-# BravoShift 2.8 — Clinical Analytics & Executive Dashboard
+# BravoShift 2.9 — Notifications & Communication Hub
 
-This package extends BravoShift 2.7 with a leadership analytics module built from the existing local application state.
+A React + TypeScript continuation of BravoShift 2.8. This package adds a unified operational communication workspace.
 
-## Added
-- Composite BravoShift Quality Score
-- Active census, hospitalization, fall-risk, and isolation KPIs
-- Appointment completion rate
-- Transport success rate
-- Treatment completion rate
-- Staffing fill rate
-- Documentation completion rate
-- Seven-day appointment, transport, and staffing charts
-- Automated executive alerts
-- Target-versus-actual quality table
-- Printable Executive Brief
+## Features
 
-## Privacy
-This development build uses browser storage. Do not enter PHI or real Veteran information.
+- Prioritized notifications: Routine, Important, Urgent, and STAT
+- Clinical, transportation, staffing, and administrative queues
+- Read, acknowledge, complete, and escalate workflow
+- Internal staff messaging linked to Veterans when appropriate
+- Shift broadcasts for Day, Evening, Night, or All shifts
+- Task reminders with due-date and overdue detection
+- Communication dashboard metrics
+- Printable communication report
+- Browser persistence using the existing BravoShift state store
 
-## Validate
+## Development safety
+
+This package is a prototype. Do not enter real Veteran information, PHI, credentials, or operational secrets until authentication, encryption, audit logging, backend access controls, and organizational security review are complete.
+
+## Run
+
 ```bash
 npm install
 npm run build

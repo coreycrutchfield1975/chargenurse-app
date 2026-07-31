@@ -114,6 +114,10 @@ export interface BravoShiftState {
   shiftAssignments: ShiftAssignment[];
   staffAssignmentRecords: StaffAssignmentRecord[];
   morningReportNotes: MorningReportNote[];
+  notifications: NotificationRecord[];
+  messages: StaffMessage[];
+  broadcasts: ShiftBroadcast[];
+  reminders: TaskReminder[];
 }
 
 export interface MorningReportNote {
@@ -148,4 +152,59 @@ export interface StaffAssignmentRecord {
   notes: string;
   createdAt: string;
   updatedAt: string;
+}
+
+
+export type CommunicationPriority = 'Routine' | 'Important' | 'Urgent' | 'STAT';
+export type CommunicationCategory = 'Clinical' | 'Transportation' | 'Staffing' | 'Administrative';
+export type NotificationStatus = 'Unread' | 'Read' | 'Acknowledged' | 'Completed' | 'Escalated';
+
+export interface NotificationRecord {
+  id: string;
+  title: string;
+  details: string;
+  category: CommunicationCategory;
+  priority: CommunicationPriority;
+  status: NotificationStatus;
+  veteranId?: string;
+  assignedTo: string;
+  source: string;
+  escalationLevel: number;
+  createdAt: string;
+  updatedAt: string;
+  dueAt?: string;
+}
+
+export interface StaffMessage {
+  id: string;
+  from: string;
+  to: string;
+  subject: string;
+  body: string;
+  priority: CommunicationPriority;
+  veteranId?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface ShiftBroadcast {
+  id: string;
+  title: string;
+  message: string;
+  shift: StaffShift | 'All';
+  priority: CommunicationPriority;
+  active: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface TaskReminder {
+  id: string;
+  title: string;
+  assignedTo: string;
+  dueAt: string;
+  veteranId?: string;
+  category: CommunicationCategory;
+  completed: boolean;
+  createdAt: string;
 }
