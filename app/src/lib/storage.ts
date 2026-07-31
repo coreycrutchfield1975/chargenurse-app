@@ -1,167 +1,28 @@
-import type { Appointment, BravoShiftState, NotificationRecord, ShiftBroadcast, StaffAssignmentRecord, StaffMessage, TaskReminder, Treatment, TreatmentCompletion, TravelRequest, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, ManagedLists, StaffAssignmentRecord, Treatment, TreatmentCompletion, TravelRequest, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
-
-export const emptyState: BravoShiftState = {
-  veterans: [],
-  appointments: [],
-  treatments: [],
-  treatmentCompletions: [],
-  travelRequests: [],
-  shiftAssignments: [],
-  staffAssignmentRecords: [],
-  morningReportNotes: [],
-  notifications: [],
-  messages: [],
-  broadcasts: [],
-  reminders: [],
+export const defaultManagedLists: ManagedLists = {
+  specialties:['LTC','RESP','EOL','SSR','Cardiology','Ophthalmology'],
+  medicationMethods:['Whole','Crushed','Whole in Applesauce','Crushed in Applesauce','Whole in Pudding','Crushed in Pudding','Liquid','Via PEG/G-Tube','Other'],
+  diets:['Regular','Low NA','Low Fat','Finger Foods','Puree','PEG','G-Tube','Soft and Bite Sized','Other'],
+  isolationTypes:['Standard','Contact','Enhanced','Airborne','Droplet','Reverse'],
+  assistLevels:['Independent','1','2','1 to 2','Total','SBA'],
+  mobilityOptions:['Ambulatory','Wheelchair','Walker','Cane','Bedbound','Mechanical Lift','Other'],
+  fallRiskLevels:['Standard','Moderate','High','See Current Care Plan'],
+  toiletingOptions:['Continent','Incontinent','Incontinent at Times','Incontinent of BM'],
+  transportationModes:['JC Shuttle Bus','Wheelchair Van','Ambulance - ALS','Ambulance - BLS','JJP - VTS','Other'],
+  appointmentReasons:['Follow-up','Consult','Imaging','Procedure','Lab','Surgery','Therapy','Other'],
+  facilities:['VA Medical Center','Community Clinic','Hospital','Dental Clinic','Eye Clinic','Other'],
+  treatmentTypes:['Wound Care','Skin Treatment','Foley Care','Ostomy Care','Range of Motion','Weights','Vital Signs','Blood Glucose','Other'],
 };
-
-function normalizeVeteran(value: Partial<Veteran>): Veteran {
-  const now = new Date().toISOString();
-  return {
-    id: value.id ?? crypto.randomUUID(),
-    name: value.name ?? '',
-    last4: value.last4 ?? '',
-    room: value.room ?? '',
-    status: value.status ?? 'Active',
-    admissionDate: value.admissionDate ?? '',
-    provider: value.provider ?? '',
-    specialty: value.specialty ?? '',
-    codeStatus: value.codeStatus ?? '',
-    mobility: value.mobility ?? '',
-    fallRisk: value.fallRisk ?? '',
-    medicationMethod: value.medicationMethod ?? '',
-    diet: value.diet ?? '',
-    isolation: value.isolation ?? '',
-    assistLevel: value.assistLevel ?? '',
-    toileting: value.toileting ?? '',
-    notes: value.notes ?? '',
-    createdAt: value.createdAt ?? now,
-    updatedAt: value.updatedAt ?? now,
-    archivedAt: value.archivedAt,
-  };
-}
-
-function normalizeAppointment(value: Partial<Appointment>): Appointment {
-  const now = new Date().toISOString();
-  return {
-    id: value.id ?? crypto.randomUUID(),
-    veteranId: value.veteranId ?? '',
-    date: value.date ?? '',
-    time: value.time ?? '',
-    pickupTime: value.pickupTime ?? '',
-    reason: value.reason ?? '',
-    specialty: value.specialty ?? '',
-    destination: value.destination ?? '',
-    provider: value.provider ?? '',
-    transport: value.transport ?? '',
-    travelStatus: value.travelStatus ?? 'Not Created',
-    status: value.status ?? 'Upcoming',
-    notes: value.notes ?? '',
-    createdAt: value.createdAt ?? now,
-    updatedAt: value.updatedAt ?? now,
-  };
-}
-
-
-
-function normalizeTreatment(value: Partial<Treatment>): Treatment {
-  const now = new Date().toISOString();
-  const legacy = value as Partial<Treatment> & { dueDate?: string; completedAt?: string; category?: string; shift?: string };
-  return {
-    id: value.id ?? crypto.randomUUID(),
-    veteranId: value.veteranId ?? '',
-    name: value.name ?? '',
-    category: (legacy.category as string) === 'Non-licensed' ? 'Non-Licensed' : value.category ?? 'Licensed',
-    frequency: value.frequency ?? 'Daily',
-    shift: (legacy.shift as string) === 'Any' ? 'Both' : value.shift ?? 'Day',
-    startDate: value.startDate ?? legacy.dueDate ?? new Date().toISOString().slice(0, 10),
-    endDate: value.endDate ?? '',
-    scheduledDays: value.scheduledDays ?? [],
-    instructions: value.instructions ?? '',
-    notes: value.notes ?? '',
-    active: value.active ?? true,
-    createdAt: value.createdAt ?? now,
-    updatedAt: value.updatedAt ?? now,
-    archivedAt: value.archivedAt,
-  };
-}
-
-function normalizeTreatmentCompletion(value: Partial<TreatmentCompletion>): TreatmentCompletion {
-  return {
-    id: value.id ?? crypto.randomUUID(),
-    treatmentId: value.treatmentId ?? '',
-    completionDate: value.completionDate ?? '',
-    shift: value.shift ?? 'Day',
-    completedAt: value.completedAt ?? new Date().toISOString(),
-    completedBy: value.completedBy ?? '',
-  };
-}
-
-function normalizeTravelRequest(value: Partial<TravelRequest>): TravelRequest {
-  const now = new Date().toISOString();
-  return {
-    id: value.id ?? crypto.randomUUID(), veteranId: value.veteranId ?? '', appointmentId: value.appointmentId ?? '',
-    status: value.status ?? 'Draft', transportMode: value.transportMode ?? 'VA Transport', mobilityMode: value.mobilityMode ?? 'Ambulatory',
-    pickupTime: value.pickupTime ?? '', estimatedReturn: value.estimatedReturn ?? '', returnPickupTime: value.returnPickupTime ?? '',
-    driver: value.driver ?? '', escortRequired: value.escortRequired ?? false, escortName: value.escortName ?? '',
-    oxygenRequired: value.oxygenRequired ?? false, oxygenDetails: value.oxygenDetails ?? '', destinationContact: value.destinationContact ?? '',
-    sendingNurse: value.sendingNurse ?? '', receivingStaff: value.receivingStaff ?? '', returnedToUnitBy: value.returnedToUnitBy ?? '',
-    notes: value.notes ?? '', createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now,
-  };
-}
-
-function normalizeStaffAssignment(value: Partial<StaffAssignmentRecord>): StaffAssignmentRecord {
-  const now = new Date().toISOString();
-  return {
-    id: value.id ?? crypto.randomUUID(), staffName: value.staffName ?? '', role: value.role ?? 'CNA',
-    shift: value.shift ?? 'Day', assignmentDate: value.assignmentDate ?? '', status: value.status ?? 'Scheduled',
-    zone: value.zone ?? '', veteranIds: value.veteranIds ?? [], treatmentCategories: value.treatmentCategories ?? [],
-    isChargeNurse: value.isChargeNurse ?? false, startTime: value.startTime ?? '', endTime: value.endTime ?? '',
-    phoneExtension: value.phoneExtension ?? '', notes: value.notes ?? '', createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now,
-  };
-}
-
-
-function normalizeNotification(value: Partial<NotificationRecord>): NotificationRecord {
-  const now = new Date().toISOString();
-  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', details: value.details ?? '', category: value.category ?? 'Administrative', priority: value.priority ?? 'Routine', status: value.status ?? 'Unread', veteranId: value.veteranId, assignedTo: value.assignedTo ?? '', source: value.source ?? 'Manual', escalationLevel: value.escalationLevel ?? 0, createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now, dueAt: value.dueAt };
-}
-function normalizeMessage(value: Partial<StaffMessage>): StaffMessage {
-  return { id: value.id ?? crypto.randomUUID(), from: value.from ?? '', to: value.to ?? '', subject: value.subject ?? '', body: value.body ?? '', priority: value.priority ?? 'Routine', veteranId: value.veteranId, read: value.read ?? false, createdAt: value.createdAt ?? new Date().toISOString() };
-}
-function normalizeBroadcast(value: Partial<ShiftBroadcast>): ShiftBroadcast {
-  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', message: value.message ?? '', shift: value.shift ?? 'All', priority: value.priority ?? 'Routine', active: value.active ?? true, expiresAt: value.expiresAt, createdAt: value.createdAt ?? new Date().toISOString() };
-}
-function normalizeReminder(value: Partial<TaskReminder>): TaskReminder {
-  return { id: value.id ?? crypto.randomUUID(), title: value.title ?? '', assignedTo: value.assignedTo ?? '', dueAt: value.dueAt ?? '', veteranId: value.veteranId, category: value.category ?? 'Administrative', completed: value.completed ?? false, createdAt: value.createdAt ?? new Date().toISOString() };
-}
-
-export function loadState(): BravoShiftState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyState;
-    const parsed = JSON.parse(raw) as Partial<BravoShiftState>;
-    return {
-      veterans: (parsed.veterans ?? []).map(normalizeVeteran),
-      appointments: (parsed.appointments ?? []).map(normalizeAppointment),
-      treatments: (parsed.treatments ?? []).map(normalizeTreatment),
-      treatmentCompletions: (parsed.treatmentCompletions ?? []).map(normalizeTreatmentCompletion),
-      travelRequests: (parsed.travelRequests ?? []).map(normalizeTravelRequest),
-      shiftAssignments: parsed.shiftAssignments ?? [],
-      staffAssignmentRecords: (parsed.staffAssignmentRecords ?? []).map(normalizeStaffAssignment),
-      morningReportNotes: parsed.morningReportNotes ?? [],
-      notifications: (parsed.notifications ?? []).map(normalizeNotification),
-      messages: (parsed.messages ?? []).map(normalizeMessage),
-      broadcasts: (parsed.broadcasts ?? []).map(normalizeBroadcast),
-      reminders: (parsed.reminders ?? []).map(normalizeReminder),
-    };
-  } catch {
-    return emptyState;
-  }
-}
-
-export function saveState(state: BravoShiftState): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+export const emptyState: BravoShiftState = { veterans:[], appointments:[], treatments:[], treatmentCompletions:[], travelRequests:[], shiftAssignments:[], staffAssignmentRecords:[], morningReportNotes:[], managedLists:defaultManagedLists };
+const now=()=>new Date().toISOString();
+function veteran(v:Partial<Veteran>):Veteran{return {id:v.id??crypto.randomUUID(),name:v.name??'',last4:v.last4??'',room:v.room??'',status:v.status??'Active',admissionDate:v.admissionDate??'',provider:v.provider??'',specialty:v.specialty??'',codeStatus:v.codeStatus??'',mobility:v.mobility??'Ambulatory',fallRisk:v.fallRisk??'',medicationMethod:v.medicationMethod??'',diet:v.diet??'',isolation:v.isolation??'Standard',assistLevel:v.assistLevel??'',toileting:v.toileting??'',notes:v.notes??'',createdAt:v.createdAt??now(),updatedAt:v.updatedAt??now(),archivedAt:v.archivedAt};}
+function appointment(a:Partial<Appointment>):Appointment{return {id:a.id??crypto.randomUUID(),veteranId:a.veteranId??'',date:a.date??'',time:a.time??'',pickupTime:a.pickupTime??'',reason:a.reason??'',specialty:a.specialty??'',destination:a.destination??'',provider:a.provider??'',transport:a.transport??'',travelStatus:a.travelStatus??'Not Created',status:a.status??'Upcoming',notes:a.notes??'',createdAt:a.createdAt??now(),updatedAt:a.updatedAt??now()};}
+function treatment(t:Partial<Treatment>):Treatment{return {id:t.id??crypto.randomUUID(),veteranId:t.veteranId??'',name:t.name??'',category:(t.category as string)==='Non-licensed'?'Non-Licensed':t.category??'Licensed',frequency:t.frequency??'Daily',shift:t.shift??'Day',startDate:t.startDate??new Date().toISOString().slice(0,10),endDate:t.endDate??'',scheduledDays:t.scheduledDays??[],instructions:t.instructions??'',notes:t.notes??'',active:t.active??true,createdAt:t.createdAt??now(),updatedAt:t.updatedAt??now(),archivedAt:t.archivedAt};}
+function completion(c:Partial<TreatmentCompletion>):TreatmentCompletion{return {id:c.id??crypto.randomUUID(),treatmentId:c.treatmentId??'',completionDate:c.completionDate??'',shift:c.shift??'Day',completedAt:c.completedAt??now(),completedBy:c.completedBy??''};}
+function travel(r:Partial<TravelRequest>):TravelRequest{return {id:r.id??crypto.randomUUID(),veteranId:r.veteranId??'',appointmentId:r.appointmentId??'',status:r.status??'Draft',transportMode:r.transportMode??'',mobilityMode:r.mobilityMode??'Ambulatory',pickupTime:r.pickupTime??'',estimatedReturn:r.estimatedReturn??'',returnPickupTime:r.returnPickupTime??'',driver:r.driver??'',escortRequired:r.escortRequired??false,escortName:r.escortName??'',oxygenRequired:r.oxygenRequired??false,oxygenDetails:r.oxygenDetails??'',destinationContact:r.destinationContact??'',sendingNurse:r.sendingNurse??'',receivingStaff:r.receivingStaff??'',returnedToUnitBy:r.returnedToUnitBy??'',notes:r.notes??'',createdAt:r.createdAt??now(),updatedAt:r.updatedAt??now()};}
+function staff(r:Partial<StaffAssignmentRecord>):StaffAssignmentRecord{return {id:r.id??crypto.randomUUID(),staffName:r.staffName??'',role:r.role??'CNA',shift:r.shift??'Day',assignmentDate:r.assignmentDate??'',status:r.status??'Scheduled',zone:r.zone??'',veteranIds:r.veteranIds??[],treatmentCategories:r.treatmentCategories??[],isChargeNurse:r.isChargeNurse??false,startTime:r.startTime??'',endTime:r.endTime??'',phoneExtension:r.phoneExtension??'',notes:r.notes??'',createdAt:r.createdAt??now(),updatedAt:r.updatedAt??now()};}
+function lists(value:Partial<ManagedLists>|undefined):ManagedLists { return Object.fromEntries(Object.entries(defaultManagedLists).map(([k,defaults])=>[k,Array.from(new Set([...(value?.[k as keyof ManagedLists]??[]),...defaults])).filter(Boolean)])) as ManagedLists; }
+export function loadState():BravoShiftState { try { const raw=localStorage.getItem(STORAGE_KEY); if(!raw)return emptyState; const p=JSON.parse(raw) as Partial<BravoShiftState>; return {veterans:(p.veterans??[]).map(veteran),appointments:(p.appointments??[]).map(appointment),treatments:(p.treatments??[]).map(treatment),treatmentCompletions:(p.treatmentCompletions??[]).map(completion),travelRequests:(p.travelRequests??[]).map(travel),shiftAssignments:p.shiftAssignments??[],staffAssignmentRecords:(p.staffAssignmentRecords??[]).map(staff),morningReportNotes:p.morningReportNotes??[],managedLists:lists(p.managedLists)};} catch {return emptyState;} }
+export function saveState(state:BravoShiftState){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}

@@ -1,7 +1,7 @@
 {
-  "name": "bravoshift-2-treatments",
+  "name": "bravoshift-v2-v18-scope-correction",
   "private": true,
-  "version": "2.11.0",
+  "version": "2.12.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

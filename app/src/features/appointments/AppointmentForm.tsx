@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Appointment, AppointmentStatus, TravelRequestStatus, Veteran } from '../../types/domain';
+import type { Appointment, AppointmentStatus, TravelRequestStatus, Veteran, ManagedLists } from '../../types/domain';
 
 interface AppointmentFormProps {
   appointment?: Appointment;
@@ -7,6 +7,7 @@ interface AppointmentFormProps {
   appointments: Appointment[];
   onSave: (appointment: Appointment) => void;
   onCancel: () => void;
+  lists: ManagedLists;
 }
 
 type Errors = Partial<Record<'veteranId' | 'date' | 'time' | 'destination' | 'duplicate', string>>;
@@ -32,7 +33,7 @@ function newAppointment(): Appointment {
   };
 }
 
-export function AppointmentForm({ appointment, veterans, appointments, onSave, onCancel }: AppointmentFormProps) {
+export function AppointmentForm({ appointment, veterans, appointments, onSave, onCancel, lists }: AppointmentFormProps) {
   const [draft, setDraft] = useState<Appointment>(() => appointment ?? newAppointment());
   const [errors, setErrors] = useState<Errors>({});
   const activeVeterans = useMemo(
@@ -91,11 +92,11 @@ export function AppointmentForm({ appointment, veterans, appointments, onSave, o
         <label>Appointment Time<input type="time" value={draft.time} onChange={(e) => update('time', e.target.value)} aria-invalid={Boolean(errors.time)} />{errors.time && <span className="field-error">{errors.time}</span>}</label>
         <label>Pickup Time<input type="time" value={draft.pickupTime} onChange={(e) => update('pickupTime', e.target.value)} /></label>
         <label>Status<select value={draft.status} onChange={(e) => update('status', e.target.value as AppointmentStatus)}><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></label>
-        <label>Reason<input value={draft.reason} onChange={(e) => update('reason', e.target.value)} placeholder="Follow-up, imaging, procedure..." /></label>
-        <label>Specialty<input value={draft.specialty} onChange={(e) => update('specialty', e.target.value)} placeholder="Cardiology" /></label>
+        <label>Reason<select value={draft.reason} onChange={(e)=>update('reason',e.target.value)}><option value="">Select…</option>{lists.appointmentReasons.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Specialty<select value={draft.specialty} onChange={(e)=>update('specialty',e.target.value)}><option value="">Select…</option>{lists.specialties.map(v=><option key={v}>{v}</option>)}</select></label>
         <label>Provider<input value={draft.provider} onChange={(e) => update('provider', e.target.value)} /></label>
-        <label>Destination / Clinic<input value={draft.destination} onChange={(e) => update('destination', e.target.value)} aria-invalid={Boolean(errors.destination)} />{errors.destination && <span className="field-error">{errors.destination}</span>}</label>
-        <label>Transportation<input value={draft.transport} onChange={(e) => update('transport', e.target.value)} placeholder="Facility van, ambulance..." /></label>
+        <label>Destination / Clinic<select value={draft.destination} onChange={(e)=>update('destination',e.target.value)} aria-invalid={Boolean(errors.destination)}><option value="">Select…</option>{lists.facilities.map(v=><option key={v}>{v}</option>)}</select>{errors.destination&&<span className="field-error">{errors.destination}</span>}</label>
+        <label>Transportation<select value={draft.transport} onChange={(e)=>update('transport',e.target.value)}><option value="">Select…</option>{lists.transportationModes.map(v=><option key={v}>{v}</option>)}</select></label>
         <label>Travel Request<select value={draft.travelStatus} onChange={(e) => update('travelStatus', e.target.value as TravelRequestStatus)}><option>Not Created</option><option>Draft</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></label>
         <label className="full-width">Notes<textarea value={draft.notes} onChange={(e) => update('notes', e.target.value)} rows={3} /></label>
       </div>

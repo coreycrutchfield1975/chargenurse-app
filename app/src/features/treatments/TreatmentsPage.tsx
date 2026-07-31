@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import type { Treatment, TreatmentCompletion, Veteran } from '../../types/domain';
+import type { Treatment, TreatmentCompletion, Veteran, ManagedLists } from '../../types/domain';
 import { TreatmentForm } from './TreatmentForm';
 import { completionFor, countDueByCategory, expectedShifts, isOverdue, localDateKey, treatmentDueOn, treatmentScheduleLabel } from './treatmentSelectors';
 
@@ -11,11 +11,12 @@ interface Props {
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
   onToggleComplete: (treatment: Treatment, date: string, shift: 'Day' | 'Night', completedBy: string) => void;
+  lists: ManagedLists;
 }
 
 type StatusFilter = 'All' | 'Active' | 'Due Today' | 'Overdue' | 'Completed Today' | 'Archived' | 'PRN';
 
-export function TreatmentsPage({ veterans, treatments, completions, onSave, onArchive, onRestore, onToggleComplete }: Props) {
+export function TreatmentsPage({ veterans, treatments, completions, onSave, onArchive, onRestore, onToggleComplete, lists }: Props) {
   const [editing, setEditing] = useState<Treatment | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
@@ -34,7 +35,7 @@ export function TreatmentsPage({ veterans, treatments, completions, onSave, onAr
   const due=treatments.filter(t=>treatmentDueOn(t,selectedDate));
   const overdue=due.filter(t=>isOverdue(t,completions,selectedDate)).length;
   function open(item?:Treatment){setEditing(item);setShowForm(true)}
-  if(showForm) return <TreatmentsPageWrapper><TreatmentForm veterans={veterans} treatment={editing} onCancel={()=>{setShowForm(false);setEditing(undefined)}} onSave={item=>{onSave(item);setShowForm(false);setEditing(undefined)}} /></TreatmentsPageWrapper>;
+  if(showForm) return <TreatmentsPageWrapper><TreatmentForm veterans={veterans} treatment={editing} onCancel={()=>{setShowForm(false);setEditing(undefined)}} onSave={item=>{onSave(item);setShowForm(false);setEditing(undefined)}} lists={lists} /></TreatmentsPageWrapper>;
   return <TreatmentsPageWrapper>
     <div className="page-heading"><div><h1>Treatments</h1><p>Daily treatment tracking, schedule management, completion, and overdue follow-up.</p></div><button className="primary-button" onClick={()=>open()}>Assign Treatment</button></div>
     <div className="treatment-metrics">
