@@ -1,16 +1,22 @@
-# BravoShift 2.5 — Staff Assignments & Shift Coverage
+# BravoShift 2.6 — Morning Report Intelligence
 
-This package extends the BravoShift React/TypeScript migration with a working staffing and coverage module.
+A working React + TypeScript module that generates a shift briefing from Veteran census, appointments, transportation, treatments, staffing assignments, and handoff notes.
 
-## Included
-- Day, evening, and night shift assignments
-- RN, LPN, CNA, charge nurse, unit clerk, and other roles
-- Veteran-to-staff workload assignment
-- Licensed and non-licensed treatment responsibility
-- Charge nurse coverage detection
-- Uncovered Veteran alerts
-- Called-off and present status tracking
-- Shift handoff notes
-- Persistent browser storage
+## Features
+- Date- and shift-specific report
+- Readiness score with clinical, staffing, transportation, and documentation components
+- Automated executive summary and priority exceptions
+- Appointment schedule and off-unit census
+- Charge nurse, call-off, and uncovered-Veteran detection
+- Treatment due/completed summary
+- Persistent handoff notes with routine, urgent, and critical priorities
+- Printable charge-nurse report
 
-This remains a fictional-data development build. Do not enter PHI.
+## Run
+```bash
+npm install
+npm run build
+npm run dev
+```
+
+This is a public development prototype. Do not enter real PHI.

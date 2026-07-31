@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type AppPage = 'dashboard' | 'veterans' | 'appointments' | 'calendar' | 'transport' | 'staff';
+export type AppPage = 'dashboard' | 'veterans' | 'appointments' | 'calendar' | 'transport' | 'staff' | 'morning-report';
 
 interface AppShellProps {
   activePage: AppPage;
@@ -16,7 +16,7 @@ const navItems: Array<{ label: string; page?: AppPage }> = [
   { label: 'Transport', page: 'transport' },
   { label: 'Treatments' },
   { label: 'Staff Assignments', page: 'staff' },
-  { label: 'Morning Report' },
+  { label: 'Morning Report', page: 'morning-report' },
   { label: 'Managed Lists' },
 ];
 
@@ -29,7 +29,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
           <p>Nurse CommandPost Center</p>
           <span>Caring for those on Libertyville CLC</span>
         </div>
-        <div className="version-badge">v2.5 Staff Assignments &amp; Shift Coverage</div>
+        <div className="version-badge">v2.6 Morning Report Intelligence</div>
       </header>
 
       <div className="phi-warning">

@@ -9,6 +9,7 @@ export const emptyState: BravoShiftState = {
   travelRequests: [],
   shiftAssignments: [],
   staffAssignmentRecords: [],
+  morningReportNotes: [],
 };
 
 function normalizeVeteran(value: Partial<Veteran>): Veteran {
@@ -95,6 +96,7 @@ export function loadState(): BravoShiftState {
       travelRequests: (parsed.travelRequests ?? []).map(normalizeTravelRequest),
       shiftAssignments: parsed.shiftAssignments ?? [],
       staffAssignmentRecords: (parsed.staffAssignmentRecords ?? []).map(normalizeStaffAssignment),
+      morningReportNotes: parsed.morningReportNotes ?? [],
     };
   } catch {
     return emptyState;

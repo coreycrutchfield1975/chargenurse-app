@@ -113,6 +113,18 @@ export interface BravoShiftState {
   travelRequests: TravelRequest[];
   shiftAssignments: ShiftAssignment[];
   staffAssignmentRecords: StaffAssignmentRecord[];
+  morningReportNotes: MorningReportNote[];
+}
+
+export interface MorningReportNote {
+  id: string;
+  reportDate: string;
+  shift: StaffShift;
+  category: 'Clinical' | 'Staffing' | 'Transport' | 'Appointment' | 'Family / Provider' | 'Operations';
+  priority: 'Routine' | 'Urgent' | 'Critical';
+  text: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type StaffRole = 'RN' | 'LPN' | 'CNA' | 'Charge Nurse' | 'Unit Clerk' | 'Other';
