@@ -1,4 +1,4 @@
-import type { Appointment, BravoShiftState, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, TravelRequest, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
 
@@ -6,6 +6,7 @@ export const emptyState: BravoShiftState = {
   veterans: [],
   appointments: [],
   treatments: [],
+  travelRequests: [],
   shiftAssignments: [],
 };
 
@@ -56,6 +57,20 @@ function normalizeAppointment(value: Partial<Appointment>): Appointment {
   };
 }
 
+
+function normalizeTravelRequest(value: Partial<TravelRequest>): TravelRequest {
+  const now = new Date().toISOString();
+  return {
+    id: value.id ?? crypto.randomUUID(), veteranId: value.veteranId ?? '', appointmentId: value.appointmentId ?? '',
+    status: value.status ?? 'Draft', transportMode: value.transportMode ?? 'VA Transport', mobilityMode: value.mobilityMode ?? 'Ambulatory',
+    pickupTime: value.pickupTime ?? '', estimatedReturn: value.estimatedReturn ?? '', returnPickupTime: value.returnPickupTime ?? '',
+    driver: value.driver ?? '', escortRequired: value.escortRequired ?? false, escortName: value.escortName ?? '',
+    oxygenRequired: value.oxygenRequired ?? false, oxygenDetails: value.oxygenDetails ?? '', destinationContact: value.destinationContact ?? '',
+    sendingNurse: value.sendingNurse ?? '', receivingStaff: value.receivingStaff ?? '', returnedToUnitBy: value.returnedToUnitBy ?? '',
+    notes: value.notes ?? '', createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now,
+  };
+}
+
 export function loadState(): BravoShiftState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -65,6 +80,7 @@ export function loadState(): BravoShiftState {
       veterans: (parsed.veterans ?? []).map(normalizeVeteran),
       appointments: (parsed.appointments ?? []).map(normalizeAppointment),
       treatments: parsed.treatments ?? [],
+      travelRequests: (parsed.travelRequests ?? []).map(normalizeTravelRequest),
       shiftAssignments: parsed.shiftAssignments ?? [],
     };
   } catch {

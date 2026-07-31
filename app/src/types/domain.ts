@@ -62,6 +62,33 @@ export interface Appointment {
   updatedAt: string;
 }
 
+export type TransportStatus = 'Draft' | 'Pending' | 'Confirmed' | 'En Route' | 'At Destination' | 'Awaiting Return' | 'Completed' | 'Failed' | 'Cancelled';
+export type MobilityMode = 'Ambulatory' | 'Wheelchair' | 'Stretcher' | 'Bariatric';
+
+export interface TravelRequest {
+  id: string;
+  veteranId: string;
+  appointmentId: string;
+  status: TransportStatus;
+  transportMode: string;
+  mobilityMode: MobilityMode;
+  pickupTime: string;
+  estimatedReturn: string;
+  returnPickupTime: string;
+  driver: string;
+  escortRequired: boolean;
+  escortName: string;
+  oxygenRequired: boolean;
+  oxygenDetails: string;
+  destinationContact: string;
+  sendingNurse: string;
+  receivingStaff: string;
+  returnedToUnitBy: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Treatment {
   id: string;
   veteranId: string;
@@ -83,5 +110,6 @@ export interface BravoShiftState {
   veterans: Veteran[];
   appointments: Appointment[];
   treatments: Treatment[];
+  travelRequests: TravelRequest[];
   shiftAssignments: ShiftAssignment[];
 }

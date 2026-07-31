@@ -1,17 +1,15 @@
-# BravoShift 2.0 — Appointments & Calendar
+# BravoShift 2.4 — Transportation & Ticket to Ride
 
-This package builds on the Veteran Master Record foundation and adds a working appointment workflow.
+React + TypeScript migration package adding a connected transportation workflow to the Veteran Master Record and Appointments modules.
 
 ## Included
+- Travel request creation and editing
+- Veteran and appointment linking
+- Pickup, return, driver, escort, oxygen, and status tracking
+- Transportation dashboard metrics
+- Off-unit and awaiting-return visibility
+- Search and status filters
+- Printable Ticket to Ride handoff
+- Local-storage persistence compatible with prior BravoShift 2 packages
 
-- Appointment create and edit form
-- Veteran-linked scheduling
-- Required-field validation
-- Same-Veteran/date/time duplicate prevention
-- Status tracking: Upcoming, In Progress, Completed, Cancelled, No Show
-- Travel request tracking: Not Created, Draft, Confirmed, Failed, Cancelled
-- Search, status, travel, and date-range filters
-- Monthly calendar view
-- Persistent local storage migration for prior Veteran data
-
-This remains a public development build. Do not enter PHI.
+This remains a public prototype. Do not enter PHI or real Veteran data.

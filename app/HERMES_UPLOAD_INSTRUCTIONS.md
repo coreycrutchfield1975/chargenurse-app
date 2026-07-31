@@ -2,33 +2,25 @@
 
 Repository: `coreycrutchfield1975/chargenurse-app`
 
-## Branch
+Branch: `agent/bravoshift-2-transportation`
 
-`agent/bravoshift-2-appointments-calendar`
+Commit: `Add Transportation workflow and Ticket to Ride`
 
-## Safe upload process
+## Upload
+1. Start from the branch containing the Appointments & Calendar package.
+2. Copy this package into the repository's `/app` directory, replacing matching migration files.
+3. Preserve the legacy v1.8 application at `legacy/index-v1.8.html`.
+4. Do not place real PHI in test data, screenshots, commits, or pull-request descriptions.
 
-1. Start from the branch containing the Veteran Master Record package.
-2. Replace the `/app` directory with this package's contents, or copy all package files into `/app`.
-3. Do not replace the legacy root `index.html`.
-4. Run:
-
+## Validate
 ```bash
 cd app
 npm install
 npm run build
+npm run dev
 ```
 
-5. Verify:
-   - Veterans remain visible after refresh.
-   - An appointment can be scheduled for an active Veteran.
-   - Required fields block invalid saves.
-   - A duplicate Veteran/date/time appointment is blocked.
-   - Appointment filters work.
-   - Calendar events open the appointment workflow.
-   - Data persists after browser refresh.
-6. Commit:
+Test creating and editing requests, filtering status, linking appointments, and printing Ticket to Ride.
 
-`Add BravoShift appointments and calendar`
-
-7. Open a pull request targeting the prior BravoShift 2.0 branch, or `main` if the earlier package was already merged.
+## Pull request title
+`BravoShift 2.4: Transportation and Ticket to Ride`
