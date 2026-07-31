@@ -1,0 +1,32 @@
+{
+  "tabs": [
+    "Dashboard",
+    "Veterans",
+    "Appointments",
+    "Calendar",
+    "Transport",
+    "Treatments",
+    "Staff Assignments",
+    "Morning Report",
+    "Managed Lists"
+  ],
+  "managed_list_keys": [
+    "specialties",
+    "medicationMethods",
+    "diets",
+    "isolationTypes",
+    "assistLevels",
+    "mobilityOptions",
+    "fallRiskLevels",
+    "toiletingOptions",
+    "transportationModes",
+    "appointmentReasons",
+    "facilities",
+    "treatmentTypes"
+  ],
+  "source_files": 21,
+  "banned_dependency_scan": "passed",
+  "dropdown_wiring": "passed",
+  "localStorage_key": "cn-spectrum-db",
+  "npm_build": "not verified: React packages unavailable from environment registry"
+}
