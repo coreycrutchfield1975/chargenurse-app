@@ -37,16 +37,29 @@ export type AppointmentStatus =
   | 'Cancelled'
   | 'No Show';
 
+export type TravelRequestStatus =
+  | 'Not Created'
+  | 'Draft'
+  | 'Confirmed'
+  | 'Failed'
+  | 'Cancelled';
+
 export interface Appointment {
   id: string;
   veteranId: string;
   date: string;
   time: string;
+  pickupTime: string;
+  reason: string;
+  specialty: string;
   destination: string;
-  provider?: string;
-  transport?: string;
-  pickupTime?: string;
+  provider: string;
+  transport: string;
+  travelStatus: TravelRequestStatus;
   status: AppointmentStatus;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Treatment {

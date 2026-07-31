@@ -1,4 +1,4 @@
-import type { BravoShiftState, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
 
@@ -35,6 +35,27 @@ function normalizeVeteran(value: Partial<Veteran>): Veteran {
   };
 }
 
+function normalizeAppointment(value: Partial<Appointment>): Appointment {
+  const now = new Date().toISOString();
+  return {
+    id: value.id ?? crypto.randomUUID(),
+    veteranId: value.veteranId ?? '',
+    date: value.date ?? '',
+    time: value.time ?? '',
+    pickupTime: value.pickupTime ?? '',
+    reason: value.reason ?? '',
+    specialty: value.specialty ?? '',
+    destination: value.destination ?? '',
+    provider: value.provider ?? '',
+    transport: value.transport ?? '',
+    travelStatus: value.travelStatus ?? 'Not Created',
+    status: value.status ?? 'Upcoming',
+    notes: value.notes ?? '',
+    createdAt: value.createdAt ?? now,
+    updatedAt: value.updatedAt ?? now,
+  };
+}
+
 export function loadState(): BravoShiftState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -42,7 +63,7 @@ export function loadState(): BravoShiftState {
     const parsed = JSON.parse(raw) as Partial<BravoShiftState>;
     return {
       veterans: (parsed.veterans ?? []).map(normalizeVeteran),
-      appointments: parsed.appointments ?? [],
+      appointments: (parsed.appointments ?? []).map(normalizeAppointment),
       treatments: parsed.treatments ?? [],
       shiftAssignments: parsed.shiftAssignments ?? [],
     };

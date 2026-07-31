@@ -94,3 +94,24 @@ input[aria-invalid="true"] { border-color: #b50909; }
   .filter-panel, .form-grid { grid-template-columns: 1fr; }
   .full-width { grid-column: auto; }
 }
+
+.appointment-filters { display: grid; grid-template-columns: 2fr repeat(4, minmax(145px, 1fr)) auto; gap: 12px; align-items: end; margin-bottom: 14px; padding: 16px; background: white; border: 1px solid #dfe1e2; border-radius: 8px; }
+.filter-clear { height: 42px; }
+.appointment-table { min-width: 1240px; }
+.compact-button { padding: 6px 9px; }
+.appointment-in-progress, .travel-draft { background: #fff3bf; color: #5c4800; }
+.appointment-completed, .travel-confirmed { background: #d8f3df; color: #17652a; }
+.appointment-cancelled, .travel-cancelled, .travel-not-created { background: #e6e6e6; color: #454545; }
+.appointment-no-show, .travel-failed { background: #f8dfe2; color: #8b0a03; }
+.calendar-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.calendar-toolbar strong { min-width: 190px; text-align: center; color: #112e51; font-size: 1.2rem; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.calendar-head div { padding: 9px; text-align: center; color: white; background: #112e51; font-weight: 700; }
+.calendar-day { min-height: 130px; padding: 7px; background: white; border: 1px solid #dfe1e2; }
+.muted-calendar-day { color: #8d9297; background: #f5f5f5; }
+.calendar-event { display: block; width: 100%; margin-top: 6px; padding: 6px; border: 0; border-left: 4px solid #005ea2; border-radius: 3px; text-align: left; color: #112e51; background: #e7f3f8; cursor: pointer; }
+.calendar-event span, .calendar-event small { display: block; }
+.calendar-event span { font-weight: 700; }
+.calendar-event small { margin-top: 2px; color: #454545; }
+@media (max-width: 1100px) { .appointment-filters { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .appointment-filters { grid-template-columns: 1fr; } .calendar-grid { min-width: 900px; } .calendar-head { min-width: 900px; } section:has(.calendar-grid) { overflow-x: auto; } }

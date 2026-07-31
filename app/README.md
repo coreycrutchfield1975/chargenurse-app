@@ -1,30 +1,17 @@
-# BravoShift 2.0 — Veteran Master Record
+# BravoShift 2.0 — Appointments & Calendar
 
-This package is the second production migration step for BravoShift. It builds on the React/TypeScript foundation and implements the first complete operational module.
+This package builds on the Veteran Master Record foundation and adds a working appointment workflow.
 
-## Working features
+## Included
 
-- Dashboard and Veteran Master Record navigation
-- Add and edit Veteran records
+- Appointment create and edit form
+- Veteran-linked scheduling
 - Required-field validation
-- Exactly-four-digit Last 4 validation
-- Duplicate active-room protection
-- Active, off-unit, hospital, leave, and archived statuses
-- Search across name, last 4, room, provider, specialty, and status
-- Active, archived, and all-record filters
-- Archive and restore workflow; no hard deletion
-- Local-storage persistence and normalization of earlier foundation data
-- Dashboard metrics driven by the same state
-- Responsive VA-appropriate interface
+- Same-Veteran/date/time duplicate prevention
+- Status tracking: Upcoming, In Progress, Completed, Cancelled, No Show
+- Travel request tracking: Not Created, Draft, Confirmed, Failed, Cancelled
+- Search, status, travel, and date-range filters
+- Monthly calendar view
+- Persistent local storage migration for prior Veteran data
 
-## Safety
-
-This remains a public development build. Do not enter real PHI or Veteran information.
-
-## Validation
-
-```bash
-npm install
-npm run build
-npm run dev
-```
+This remains a public development build. Do not enter PHI.
