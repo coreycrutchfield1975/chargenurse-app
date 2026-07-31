@@ -1137,8 +1137,11 @@ body.theme-star {
 
 /* ===== DATA TABLE SMALL ===== */
 .data-table-sm td,
-.data-table-sm th { font-size: 11px; padding: 4px 6px; }
-.data-table-sm td { white-space: nowrap; }
+.data-table-sm th { font-size: 11px; padding: 4px 6px; white-space: nowrap; vertical-align: middle; }
+
+.data-table.data-table-sm {
+  table-layout: fixed;
+}
 
 /* ===== UNIT HEADER ===== */
 .unit-header {
