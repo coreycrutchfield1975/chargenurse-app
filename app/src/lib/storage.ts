@@ -1,4 +1,4 @@
-import type { Appointment, BravoShiftState, NotificationRecord, ShiftBroadcast, StaffAssignmentRecord, StaffMessage, TaskReminder, TravelRequest, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, NotificationRecord, ShiftBroadcast, StaffAssignmentRecord, StaffMessage, TaskReminder, Treatment, TreatmentCompletion, TravelRequest, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
 
@@ -6,6 +6,7 @@ export const emptyState: BravoShiftState = {
   veterans: [],
   appointments: [],
   treatments: [],
+  treatmentCompletions: [],
   travelRequests: [],
   shiftAssignments: [],
   staffAssignmentRecords: [],
@@ -64,6 +65,40 @@ function normalizeAppointment(value: Partial<Appointment>): Appointment {
 }
 
 
+
+function normalizeTreatment(value: Partial<Treatment>): Treatment {
+  const now = new Date().toISOString();
+  const legacy = value as Partial<Treatment> & { dueDate?: string; completedAt?: string; category?: string; shift?: string };
+  return {
+    id: value.id ?? crypto.randomUUID(),
+    veteranId: value.veteranId ?? '',
+    name: value.name ?? '',
+    category: (legacy.category as string) === 'Non-licensed' ? 'Non-Licensed' : value.category ?? 'Licensed',
+    frequency: value.frequency ?? 'Daily',
+    shift: (legacy.shift as string) === 'Any' ? 'Both' : value.shift ?? 'Day',
+    startDate: value.startDate ?? legacy.dueDate ?? new Date().toISOString().slice(0, 10),
+    endDate: value.endDate ?? '',
+    scheduledDays: value.scheduledDays ?? [],
+    instructions: value.instructions ?? '',
+    notes: value.notes ?? '',
+    active: value.active ?? true,
+    createdAt: value.createdAt ?? now,
+    updatedAt: value.updatedAt ?? now,
+    archivedAt: value.archivedAt,
+  };
+}
+
+function normalizeTreatmentCompletion(value: Partial<TreatmentCompletion>): TreatmentCompletion {
+  return {
+    id: value.id ?? crypto.randomUUID(),
+    treatmentId: value.treatmentId ?? '',
+    completionDate: value.completionDate ?? '',
+    shift: value.shift ?? 'Day',
+    completedAt: value.completedAt ?? new Date().toISOString(),
+    completedBy: value.completedBy ?? '',
+  };
+}
+
 function normalizeTravelRequest(value: Partial<TravelRequest>): TravelRequest {
   const now = new Date().toISOString();
   return {
@@ -111,7 +146,8 @@ export function loadState(): BravoShiftState {
     return {
       veterans: (parsed.veterans ?? []).map(normalizeVeteran),
       appointments: (parsed.appointments ?? []).map(normalizeAppointment),
-      treatments: parsed.treatments ?? [],
+      treatments: (parsed.treatments ?? []).map(normalizeTreatment),
+      treatmentCompletions: (parsed.treatmentCompletions ?? []).map(normalizeTreatmentCompletion),
       travelRequests: (parsed.travelRequests ?? []).map(normalizeTravelRequest),
       shiftAssignments: parsed.shiftAssignments ?? [],
       staffAssignmentRecords: (parsed.staffAssignmentRecords ?? []).map(normalizeStaffAssignment),

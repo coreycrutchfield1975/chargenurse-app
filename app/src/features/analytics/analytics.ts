@@ -1,4 +1,5 @@
 import type { BravoShiftState } from '../../types/domain';
+import { expectedShifts, localDateKey, treatmentDueOn } from '../treatments/treatmentSelectors';
 
 export type TrendPoint = { label: string; value: number };
 export type ExecutiveAnalytics = {
@@ -27,14 +28,18 @@ export function buildExecutiveAnalytics(state: BravoShiftState): ExecutiveAnalyt
   const completedAppointments = state.appointments.filter((a) => a.status === 'Completed').length;
   const completedTransports = state.travelRequests.filter((t) => t.status === 'Completed').length;
   const failedTransports = state.travelRequests.filter((t) => t.status === 'Failed').length;
-  const completedTreatments = state.treatments.filter((t) => Boolean(t.completedAt)).length;
+  const today = localDateKey();
+  const scheduledTreatments = state.treatments.filter((t) => treatmentDueOn(t, today));
+  const expectedTreatmentCompletions = scheduledTreatments.reduce((sum, t) => sum + expectedShifts(t).length, 0);
+  const treatmentIds = new Set(scheduledTreatments.map(t => t.id));
+  const completedTreatments = state.treatmentCompletions.filter(c => c.completionDate === today && treatmentIds.has(c.treatmentId)).length;
   const staffed = state.staffAssignmentRecords.filter((s) => !['Called Off'].includes(s.status)).length;
   const expectedStaff = Math.max(state.staffAssignmentRecords.length, 1);
   const documented = state.morningReportNotes.filter((n) => n.text.trim().length > 0).length;
 
   const appointmentCompletionRate = pct(completedAppointments, state.appointments.length);
   const transportSuccessRate = pct(completedTransports, completedTransports + failedTransports);
-  const treatmentCompletionRate = pct(completedTreatments, state.treatments.length);
+  const treatmentCompletionRate = pct(completedTreatments, expectedTreatmentCompletions);
   const staffingFillRate = pct(staffed, expectedStaff);
   const documentationRate = pct(documented, Math.max(state.morningReportNotes.length, 1));
 
