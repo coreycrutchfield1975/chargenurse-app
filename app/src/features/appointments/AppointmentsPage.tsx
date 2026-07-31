@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Appointment, AppointmentStatus, TravelRequestStatus, Veteran } from '../../types/domain';
+import type { Appointment, AppointmentStatus, ManagedLists, TravelRequestStatus, Veteran } from '../../types/domain';
 import { AppointmentForm } from './AppointmentForm';
 
 interface Props {
@@ -7,9 +7,10 @@ interface Props {
   appointments: Appointment[];
   onSave: (appointment: Appointment) => void;
   initialEdit?: Appointment;
+  lists: ManagedLists;
 }
 
-export function AppointmentsPage({ veterans, appointments, onSave, initialEdit }: Props) {
+export function AppointmentsPage({ veterans, appointments, onSave, initialEdit, lists }: Props) {
   const [editing, setEditing] = useState<Appointment | null | undefined>(initialEdit);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<AppointmentStatus | ''>('');
@@ -29,7 +30,7 @@ export function AppointmentsPage({ veterans, appointments, onSave, initialEdit }
   }).sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`)), [appointments, from, search, status, to, travel, veteranMap]);
 
   if (editing !== undefined) {
-    return <AppointmentForm appointment={editing ?? undefined} veterans={veterans} appointments={appointments} onSave={(value) => { onSave(value); setEditing(undefined); }} onCancel={() => setEditing(undefined)} />;
+    return <AppointmentForm appointment={editing ?? undefined} veterans={veterans} appointments={appointments} onSave={(value) => { onSave(value); setEditing(undefined); }} onCancel={() => setEditing(undefined)} lists={lists} />;
   }
 
   const today = new Date().toISOString().slice(0, 10);

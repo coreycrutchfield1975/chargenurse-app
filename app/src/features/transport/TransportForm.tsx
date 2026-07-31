@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Appointment, MobilityMode, TransportStatus, TravelRequest, Veteran } from '../../types/domain';
+import type { Appointment, MobilityMode, TransportStatus, TravelRequest, Veteran, ManagedLists } from '../../types/domain';
 
 const statuses: TransportStatus[] = ['Draft','Pending','Confirmed','En Route','At Destination','Awaiting Return','Completed','Failed','Cancelled'];
 const mobility: MobilityMode[] = ['Ambulatory','Wheelchair','Stretcher','Bariatric'];
 
-export function TransportForm({ veterans, appointments, initial, onSave, onCancel }:{veterans:Veteran[];appointments:Appointment[];initial?:TravelRequest;onSave:(r:TravelRequest)=>void;onCancel:()=>void}) {
+export function TransportForm({ veterans, appointments, initial, onSave, onCancel, lists }:{veterans:Veteran[];appointments:Appointment[];initial?:TravelRequest;onSave:(r:TravelRequest)=>void;onCancel:()=>void;lists:ManagedLists}) {
   const now = new Date().toISOString();
   const [form,setForm]=useState<TravelRequest>(initial ?? {id:crypto.randomUUID(),veteranId:'',appointmentId:'',status:'Draft',transportMode:'VA Transport',mobilityMode:'Ambulatory',pickupTime:'',estimatedReturn:'',returnPickupTime:'',driver:'',escortRequired:false,escortName:'',oxygenRequired:false,oxygenDetails:'',destinationContact:'',sendingNurse:'',receivingStaff:'',returnedToUnitBy:'',notes:'',createdAt:now,updatedAt:now});
   const [error,setError]=useState('');
@@ -18,8 +18,8 @@ export function TransportForm({ veterans, appointments, initial, onSave, onCance
       <label>Veteran<select value={form.veteranId} onChange={e=>{set('veteranId',e.target.value);set('appointmentId','')}}><option value="">Select Veteran</option>{veterans.filter(v=>v.status!=='Discharged / Archived').map(v=><option key={v.id} value={v.id}>{v.room} — {v.name}</option>)}</select></label>
       <label>Linked Appointment<select value={form.appointmentId} onChange={e=>set('appointmentId',e.target.value)}><option value="">No linked appointment</option>{selectedAppointments.map(a=><option key={a.id} value={a.id}>{a.date} {a.time} — {a.destination||a.reason}</option>)}</select></label>
       <label>Status<select value={form.status} onChange={e=>set('status',e.target.value as TransportStatus)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label>
-      <label>Transport Mode<select value={form.transportMode} onChange={e=>set('transportMode',e.target.value)}><option>VA Transport</option><option>Ambulance</option><option>Family Transport</option><option>Private Vehicle</option><option>Facility Vehicle</option></select></label>
-      <label>Mobility<select value={form.mobilityMode} onChange={e=>set('mobilityMode',e.target.value as MobilityMode)}>{mobility.map(m=><option key={m}>{m}</option>)}</select></label>
+      <label>Transport Mode<select value={form.transportMode} onChange={e=>set('transportMode',e.target.value)}><option value="">Select…</option>{lists.transportationModes.map(v=><option key={v}>{v}</option>)}</select></label>
+      <label>Mobility<select value={form.mobilityMode} onChange={e=>set('mobilityMode',e.target.value as MobilityMode)}>{lists.mobilityOptions.map(v=><option key={v}>{v}</option>)}</select></label>
       <label>Pickup Time<input type="datetime-local" value={form.pickupTime} onChange={e=>set('pickupTime',e.target.value)}/></label>
       <label>Estimated Return<input type="datetime-local" value={form.estimatedReturn} onChange={e=>set('estimatedReturn',e.target.value)}/></label>
       <label>Return Pickup<input type="datetime-local" value={form.returnPickupTime} onChange={e=>set('returnPickupTime',e.target.value)}/></label>

@@ -5,7 +5,7 @@ export type VeteranStatus =
   | 'Hospital'
   | 'Discharged / Archived';
 
-export type FallRisk = 'Low' | 'Moderate' | 'High' | '';
+export type FallRisk = string;
 
 export interface Veteran {
   id: string;
@@ -63,7 +63,7 @@ export interface Appointment {
 }
 
 export type TransportStatus = 'Draft' | 'Pending' | 'Confirmed' | 'En Route' | 'At Destination' | 'Awaiting Return' | 'Completed' | 'Failed' | 'Cancelled';
-export type MobilityMode = 'Ambulatory' | 'Wheelchair' | 'Stretcher' | 'Bariatric';
+export type MobilityMode = string;
 
 export interface TravelRequest {
   id: string;
@@ -127,6 +127,13 @@ export interface ShiftAssignment {
   shift: 'Day' | 'Night';
 }
 
+export type ManagedListKey =
+  | 'specialties' | 'medicationMethods' | 'diets' | 'isolationTypes'
+  | 'assistLevels' | 'mobilityOptions' | 'fallRiskLevels' | 'toiletingOptions'
+  | 'transportationModes' | 'appointmentReasons' | 'facilities' | 'treatmentTypes';
+
+export type ManagedLists = Record<ManagedListKey, string[]>;
+
 export interface BravoShiftState {
   veterans: Veteran[];
   appointments: Appointment[];
@@ -136,10 +143,7 @@ export interface BravoShiftState {
   shiftAssignments: ShiftAssignment[];
   staffAssignmentRecords: StaffAssignmentRecord[];
   morningReportNotes: MorningReportNote[];
-  notifications: NotificationRecord[];
-  messages: StaffMessage[];
-  broadcasts: ShiftBroadcast[];
-  reminders: TaskReminder[];
+  managedLists: ManagedLists;
 }
 
 export interface MorningReportNote {
@@ -177,56 +181,3 @@ export interface StaffAssignmentRecord {
 }
 
 
-export type CommunicationPriority = 'Routine' | 'Important' | 'Urgent' | 'STAT';
-export type CommunicationCategory = 'Clinical' | 'Transportation' | 'Staffing' | 'Administrative';
-export type NotificationStatus = 'Unread' | 'Read' | 'Acknowledged' | 'Completed' | 'Escalated';
-
-export interface NotificationRecord {
-  id: string;
-  title: string;
-  details: string;
-  category: CommunicationCategory;
-  priority: CommunicationPriority;
-  status: NotificationStatus;
-  veteranId?: string;
-  assignedTo: string;
-  source: string;
-  escalationLevel: number;
-  createdAt: string;
-  updatedAt: string;
-  dueAt?: string;
-}
-
-export interface StaffMessage {
-  id: string;
-  from: string;
-  to: string;
-  subject: string;
-  body: string;
-  priority: CommunicationPriority;
-  veteranId?: string;
-  read: boolean;
-  createdAt: string;
-}
-
-export interface ShiftBroadcast {
-  id: string;
-  title: string;
-  message: string;
-  shift: StaffShift | 'All';
-  priority: CommunicationPriority;
-  active: boolean;
-  expiresAt?: string;
-  createdAt: string;
-}
-
-export interface TaskReminder {
-  id: string;
-  title: string;
-  assignedTo: string;
-  dueAt: string;
-  veteranId?: string;
-  category: CommunicationCategory;
-  completed: boolean;
-  createdAt: string;
-}

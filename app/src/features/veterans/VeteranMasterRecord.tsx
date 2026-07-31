@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Veteran } from '../../types/domain';
+import type { ManagedLists, Veteran } from '../../types/domain';
 import { VeteranForm } from './VeteranForm';
 
 interface VeteranMasterRecordProps {
@@ -7,6 +7,7 @@ interface VeteranMasterRecordProps {
   onSave: (veteran: Veteran) => void;
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
+  lists: ManagedLists;
 }
 
 type RecordFilter = 'active' | 'archived' | 'all';
@@ -19,7 +20,7 @@ function daysOnUnit(admissionDate: string): number | '—' {
   return Math.max(0, Math.floor(milliseconds / 86_400_000));
 }
 
-export function VeteranMasterRecord({ veterans, onSave, onArchive, onRestore }: VeteranMasterRecordProps) {
+export function VeteranMasterRecord({ veterans, onSave, onArchive, onRestore, lists }: VeteranMasterRecordProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<RecordFilter>('active');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export function VeteranMasterRecord({ veterans, onSave, onArchive, onRestore }: 
   }
 
   if (formOpen) {
-    return <VeteranForm veteran={editingVeteran} veterans={veterans} onSave={save} onCancel={() => setFormOpen(false)} />;
+    return <VeteranForm veteran={editingVeteran} veterans={veterans} onSave={save} onCancel={() => setFormOpen(false)} lists={lists} />;
   }
 
   const activeCount = veterans.filter((veteran) => veteran.status !== 'Discharged / Archived').length;

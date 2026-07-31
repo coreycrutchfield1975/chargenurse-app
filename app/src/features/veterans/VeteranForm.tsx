@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import type { FallRisk, Veteran, VeteranStatus } from '../../types/domain';
+import type { Veteran, VeteranStatus, ManagedLists } from '../../types/domain';
 
 interface VeteranFormProps {
   veteran?: Veteran;
   veterans: Veteran[];
   onSave: (veteran: Veteran) => void;
   onCancel: () => void;
+  lists: ManagedLists;
 }
 
 type VeteranDraft = Omit<Veteran, 'id' | 'createdAt' | 'updatedAt' | 'archivedAt'>;
@@ -35,7 +36,7 @@ function draftFromVeteran(veteran?: Veteran): VeteranDraft {
   return draft;
 }
 
-export function VeteranForm({ veteran, veterans, onSave, onCancel }: VeteranFormProps) {
+export function VeteranForm({ veteran, veterans, onSave, onCancel, lists }: VeteranFormProps) {
   const [draft, setDraft] = useState<VeteranDraft>(() => draftFromVeteran(veteran));
   const [submitted, setSubmitted] = useState(false);
 
@@ -138,22 +139,17 @@ export function VeteranForm({ veteran, veterans, onSave, onCancel }: VeteranForm
           </select>
         </label>
         <label>Provider<input value={draft.provider} onChange={(e) => update('provider', e.target.value)} /></label>
-        <label>Specialty<input value={draft.specialty} onChange={(e) => update('specialty', e.target.value)} /></label>
+        <label>Specialty<select value={draft.specialty} onChange={(e)=>update('specialty',e.target.value)}><option value="">Select…</option>{lists.specialties.map(v=><option key={v}>{v}</option>)}</select></label>
         <label>Code status<input value={draft.codeStatus} onChange={(e) => update('codeStatus', e.target.value)} /></label>
 
-        <label>Mobility<input value={draft.mobility} onChange={(e) => update('mobility', e.target.value)} /></label>
-        <label>
-          Fall risk
-          <select value={draft.fallRisk} onChange={(e) => update('fallRisk', e.target.value as FallRisk)}>
-            <option value="">Not entered</option><option>Low</option><option>Moderate</option><option>High</option>
-          </select>
-        </label>
-        <label>Medication method<input value={draft.medicationMethod} onChange={(e) => update('medicationMethod', e.target.value)} /></label>
-        <label>Diet<input value={draft.diet} onChange={(e) => update('diet', e.target.value)} /></label>
+        <label>Mobility<select value={draft.mobility} onChange={(e)=>update('mobility',e.target.value)}><option value="">Select…</option>{lists.mobilityOptions.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Fall risk<select value={draft.fallRisk} onChange={(e)=>update('fallRisk',e.target.value as Veteran['fallRisk'])}><option value="">Select…</option>{lists.fallRiskLevels.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Medication method<select value={draft.medicationMethod} onChange={(e)=>update('medicationMethod',e.target.value)}><option value="">Select…</option>{lists.medicationMethods.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Diet<select value={draft.diet} onChange={(e)=>update('diet',e.target.value)}><option value="">Select…</option>{lists.diets.map(v=><option key={v}>{v}</option>)}</select></label>
 
-        <label>Isolation<input value={draft.isolation} onChange={(e) => update('isolation', e.target.value)} /></label>
-        <label>Assist level<input value={draft.assistLevel} onChange={(e) => update('assistLevel', e.target.value)} /></label>
-        <label>Toileting<input value={draft.toileting} onChange={(e) => update('toileting', e.target.value)} /></label>
+        <label>Isolation<select value={draft.isolation} onChange={(e)=>update('isolation',e.target.value)}><option value="">Select…</option>{lists.isolationTypes.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Assist level<select value={draft.assistLevel} onChange={(e)=>update('assistLevel',e.target.value)}><option value="">Select…</option>{lists.assistLevels.map(v=><option key={v}>{v}</option>)}</select></label>
+        <label>Toileting<select value={draft.toileting} onChange={(e)=>update('toileting',e.target.value)}><option value="">Select…</option>{lists.toiletingOptions.map(v=><option key={v}>{v}</option>)}</select></label>
         <label className="full-width">Clinical/shift notes<textarea value={draft.notes} onChange={(e) => update('notes', e.target.value)} rows={4} /></label>
       </div>
 

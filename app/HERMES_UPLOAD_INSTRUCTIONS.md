@@ -1,28 +1,7 @@
-# Hermes Upload Instructions — BravoShift 2.11 Treatments
+# Hermes Upload Instructions
 
-Start from the branch containing BravoShift 2.10 Administration & Reporting. Replace the application files with this package or copy the treatment feature changes into the current branch.
+Branch: `agent/bravoshift-v2-v18-scope-correction`
+Commit: `Restore exact v1.8 scope and managed dropdowns`
+PR: `BravoShift v2 v1.8 Scope Correction`
 
-## Git
-
-- Branch: `agent/bravoshift-2-treatments`
-- Commit: `Add React Treatments module`
-- PR title: `BravoShift 2.11 Treatments`
-
-## Validate
-
-```bash
-cd app
-npm install
-npm run build
-npm run dev
-```
-
-Confirm:
-1. Treatments appears in navigation.
-2. Create licensed and non-licensed treatments.
-3. Daily, Weekly, As Scheduled, and PRN schedules persist after reload.
-4. Day/Night/Both completions can be marked and undone.
-5. Overdue status appears based on selected work date and shift cutoff.
-6. Treatments archive and restore.
-7. Administration JSON export/restore includes `treatments` and `treatmentCompletions`.
-8. No network, backend, API, database, Supabase, or .NET dependency is introduced.
+Replace the current app contents with this package. Run `npm install`, `npm run build`, and `npm run dev`. Confirm exactly nine navigation tabs and test adding/removing a Managed List value, then verify it appears in the appropriate form dropdown.

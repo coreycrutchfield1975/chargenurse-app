@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ScheduledDay, Treatment, Veteran } from '../../types/domain';
+import type { ScheduledDay, Treatment, Veteran, ManagedLists } from '../../types/domain';
 import { localDateKey } from './treatmentSelectors';
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
   treatment?: Treatment;
   onSave: (treatment: Treatment) => void;
   onCancel: () => void;
+  lists: ManagedLists;
 }
 
 const DAYS: ScheduledDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -16,7 +17,7 @@ function blankTreatment(): Treatment {
   return { id: crypto.randomUUID(), veteranId: '', name: '', category: 'Licensed', frequency: 'Daily', shift: 'Day', startDate: localDateKey(), endDate: '', scheduledDays: [], instructions: '', notes: '', active: true, createdAt: now, updatedAt: now };
 }
 
-export function TreatmentForm({ veterans, treatment, onSave, onCancel }: Props) {
+export function TreatmentForm({ veterans, treatment, onSave, onCancel, lists }: Props) {
   const [draft, setDraft] = useState<Treatment>(() => treatment ? { ...treatment } : blankTreatment());
   const [error, setError] = useState('');
   useEffect(() => setDraft(treatment ? { ...treatment } : blankTreatment()), [treatment]);
@@ -36,7 +37,7 @@ export function TreatmentForm({ veterans, treatment, onSave, onCancel }: Props) 
     {error && <div className="form-alert">{error}</div>}
     <div className="form-grid">
       <label>Veteran *<select value={draft.veteranId} onChange={e=>set('veteranId',e.target.value)}><option value="">Select Veteran</option>{activeVeterans.map(v=><option key={v.id} value={v.id}>Room {v.room} — {v.name}</option>)}</select></label>
-      <label>Treatment *<input value={draft.name} onChange={e=>set('name',e.target.value)} placeholder="Wound care, Foley care, ROM..." /></label>
+      <label>Treatment *<select value={draft.name} onChange={e=>set('name',e.target.value)}><option value="">Select…</option>{lists.treatmentTypes.map(v=><option key={v}>{v}</option>)}</select></label>
       <label>Category<select value={draft.category} onChange={e=>set('category',e.target.value as Treatment['category'])}><option>Licensed</option><option>Non-Licensed</option></select></label>
       <label>Frequency<select value={draft.frequency} onChange={e=>set('frequency',e.target.value as Treatment['frequency'])}><option>Daily</option><option>Weekly</option><option>As Scheduled</option><option>PRN</option></select></label>
       <label>Shift Assignment<select value={draft.shift} onChange={e=>set('shift',e.target.value as Treatment['shift'])}><option>Day</option><option>Night</option><option>Both</option></select></label>
