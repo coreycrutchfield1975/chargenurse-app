@@ -10,6 +10,7 @@ import { MorningReportPage } from './features/morning-report/MorningReportPage';
 import { ShiftIntelligencePage } from './features/shift-intelligence/ShiftIntelligencePage';
 import { ExecutiveAnalyticsPage } from './features/analytics/ExecutiveAnalyticsPage';
 import { CommunicationHubPage } from './features/communications/CommunicationHubPage';
+import { AdministrationReportingPage } from './features/admin/AdministrationReportingPage';
 import { loadState, saveState } from './lib/storage';
 import type { Appointment, BravoShiftState, MorningReportNote, NotificationRecord, ShiftBroadcast, StaffAssignmentRecord, StaffMessage, TaskReminder, TravelRequest, Veteran } from './types/domain';
 
@@ -34,6 +35,8 @@ export default function App() {
   function upsertMessage(item: StaffMessage) { setState(current => ({...current, messages: current.messages.some(x=>x.id===item.id)?current.messages.map(x=>x.id===item.id?item:x):[...current.messages,item]})); }
   function upsertBroadcast(item: ShiftBroadcast) { setState(current => ({...current, broadcasts: current.broadcasts.some(x=>x.id===item.id)?current.broadcasts.map(x=>x.id===item.id?item:x):[...current.broadcasts,item]})); }
   function upsertReminder(item: TaskReminder) { setState(current => ({...current, reminders: current.reminders.some(x=>x.id===item.id)?current.reminders.map(x=>x.id===item.id?item:x):[...current.reminders,item]})); }
+  function replaceState(nextState: BravoShiftState) { setState(nextState); }
+  function deleteVeteranPermanently(id: string) { setState((current) => ({ ...current, veterans: current.veterans.filter((veteran) => veteran.id !== id) })); }
   function upsertAppointment(appointment: Appointment) { setState((current) => ({ ...current, appointments: current.appointments.some((item) => item.id === appointment.id) ? current.appointments.map((item) => item.id === appointment.id ? appointment : item) : [...current.appointments, appointment] })); setCalendarEdit(undefined); }
 
   let content;
@@ -46,7 +49,8 @@ export default function App() {
   else if (activePage === 'morning-report') content = <MorningReportPage state={state} notes={state.morningReportNotes} onSaveNote={upsertMorningNote} onRemoveNote={removeMorningNote} />;
   else if (activePage === 'shift-intelligence') content = <ShiftIntelligencePage state={state} />;
   else if (activePage === 'analytics') content = <ExecutiveAnalyticsPage state={state} />;
-  else content = <CommunicationHubPage veterans={state.veterans} notifications={state.notifications} messages={state.messages} broadcasts={state.broadcasts} reminders={state.reminders} onSaveNotification={upsertNotification} onSaveMessage={upsertMessage} onSaveBroadcast={upsertBroadcast} onSaveReminder={upsertReminder} />;
+  else if (activePage === 'communications') content = <CommunicationHubPage veterans={state.veterans} notifications={state.notifications} messages={state.messages} broadcasts={state.broadcasts} reminders={state.reminders} onSaveNotification={upsertNotification} onSaveMessage={upsertMessage} onSaveBroadcast={upsertBroadcast} onSaveReminder={upsertReminder} />;
+  else content = <AdministrationReportingPage state={state} onReplaceState={replaceState} onRestoreVeteran={restoreVeteran} onDeleteVeteran={deleteVeteranPermanently} />;
 
   return <AppShell activePage={activePage} onNavigate={(page) => { setCalendarEdit(undefined); setActivePage(page); }}>{content}</AppShell>;
 }

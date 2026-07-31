@@ -1,21 +1,41 @@
-# Hermes Upload Instructions — BravoShift 2.9
+# Hermes Upload Instructions — BravoShift 2.10
 
-1. Start from the branch that contains BravoShift 2.8 Clinical Analytics.
-2. Create branch: `agent/bravoshift-2-notifications`
-3. Replace the current app source with this package, preserving any environment-specific configuration that is not represented here.
-4. Run:
-   ```bash
-   npm install
-   npm run build
-   npm run dev
-   ```
-5. Validate:
-   - Communication Hub appears in navigation.
-   - Alerts can be created and moved through Read, Acknowledged, Completed, and Escalated states.
-   - Messages, broadcasts, and reminders persist after refresh.
-   - Overdue reminders update the dashboard count.
-   - Print Communication Report opens a clean print view.
-6. Commit: `Add Notifications and Communication Hub`
-7. PR title: `BravoShift 2.9 Notifications & Communication Hub`
+## Branch
 
-Do not use real PHI during development or testing.
+`agent/bravoshift-2-administration-reporting`
+
+## Commit
+
+`Add client-side Administration and Reporting module`
+
+## PR title
+
+`BravoShift 2.10 Administration & Reporting`
+
+## Base
+
+Start from the branch containing BravoShift 2.9 Communication Hub. Replace the current application files with this package or copy the changed files.
+
+## Architecture constraint
+
+Do not add Supabase, .NET, Node APIs, server routes, cloud databases, or other backend dependencies. This module must remain a static client-side application using browser `localStorage` and user-initiated JSON import/export only.
+
+## Validation
+
+```bash
+cd app
+npm install
+npm run build
+npm run dev
+```
+
+Verify:
+
+1. Administration appears in navigation.
+2. Integrity checker loads and reports findings.
+3. JSON backup downloads successfully.
+4. Replace and merge restore modes accept a BravoShift backup.
+5. A local snapshot is created before restore.
+6. Archived Veterans can be restored.
+7. Permanent deletion is blocked while linked records exist.
+8. Refreshing the browser preserves application data and version history.

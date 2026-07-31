@@ -1,22 +1,24 @@
-# BravoShift 2.9 — Notifications & Communication Hub
+# BravoShift 2.10 — Administration & Reporting
 
-A React + TypeScript continuation of BravoShift 2.8. This package adds a unified operational communication workspace.
+A static React + TypeScript module that preserves BravoShift's browser-only architecture. It uses `localStorage` for operational data and JSON files for portable backup and restore.
 
-## Features
+## Included
 
-- Prioritized notifications: Routine, Important, Urgent, and STAT
-- Clinical, transportation, staffing, and administrative queues
-- Read, acknowledge, complete, and escalate workflow
-- Internal staff messaging linked to Veterans when appropriate
-- Shift broadcasts for Day, Evening, Night, or All shifts
-- Task reminders with due-date and overdue detection
-- Communication dashboard metrics
-- Printable communication report
-- Browser persistence using the existing BravoShift state store
+- Data integrity checker
+- Required-field and orphaned-reference detection
+- Duplicate detection across Veterans, appointments, travel, staffing, and notifications
+- Archived Veteran record manager
+- Full JSON backup download
+- JSON restore with replace or merge mode
+- Automatic pre-restore snapshots
+- Local version history (latest 20 snapshots)
+- Downloadable administrative report
+- Browser storage-size monitoring
+- No backend, API, Supabase, .NET, or database dependencies
 
-## Development safety
+## Important limitation
 
-This package is a prototype. Do not enter real Veteran information, PHI, credentials, or operational secrets until authentication, encryption, audit logging, backend access controls, and organizational security review are complete.
+Browser storage is device- and browser-specific. Clearing site data, changing browsers, using private browsing, or device failure can remove local records. Download regular JSON backups and store them only in an approved secure location.
 
 ## Run
 
