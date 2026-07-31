@@ -1,15 +1,16 @@
-# BravoShift 2.4 — Transportation & Ticket to Ride
+# BravoShift 2.5 — Staff Assignments & Shift Coverage
 
-React + TypeScript migration package adding a connected transportation workflow to the Veteran Master Record and Appointments modules.
+This package extends the BravoShift React/TypeScript migration with a working staffing and coverage module.
 
 ## Included
-- Travel request creation and editing
-- Veteran and appointment linking
-- Pickup, return, driver, escort, oxygen, and status tracking
-- Transportation dashboard metrics
-- Off-unit and awaiting-return visibility
-- Search and status filters
-- Printable Ticket to Ride handoff
-- Local-storage persistence compatible with prior BravoShift 2 packages
+- Day, evening, and night shift assignments
+- RN, LPN, CNA, charge nurse, unit clerk, and other roles
+- Veteran-to-staff workload assignment
+- Licensed and non-licensed treatment responsibility
+- Charge nurse coverage detection
+- Uncovered Veteran alerts
+- Called-off and present status tracking
+- Shift handoff notes
+- Persistent browser storage
 
-This remains a public prototype. Do not enter PHI or real Veteran data.
+This remains a fictional-data development build. Do not enter PHI.

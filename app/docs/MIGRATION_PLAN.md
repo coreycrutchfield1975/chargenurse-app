@@ -1,16 +1,5 @@
-# Migration Plan — Transportation
+# Migration Plan — Module 5
 
-This package extends the React/TypeScript migration without altering the archived v1.8 prototype.
+Staff Assignments is implemented as a typed feature module while preserving the earlier Veteran, Appointment, Calendar, and Transportation modules.
 
-## Data additions
-`BravoShiftState.travelRequests` stores normalized travel records linked by `veteranId` and optional `appointmentId`.
-
-## Workflow
-Draft → Pending → Confirmed → En Route → At Destination → Awaiting Return → Completed.
-Failed and Cancelled remain visible for audit-oriented prototype history.
-
-## Next integration
-- Synchronize transport state changes with Veteran off-unit status.
-- Add treatment-conflict alerts.
-- Feed missed/late returns into Morning Report Intelligence.
-- Replace local storage with Supabase after authentication and authorization are established.
+Next recommended module: Treatments & MAR Intelligence, followed by Morning Report Intelligence. Staff workload data is already structured so those modules can calculate licensed/non-licensed coverage and assignment gaps.

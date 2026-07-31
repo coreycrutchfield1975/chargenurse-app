@@ -112,4 +112,28 @@ export interface BravoShiftState {
   treatments: Treatment[];
   travelRequests: TravelRequest[];
   shiftAssignments: ShiftAssignment[];
+  staffAssignmentRecords: StaffAssignmentRecord[];
+}
+
+export type StaffRole = 'RN' | 'LPN' | 'CNA' | 'Charge Nurse' | 'Unit Clerk' | 'Other';
+export type StaffShift = 'Day' | 'Evening' | 'Night';
+export type AssignmentStatus = 'Scheduled' | 'Present' | 'Break' | 'Off Unit' | 'Called Off' | 'Completed';
+
+export interface StaffAssignmentRecord {
+  id: string;
+  staffName: string;
+  role: StaffRole;
+  shift: StaffShift;
+  assignmentDate: string;
+  status: AssignmentStatus;
+  zone: string;
+  veteranIds: string[];
+  treatmentCategories: Array<'Licensed' | 'Non-licensed'>;
+  isChargeNurse: boolean;
+  startTime: string;
+  endTime: string;
+  phoneExtension: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
 }

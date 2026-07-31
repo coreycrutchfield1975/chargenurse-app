@@ -1,4 +1,4 @@
-import type { Appointment, BravoShiftState, TravelRequest, Veteran } from '../types/domain';
+import type { Appointment, BravoShiftState, StaffAssignmentRecord, TravelRequest, Veteran } from '../types/domain';
 
 const STORAGE_KEY = 'bravoshift.v2.state';
 
@@ -8,6 +8,7 @@ export const emptyState: BravoShiftState = {
   treatments: [],
   travelRequests: [],
   shiftAssignments: [],
+  staffAssignmentRecords: [],
 };
 
 function normalizeVeteran(value: Partial<Veteran>): Veteran {
@@ -71,6 +72,17 @@ function normalizeTravelRequest(value: Partial<TravelRequest>): TravelRequest {
   };
 }
 
+function normalizeStaffAssignment(value: Partial<StaffAssignmentRecord>): StaffAssignmentRecord {
+  const now = new Date().toISOString();
+  return {
+    id: value.id ?? crypto.randomUUID(), staffName: value.staffName ?? '', role: value.role ?? 'CNA',
+    shift: value.shift ?? 'Day', assignmentDate: value.assignmentDate ?? '', status: value.status ?? 'Scheduled',
+    zone: value.zone ?? '', veteranIds: value.veteranIds ?? [], treatmentCategories: value.treatmentCategories ?? [],
+    isChargeNurse: value.isChargeNurse ?? false, startTime: value.startTime ?? '', endTime: value.endTime ?? '',
+    phoneExtension: value.phoneExtension ?? '', notes: value.notes ?? '', createdAt: value.createdAt ?? now, updatedAt: value.updatedAt ?? now,
+  };
+}
+
 export function loadState(): BravoShiftState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -82,6 +94,7 @@ export function loadState(): BravoShiftState {
       treatments: parsed.treatments ?? [],
       travelRequests: (parsed.travelRequests ?? []).map(normalizeTravelRequest),
       shiftAssignments: parsed.shiftAssignments ?? [],
+      staffAssignmentRecords: (parsed.staffAssignmentRecords ?? []).map(normalizeStaffAssignment),
     };
   } catch {
     return emptyState;
