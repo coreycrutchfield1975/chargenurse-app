@@ -49,17 +49,21 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
  .printsheet{border:0;margin:0;padding:0}.printcard{break-inside:avoid}.landscape{size:landscape;margin:.35in}
 }
 tr.archived{opacity:.55} tr.archived td{text-decoration:none}
-/* USWDS */
-body{font-family:Source Sans Pro,Segoe UI,Arial,sans-serif}
-header{background:#112e51;border-bottom:4px solid #fdb81e}
-nav button{color:#3d4551;font-size:.9rem}
-nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
-.card,.panel{border:1px solid #dfe1e2;border-radius:8px}
-.stat b{color:#112e51}
-button.primary{border-radius:6px;font-weight:700}
-.warning{background:#fff4cf;border-left:6px solid #fdb81e;border-radius:8px}
+/* USWDS + full color palette overrides */
+body{font-family:'Source Sans Pro','Segoe UI',Arial,sans-serif}
+/* Keep the rainbow header */
+header{background:linear-gradient(100deg,var(--navy),var(--blue),var(--purple),var(--pink))!important;border-bottom:4px solid var(--yellow)}
+nav{background:var(--white);border-bottom:1px solid var(--line)}
+nav button{color:var(--ink);font-size:.9rem;font-weight:700}
+nav button.active{color:var(--blue);border-bottom-color:var(--blue);background:#f0f7ff}
+.card,.panel{border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}
+.stat b{color:var(--navy)}
+button.primary{border-radius:7px;font-weight:800}
+.alert{border-radius:10px}
+.warning{background:#fff4cf;border-left:6px solid var(--yellow);font-weight:700;border-radius:10px}
+.badge{font-weight:700}
 @page{size:landscape;margin:.3in}
-@media print{body{background:#fff;font-size:12px}}
+@media print{body{background:var(--white);font-size:12px}}
 </style>
 </head>
 <body>
