@@ -8,6 +8,7 @@ import { StaffAssignmentsPage } from './features/staff/StaffAssignmentsPage';
 import { VeteranMasterRecord } from './features/veterans/VeteranMasterRecord';
 import { MorningReportPage } from './features/morning-report/MorningReportPage';
 import { ShiftIntelligencePage } from './features/shift-intelligence/ShiftIntelligencePage';
+import { ExecutiveAnalyticsPage } from './features/analytics/ExecutiveAnalyticsPage';
 import { loadState, saveState } from './lib/storage';
 import type { Appointment, BravoShiftState, MorningReportNote, StaffAssignmentRecord, TravelRequest, Veteran } from './types/domain';
 
@@ -38,7 +39,8 @@ export default function App() {
   else if (activePage === 'transport') content = <TransportPage veterans={state.veterans} appointments={state.appointments} travelRequests={state.travelRequests} onSave={upsertTravelRequest} />;
   else if (activePage === 'staff') content = <StaffAssignmentsPage veterans={state.veterans} assignments={state.staffAssignmentRecords} onSave={upsertStaffAssignment} onRemove={removeStaffAssignment} />;
   else if (activePage === 'morning-report') content = <MorningReportPage state={state} notes={state.morningReportNotes} onSaveNote={upsertMorningNote} onRemoveNote={removeMorningNote} />;
-  else content = <ShiftIntelligencePage state={state} />;
+  else if (activePage === 'shift-intelligence') content = <ShiftIntelligencePage state={state} />;
+  else content = <ExecutiveAnalyticsPage state={state} />;
 
   return <AppShell activePage={activePage} onNavigate={(page) => { setCalendarEdit(undefined); setActivePage(page); }}>{content}</AppShell>;
 }

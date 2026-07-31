@@ -1,28 +1,24 @@
-# BravoShift 2.7 — Shift Intelligence Engine
+# BravoShift 2.8 — Clinical Analytics & Executive Dashboard
 
-A React + TypeScript continuation of BravoShift 2.6 that turns existing operational data into a prioritized shift forecast.
+This package extends BravoShift 2.7 with a leadership analytics module built from the existing local application state.
 
-## Added in 2.7
+## Added
+- Composite BravoShift Quality Score
+- Active census, hospitalization, fall-risk, and isolation KPIs
+- Appointment completion rate
+- Transport success rate
+- Treatment completion rate
+- Staffing fill rate
+- Documentation completion rate
+- Seven-day appointment, transport, and staffing charts
+- Automated executive alerts
+- Target-versus-actual quality table
+- Printable Executive Brief
 
-- Shift readiness score
-- Workload-pressure calculation
-- Staffing-readiness calculation
-- Predicted shift-completion probability
-- Coverage-gap detection
-- Charge-nurse validation
-- Licensed-treatment coverage risk
-- Treatment backlog detection
-- Appointment congestion forecasting
-- Transportation risk detection
-- Prioritized charge-nurse recommendations
-- Printable intelligence brief
+## Privacy
+This development build uses browser storage. Do not enter PHI or real Veteran information.
 
-## Safety
-
-This is a development prototype. Do not enter real Veteran information or PHI. The intelligence engine is operational decision support and does not replace clinical judgment, policy, staffing standards, or emergency procedures.
-
-## Run
-
+## Validate
 ```bash
 npm install
 npm run build
