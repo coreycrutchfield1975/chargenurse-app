@@ -157,7 +157,7 @@ function groupDuplicates<T extends { id: string }>(
 export function findDuplicates(state: BravoShiftState): DuplicateGroup[] {
   const allIdGroups: DuplicateGroup[] = [];
   const idCollections: Array<keyof BravoShiftState> = [
-    'veterans', 'appointments', 'treatments', 'travelRequests', 'staffAssignmentRecords',
+    'veterans', 'appointments', 'treatments', 'treatmentCompletions', 'travelRequests', 'staffAssignmentRecords',
     'morningReportNotes', 'notifications', 'messages', 'broadcasts', 'reminders',
   ];
   idCollections.forEach((key) => {
@@ -243,6 +243,7 @@ export function mergeStates(current: BravoShiftState, incoming: BravoShiftState)
     veterans: mergeById(current.veterans, incoming.veterans ?? []),
     appointments: mergeById(current.appointments, incoming.appointments ?? []),
     treatments: mergeById(current.treatments, incoming.treatments ?? []),
+    treatmentCompletions: mergeById(current.treatmentCompletions, incoming.treatmentCompletions ?? []),
     travelRequests: mergeById(current.travelRequests, incoming.travelRequests ?? []),
     shiftAssignments: [...(incoming.shiftAssignments ?? current.shiftAssignments)],
     staffAssignmentRecords: mergeById(current.staffAssignmentRecords, incoming.staffAssignmentRecords ?? []),

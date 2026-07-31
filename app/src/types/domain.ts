@@ -89,15 +89,36 @@ export interface TravelRequest {
   updatedAt: string;
 }
 
+export type TreatmentCategory = 'Licensed' | 'Non-Licensed';
+export type TreatmentFrequency = 'Daily' | 'Weekly' | 'As Scheduled' | 'PRN';
+export type TreatmentShift = 'Day' | 'Night' | 'Both';
+export type ScheduledDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
 export interface Treatment {
   id: string;
   veteranId: string;
   name: string;
-  category: 'Licensed' | 'Non-licensed';
-  shift: 'Day' | 'Night' | 'Any';
-  dueDate: string;
-  completedAt?: string;
+  category: TreatmentCategory;
+  frequency: TreatmentFrequency;
+  shift: TreatmentShift;
+  startDate: string;
+  endDate: string;
+  scheduledDays: ScheduledDay[];
+  instructions: string;
+  notes: string;
   active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string;
+}
+
+export interface TreatmentCompletion {
+  id: string;
+  treatmentId: string;
+  completionDate: string;
+  shift: 'Day' | 'Night';
+  completedAt: string;
+  completedBy: string;
 }
 
 export interface ShiftAssignment {
@@ -110,6 +131,7 @@ export interface BravoShiftState {
   veterans: Veteran[];
   appointments: Appointment[];
   treatments: Treatment[];
+  treatmentCompletions: TreatmentCompletion[];
   travelRequests: TravelRequest[];
   shiftAssignments: ShiftAssignment[];
   staffAssignmentRecords: StaffAssignmentRecord[];

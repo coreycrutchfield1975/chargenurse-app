@@ -1,4 +1,5 @@
 import type { BravoShiftState, StaffShift } from '../../types/domain';
+import { completionFor, treatmentDueOn } from '../treatments/treatmentSelectors';
 
 export type IntelligenceSeverity = 'Info' | 'Watch' | 'High' | 'Critical';
 
@@ -27,10 +28,6 @@ export interface ShiftForecast {
 
 const severityWeight: Record<IntelligenceSeverity, number> = { Info: 2, Watch: 6, High: 12, Critical: 20 };
 
-function sameDay(value: string | undefined, date: string): boolean {
-  return Boolean(value && value.slice(0, 10) === date);
-}
-
 function activeVeterans(state: BravoShiftState) {
   return state.veterans.filter((v) => v.status !== 'Discharged / Archived');
 }
@@ -44,8 +41,9 @@ export function buildShiftForecast(state: BravoShiftState, date: string, shift: 
   const chargeNurse = availableAssignments.some((a) => a.isChargeNurse || a.role === 'Charge Nurse');
   const callOffs = assignments.filter((a) => a.status === 'Called Off');
 
-  const dueTreatments = state.treatments.filter((t) => t.active && sameDay(t.dueDate, date) && (t.shift === shift || t.shift === 'Any'));
-  const overdueTreatments = dueTreatments.filter((t) => !t.completedAt);
+  const treatmentShift = shift === 'Night' ? 'Night' : 'Day';
+  const dueTreatments = state.treatments.filter((t) => treatmentDueOn(t, date, treatmentShift));
+  const overdueTreatments = dueTreatments.filter((t) => !completionFor(state.treatmentCompletions, t.id, date, treatmentShift));
   const licensedDue = overdueTreatments.filter((t) => t.category === 'Licensed');
   const licensedCoverage = availableAssignments.some((a) => ['RN', 'LPN', 'Charge Nurse'].includes(a.role));
 

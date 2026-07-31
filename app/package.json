@@ -1,7 +1,7 @@
 {
-  "name": "bravoshift-2-administration-reporting",
+  "name": "bravoshift-2-treatments",
   "private": true,
-  "version": "2.10.0",
+  "version": "2.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

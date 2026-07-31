@@ -1,4 +1,5 @@
 import type { BravoShiftState } from '../../types/domain';
+import { isTreatmentCompleteForDate, treatmentDueOn } from '../treatments/treatmentSelectors';
 
 export function selectDashboardMetrics(state: BravoShiftState, date: string) {
   const activeVeterans = state.veterans.filter(
@@ -7,13 +8,9 @@ export function selectDashboardMetrics(state: BravoShiftState, date: string) {
   const appointmentsToday = state.appointments.filter(
     (appointment) => appointment.date === date && appointment.status !== 'Cancelled',
   );
-  const treatmentsDue = state.treatments.filter(
-    (treatment) =>
-      treatment.active && treatment.dueDate === date && !treatment.completedAt,
-  );
-  const completedTreatments = state.treatments.filter(
-    (treatment) => treatment.dueDate === date && Boolean(treatment.completedAt),
-  );
+  const treatmentsScheduled = state.treatments.filter((treatment) => treatmentDueOn(treatment, date));
+  const treatmentsDue = treatmentsScheduled.filter((treatment) => !isTreatmentCompleteForDate(treatment, state.treatmentCompletions, date));
+  const completedTreatments = treatmentsScheduled.filter((treatment) => isTreatmentCompleteForDate(treatment, state.treatmentCompletions, date));
   const offUnit = activeVeterans.filter((veteran) =>
     ['At Appointment', 'Leave of Absence', 'Hospital'].includes(veteran.status),
   );

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { BravoShiftState, MorningReportNote } from '../../types/domain';
+import { isTreatmentCompleteForDate, treatmentDueOn } from '../treatments/treatmentSelectors';
 
 type Props = {
   state: BravoShiftState;
@@ -35,8 +36,9 @@ export function MorningReportPage({ state, notes, onSaveNote, onRemoveNote }: Pr
     const uncovered = activeVeterans.filter(v => !covered.has(v.id));
     const pendingTransport = transports.filter(t => ['Draft', 'Pending', 'Failed'].includes(t.status));
     const offUnit = state.veterans.filter(v => ['At Appointment', 'Hospital', 'Leave of Absence'].includes(v.status));
-    const dueTreatments = state.treatments.filter(t => t.active && t.dueDate === reportDate && !t.completedAt);
-    const completedTreatments = state.treatments.filter(t => t.dueDate === reportDate && Boolean(t.completedAt));
+    const scheduledTreatments = state.treatments.filter(t => treatmentDueOn(t, reportDate));
+    const dueTreatments = scheduledTreatments.filter(t => !isTreatmentCompleteForDate(t, state.treatmentCompletions, reportDate));
+    const completedTreatments = scheduledTreatments.filter(t => isTreatmentCompleteForDate(t, state.treatmentCompletions, reportDate));
     const reportNotes = notes.filter(n => n.reportDate === reportDate && n.shift === shift);
     const criticalNotes = reportNotes.filter(n => n.priority === 'Critical');
     const urgentNotes = reportNotes.filter(n => n.priority === 'Urgent');
