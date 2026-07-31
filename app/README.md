@@ -1,3 +1,6 @@
-# BravoShift v2 — Corrected v1.8 React Port
+# BravoShift v2 React Port
 
-Exactly nine tabs: Dashboard, Veterans, Appointments, Calendar, Transport, Treatments, Staff Assignments, Morning Report, Managed Lists. Static React/TypeScript, localStorage only. No backend and no invented modules. All v1.8 managed lists drive the relevant dropdowns.
+Strict client-side port based on BravoShift v1.8. Exactly nine tabs: Dashboard, Veterans, Appointments, Calendar, Transport, Treatments, Staff Assignments, Morning Report, Managed Lists. Data persists in localStorage under `cn-spectrum-db`. No backend or database dependency.
+
+## Run
+`npm install` then `npm run build` or `npm run dev`.
