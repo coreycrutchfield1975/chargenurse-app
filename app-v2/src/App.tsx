@@ -25,10 +25,6 @@ export default function App() {
   return (
     <>
       <Header />
-      <div className="warning-banner">
-        Do not enter real Veteran information or PHI in this public prototype.{' '}
-        <strong>Libertyville CLC — fictional test data only.</strong>
-      </div>
       <Nav active={tab} onChange={(t: string) => setTab(t as Tab)} />
 
       <main className="main-content">

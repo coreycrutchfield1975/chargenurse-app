@@ -13,7 +13,7 @@
 }
 *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
 header{padding:18px 24px;color:white;background:linear-gradient(100deg,var(--navy),var(--blue),var(--purple),var(--pink))}
-header h1{margin:0;font-size:30px;letter-spacing:.8px}.brandline{margin-top:3px;font-size:15px;font-weight:800}.unitline{margin-top:5px;font-size:14px;opacity:.96}.sub{margin-top:7px;opacity:.9;font-size:12px}.greeting{margin:0 0 14px;padding:14px 16px;border-left:6px solid var(--blue);background:white;border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}.greeting strong{display:block;font-size:19px;color:var(--navy)}.greeting span{display:block;margin-top:4px;color:var(--muted)}.warning{padding:10px 20px;background:#fff4cf;border-left:6px solid var(--yellow);font-weight:700}
+header h1{margin:0;font-size:30px;letter-spacing:.8px}.brandline{margin-top:3px;font-size:15px;font-weight:800}.unitline{margin-top:5px;font-size:14px;opacity:.96}.sub{margin-top:7px;opacity:.9;font-size:12px}.greeting{margin:0 0 14px;padding:14px 16px;border-left:6px solid var(--blue);background:white;border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}.greeting strong{display:block;font-size:19px;color:var(--navy)}.greeting span{display:block;margin-top:4px;color:var(--muted)}
 nav{display:flex;gap:4px;overflow:auto;background:white;border-bottom:1px solid var(--line);padding:8px 14px;position:sticky;top:0;z-index:4}
 nav button{border:0;background:transparent;padding:10px 13px;font-weight:800;border-bottom:4px solid transparent;cursor:pointer;white-space:nowrap}
 nav button.active{background:#f7f9fc;border-color:currentColor}
@@ -44,7 +44,7 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
 .smalltext{font-size:12px}
 @media(max-width:900px){.stats,.grid,.formgrid,.year{grid-template-columns:1fr 1fr}.span4{grid-column:span 2}.calendar,.week{grid-template-columns:1fr}}
 @media print{
- body{background:white}.no-print,header,.warning,nav,.toolbar{display:none!important}main{padding:0;max-width:none}.tab{display:none!important}.tab.print-active{display:block!important}
+ body{background:white}.no-print,header,nav,.toolbar{display:none!important}main{padding:0;max-width:none}.tab{display:none!important}.tab.print-active{display:block!important}
  .printsheet{border:0;margin:0;padding:0}.printcard{break-inside:avoid}.landscape{size:landscape;margin:.35in}
 }
 /* USWDS overrides — VA.gov approved look */
@@ -57,14 +57,12 @@ nav button.active{color:#005ea2;border-bottom-color:#005ea2;background:#f0f7ff}
 .stat b{color:#112e51}
 button.primary{border-radius:6px;font-weight:700}
 .alert{border-radius:8px}
-.warning{background:#fff4cf;border-left:6px solid #fdb81e;font-weight:700;border-radius:8px}
 @page{size:landscape;margin:.3in}
 @media print{body{background:#fff;font-size:12px}}
 </style>
 </head>
 <body>
 <header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Caring for those on Libertyville CLC</div><div class="sub">Clinical workflow prototype using fictional test data only</div></header>
-<div class="warning">Do not enter real Veteran information or PHI in this public prototype.</div>
 <nav class="no-print">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
 <button data-tab="calendar">Calendar</button><button data-tab="transport">Transport</button><button data-tab="staff">Staff Assignments</button>
