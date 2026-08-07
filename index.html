@@ -188,7 +188,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div><label>Room *</label><input id="vRoom" type="text" placeholder="Examples: 12, 12-A, A-204"></div><div class="span2"><label>Name *</label><input id="vName"></div><div><label>Last 4 *</label><input id="vLast4" maxlength="4"></div>
 <div><label>Level of Care</label><select id="vSpecialty"></select></div>
 <div><label>Floor Provider</label><select id="vProvider"></select></div><div><label>Admission Date</label><input id="vAdmission" type="date"></div><div><label>Days on Unit</label><input id="vDays" disabled></div>
-<div><label>Record Status</label><select id="vStatus"><option>Active</option><option>At Appointment</option><option>Leave of Absence</option><option>Hospital</option><option>Discharged / Archived</option></select></div><div><label>Code Status</label><select id="vCode"><option></option><option>Full Code</option><option>DNR</option><option>DNAR</option><option>Comfort Measures</option><option>See Current Orders</option></select></div>
+<div><label>Record Status</label><select id="vStatus"><option>Active</option><option>At Appointment</option><option>Leave of Absence</option><option>Hospital</option><option>Discharged / Archived</option></select></div><div><label>Code Status</label><select id="vCode"><option></option><option>Full Code</option><option>Full-DNI</option><option>DNR</option><option>DNAR</option><option>Comfort Measures</option><option>See Current Orders</option></select></div>
 <div><label>Meds</label><select id="vMeds"></select></div>
 <div><label>Diet</label><select id="vDiet"></select></div>
 <div><label>Isolation</label><select id="vIsolation"></select></div>
@@ -197,7 +197,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div><label>Toileting</label><select id="vToileting"></select></div>
 <div class="span4"><label>Notes</label><textarea id="vNotes"></textarea></div>
 <div class="span2"><fieldset><legend>Skin Assessment Days</legend><div class="days" id="daysSkin"></div></fieldset></div>
-<div class="span2"><fieldset><legend>Weight Schedule</legend><div class="formgrid"><div class="span2"><label>Frequency</label><select id="vWeightFrequency"><option>Daily</option><option selected>Weekly</option><option>Monthly</option></select></div><div class="span2"><label>Weighing Method</label><select id="vWeightMethod"><option value="">Select…</option><option>Ceiling Lift</option><option>Standing</option><option>Bed</option></select></div><div class="span2"><label>Monthly Day (1–31)</label><input id="vWeightMonthDay" type="number" min="1" max="31"></div></div><label>Weekly scheduled day(s)</label><div class="days" id="daysWeight"></div></fieldset></div>
+<div class="span2"><fieldset><legend>Weight Schedule</legend><div class="formgrid"><div class="span2"><label>Frequency</label><select id="vWeightFrequency"><option>Daily</option><option selected>Weekly</option><option>Monthly</option></select></div><div class="span2"><label>Weighing Method</label><select id="vWeightMethod"><option value="">Select…</option><option>Ceiling Lift</option><option>Standing</option><option>Bed</option></select></div></div><label>Weekly scheduled day(s)</label><div class="days" id="daysWeight"></div></fieldset></div>
 <div class="span2"><fieldset><legend>FS/BS (Finger Stick / Blood Sugar)</legend><div class="formgrid"><div class="span2"><label>Frequency</label><select id="vFsbsFrequency"><option>Daily</option><option selected>Selected Days</option></select></div><div class="span2"><label>Time(s)</label><input id="vFsbsTimes" type="text" placeholder="Examples: 0600; 0600, 1600; 0600 and PRN"></div></div><label>Scheduled day(s)</label><div class="days" id="daysFsbs"></div></fieldset></div>
 <div class="span2"><fieldset><legend>Vitals Days</legend><div class="days" id="daysVitals"></div></fieldset></div>
 <div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
@@ -257,7 +257,7 @@ button.primary{border-radius:7px;font-weight:800}
 </div></div>
 
 <script>
-const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','Block 1','Block 2','Block 3','Float'];
+const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3','Float'];
 let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  veterans:[],appointments:[],staff:{},providers:[
  {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
@@ -268,7 +268,7 @@ const managedListDefaults={
  floorProviders:['McCain','Cook'],
  levelsOfCare:['LTC — Long-Term Care','EOL — End of Life','SSR — Short Stay Rehab','RESP — Respite'],
  medicationMethods:['Whole','Crushed','Whole in Applesauce','Crushed in Applesauce','Whole in Pudding','Crushed in Pudding','Liquid','Via PEG/G-Tube','Other'],
- diets:['Regular','Low NA','Low Fat','Finger Foods','Puree','PEG','G-Tube','Soft and Bite Sized','Other'],
+ diets:['Regular','Low NA','Low Fat','Finger Foods','Puree','PEG','G-Tube','Soft and Bite Sized','Easy to Chew','Other'],
  isolationTypes:['Standard','Contact','Enhanced','Airborne','Droplet','Reverse'],
  assistLevels:['Independent','1','2','1 to 2','Total','SBA'],
  mobilityOptions:['Ambulatory','Wheelchair','Walker','Cane','Bedbound','Mechanical Lift','Other'],
@@ -287,6 +287,7 @@ if(!db.tickets)db.tickets={};
 if(!Array.isArray(db.treatments))db.treatments=[];
 if(!db.treatmentCompletions)db.treatmentCompletions={};
 Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
+if(!db.managedLists.diets.some(x=>x.value==='Easy to Chew'))db.managedLists.diets.push({id:'diets-easy-to-chew',value:'Easy to Chew',active:true});
 const levelOfCareNames={LTC:'LTC — Long-Term Care',EOL:'EOL — End of Life',SSR:'SSR — Short Stay Rehab',RESP:'RESP — Respite'};
 function veteranLevelOfCare(v){return v?.levelOfCare||levelOfCareNames[v?.specialty]||v?.specialty||''}
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard';if(!v.levelOfCare)v.levelOfCare=veteranLevelOfCare(v)});
@@ -349,7 +350,7 @@ function vetLabel(id){let v=db.veterans.find(x=>x.id===id);return v?`Room ${v.ro
 function openVeteran(id=''){
  let v=db.veterans.find(x=>x.id===id),legacyProvider=db.providers.find(p=>p.id===v?.providerId);vId.value=v?.id||'';vRoom.value=v?.room||'';vName.value=v?.name||'';vLast4.value=v?.last4||'';vSpecialty.value=veteranLevelOfCare(v)||'LTC — Long-Term Care';vProvider.value=v?.floorProvider||legacyProvider?.name||'';vAdmission.value=v?.admission||'';vDays.value=daysOnUnit(v?.admission);vStatus.value=v?.status||'Active';vCode.value=v?.codeStatus||'';vMeds.value=v?.meds||'Whole';vDiet.value=v?.diet||'Regular';vIsolation.value=v?.isolation||'Standard';vAssist.value=v?.assist||'Independent';vMobility.value=v?.mobility||'Ambulatory';vFallRisk.value=v?.fallRisk||'Standard';vToileting.value=v?.toileting||'Continent';vNotes.value=v?.notes||'';
  ['Skin','Weight','Fsbs','Vitals','Shower'].forEach(k=>document.querySelectorAll('#days'+k+' input').forEach(i=>i.checked=(v?.schedules?.[k.toLowerCase()]||[]).includes(i.value)));
- vWeightFrequency.value=v?.weightFrequency||'Weekly';vWeightMethod.value=v?.weightMethod||'';vWeightMonthDay.value=v?.weightMonthDay||'';
+ vWeightFrequency.value=v?.weightFrequency||'Weekly';vWeightMethod.value=v?.weightMethod||'';
  vFsbsFrequency.value=v?.fsbsFrequency||'Selected Days';vFsbsTimes.value=v?.fsbsTimes||'';
  document.querySelector(`input[name=showerShift][value="${v?.showerShift||'Day'}"]`).checked=true;openModal('vetModal')
 }
@@ -357,10 +358,9 @@ function saveVeteran(){
  if(!vRoom.value||!vName.value||!/^\d{4}$/.test(vLast4.value)){alert('Room, name, and a four-digit Last 4 are required.');return}
  if(!vWeightMethod.value){alert('Select a weighing method: Ceiling Lift, Standing, or Bed.');return}
  if(vWeightFrequency.value==='Weekly'&&!checkedDays('daysWeight').length){alert('Select at least one weekly weight day.');return}
- if(vWeightFrequency.value==='Monthly'&&(!vWeightMonthDay.value||Number(vWeightMonthDay.value)<1||Number(vWeightMonthDay.value)>31)){alert('Enter a monthly weight day from 1 through 31.');return}
  if(vFsbsFrequency.value==='Selected Days'&&vFsbsTimes.value.trim()&&!checkedDays('daysFsbs').length){alert('Select at least one FS/BS day, or choose Daily.');return}
  let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
- let obj={id:vId.value||'v'+Date.now(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,weightMonthDay:vWeightMonthDay.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
+ let obj={id:vId.value||'v'+Date.now(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
 function renderVeterans(){
@@ -507,7 +507,7 @@ function generateReport(){
  let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>roomCompare(a.room,b.room));
  let ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
  let s=db.staff[date]||{day:{},night:{}};
- let due=(k)=>vets.filter(v=>{if(k==='fsbs')return !!v.fsbsTimes&&((v.fsbsFrequency||'Selected Days')==='Daily'||(v.schedules?.fsbs||[]).includes(day));if(k!=='weight')return(v.schedules?.[k]||[]).includes(day);let f=v.weightFrequency||'Weekly';if(f==='Daily')return true;if(f==='Monthly')return Number(v.weightMonthDay)===new Date(date+'T12:00:00').getDate();return(v.schedules?.weight||[]).includes(day)});
+ let due=(k)=>vets.filter(v=>{if(k==='fsbs')return !!v.fsbsTimes&&((v.fsbsFrequency||'Selected Days')==='Daily'||(v.schedules?.fsbs||[]).includes(day));if(k!=='weight')return(v.schedules?.[k]||[]).includes(day);let f=v.weightFrequency||'Weekly';if(f==='Daily')return true;if(f==='Monthly')return false;return(v.schedules?.weight||[]).includes(day)});
  let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
  let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
  let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['Draft','Failed'].includes(tr.status))});
