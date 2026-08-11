@@ -259,10 +259,7 @@ button.primary{border-radius:7px;font-weight:800}
 <script>
 const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3','Float'];
 let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
- veterans:[],appointments:[],staff:{},providers:[
- {id:'p1',name:'Example Cardiology Clinic',specialty:'Cardiology',facility:'VA Medical Center',city:'Example City',phone:'555-0101',active:true},
- {id:'p2',name:'Example Eye Clinic',specialty:'Ophthalmology',facility:'Community Clinic',city:'Example City',phone:'555-0102',active:true}
- ],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
+ veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
 };
 const managedListDefaults={
  floorProviders:['McCain','Cook'],
