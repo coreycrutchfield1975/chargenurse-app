@@ -288,7 +288,7 @@ if(!Array.isArray(db.treatments))db.treatments=[];
 if(!db.treatmentCompletions)db.treatmentCompletions={};
 Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 if(!db.managedLists.diets.some(x=>x.value==='Easy to Chew'))db.managedLists.diets.push({id:'diets-easy-to-chew',value:'Easy to Chew',active:true});
-const levelOfCareNames={LTC:'LTC — Long-Term Care',EOL:'EOL — End of Life',SSR:'SSR — Short Stay Rehab',RESP:'RESP — Respite'};
+const levelOfCareNames={LTC:'LTC',EOL:'EOL',SSR:'SSR',RESP:'RESP'};
 function veteranLevelOfCare(v){return v?.levelOfCare||levelOfCareNames[v?.specialty]||v?.specialty||''}
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard';if(!v.levelOfCare)v.levelOfCare=veteranLevelOfCare(v)});
 db.providers.forEach(p=>{if(!p.clinic)p.clinic=p.specialty||''});
