@@ -264,6 +264,13 @@ button.primary{border-radius:7px;font-weight:800}
 <div id="travelForm"></div><div class="toolbar no-print"><button class="primary orange" onclick="saveTravel('Draft')">Save Draft</button><button class="primary green" onclick="emailTravel()">Email to Transportation</button><button class="secondary" onclick="saveTravel('Cancelled')">Cancel Request</button><button class="secondary" onclick="printElement('travelSheet')">Print</button></div>
 </div></div>
 
+<div id="exportModal" class="modal"><div class="modalbox" id="exportModalBox">
+<div class="toolbar"><h2>⬇ Export BravoShift Backup</h2><button class="secondary right" onclick="closeModal('exportModal')">Close</button></div>
+<div id="exportInfo" style="padding:10px 0"></div>
+<div class="toolbar"><button class="primary" id="exportDownloadBtn" onclick="doExportDownload()">⬇ Download Backup File</button><button class="secondary" onclick="copyExportToClipboard()">📋 Copy to Clipboard</button></div>
+<p class="muted" style="padding:6px 0">For PHI: upload this file to VA SharePoint. This app and its repo store no PHI — only you move the backup.</p>
+</div></div>
+
 <script>
 const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3','Float'];
 let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
@@ -304,41 +311,47 @@ function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
 async function exportData(){
  const stamp=new Date().toISOString().slice(0,10);
  const fname='bravoshift-backup-'+stamp+'.json';
+ const json=JSON.stringify(db, null, 1);
+ const bytes=new Blob([json]).size;
+ let info=`<p><strong>File:</strong> ${fname}</p><p><strong>Size:</strong> ${(bytes/1024).toFixed(1)} KB</p><p><strong>Includes:</strong> ${db.veterans.length} veterans, ${db.appointments.length} appointments, ${db.treatments.length} treatments, ${db.providers.length} providers, ${Object.keys(db.staff||{}).length} staff rosters.</p>`;
+ const box=document.getElementById('exportInfo');
+ if(box)box.innerHTML=info;
+ const m=document.getElementById('exportModal');
+ if(m){openModal('exportModal');}else{openRawExport();}
+}
+function doExportDownload(){
+ const stamp=new Date().toISOString().slice(0,10);
+ const fname='bravoshift-backup-'+stamp+'.json';
  const json=JSON.stringify(db);
- const blob=new Blob([json],{type:'application/json'});
- // Preferred: Force a native "Save As" dialog (Chrome/Edge on HTTPS)
+ // Prefer the File System Access API for a real Save As dialog
  if(window.showSaveFilePicker){
-  try{
-   const handle=await window.showSaveFilePicker({
-    suggestedName:fname,
-    types:[{description:'BravoShift Backup',accept:{'application/json':['.json']}}]
-   });
-   const writable=await handle.createWritable();
-   await writable.write(blob);
-   await writable.close();
-   showToast('✓ Backup saved to '+handle.name,'ok');
-   return true;
-  }catch(e){
-   if(e&&e.name==='AbortError'){showToast('Export cancelled.','warn');return false}
-   // fall through to classic download on other errors
-  }
- } else if(window.confirm){
-  try{
-   const url=URL.createObjectURL(blob);
-   const a=document.createElement('a');
-   a.href=url;a.download=fname;a.style.display='none';
-   document.body.appendChild(a);a.click();
-   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},2000);
-   showToast('⬇ Export started — check your Downloads for '+fname,'ok');
-   return true;
-  }catch(e){showToast('Export failed — copy manually.','warn');return false}
+  window.showSaveFilePicker({suggestedName:fname,types:[{description:'BravoShift Backup',accept:{'application/json':['.json']}}]})
+   .then(h=>h.createWritable()).then(w=>w.write(new Blob([json],{type:'application/json'}))).then(()=>{showToast('✓ Backup saved','ok')})
+   .catch(e=>{if(e&&e.name!=='AbortError')classicDownload(fname,json);showToast('Export cancelled','warn')});
+  return;
  }
- // Last-chance fallback: open JSON in a new tab
+ classicDownload(fname,json);
+}
+function classicDownload(name,json){
  try{
-  const w=window.open('data:application/json;charset=utf-8,'+encodeURIComponent(json),'_blank');
-  if(w)showToast('Backup opened in a new tab — press Ctrl+S to save.','ok');
-  return true;
- }catch(e){showToast('Export failed.','warn');return false}
+  const u=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  const a=document.createElement('a');a.href=u;a.download=name;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u)},2000);
+  showToast('⬇ Downloading — check your Downloads folder for '+name,'ok');
+ }catch(e){showToast('Export failed.','warn')}
+}
+function openRawExport(){
+ const stamp=new Date().toISOString().slice(0,10),fname='bravoshift-backup-'+stamp+'.json';
+ const w=window.open('','_blank');
+ if(!w){showToast('Pop-up blocked — enable pop-ups on this site to export.','warn');return}
+ w.document.write('<title>BravoShift Backup</title><h3>BravoShift Backup — '+fname+'</h3><p>Right-click &gt; Save As to save this file, or use the Download button.</p><button onclick="fetch(location.href)">&#8595; Download</button><pre style="white-space:pre-wrap;font-size:11px">'+encodeURIComponent(JSON.stringify(db))+'</pre>');
+ showToast('Backup opened in a new tab — Save As to keep it.','ok');
+}
+function copyExportToClipboard(){
+ const json=JSON.stringify(db);
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(json).then(()=>showToast('📋 Backup copied to clipboard — paste into a text file.','ok'),()=>showToast('Copy failed.','warn'))}
+ else{const ta=document.createElement('textarea');ta.value=json;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast('📋 Backup copied.','ok')}catch(e){showToast('Copy failed.','warn')}document.body.removeChild(ta)}
 }
 function copyTextToFile(name,text){
  try{const b=new Blob([text],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u)},0);return true}catch(e){return false}
