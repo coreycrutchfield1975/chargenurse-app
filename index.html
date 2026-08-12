@@ -325,10 +325,11 @@ function doExportDownload(){
  const stamp=new Date().toISOString().slice(0,10);
  const fname='bravoshift-backup-'+stamp+'.json';
  const json=JSON.stringify(db);
- // Prefer the File System Access API for a real Save As dialog
  if(window.showSaveFilePicker){
   window.showSaveFilePicker({suggestedName:fname,types:[{description:'BravoShift Backup',accept:{'application/json':['.json']}}]})
-   .then(h=>h.createWritable()).then(w=>w.write(new Blob([json],{type:'application/json'}))).then(()=>{showToast('✓ Backup saved','ok')})
+   .then(h=>h.createWritable())
+   .then(w=>{return w.write(new Blob([json],{type:'application/json'})).then(function(){return w.close()})})
+   .then(()=>{showToast('✓ Backup saved','ok')})
    .catch(e=>{if(e&&e.name!=='AbortError')classicDownload(fname,json);showToast('Export cancelled','warn')});
   return;
  }
