@@ -1,3 +1,9 @@
 node_modules/
 .DS_Store
 *.log
+
+# PHI-bearing data exports — NEVER commit to git (store in VA SharePoint only)
+bravoshift-backup-*.json
+backup-*.json
+*.backup.json
+data-export*.json
