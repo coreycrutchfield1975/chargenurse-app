@@ -308,16 +308,18 @@ let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
-async function exportData(){
- const stamp=new Date().toISOString().slice(0,10);
- const fname='bravoshift-backup-'+stamp+'.json';
- const json=JSON.stringify(db, null, 1);
- const bytes=new Blob([json]).size;
- let info=`<p><strong>File:</strong> ${fname}</p><p><strong>Size:</strong> ${(bytes/1024).toFixed(1)} KB</p><p><strong>Includes:</strong> ${db.veterans.length} veterans, ${db.appointments.length} appointments, ${db.treatments.length} treatments, ${db.providers.length} providers, ${Object.keys(db.staff||{}).length} staff rosters.</p>`;
- const box=document.getElementById('exportInfo');
- if(box)box.innerHTML=info;
- const m=document.getElementById('exportModal');
- if(m){openModal('exportModal');}else{openRawExport();}
+function exportData(){
+ const modal=document.getElementById('exportModal');
+ if(!modal){openRawExport();return}
+ openModal('exportModal');
+ try{
+  const stamp=new Date().toISOString().slice(0,10);
+  const fname='bravoshift-backup-'+stamp+'.json';
+  const json=JSON.stringify(db,null,1);
+  const bytes=new Blob([json]).size;
+  const box=document.getElementById('exportInfo');
+  if(box)box.innerHTML=`<p><strong>File:</strong> ${fname}</p><p><strong>Size:</strong> ${(bytes/1024).toFixed(1)} KB</p><p><strong>Includes:</strong> ${db.veterans.length} veteran(s), ${db.appointments.length} appointment(s), ${db.treatments.length} treatment(s), ${db.providers.length} provider(s), ${Object.keys(db.staff||{}).length} staff roster(s).</p>`;
+ }catch(e){}
 }
 function doExportDownload(){
  const stamp=new Date().toISOString().slice(0,10);
