@@ -303,12 +303,37 @@ function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
 function exportData(){
  const stamp=new Date().toISOString().slice(0,10);
- const blob=new Blob([JSON.stringify(db)],{type:'application/json'});
- const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);
- a.download='bravoshift-backup-'+stamp+'.json';
- document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ const fname='bravoshift-backup-'+stamp+'.json';
+ const json=JSON.stringify(db);
+ let ok=false;
+ try{
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=fname;a.rel='noopener';a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},2000);
+  ok=true;
+ }catch(e){ok=false}
+ if(!ok){
+  try{
+   const w=window.open();
+   if(w){w.document.write('Download '+(copyTextToFile(fname,json)?'saved':'not saved')+'<br>'+fname);w.document.title='BravoShift Export';}
+  }catch(e2){}
+ }
+ showToast('⬇ Export started — check your Downloads folder for '+fname, ok?'ok':'warn');
+ return ok;
+}
+function copyTextToFile(name,text){
+ try{const b=new Blob([text],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u)},0);return true}catch(e){return false}
+}
+function showToast(msg,kind){
+ let t=document.getElementById('bsToast');
+ if(!t){t=document.createElement('div');t.id='bsToast';t.style.cssText='position:fixed;bottom:20px;right:20px;background:#1a4d8f;color:#fff;padding:12px 18px;border-radius:8px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.35);max-width:320px;border-left:5px solid #5cb85c';document.body.appendChild(t)}
+ t.textContent=msg;
+ if(kind==='warn')t.style.borderLeftColor='#f0ad4e';
+ t.style.opacity='1';
+ clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0'},4000);
 }
 function importData(file){
  if(!file)return;
