@@ -366,6 +366,18 @@ function showToast(msg,kind){
  t.style.opacity='1';
  clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0'},4000);
 }
+// Bulletproof export trigger: attach a direct listener so the button works
+// even if inline onclick fails to bind in some browsers.
+(function(){
+ function bind(){
+  var btns=document.querySelectorAll('button[onclick="exportData()"],button[data-export="1"]');
+  for(var i=0;i<btns.length;i++){
+   if(!btns[i].dataset.__exp){btns[i].dataset.__exp='1';btns[i].addEventListener('click',function(ev){ev.preventDefault();exportData();});}
+  }
+ }
+ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind);}
+ else{bind();}
+})();
 function importData(file){
  if(!file)return;
  const r=new FileReader();
