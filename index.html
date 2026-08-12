@@ -25,6 +25,9 @@ main{max-width:1550px;margin:auto;padding:20px}.tab{display:none}.tab.active{dis
 .stat b{display:block;font-size:30px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
 button.primary,button.secondary{border-radius:7px;padding:9px 13px;font-weight:800;cursor:pointer}
 button.primary{border:0;background:var(--blue);color:white}.secondary{background:white;border:1px solid #7f8a96}
+.nav-data{margin-left:auto;display:flex;gap:6px;align-items:center}
+.nav-data button,.nav-data .file-btn{font-weight:800;font-size:.8rem;white-space:nowrap;border-bottom:0!important;background:#fff}
+.nav-data .file-btn{display:inline-flex;align-items:center;border-radius:7px;padding:9px 13px;cursor:pointer}
 .green{background:var(--green)!important}.purple{background:var(--purple)!important}.teal{background:var(--teal)!important}.pink{background:var(--pink)!important}.orange{background:var(--orange)!important}.red{background:var(--red)!important}
 table{width:100%;border-collapse:collapse;background:white}th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left;font-size:13px}th{background:#edf4fa}
 .scroll{overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800}
@@ -74,6 +77,10 @@ button.primary{border-radius:7px;font-weight:800}
 <button class="active" data-tab="home">Dashboard</button><button data-tab="veterans">Veterans</button><button data-tab="appointments">Appointments</button>
 <button data-tab="calendar">Calendar</button><button data-tab="transport">Transport</button><button data-tab="treatments">Treatments</button><button data-tab="staff">Staff Assignments</button>
 <button data-tab="reports">Morning Report</button><button data-tab="lists">Managed Lists</button>
+<span class="nav-data">
+<button class="secondary" onclick="exportData()" title="Download a JSON backup to store in SharePoint">⬇ Export Data</button>
+<label class="secondary file-btn" title="Import a backup downloaded from SharePoint">⬆ Import Data<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label>
+</span>
 </nav>
 <main>
 <section id="home" class="tab active">
@@ -292,6 +299,41 @@ db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v
 db.providers.forEach(p=>{if(!p.clinic)p.clinic=p.specialty||''});
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
+
+/* === Export / Import (SharePoint-ready, PHI-free in repo) === */
+function exportData(){
+ const stamp=new Date().toISOString().slice(0,10);
+ const blob=new Blob([JSON.stringify(db)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='bravoshift-backup-'+stamp+'.json';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importData(file){
+ if(!file)return;
+ const r=new FileReader();
+ r.onload=()=>{
+  try{
+   const incoming=JSON.parse(r.result);
+   if(!incoming||typeof incoming!=='object'||!Array.isArray(incoming.veterans))throw new Error('Invalid format');
+   const backup={...db,...incoming};
+   backup.veterans=Array.isArray(incoming.veterans)?incoming.veterans:(db.veterans||[]);
+   backup.appointments=Array.isArray(incoming.appointments)?incoming.appointments:(db.appointments||[]);
+   backup.treatments=Array.isArray(incoming.treatments)?incoming.treatments:(db.treatments||[]);
+   if(!backup.managedLists)backup.managedLists={};
+   if(!backup.tickets)backup.tickets={};
+   backup.staff=incoming.staff||db.staff||{};
+   backup.providers=Array.isArray(incoming.providers)?incoming.providers:(db.providers||[]);
+   db=backup;
+   persist();
+   alert('Import complete — BravoShift data refreshed from backup.');
+   location.reload();
+  }catch(e){alert('Import failed: the file is not a valid BravoShift backup JSON.')}
+ };
+ r.readAsText(file);
+}
+
 function today(){return new Date().toISOString().slice(0,10)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let b=[...document.querySelectorAll('nav button')].find(x=>x.dataset.tab===id);if(b)b.classList.add('active');renderAll()}
