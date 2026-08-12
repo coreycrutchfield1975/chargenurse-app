@@ -383,21 +383,25 @@ function importData(file){
  const r=new FileReader();
  r.onload=()=>{
   try{
-   const incoming=JSON.parse(r.result);
-   if(!incoming||typeof incoming!=='object'||!Array.isArray(incoming.veterans))throw new Error('Invalid format');
-   const backup={...db,...incoming};
-   backup.veterans=Array.isArray(incoming.veterans)?incoming.veterans:(db.veterans||[]);
-   backup.appointments=Array.isArray(incoming.appointments)?incoming.appointments:(db.appointments||[]);
-   backup.treatments=Array.isArray(incoming.treatments)?incoming.treatments:(db.treatments||[]);
-   if(!backup.managedLists)backup.managedLists={};
-   if(!backup.tickets)backup.tickets={};
-   backup.staff=incoming.staff||db.staff||{};
-   backup.providers=Array.isArray(incoming.providers)?incoming.providers:(db.providers||[]);
+   // Strip UTF-8 BOM and surrounding whitespace so files saved on Windows import cleanly
+   let raw=r.result||'';
+   if(raw.charCodeAt(0)===0xFEFF)raw=raw.slice(1);
+   raw=raw.trim();
+   const incoming=JSON.parse(raw);
+   if(!incoming||typeof incoming!=='object')throw new Error('Object expected');
+   if(!Array.isArray(incoming.veterans))throw new Error('Missing veterans array — not a BravoShift backup');
+   const backup={...(typeof db==='object'?db:{})};
+   ['veterans','appointments','treatments','providers'].forEach(k=>{if(Array.isArray(incoming[k]))backup[k]=incoming[k]});
+   if(!backup.managedLists||typeof backup.managedLists!=='object')backup.managedLists={};
+   if(!backup.tickets||typeof backup.tickets!=='object')backup.tickets={};
+   backup.staff=(incoming.staff&&typeof incoming.staff==='object')?incoming.staff:(backup.staff||{});
+   if(incoming.travel&&typeof incoming.travel==='object')backup.travel=incoming.travel;
+   if(incoming.treatmentCompletions&&typeof incoming.treatmentCompletions==='object')backup.treatmentCompletions=incoming.treatmentCompletions;
    db=backup;
    persist();
    alert('Import complete — BravoShift data refreshed from backup.');
    location.reload();
-  }catch(e){alert('Import failed: the file is not a valid BravoShift backup JSON.')}
+  }catch(e){alert('Import failed: '+((e&&e.message)||'invalid JSON')+'. Make sure you are opening the .json file produced by the "⬇ Export Data" button.')}
  };
  r.readAsText(file);
 }
