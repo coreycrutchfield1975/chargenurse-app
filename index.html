@@ -301,28 +301,44 @@ let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
-function exportData(){
+async function exportData(){
  const stamp=new Date().toISOString().slice(0,10);
  const fname='bravoshift-backup-'+stamp+'.json';
  const json=JSON.stringify(db);
- let ok=false;
- try{
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=fname;a.rel='noopener';a.style.display='none';
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},2000);
-  ok=true;
- }catch(e){ok=false}
- if(!ok){
+ const blob=new Blob([json],{type:'application/json'});
+ // Preferred: Force a native "Save As" dialog (Chrome/Edge on HTTPS)
+ if(window.showSaveFilePicker){
   try{
-   const w=window.open();
-   if(w){w.document.write('Download '+(copyTextToFile(fname,json)?'saved':'not saved')+'<br>'+fname);w.document.title='BravoShift Export';}
-  }catch(e2){}
+   const handle=await window.showSaveFilePicker({
+    suggestedName:fname,
+    types:[{description:'BravoShift Backup',accept:{'application/json':['.json']}}]
+   });
+   const writable=await handle.createWritable();
+   await writable.write(blob);
+   await writable.close();
+   showToast('✓ Backup saved to '+handle.name,'ok');
+   return true;
+  }catch(e){
+   if(e&&e.name==='AbortError'){showToast('Export cancelled.','warn');return false}
+   // fall through to classic download on other errors
+  }
+ } else if(window.confirm){
+  try{
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');
+   a.href=url;a.download=fname;a.style.display='none';
+   document.body.appendChild(a);a.click();
+   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},2000);
+   showToast('⬇ Export started — check your Downloads for '+fname,'ok');
+   return true;
+  }catch(e){showToast('Export failed — copy manually.','warn');return false}
  }
- showToast('⬇ Export started — check your Downloads folder for '+fname, ok?'ok':'warn');
- return ok;
+ // Last-chance fallback: open JSON in a new tab
+ try{
+  const w=window.open('data:application/json;charset=utf-8,'+encodeURIComponent(json),'_blank');
+  if(w)showToast('Backup opened in a new tab — press Ctrl+S to save.','ok');
+  return true;
+ }catch(e){showToast('Export failed.','warn');return false}
 }
 function copyTextToFile(name,text){
  try{const b=new Blob([text],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u)},0);return true}catch(e){return false}
