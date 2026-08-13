@@ -25,6 +25,7 @@ main{max-width:1550px;margin:auto;padding:20px}.tab{display:none}.tab.active{dis
 .stat b{display:block;font-size:30px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
 button.primary,button.secondary{border-radius:7px;padding:9px 13px;font-weight:800;cursor:pointer}
 button.primary{border:0;background:var(--blue);color:white}.secondary{background:white;border:1px solid #7f8a96}
+button.danger{background:#fff;border:1px solid var(--red);color:#9b1c1c}
 .nav-data{margin-left:auto;display:flex;gap:6px;align-items:center}
 .nav-data button,.nav-data .file-btn{font-weight:800;font-size:.8rem;white-space:nowrap;border-bottom:0!important;background:#fff}
 .nav-data .file-btn{display:inline-flex;align-items:center;border-radius:7px;padding:9px 13px;cursor:pointer}
@@ -476,8 +477,27 @@ function saveVeteran(){
  let obj={id:vId.value||'v'+Date.now(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
+function toggleVeteranArchive(id){
+ let v=db.veterans.find(x=>x.id===id);if(!v)return;
+ let archived=v.status==='Discharged / Archived';
+ if(!archived&&!confirm(`Archive ${v.name}?\n\nThey will be removed from active counts and new appointment/treatment lists. Existing records will be preserved.`))return;
+ v.status=archived?'Active':'Discharged / Archived';persist();renderAll()
+}
+function deleteVeteran(id){
+ let v=db.veterans.find(x=>x.id===id);if(!v)return;
+ let appointments=db.appointments.filter(a=>a.vetId===id),appointmentIds=new Set(appointments.map(a=>a.id));
+ let treatments=db.treatments.filter(t=>t.vetId===id),treatmentIds=new Set(treatments.map(t=>t.id));
+ let answer=prompt(`PERMANENT DELETE\n\nThis will delete ${v.name} plus ${appointments.length} appointment(s), related travel/ticket records, ${treatments.length} treatment(s), and treatment completion history. This cannot be undone.\n\nType DELETE to continue:`);
+ if(answer!=='DELETE')return;
+ db.veterans=db.veterans.filter(x=>x.id!==id);
+ db.appointments=db.appointments.filter(a=>a.vetId!==id);
+ db.treatments=db.treatments.filter(t=>t.vetId!==id);
+ appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
+ Object.keys(db.treatmentCompletions).forEach(key=>{if(treatmentIds.has(key.split('|')[0]))delete db.treatmentCompletions[key]});
+ persist();renderAll();alert(`${v.name} and all linked records were permanently deleted.`)
+}
 function renderVeterans(){
- vetRows.innerHTML=db.veterans.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'';return `<tr class="${v.status==='Discharged / Archived'?'archived':''}"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button></td></tr>`}).join('')
+ vetRows.innerHTML=db.veterans.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'',archived=v.status==='Discharged / Archived';return `<tr class="${archived?'archived':''}"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button> <button class="secondary" onclick="toggleVeteranArchive('${v.id}')">${archived?'Restore':'Archive'}</button> <button class="danger" onclick="deleteVeteran('${v.id}')">Delete</button></td></tr>`}).join('')
 }
 function openAppointment(id=''){
  let a=db.appointments.find(x=>x.id===id);aId.value=a?.id||'';vetOptions(aVet);providerOptions(aProvider);aVet.value=a?.vetId||'';aProvider.value=a?.providerId||'';fillProvider();aDate.value=a?.date||today();aTime.value=a?.time||'';aClinic.value=a?.clinic||'';aReason.value=a?.reason||'Consult';aDestination.value=a?.destination||'';aPickup.value=a?.pickup||'';aTransport.value=a?.transport||'';aEscort.value=a?.escort||'';aStatus.value=a?.status||'Upcoming';aTravelStatus.value=db.travel[a?.id]?.status||'';aNotes.value=a?.notes||'';openModal('apptModal')
