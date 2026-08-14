@@ -635,17 +635,26 @@ function printTreatment(){
  const month=txMonth.value||'';
  const category=txCategory.value||'';
  const sections=collectTxSections();
- const rows=sections.map((s,i)=>`<tr><td style="vertical-align:top"><b>Section ${i+1}</b></td><td>${esc(s.frequency||'—')}</td><td>${esc(s.start||'—')}</td><td>${esc(s.end||'—')}</td><td>${esc(s.shift||'—')}</td><td>${esc((s.days||[]).join(', ')||'—')}</td><td style="min-width:180px">${esc(s.instructions||'')}</td></tr>`).join('');
+ function checkoffCell(freq){
+  if((freq||'').toLowerCase()==='daily'){
+   return `<div class="daygrid">${Array.from({length:31},(_,i)=>`<div class="daybox"><span class="num">${i+1}</span></div>`).join('')}</div><p class="muted">Mark the day each task was completed.</p>`;
+  }
+  if((freq||'').toLowerCase()==='weekly')return `<div class="blankgrid">${'<div class="blankbox"></div>'.repeat(5)}</div><p class="muted">Initial/date each weekly occurrence.</p>`;
+  if((freq||'').toLowerCase()==='prn')return `<div class="blankgrid big">${'<div class="blankbox"></div>'.repeat(8)}</div><p class="muted">Date each time the PRN task is done.</p>`;
+  // As Scheduled / other
+  return `<div class="blankgrid">${'<div class="blankbox"></div>'.repeat(10)}</div><p class="muted">Date each scheduled occurrence.</p>`;
+ }
+ const rows=sections.map((s,i)=>`<tr><td style="vertical-align:top"><b>Section ${i+1}</b></td><td>${esc(s.frequency||'—')}</td><td>${esc(s.start||'—')}</td><td>${esc(s.end||'—')}</td><td>${esc(s.shift||'—')}</td><td class="instr"><div>${esc(s.instructions||'')}</div>${checkoffCell(s.frequency)}</td></tr>`).join('');
  const w=window.open('','_blank');
  if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
  w.document.write(`<html><head><title>BravoShift Treatment Plan</title>
- <style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}th{background:#eef3f7}h1{font-size:18px;margin:0}h2{font-size:14px;margin:2px 0}.muted{color:#555}@media print{th{background:#eef3f7!important}}</style></head><body>
+ <style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}th{background:#eef3f7}h1{font-size:18px;margin:0}.muted{color:#555}.daygrid{display:grid;grid-template-columns:repeat(16,minmax(0,auto));gap:2px;margin-top:6px}.daybox{border:1px solid #333;width:22px;height:26px;text-align:center;position:relative}.daybox .num{position:absolute;top:0;left:2px;font-size:8px;color:#666}.blankgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:3px;margin-top:6px}.blankgrid.big{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}.blankbox{border:1px solid #333;height:28px}@media print{th{background:#eef3f7!important}}</style></head><body>
  <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
  <p class="muted">Reference for the unit treatment book — for staff use only.</p>
  <table style="width:auto"><tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
  <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td>${esc(category)}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr></table>
- <table><thead><tr><th>#</th><th>Frequency</th><th>Start</th><th>End</th><th>Shift</th><th>Scheduled Days</th><th>Instructions</th></tr></thead><tbody>${rows}</tbody></table>
- <p class="muted">Treatments are due per frequency and scheduled days. Mark completion in the app during the shift.</p>
+ <table><thead><tr><th>#</th><th>Frequency</th><th>Start</th><th>End</th><th>Shift</th><th>Instructions &amp; Completion Check-off</th></tr></thead><tbody>${rows}</tbody></table>
+ <p class="muted">Staff: enter the date the treatment/task was completed in the appropriate box(es).</p>
  </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
