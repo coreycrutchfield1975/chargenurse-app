@@ -655,7 +655,7 @@ function printTreatment(){
  <table style="width:auto"><tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
  <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td>${esc(category)}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr></table>
  <table><thead><tr><th>#</th><th>Frequency</th><th>Start</th><th>End</th><th>Shift</th><th>Instructions &amp; Completion Check-off</th></tr></thead><tbody>${rows}</tbody></table>
- <p class="muted">Staff: enter the date the treatment/task was completed in the appropriate box(es).</p>
+ <p class="muted">Staff: enter your initials in the appropriate box(es).</p>
  </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
