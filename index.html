@@ -245,7 +245,7 @@ button.primary{border-radius:7px;font-weight:800}
 </div>
 <div id="txSections" style="grid-column:1/5"></div>
 </div>
-<div class="toolbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
+<div class="toolbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary pink" onclick="printTreatment()">🖨️ Print Treatment</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
 </div></div>
 
 <div id="ticketModal" class="modal"><div class="modalbox">
@@ -630,6 +630,25 @@ function sectionCompleted(t,secIdx,date){return !!db.treatmentCompletions[sectio
 // A plan marked fully complete today when all its due sections are completed
 function treatmentCompletedAll(t,date){let due=planSectionsDue(t,date);return due.length>0&&due.every((_,i)=>sectionCompleted(t,t.sections.indexOf(_),date))}
 function toggleSectionComplete(tid,secIdx,date){let key=sectionCompletedKey(tid,secIdx,date);if(db.treatmentCompletions[key])delete db.treatmentCompletions[key];else db.treatmentCompletions[key]={completedAt:new Date().toISOString()};persist();renderAll()}
+function printTreatment(){
+ const vet=db.veterans.find(v=>v.id===txVet.value);
+ const month=txMonth.value||'';
+ const category=txCategory.value||'';
+ const sections=collectTxSections();
+ const rows=sections.map((s,i)=>`<tr><td style="vertical-align:top"><b>Section ${i+1}</b></td><td>${esc(s.frequency||'—')}</td><td>${esc(s.start||'—')}</td><td>${esc(s.end||'—')}</td><td>${esc(s.shift||'—')}</td><td>${esc((s.days||[]).join(', ')||'—')}</td><td style="min-width:180px">${esc(s.instructions||'')}</td></tr>`).join('');
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
+ w.document.write(`<html><head><title>BravoShift Treatment Plan</title>
+ <style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}th{background:#eef3f7}h1{font-size:18px;margin:0}h2{font-size:14px;margin:2px 0}.muted{color:#555}@media print{th{background:#eef3f7!important}}</style></head><body>
+ <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
+ <p class="muted">Reference for the unit treatment book — for staff use only.</p>
+ <table style="width:auto"><tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
+ <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td>${esc(category)}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr></table>
+ <table><thead><tr><th>#</th><th>Frequency</th><th>Start</th><th>End</th><th>Shift</th><th>Scheduled Days</th><th>Instructions</th></tr></thead><tbody>${rows}</tbody></table>
+ <p class="muted">Treatments are due per frequency and scheduled days. Mark completion in the app during the shift.</p>
+ </body></html>`);
+ w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
 function renderTxSection(idx,data={}){
  const box=document.getElementById('txSections');if(!box)return;
  const sec=document.createElement('div');sec.className='tx-section';sec.dataset.idx=idx;
