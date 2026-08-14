@@ -37,6 +37,8 @@ table{width:100%;border-collapse:collapse;background:white}th,td{border:1px soli
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:24px;overflow:auto;z-index:20;align-items:flex-start;justify-content:center}
 .modal.open{display:flex}.modalbox{width:min(1150px,100%);background:white;border-radius:14px;padding:18px;border-top:10px solid var(--purple)}
 .modalbox.small{width:min(760px,100%)}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.span2{grid-column:span 2}.span4{grid-column:span 4}
+.actionbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-start;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}
+.tx-section+ .tx-section{margin-top:10px}
 label{display:block;font-weight:800;font-size:13px;margin-bottom:4px}input,select,textarea{width:100%;padding:8px;border:1px solid #8a96a3;border-radius:6px;background:white;font:inherit}
 textarea{min-height:70px}.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.inline input{width:auto}.days{display:flex;gap:5px;flex-wrap:wrap}.days label{font-weight:500;padding:5px 7px;border:1px solid var(--line);border-radius:5px}.days input{width:auto}
 fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}legend{font-weight:900}.right{margin-left:auto}.hidden{display:none}
@@ -235,17 +237,16 @@ button.primary{border-radius:7px;font-weight:800}
 <div id="docPicker" class="modal"><div class="modalbox small"><div class="toolbar"><h2>Select Appointment</h2><button class="secondary right" onclick="closeModal('docPicker')">Close</button></div><label>Appointment</label><select id="docAppt"></select><div class="toolbar"><button class="primary" onclick="openSelectedDoc()">Continue</button></div></div></div>
 
 
-<div id="treatmentModal" class="modal"><div class="modalbox">
+<div id="treatmentModal" class="modal"><div class="modalbox" style="overflow:hidden">
 <div class="toolbar"><h2>Assign / Edit Treatment Plan</h2><button class="secondary right" onclick="closeModal('treatmentModal')">Close</button></div>
 <input type="hidden" id="txId">
 <div class="formgrid">
 <div class="span2"><label>Veteran *</label><select id="txVet"></select></div>
 <div><label>Month *</label><select id="txMonth"><option value="">Select month…</option></select></div>
 <div><label>Category *</label><select id="txCategory"><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div id="txSections" class="span4" style="padding:4px"></div>
 </div>
-<div id="txSections" style="grid-column:1/5"></div>
-</div>
-<div class="toolbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary pink" onclick="printTreatment()">🖨️ Print Treatment</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
+<div class="actionbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary pink" onclick="printTreatment()">🖨️ Print Treatment</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
 </div></div>
 
 <div id="ticketModal" class="modal"><div class="modalbox">
