@@ -1,7 +1,7 @@
 /* ChargeNurse shared print support */
 .print-report-header{display:none}
 @media print{
-  @page{margin:.38in}
+  @page{margin:0}
   html,body{background:#fff!important;color:#000!important}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .print-report-header{display:block!important;text-align:center;margin:0 0 12px;padding:0 0 8px;border-bottom:2px solid #222;color:#000!important}

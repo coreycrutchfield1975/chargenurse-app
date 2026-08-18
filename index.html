@@ -62,7 +62,7 @@ nav button.active{color:var(--blue);border-bottom-color:var(--blue);background:#
 button.primary{border-radius:7px;font-weight:800}
 .alert{border-radius:10px}
 .badge{font-weight:700}
-@page{size:landscape;margin:.3in}
+@page{size:landscape;margin:0}
 @media print{body{background:var(--white);font-size:12px}}
 </style>
 </head>
@@ -398,7 +398,7 @@ function renderTicketSheet(data){
  let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
  let mark=x=>x?'☒':'☐', line=x=>esc(x||'________________');
  ticketSheet.innerHTML=`<link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
-<style>@page{size:landscape;margin:.25in}</style><h2 style="margin:0;text-align:center">TICKET TO RIDE</h2>
+<style>@page{size:landscape;margin:0}</style><h2 style="margin:0;text-align:center">TICKET TO RIDE</h2>
  <div class="smalltext"><b>Veteran:</b> ${esc(v?.name||'')} &nbsp; <b>Room:</b> ${esc(v?.room||'')} &nbsp; <b>Last 4:</b> ${esc(v?.last4||'')} &nbsp; <b>Date:</b> ${esc(a.date)} &nbsp; <b>Time:</b> ${esc(a.time)}<br><b>Destination:</b> ${esc(a.destination||p?.facility||'')} &nbsp; <b>Clinic:</b> ${esc(a.clinic||p?.name||'')} &nbsp; <b>Pickup:</b> ${esc(tr.pickup||a.pickup||'')} &nbsp; <b>Transportation:</b> ${esc(tr.mode||a.transport||'')} &nbsp; <b>Escort:</b> ${esc(tr.escort||a.escort||'')}</div>
  <div class="printgrid">
  <div class="printcard"><h3>Clinical Flags</h3><b>Allergies:</b> ${mark(data.nkda)} NKDA &nbsp; ${mark(data.allergies)} Yes—see current record<br><b>Fall Risk:</b> ${esc(v?.fallRisk||'See current care plan')}<br><b>Special Needs:</b> ${line(data.specialNeeds)}<br><b>Language:</b> ${line(data.language)}<br><b>Isolation:</b> ${esc(v?.isolation||'Standard')}</div>
@@ -504,7 +504,7 @@ function generateReport(){
  let rosterRows=vets.map(v=>{let p=db.providers.find(p=>p.id===v.providerId);return `<tr><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.specialty)}</td><td>${esc(p?.name||'')}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.toileting)}</td><td>${esc(v.status||'Active')}</td><td>${esc(v.notes)}</td></tr>`}).join('');
  let apRows=ap.map(a=>{let tr=db.travel[a.id],v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<tr><td>${esc(a.time||'')}</td><td>${esc(v?.room||'')} — ${esc(v?.name||'')}</td><td>${esc(a.clinic||a.destination||p?.facility||'')}</td><td>${esc(a.pickup||tr?.pickup||'')}</td><td>${esc(a.transport||tr?.mode||'')}</td><td>${esc(a.escort||tr?.escort||'')}</td><td>${esc(tr?.status||a.travelStatus||'Not Started')}</td><td>${esc(a.status||'Upcoming')}</td></tr>`}).join('');
  reportOutput.innerHTML=`<div id="morningPrint" class="printsheet"><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
-<style>@page{size:landscape;margin:.3in}</style>
+<style>@page{size:landscape;margin:0}</style>
  <h2 style="text-align:center;margin-bottom:2px">BRAVOSHIFT — CLC MORNING REPORT — ${date}</h2>
  <p style="text-align:center;margin-top:0"><b>Census:</b> ${vets.length} &nbsp; | &nbsp; <b>Appointments:</b> ${ap.length} &nbsp; | &nbsp; <b>Treatments Due:</b> ${txDue.length} &nbsp; | &nbsp; <b>Priority Follow-ups:</b> ${travelAttention.length+txOutstanding.length}</p>
  <h3>Veteran Census — Shift Handoff Review</h3>
@@ -519,7 +519,7 @@ function generateReport(){
 }
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
 function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="uswds/package/dist/css/uswds.min.css">
-<style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
+<style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:0}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
 function addProvider(){if(!pName.value.trim())return;db.providers.push({id:'p'+Date.now(),name:pName.value.trim(),specialty:pSpecialty.value.trim(),facility:pFacility.value.trim(),city:pCity.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pSpecialty','pFacility','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
 function archiveProvider(id){let p=db.providers.find(x=>x.id===id);if(p){p.active=!p.active;persist();renderAll()}}
 function renderProviders(){providerList.innerHTML='<table><thead><tr><th>Name</th><th>Specialty</th><th>Facility</th><th>City</th><th>Phone</th><th>Status</th></tr></thead><tbody>'+db.providers.map(p=>`<tr class="${p.active?'':'archived'}"><td>${esc(p.name)}</td><td>${esc(p.specialty)}</td><td>${esc(p.facility)}</td><td>${esc(p.city)}</td><td>${esc(p.phone)}</td><td><span class="badge ${p.active?'confirmed':'cancelled'}">${p.active?'Active':'Archived'}</span> <button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button></td></tr>`).join('')+'</tbody></table>'}
