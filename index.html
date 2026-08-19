@@ -271,7 +271,7 @@ button.primary{border-radius:7px;font-weight:800}
 
 <script>
 const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], roles=['Charge RN','North Med Nurse','South Med Nurse','Center Med Nurse','North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3','Float'];
-const blockRoles=['North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3'],dutyCodes=['','M','DR','HT','N','S','D','F','VS','TX'];
+const blockRoles=['North Block 1','North Block 2','North Block 3','South Block 1','South Block 2','South Block 3'],dutyCodes=['','M','DR','HT','N','S','D','F','VS','TX','Hyd','NLT'];
 const roomBlockReference={north:{three:['B1: 59, 65, 109, 110','B2: 73, 76, 80, 86','B3: 89, 93, 95, 101, 104'],two:['B1: 59, 65, 73, 86, 109, 110','B2: 80, 89, 93, 95, 101, 104']},south:{three:['B1: 03-1, 03-2, 04, 51','B2: 09, 12-1, 12-2, 48','B3: 18, 20, 24, 27'],two:['B1: 03-1, 03-2, 04, 09, 48, 51','B2: 12-1, 12-2, 18, 20, 24, 27']}};
 let db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
