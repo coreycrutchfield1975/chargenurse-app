@@ -244,6 +244,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="span2"><label>Veteran *</label><select id="txVet"></select></div>
 <div><label>Month *</label><select id="txMonth"><option value="">Select month…</option></select></div>
 <div><label>Category *</label><select id="txCategory"><option>Licensed</option><option>Non-Licensed</option></select></div>
+<div><label>Start Day (1-18) *</label><input type="number" id="txStartDay" min="1" max="18" value="1"></div>
 <div id="txSections" class="span4" style="padding:4px"></div>
 </div>
 <div class="actionbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary pink" onclick="printTreatment()">🖨️ Print Treatment</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
@@ -635,27 +636,61 @@ function printTreatment(){
  const vet=db.veterans.find(v=>v.id===txVet.value);
  const month=txMonth.value||'';
  const category=txCategory.value||'';
+ const startDay=parseInt(txStartDay.value)||1;
  const sections=collectTxSections();
- function checkoffCell(freq){
-  if((freq||'').toLowerCase()==='daily'){
-   return `<div class="daygrid">${Array.from({length:31},(_,i)=>`<div class="daybox"><span class="num">${i+1}</span></div>`).join('')}</div><p class="muted">Mark the day each task was completed.</p>`;
+ 
+ // Helper to generate 14 boxes for a shift row
+ function shiftRowBoxes(label){
+  let boxes='';
+  for(let i=0;i<14;i++){
+   const dayNum=startDay+i;
+   boxes+=`<div class="daybox"><span class="num">${dayNum}</span></div>`;
   }
-  if((freq||'').toLowerCase()==='weekly')return `<div class="blankgrid">${'<div class="blankbox"></div>'.repeat(5)}</div><p class="muted">Initial/date each weekly occurrence.</p>`;
-  if((freq||'').toLowerCase()==='prn')return `<div class="blankgrid big">${'<div class="blankbox"></div>'.repeat(8)}</div><p class="muted">Date each time the PRN task is done.</p>`;
-  // As Scheduled / other
-  return `<div class="blankgrid">${'<div class="blankbox"></div>'.repeat(10)}</div><p class="muted">Date each scheduled occurrence.</p>`;
+  return `<div class="shift-row"><div class="shift-label">${label}</div><div class="daygrid">${boxes}</div></div>`;
  }
- const rows=sections.map((s,i)=>`<tr><td style="vertical-align:top"><b>Section ${i+1}</b></td><td>${esc(s.frequency||'—')}</td><td>${esc(s.start||'—')}</td><td>${esc(s.end||'—')}</td><td>${esc(s.shift||'—')}</td><td class="instr"><div>${esc(s.instructions||'')}</div>${checkoffCell(s.frequency)}</td></tr>`).join('');
+ 
+ // Build instructions HTML (collapsible)
+ const instructionsHTML=sections.map(s=>`<div class="instruction-item"><b>${esc(s.frequency||'—')}</b>: ${esc(s.instructions||'')}</div>`).join('');
+ 
  const w=window.open('','_blank');
  if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
  w.document.write(`<html><head><title>BravoShift Treatment Plan</title>
- <style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}th{background:#eef3f7}h1{font-size:18px;margin:0}.muted{color:#555}.daygrid{display:grid;grid-template-columns:repeat(16,minmax(0,auto));gap:2px;margin-top:6px}.daybox{border:1px solid #333;width:22px;height:26px;text-align:center;position:relative}.daybox .num{position:absolute;top:0;left:2px;font-size:8px;color:#666}.blankgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:3px;margin-top:6px}.blankgrid.big{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}.blankbox{border:1px solid #333;height:28px}@media print{th{background:#eef3f7!important}}</style></head><body>
+ <style>
+ @page{size:landscape;margin:.3in}
+ body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}
+ .header-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+ .header-table th,.header-table td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}
+ .header-table th{background:#eef3f7}
+ h1{font-size:18px;margin:0}
+ .muted{color:#555}
+ .category-licensed{color:#7c4dff;font-weight:800}
+ .category-nonlicensed{color:#2e9d50;font-weight:800}
+ .shift-rows{margin-top:15px}
+ .shift-row{margin-bottom:12px}
+ .shift-label{font-weight:800;margin-bottom:4px;font-size:13px}
+ .daygrid{display:grid;grid-template-columns:repeat(14,minmax(0,auto));gap:2px}
+ .daybox{border:1px solid #333;width:24px;height:28px;text-align:center;position:relative}
+ .daybox .num{position:absolute;top:0;left:2px;font-size:8px;color:#666}
+ .instructions-box{border:1px solid #555;padding:10px;margin-top:15px;background:#f8fafc}
+ .instructions-box h3{margin:0 0 8px;font-size:14px}
+ @media print{th{background:#eef3f7!important}}
+ </style></head><body>
  <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
  <p class="muted">Reference for the unit treatment book — for staff use only.</p>
- <table style="width:auto"><tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
- <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td>${esc(category)}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr></table>
- <table><thead><tr><th>#</th><th>Frequency</th><th>Start</th><th>End</th><th>Shift</th><th>Instructions &amp; Completion Check-off</th></tr></thead><tbody>${rows}</tbody></table>
- <p class="muted">Staff: enter your initials in the appropriate box(es).</p>
+ <table class="header-table">
+ <tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
+ <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span class="${category==='Licensed'?'category-licensed':'category-nonlicensed'}">${esc(category)}</span></td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
+ </table>
+ <div class="shift-rows">
+ ${shiftRowBoxes('Day Shift')}
+ ${shiftRowBoxes('PRN Shift')}
+ ${shiftRowBoxes('Night Shift')}
+ </div>
+ <div class="instructions-box">
+ <h3>Instructions</h3>
+ ${instructionsHTML}
+ </div>
+ <p class="muted" style="margin-top:20px">Staff: enter your initials in the appropriate box(es).</p>
  </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
@@ -663,30 +698,27 @@ function renderTxSection(idx,data={}){
  const box=document.getElementById('txSections');if(!box)return;
  const sec=document.createElement('div');sec.className='tx-section';sec.dataset.idx=idx;
  sec.style.cssText='border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:10px;background:#f8fafc';
- const days=`${D.map(d=>`<label style="display:inline-block;margin-right:6px;font-size:12px"><input type="checkbox" class="txSecDays" value="${d}" ${(data.days||[]).includes(d)?'checked':''}>${d}</label>`).join('')}`;
  sec.innerHTML=`<div class="toolbar" style="margin:0 0 6px"><h3>Section ${idx+1}</h3><button class="secondary" onclick="removeTxSection(this)">Remove</button></div>
  <div class="formgrid">
   <div><label>Frequency</label><select class="txFreq"><option>Daily</option><option>Weekly</option><option>As Scheduled</option><option>PRN</option></select></div>
   <div><label>Start Date</label><input class="txStart" type="date"></div>
   <div><label>End Date</label><input class="txEnd" type="date"></div>
-  <div><label>Shift</label><select class="txShift"><option>Day</option><option>Night</option><option>Both</option></select></div>
-  <div class="span4"><label>Scheduled Days</label><div>${days}</div></div>
   <div class="span4"><label>Instructions / Parameters</label><textarea class="txInstr"></textarea></div>
  </div>`;
  sec.querySelector('.txFreq').value=data.frequency||'Daily';
  sec.querySelector('.txStart').value=data.start||'';
  sec.querySelector('.txEnd').value=data.end||'';
- sec.querySelector('.txShift').value=data.shift||'Day';
  sec.querySelector('.txInstr').value=data.instructions||'';
  box.appendChild(sec);
 }
 function addTxSection(data={}){renderTxSection(document.querySelectorAll('#txSections .tx-section').length,data)}
 function removeTxSection(btn){const box=document.getElementById('txSections');const sec=btn.closest('.tx-section');if(box.querySelectorAll('.tx-section').length<=1){alert('Keep at least one section.');return}sec.remove();renumberTxSections()}
 function renumberTxSections(){document.querySelectorAll('#txSections .tx-section').forEach((s,i)=>{s.dataset.idx=i;const h=s.querySelector('h3');if(h)h.textContent='Section '+(i+1)})}
-function collectTxSections(){return[...document.querySelectorAll('#txSections .tx-section')].map(s=>({frequency:s.querySelector('.txFreq').value,start:s.querySelector('.txStart').value,end:s.querySelector('.txEnd').value,shift:s.querySelector('.txShift').value,days:[...s.querySelectorAll('.txSecDays:checked')].map(x=>x.value),instructions:s.querySelector('.txInstr').value.trim()}))}
+function collectTxSections(){return[...document.querySelectorAll('#txSections .tx-section')].map(s=>({frequency:s.querySelector('.txFreq').value,start:s.querySelector('.txStart').value,end:s.querySelector('.txEnd').value,instructions:s.querySelector('.txInstr').value.trim(),days:[],shift:''}))}
 function openTreatment(id=''){
  txId.value=id;let t=db.treatments.find(x=>x.id===id);vetOptions(txVet);managedOptions(txMonth,'months',true);
  txVet.value=t?.vetId||'';txMonth.value=t?.month||'';txCategory.value=t?.category||'Licensed';
+ txStartDay.value=t?.startDay||1;
  const box=document.getElementById('txSections');if(box)box.innerHTML='';
  const secs=(t?.sections&&t.sections.length)?t.sections:[{}];
  secs.forEach((s,i)=>renderTxSection(i,s));
@@ -697,7 +729,7 @@ function saveTreatment(){
  if(!txMonth.value){alert('Select a month for this treatment plan.');return}
  const sections=collectTxSections().filter(s=>s.frequency||s.instructions);
  if(!sections.length){alert('Add at least one instruction section.');return}
- let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,month:txMonth.value,category:txCategory.value,sections,active:true};
+ let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,month:txMonth.value,category:txCategory.value,startDay:parseInt(txStartDay.value)||1,sections,active:true};
  let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
 }
 function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
@@ -707,7 +739,7 @@ function renderTreatments(){
  let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,date);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v,isDue:sectionDueOn(s,date),done:sectionCompleted(t,si,date)})})});
  rows=rows.filter(x=>{let st=!x.t.active?'Archived':x.done?'Completed Today':x.isDue?'Due':'Scheduled',hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)&&(!status||st===status)&&(!due||(due==='today'&&x.isDue)||(due==='overdue'&&x.isDue&&!x.done))}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
  let dueRows=db.treatments.filter(t=>treatmentDueOn(t,date));txDueCount.textContent=dueRows.length;txLicensedCount.textContent=dueRows.filter(t=>t.category==='Licensed').length;txNonLicensedCount.textContent=dueRows.filter(t=>t.category==='Non-Licensed').length;txOverdueCount.textContent=db.treatments.filter(t=>{let d=planSectionsDue(t,date);return d.length&&d.some((_,i)=>!sectionCompleted(t,t.sections.indexOf(_),date))}).length;
- treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Shift</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.shift)}</td><td>${esc(x.s.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleSectionComplete('${x.t.id}',${x.si},'${date}')">${x.done?'Done':'Do'}</button>`:'—'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleSectionComplete('${x.t.id}',${x.si},'${date}')">${x.done?'Done':'Do'}</button>`:'—'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
 }
 
 function generateReport(){
