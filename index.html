@@ -716,8 +716,17 @@ function printTreatment(){
  .treatment-section{margin-bottom:25px}
  @media print{th{background:#f8f1e5!important}}
  </style></head><body>
- <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
- <p class="muted" style="font-size:11px">Reference for the unit treatment book — for staff use only.</p>
+ <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+  <div>
+   <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
+   <p class="muted" style="font-size:11px">Reference for the unit treatment book — for staff use only.</p>
+  </div>
+  <div style="text-align:right">
+   <div style="font-size:28px;font-weight:900;letter-spacing:2px;color:${categoryColor};text-transform:uppercase;border:3px solid ${categoryColor};padding:5px 15px;border-radius:8px;background:${categoryLight}">
+    ${esc(category)}
+   </div>
+  </div>
+ </div>
  <table class="header-table">
  <tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
  <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span style="${isLicensed?'color:#7c4dff':'color:#2e9d50'};font-weight:800">${esc(category)}</span></td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
