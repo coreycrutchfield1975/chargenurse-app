@@ -638,59 +638,92 @@ function printTreatment(){
  const category=txCategory.value||'';
  const startDay=parseInt(txStartDay.value)||1;
  const sections=collectTxSections();
+ const isLicensed=category==='Licensed';
+ const categoryColor=isLicensed?'#7c4dff':'#2e9d50';
+ const categoryLight=isLicensed?'#f0e8ff':'#e8f7ef';
+ const categoryBorder=isLicensed?'#5b2d8e':'#1a8a4a';
  
- // Helper to generate 14 boxes for a shift row
- function shiftRowBoxes(label){
-  let boxes='';
+ // Helper to generate day headers (1-14 based on startDay)
+ function dayHeaders(){
+  let headers='';
   for(let i=0;i<14;i++){
    const dayNum=startDay+i;
-   boxes+=`<div class="daybox"><span class="num">${dayNum}</span></div>`;
+   headers+=`<th class="day-header" style="width:28px;text-align:center;padding:4px;background:#e6dfd1;border:1px solid #bbb;font-size:10px;color:#333">${dayNum}</th>`;
   }
-  return `<div class="shift-row"><div class="shift-label">${label}</div><div class="daygrid">${boxes}</div></div>`;
+  return headers;
  }
  
- // Build instructions HTML (collapsible)
- const instructionsHTML=sections.map(s=>`<div class="instruction-item"><b>${esc(s.frequency||'—')}</b>: ${esc(s.instructions||'')}</div>`).join('');
+ // Helper to generate a shift row (empty boxes)
+ function shiftRow(label){
+  let boxes='';
+  for(let i=0;i<14;i++){
+   boxes+=`<td class="initials-cell" style="padding:2px;border:1px solid #999;text-align:center;vertical-align:middle"><div class="initials-box" style="width:28px;height:28px;border:1px solid #333;margin:0 auto;background:#fff"></div></td>`;
+  }
+  return `<tr><td class="shift-label-cell" style="font-weight:bold;padding:6px 8px;background:${categoryLight};border:1px solid #ccc;font-size:11px">${label}</td>${boxes}</tr>`;
+ }
+ 
+ // Build sections HTML
+ let sectionsHTML='';
+ sections.forEach((sec,idx)=>{
+  const freq=sec.frequency||'Daily';
+  const start=sec.start||'';
+  const end=sec.end||'';
+  const instr=sec.instructions||'';
+  sectionsHTML+=`
+   <div class="treatment-section" style="page-break-inside:avoid;margin-top:20px;padding:15px;border:1px solid #ccc;border-left:6px solid ${categoryColor};border-radius:8px;background:#f9f9f9">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+     <h3 style="margin:0;font-size:14px;color:#1a0f00">Section ${idx+1} – ${esc(freq)}</h3>
+     <div style="font-size:11px;color:#555">
+      ${start?`Start: ${esc(start)}`:'No start date'} ${end?` • End: ${esc(end)}`:' • No end date'}
+     </div>
+    </div>
+    <div style="margin-bottom:10px">
+     <div style="font-weight:bold;font-size:11px;color:#555;margin-bottom:4px">Instructions</div>
+     <div style="padding:8px;background:#fff;border:1px solid #ddd;border-radius:4px;font-size:12px;min-height:40px">${esc(instr)}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px">
+     <thead>
+      <tr>
+       <th style="width:80px;text-align:left;padding:4px;background:#e6dfd1;border:1px solid #555">Shift</th>
+       ${dayHeaders()}
+      </tr>
+     </thead>
+     <tbody>
+      ${shiftRow('Day Shift')}
+      ${shiftRow('PRN Shift')}
+      ${shiftRow('Night Shift')}
+     </tbody>
+    </table>
+    <div style="margin-top:8px;font-size:10px;color:#777;text-align:center">
+     Staff: initial in the appropriate box each time this treatment is provided.
+    </div>
+   </div>`;
+ });
  
  const w=window.open('','_blank');
  if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
  w.document.write(`<html><head><title>BravoShift Treatment Plan</title>
  <style>
  @page{size:landscape;margin:.3in}
- body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#111}
- .header-table{width:100%;border-collapse:collapse;margin-bottom:12px}
- .header-table th,.header-table td{border:1px solid #555;padding:6px;vertical-align:top;text-align:left}
- .header-table th{background:#eef3f7}
- h1{font-size:18px;margin:0}
- .muted{color:#555}
+ body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in;background:#fefcf7}
+ .header-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+ .header-table th,.header-table td{border:1px solid #bba;padding:6px;vertical-align:top;text-align:left}
+ .header-table th{background:#f8f1e5;color:#1a0f00}
+ h1{font-size:18px;margin:0;color:#1a0f00}
+ .muted{color:#665}
  .category-licensed{color:#7c4dff;font-weight:800}
  .category-nonlicensed{color:#2e9d50;font-weight:800}
- .shift-rows{margin-top:15px}
- .shift-row{margin-bottom:12px}
- .shift-label{font-weight:800;margin-bottom:4px;font-size:13px}
- .daygrid{display:grid;grid-template-columns:repeat(14,minmax(0,auto));gap:2px}
- .daybox{border:1px solid #333;width:24px;height:28px;text-align:center;position:relative}
- .daybox .num{position:absolute;top:0;left:2px;font-size:8px;color:#666}
- .instructions-box{border:1px solid #555;padding:10px;margin-top:15px;background:#f8fafc}
- .instructions-box h3{margin:0 0 8px;font-size:14px}
- @media print{th{background:#eef3f7!important}}
+ .treatment-section{margin-bottom:25px}
+ @media print{th{background:#f8f1e5!important}}
  </style></head><body>
  <h1>BRAVOSHIFT — CLC TREATMENT PLAN</h1>
- <p class="muted">Reference for the unit treatment book — for staff use only.</p>
+ <p class="muted" style="font-size:11px">Reference for the unit treatment book — for staff use only.</p>
  <table class="header-table">
  <tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
- <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span class="${category==='Licensed'?'category-licensed':'category-nonlicensed'}">${esc(category)}</span></td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
+ <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span style="${isLicensed?'color:#7c4dff':'color:#2e9d50'};font-weight:800">${esc(category)}</span></td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
  </table>
- <div class="shift-rows">
- ${shiftRowBoxes('Day Shift')}
- ${shiftRowBoxes('PRN Shift')}
- ${shiftRowBoxes('Night Shift')}
- </div>
- <div class="instructions-box">
- <h3>Instructions</h3>
- ${instructionsHTML}
- </div>
- <p class="muted" style="margin-top:20px">Staff: enter your initials in the appropriate box(es).</p>
+ ${sectionsHTML}
+ <p class="muted" style="margin-top:30px;font-size:11px">This treatment plan is valid for the month of ${esc(month)}. Keep this sheet at the nurse's station.</p>
  </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
