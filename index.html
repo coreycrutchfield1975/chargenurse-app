@@ -213,6 +213,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="span2"><fieldset><legend>Vitals Days</legend><div class="days" id="daysVitals"></div></fieldset></div>
 <div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
 <div class="span2"><fieldset><legend>Labs (Dates per Month)</legend><textarea id="vLabs" style="min-height:60px" placeholder="March: 3/1, 3/15, 3/28&#10;April: 4/5, 4/12&#10;May: 5/3"></textarea></fieldset></div>
+<div class="span2"><fieldset><legend>VAEA NOTES (72‑Hour Chart)</legend><div class="formgrid"><div><label>Start Date</label><input type="date" id="vVaeaStart"></div><div><label>End Date</label><input type="date" id="vVaeaEnd"></div></div><div style="margin-top:6px"><label><input type="checkbox" id="vVaeaDone" style="width:auto;margin-right:6px"> Completed</label></div></fieldset></div>
 </div><div class="toolbar"><button class="primary purple" onclick="saveVeteran()">Save Veteran</button><button class="secondary" onclick="closeModal('vetModal')">Cancel</button></div>
 </div></div>
 
@@ -450,7 +451,15 @@ function daysOnUnit(d){if(!d)return'';return Math.max(0,Math.floor((new Date(tod
 function checkedDays(id){return [...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value)}
 function makeDays(id){document.getElementById(id).innerHTML=D.slice(1).concat(D[0]).map(x=>`<label><input type="checkbox" value="${x}"> ${x}</label>`).join('')}
 ['daysSkin','daysWeight','daysFsbs','daysVitals','daysShower'].forEach(makeDays);
-document.getElementById('vAdmission').onchange=()=>document.getElementById('vDays').value=daysOnUnit(document.getElementById('vAdmission').value);
+document.getElementById('vAdmission').onchange=()=>{
+ document.getElementById('vDays').value=daysOnUnit(document.getElementById('vAdmission').value);
+ let vAd=document.getElementById('vAdmission').value;
+ if(vAd){
+  document.getElementById('vVaeaStart').value=vAd;
+  let d=new Date(vAd+'T12:00:00');d.setDate(d.getDate()+3);
+  document.getElementById('vVaeaEnd').value=d.toISOString().slice(0,10);
+ }
+}
 function providerClinic(p){return p?.clinic||p?.specialty||''}
 function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(providerClinic(p))}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function roomCompare(a,b){return String(a??'').localeCompare(String(b??''),undefined,{numeric:true,sensitivity:'base'})}
@@ -491,11 +500,22 @@ function shiftAssignmentReadiness(){
  return `Day shift ${day}/${roles.length} positions entered<br>Night shift ${night}/${roles.length} positions entered`;
 }
 function getAlerts(){
- let out=[];db.appointments.forEach(a=>{let tr=db.travel[a.id];if(tr&&tr.status==='Draft')out.push({title:'Transportation Request Not Confirmed',message:`${vetLabel(a.vetId)} — ${a.date} ${a.time}`,level:'warning'});if(tr&&tr.status==='Failed')out.push({title:'Transportation Email Failed',message:`${vetLabel(a.vetId)} — action required`,level:'critical'})});return out
+ let out=[];
+ // VAEA NOTES alerts — red/critical if active but not completed
+ let today=today();
+ db.veterans.forEach(v=>{
+  if(v.status==='Discharged / Archived')return;
+  if(v.vaeaStart&&v.vaeaEnd&&!v.vaeaDone){
+   if(today>=v.vaeaStart&&today<=v.vaeaEnd){
+    out.push({title:'VAEA NOTES Due',message:`Room ${v.room} — ${v.name}: 72-hour charting window active until ${v.vaeaEnd}`,level:'critical'});
+   }
+  }
+ });
+ db.appointments.forEach(a=>{let tr=db.travel[a.id];if(tr&&tr.status==='Draft')out.push({title:'Transportation Request Not Confirmed',message:`${vetLabel(a.vetId)} — ${a.date} ${a.time}`,level:'warning'});if(tr&&tr.status==='Failed')out.push({title:'Transportation Email Failed',message:`${vetLabel(a.vetId)} — action required`,level:'critical'})});return out
 }
 function vetLabel(id){let v=db.veterans.find(x=>x.id===id);return v?`Room ${v.room} — ${v.name}`:'Unknown Veteran'}
 function openVeteran(id=''){
- let v=db.veterans.find(x=>x.id===id),legacyProvider=db.providers.find(p=>p.id===v?.providerId);vId.value=v?.id||'';vRoom.value=v?.room||'';vName.value=v?.name||'';vLast4.value=v?.last4||'';vSpecialty.value=veteranLevelOfCare(v)||'LTC — Long-Term Care';vProvider.value=v?.floorProvider||legacyProvider?.name||'';vAdmission.value=v?.admission||'';vDays.value=daysOnUnit(v?.admission);vStatus.value=v?.status||'Active';vCode.value=v?.codeStatus||'';vMeds.value=v?.meds||'Whole';vDiet.value=v?.diet||'Regular';vIsolation.value=v?.isolation||'N/A';vAssist.value=v?.assist||'Independent';vMobility.value=v?.mobility||'Ambulatory';vFallRisk.value=v?.fallRisk||'Standard';vToileting.value=v?.toileting||'Cont';vSideRails.value=String(v?.sideRails??0);vLabs.value=v?.labsDate||'';vNotes.value=v?.notes||'';
+ let v=db.veterans.find(x=>x.id===id),legacyProvider=db.providers.find(p=>p.id===v?.providerId);vId.value=v?.id||'';vRoom.value=v?.room||'';vName.value=v?.name||'';vLast4.value=v?.last4||'';vSpecialty.value=veteranLevelOfCare(v)||'LTC — Long-Term Care';vProvider.value=v?.floorProvider||legacyProvider?.name||'';vAdmission.value=v?.admission||'';vDays.value=daysOnUnit(v?.admission);vStatus.value=v?.status||'Active';vCode.value=v?.codeStatus||'';vMeds.value=v?.meds||'Whole';vDiet.value=v?.diet||'Regular';vIsolation.value=v?.isolation||'N/A';vAssist.value=v?.assist||'Independent';vMobility.value=v?.mobility||'Ambulatory';vFallRisk.value=v?.fallRisk||'Standard';vToileting.value=v?.toileting||'Cont';vSideRails.value=String(v?.sideRails??0);vLabs.value=v?.labsDate||'';vVaeaStart.value=v?.vaeaStart||'';vVaeaEnd.value=v?.vaeaEnd||'';vVaeaDone.checked=v?.vaeaDone||false;vNotes.value=v?.notes||'';
  ['Skin','Weight','Fsbs','Vitals','Shower'].forEach(k=>document.querySelectorAll('#days'+k+' input').forEach(i=>i.checked=(v?.schedules?.[k.toLowerCase()]||[]).includes(i.value)));
  vWeightFrequency.value=v?.weightFrequency||'Weekly';vWeightMethod.value=v?.weightMethod||'';
  vFsbsFrequency.value=v?.fsbsFrequency||'Selected Days';vFsbsTimes.value=v?.fsbsTimes||'';
@@ -507,7 +527,7 @@ function saveVeteran(){
  if(vWeightFrequency.value==='Weekly'&&!checkedDays('daysWeight').length){alert('Select at least one weekly weight day.');return}
  if(vFsbsFrequency.value==='Selected Days'&&vFsbsTimes.value.trim()&&!checkedDays('daysFsbs').length){alert('Select at least one FS/BS day, or choose Daily.');return}
  let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
- let obj={id:vId.value||'v'+Date.now(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
+ let obj={id:vId.value||'v'+Date.now(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
 function toggleVeteranArchive(id){
