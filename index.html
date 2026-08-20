@@ -502,11 +502,11 @@ function shiftAssignmentReadiness(){
 function getAlerts(){
  let out=[];
  // VAEA NOTES alerts — red/critical if active but not completed
- let today=today();
+ let todayStr=today();
  db.veterans.forEach(v=>{
   if(v.status==='Discharged / Archived')return;
   if(v.vaeaStart&&v.vaeaEnd&&!v.vaeaDone){
-   if(today>=v.vaeaStart&&today<=v.vaeaEnd){
+   if(todayStr>=v.vaeaStart&&todayStr<=v.vaeaEnd){
     out.push({title:'VAEA NOTES Due',message:`Room ${v.room} — ${v.name}: 72-hour charting window active until ${v.vaeaEnd}`,level:'critical'});
    }
   }
