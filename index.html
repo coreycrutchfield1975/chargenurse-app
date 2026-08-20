@@ -285,7 +285,7 @@ const managedListDefaults={
  assistLevels:['Independent','1','2','1 to 2','Total','SBA'],
  mobilityOptions:['Ambulatory','Wheelchair','Walker','Cane','Bedbound','Mechanical Lift','Other'],
  fallRiskLevels:['Standard','Moderate','High','See Current Care Plan'],
- toiletingOptions:['Continent','Incontinent','Incontinent at Times','Incontinent of BM'],
+ toiletingOptions:['Cont','Inc','Inc @ times','Inc of BM'],
  transportationModes:['JC Shuttle Bus','Wheelchair Van','Ambulance - ALS','Ambulance - BLS','JJP - VTS','Other'],
  appointmentReasons:['Consult','Procedure','Discharge','Admission','Follow Up','Testing'],
  clinics:['Primary Care','Cardiology','Neurology','Dental','Audiology','Optometry / Vision','Mental Health','Community Care','Podiatry','Pulmonary','Dermatology','Endocrinology','Gastroenterology','Oncology','Orthopedics','Pain Management','Physical Therapy','Rheumatology','Urology','Other'],
@@ -302,6 +302,26 @@ Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(d
 if(!db.managedLists.diets.some(x=>x.value==='Easy to Chew'))db.managedLists.diets.push({id:'diets-easy-to-chew',value:'Easy to Chew',active:true});
 const levelOfCareNames={LTC:'LTC',EOL:'EOL',SSR:'SSR',RESP:'RESP'};
 function veteranLevelOfCare(v){return v?.levelOfCare||levelOfCareNames[v?.specialty]||v?.specialty||''}
+function migrateToiletingOptions(data){
+ const map={
+  'Continent':'Cont',
+  'Incontinent':'Inc',
+  'Incontinent at Times':'Inc @ times',
+  'Incontinent of BM':'Inc of BM'
+ };
+ if(Array.isArray(data.managedLists?.toiletingOptions)){
+  data.managedLists.toiletingOptions.forEach(item=>{
+   if(map[item.value])item.value=map[item.value];
+  });
+ }
+ if(Array.isArray(data.veterans)){
+  data.veterans.forEach(v=>{
+   if(v.toileting&&map[v.toileting])v.toileting=map[v.toileting];
+  });
+ }
+}
+// Run migration on current data
+migrateToiletingOptions(db);
 db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard';if(!v.levelOfCare)v.levelOfCare=veteranLevelOfCare(v)});
 db.providers.forEach(p=>{if(!p.clinic)p.clinic=p.specialty||''});
 /* Migrate: months managed list + legacy treatment records to the new month/sections model */
@@ -408,6 +428,8 @@ function importData(file){
    backup.staff=(incoming.staff&&typeof incoming.staff==='object')?incoming.staff:(backup.staff||{});
    if(incoming.travel&&typeof incoming.travel==='object')backup.travel=incoming.travel;
    if(incoming.treatmentCompletions&&typeof incoming.treatmentCompletions==='object')backup.treatmentCompletions=incoming.treatmentCompletions;
+   // Migrate old toileting labels to new shortened ones
+   migrateToiletingOptions(backup);
    localStorage.setItem('cn-spectrum-db-pre-import',JSON.stringify(db));
    db=backup;
    persist();
