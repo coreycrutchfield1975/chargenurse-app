@@ -145,7 +145,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="toolbar"><h2>Transportation & Travel Requests</h2><button class="secondary" onclick="resetTravelFilters()">Clear Filters</button><button class="primary orange right" onclick="openDocPicker('travel')">Create Travel Request</button></div>
 <div class="stats">
 <div class="card stat"><span>Needs Request</span><b id="travelNeedCount">0</b></div>
-<div class="card stat"><span>Draft / Failed</span><b id="travelActionCount">0</b></div>
+<div class="card stat"><span>In Progress / Failed</span><b id="travelActionCount">0</b></div>
 <div class="card stat"><span>Confirmed</span><b id="travelConfirmedCount">0</b></div>
 <div class="card stat"><span>Today Pickups</span><b id="travelTodayCount">0</b></div>
 </div>
@@ -480,7 +480,7 @@ function renderHome(){
  let cutoff=Date.now()-24*60*60*1000;
  let newAdmissions=active.filter(v=>v.admission&&new Date(v.admission+'T12:00:00').getTime()>=cutoff);
  let alerts=getDashboardAlerts(outstanding,offUnit,newAdmissions);
- let travelFollow=db.appointments.filter(a=>a.status!=='Cancelled'&&db.travel[a.id]&&['Draft','Failed'].includes(db.travel[a.id].status));
+ let travelFollow=db.appointments.filter(a=>a.status!=='Cancelled'&&db.travel[a.id]&&['In Progress','Failed'].includes(db.travel[a.id].status));
  statVets.textContent=active.length;statAppts.textContent=ta.length;statTxDue.textContent=outstanding.length;statAlerts.textContent=alerts.length;
  statOffUnit.textContent=offUnit.length;statNewAdmissions.textContent=newAdmissions.length;statTrans.textContent=travelFollow.length;statTxDone.textContent=done.length;
  document.getElementById('alerts').innerHTML=alerts.length?alerts.slice(0,10).map(a=>`<div class="card alert ${a.level==='critical'?'critical':''}"><b>${esc(a.title)}</b><div>${esc(a.message)}</div></div>`).join(''):'<div class="card"><b>Operational Readiness: Green</b><div>No priority follow-up identified.</div></div>';
@@ -846,7 +846,7 @@ function generateReport(){
  let due=(k)=>vets.filter(v=>{if(k==='fsbs')return !!v.fsbsTimes&&((v.fsbsFrequency||'Selected Days')==='Daily'||(v.schedules?.fsbs||[]).includes(day));if(k!=='weight')return(v.schedules?.[k]||[]).includes(day);let f=v.weightFrequency||'Weekly';if(f==='Daily')return true;if(f==='Monthly')return false;return(v.schedules?.weight||[]).includes(day)});
  let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
  let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
- let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['Draft','Failed'].includes(tr.status))});
+ let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['In Progress','Failed'].includes(tr.status))});
  let offUnit=vets.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
  let newAdmissions=vets.filter(v=>v.admission&&Math.floor((new Date(date+'T12:00:00')-new Date(v.admission+'T12:00:00'))/86400000)<=1&&new Date(v.admission+'T12:00:00')<=new Date(date+'T12:00:00'));
  let highRisk=vets.filter(v=>/high/i.test(v.fallRisk||'')||/isolation/i.test(v.isolation||'')&&!/none|standard/i.test(v.isolation||''));
