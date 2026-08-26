@@ -462,7 +462,7 @@ document.getElementById('vAdmission').onchange=()=>{
  }
 }
 function providerClinic(p){return p?.clinic||p?.specialty||''}
-function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(providerClinic(p))}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
+function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(providerClinic(p))}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function roomCompare(a,b){return String(a??'').localeCompare(String(b??''),undefined,{numeric:true,sensitivity:'base'})}
 function vetOptions(sel){let current=sel.value;sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function activeList(key){return (db.managedLists[key]||[]).filter(x=>x.active).map(x=>x.value)}
