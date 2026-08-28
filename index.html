@@ -247,7 +247,8 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="span2"><label>Veteran *</label><select id="txVet"></select></div>
 <div><label>Month *</label><select id="txMonth"><option value="">Select month…</option></select></div>
 <div><label>Category *</label><select id="txCategory"><option>Licensed</option><option>Non-Licensed</option></select></div>
-<div><label>Start Day (1-18) *</label><input type="number" id="txStartDay" min="1" max="18" value="1"></div>
+<div><label>Block</label><select id="txBlock"><option>North</option><option>South</option></select></div>
+<div><label>Start Day (1-31) *</label><input type="number" id="txStartDay" min="1" max="31" value="1"></div>
 <div id="txSections" class="span4" style="padding:4px"></div>
 </div>
 <div class="actionbar"><button class="secondary" onclick="addTxSection()">+ Add Section</button><button class="primary pink" onclick="printTreatment()">🖨️ Print Treatment</button><button class="primary green" onclick="saveTreatment()">Save Treatment Plan</button><button class="secondary" onclick="archiveTreatment()">Archive</button></div>
@@ -779,7 +780,7 @@ function printTreatment(){
  </div>
  <table class="header-table">
  <tr><th>Veteran</th><td>${esc(vet?.name||'')}</td><th>Room</th><td>${esc(vet?.room||'')}</td><th>Last 4</th><td>${esc(vet?.last4||'')}</td></tr>
- <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span style="${isLicensed?'color:#7c4dff':'color:#2e9d50'};font-weight:800">${esc(category)}</span></td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
+ <tr><th>Month</th><td>${esc(month)}</td><th>Category</th><td><span style="${isLicensed?'color:#7c4dff':'color:#2e9d50'};font-weight:800">${esc(category)}</span></td><th>Block</th><td>${esc(txBlock.value||'')}</td><th>Start Day</th><td>${startDay}</td><th>Printed</th><td>${new Date().toLocaleDateString()}</td></tr>
  </table>
  ${sectionsHTML}
  <p class="muted" style="margin-top:30px;font-size:11px">This treatment plan is valid for the month of ${esc(month)}. Keep this sheet at the nurse's station.</p>
@@ -810,7 +811,7 @@ function collectTxSections(){return[...document.querySelectorAll('#txSections .t
 function openTreatment(id=''){
  txId.value=id;let t=db.treatments.find(x=>x.id===id);vetOptions(txVet);managedOptions(txMonth,'months',true);
  txVet.value=t?.vetId||'';txMonth.value=t?.month||'';txCategory.value=t?.category||'Licensed';
- txStartDay.value=t?.startDay||1;
+ txBlock.value=t?.block||'North';txStartDay.value=t?.startDay||1;
  const box=document.getElementById('txSections');if(box)box.innerHTML='';
  const secs=(t?.sections&&t.sections.length)?t.sections:[{}];
  secs.forEach((s,i)=>renderTxSection(i,s));
@@ -821,7 +822,7 @@ function saveTreatment(){
  if(!txMonth.value){alert('Select a month for this treatment plan.');return}
  const sections=collectTxSections().filter(s=>s.frequency||s.instructions);
  if(!sections.length){alert('Add at least one instruction section.');return}
- let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,month:txMonth.value,category:txCategory.value,startDay:parseInt(txStartDay.value)||1,sections,active:true};
+ let rec={id:txId.value||'tx'+Date.now(),vetId:txVet.value,month:txMonth.value,category:txCategory.value,block:txBlock.value,startDay:parseInt(txStartDay.value)||1,sections,active:true};
  let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
 }
 function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
@@ -857,7 +858,7 @@ function generateReport(){
  let rosterRows=vets.map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'';return `<tr><td>${esc(v.room)}</td><td class="vet-name"><b>${esc(v.name)}</b></td><td>${esc(v.last4)}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td class="nocol">${daysOnUnit(v.admission)}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.toileting)}</td><td class="nocol">${esc(v.sideRails??0)}</td><td class="nocol">${esc(v.status||'Active')}</td><td>${esc(v.fsbsTimes||'')}</td><td class="vet-notes">${esc(v.notes)}</td></tr>`}).join('');
  let apRows=ap.map(a=>{let tr=db.travel[a.id],v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<tr><td>${esc(a.time||'')}</td><td>${esc(v?.room||'')} — ${esc(v?.name||'')}</td><td>${esc(p?.name||'')}${(a.destination||p?.facility)?'<br><span class="muted">'+esc(a.destination||p?.facility||'')+'</span>':''}</td><td>${esc(a.pickup||tr?.pickup||'')}</td><td>${esc(a.transport||tr?.mode||'')}</td><td>${esc(a.escort||tr?.escort||'')}</td><td>${esc(tr?.status||a.travelStatus||'Not Started')}</td><td>${esc(a.status||'Upcoming')}</td></tr>`}).join('');
  let staffCell=(shift,r)=>{let name=s[shift]?.[r]||'',duties=(s[shift+'Duties']?.[r]||[]).filter(Boolean);return name||duties.length?`${esc(name)}${duties.length?` <b>[${duties.map(esc).join(', ')}]</b>`:''}`:'—'},staffRows=roles.map(r=>`<tr><th>${esc(r)}</th><td>${staffCell('day',r)}</td><td>${staffCell('night',r)}</td></tr>`).join('');
- let blockReference=`<div class="compact-card section"><h3>Permanent Room / Block Reference</h3><div class="body"><div><b>North — 3 Person Care:</b> ${roomBlockReference.north.three.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>North — 2 Person Care:</b> ${roomBlockReference.north.two.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>South — 3 Person Care:</b> ${roomBlockReference.south.three.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>South — 2 Person Care:</b> ${roomBlockReference.south.two.map(esc).join(' &nbsp;·&nbsp; ')}</div><p style="margin-top:3px"><b>Duty Legend:</b> M Monitor Hall · DR Dining Room · HT Hall Trays · N North Utility · S South Utility · D Disaster Runner · F Fire Marshal · VS Vitals · TX Treatments</p></div></div>`;
+ let blockReference=`<div class="compact-card section"><h3>Permanent Room / Block Reference</h3><div class="body"><div><b>North — 3 Person Care:</b> ${roomBlockReference.north.three.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>North — 2 Person Care:</b> ${roomBlockReference.north.two.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>South — 3 Person Care:</b> ${roomBlockReference.south.three.map(esc).join(' &nbsp;·&nbsp; ')}</div><div><b>South — 2 Person Care:</b> ${roomBlockReference.south.two.map(esc).join(' &nbsp;·&nbsp; ')}</div><p style="margin-top:3px"><b>Duty Legend:</b> HM Monitor Hall · DR Dining Room · HT Hall Trays · D Disaster Runner · F Fire Marshal · VS Vitals · TX Treatments</p></div></div>`;
  let txRows=[]
  txDue.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);(t.sections||[]).forEach((s,si)=>{let done=sectionCompleted(t,si,date);txRows.push(`<tr><td>${esc(v?.room||'')}</td><td>${esc(v?.name||'')}</td><td>${esc(t.month||'')}</td><td>${esc(s.shift)}</td><td>${esc(s.frequency)}</td><td>${done?'Completed':'Outstanding'}${s.instructions?' — '+esc(s.instructions):''}</td></tr>`)})});
  reportOutput.innerHTML=`<div id="morningPrint" class="printsheet report-page">
