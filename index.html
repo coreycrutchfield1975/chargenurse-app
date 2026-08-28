@@ -842,7 +842,7 @@ function generateReport(){
  let ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
  let s=db.staff[date]||{day:{},night:{}};
  let asihCount=vets.filter(v=>String(v.status||'').trim().toLowerCase()==='hospital').length;
- let aaCount=vets.filter(v=>String(v.status||'Active').trim()!=='Active').length;
+ let aaCount=vets.filter(v=>['Leave of Absence','At Appointment'].includes(String(v.status||'').trim())).length;
  let due=(k)=>vets.filter(v=>{if(k==='fsbs')return !!v.fsbsTimes&&((v.fsbsFrequency||'Selected Days')==='Daily'||(v.schedules?.fsbs||[]).includes(day));if(k!=='weight')return(v.schedules?.[k]||[]).includes(day);let f=v.weightFrequency||'Weekly';if(f==='Daily')return true;if(f==='Monthly')return false;return(v.schedules?.weight||[]).includes(day)});
  let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
  let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
