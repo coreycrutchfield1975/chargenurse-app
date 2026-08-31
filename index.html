@@ -34,7 +34,7 @@ main{max-width:1550px;margin:auto;padding:20px}.tab{display:none}.tab.active{dis
 button.primary,button.secondary{border-radius:7px;padding:9px 13px;font-weight:800;cursor:pointer}
 button.primary{border:0;background:var(--blue);color:white}.secondary{background:white;border:1px solid #7f8a96}
 button.danger{background:#fff;border:1px solid var(--red);color:#9b1c1c}
-.nav-data{margin-left:auto;display:flex;gap:6px;align-items:center}
+.nav-data{margin-left:auto;display:flex;gap:6px;align-items:center;position:relative}
 .nav-data button,.nav-data .file-btn{font-weight:800;font-size:.8rem;white-space:nowrap;border-bottom:0!important;background:#fff}
 .nav-data .file-btn{display:inline-flex;align-items:center;border-radius:7px;padding:9px 13px;cursor:pointer}
 .green{background:var(--green)!important}.purple{background:var(--purple)!important}.teal{background:var(--teal)!important}.pink{background:var(--pink)!important}.orange{background:var(--orange)!important}.red{background:var(--red)!important}
@@ -176,14 +176,14 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="stats">
 <div class="card stat"><span>Active Veterans</span><b id="statVets">0</b></div>
 <div class="card stat"><span>Today's Appointments</span><b id="statAppts">0</b></div>
-<div class="card stat"><span>Treatments Due</span><b id="statTxDue">0</b></div>
+<div class="card stat"><span>Needs Request</span><b id="statNeeds">0</b></div>
 <div class="card stat"><span>Priority Actions</span><b id="statAlerts">0</b></div>
 </div>
 <div class="stats">
 <div class="card stat"><span>Off Unit</span><b id="statOffUnit">0</b></div>
 <div class="card stat"><span>New Admissions 24h</span><b id="statNewAdmissions">0</b></div>
 <div class="card stat"><span>Transport Follow-up</span><b id="statTrans">0</b></div>
-<div class="card stat"><span>Completed Treatments</span><b id="statTxDone">0</b></div>
+<div class="card stat"><span>Today Pickups</span><b id="statPickups">0</b></div>
 </div>
 <div class="toolbar"><button class="primary purple" onclick="openVeteran()">Add Veteran</button><button class="primary" onclick="openAppointment()">Add Appointment</button><button class="primary green" onclick="openTreatment()">Assign Treatment</button><button class="primary teal" onclick="openStaff()">Shift Assignment</button><button class="primary pink" onclick="showTab('reports')">Morning Report</button></div>
 <div class="grid">
