@@ -325,19 +325,123 @@ function migrateToiletingOptions(data){
  }
 }
 // Run migration on current data
-migrateToiletingOptions(db);
-db.veterans.forEach(v=>{if(!v.status)v.status='Active';if(!('codeStatus' in v))v.codeStatus='';if(!v.mobility)v.mobility='Ambulatory';if(!v.fallRisk)v.fallRisk='Standard';if(!v.levelOfCare)v.levelOfCare=veteranLevelOfCare(v)});
-db.providers.forEach(p=>{if(!p.clinic)p.clinic=p.specialty||''});
-/* Migrate: months managed list + legacy treatment records to the new month/sections model */
-if(db.managedLists.treatmentTypes)delete db.managedLists.treatmentTypes;
-if(!Array.isArray(db.managedLists.months))db.managedLists.months=managedListDefaults.months.map((v,i)=>({id:'months-'+(i+1),value:v,active:true}));
-(db.treatments||[]).forEach(t=>{
- if(!Array.isArray(t.sections)){
-  // legacy flat record -> wrap as one section
-  t.sections=[{frequency:t.frequency||'Daily',start:t.start||'',end:t.end||'',shift:t.shift||'Day',days:Array.isArray(t.days)?t.days:[],instructions:(t.instructions||t.type||'')}];
-  if(!t.month)t.month='';
- }
-});
+
+// === Robust Data Migration System ===
+function migrateData(data) {
+    try {
+        console.log('Starting data migration...');
+        
+        // Version tracking
+        if (!data._migrationVersion) data._migrationVersion = 0;
+        
+        // Run migrations in order
+        if (data._migrationVersion < 1) {
+            migrateToiletingOptions(data);
+            data._migrationVersion = 1;
+        }
+        
+        if (data._migrationVersion < 2) {
+            normalizeVeteranData(data);
+            data._migrationVersion = 2;
+        }
+        
+        if (data._migrationVersion < 3) {
+            normalizeProviderData(data);
+            data._migrationVersion = 3;
+        }
+        
+        if (data._migrationVersion < 4) {
+            normalizeManagedLists(data);
+            data._migrationVersion = 4;
+        }
+        
+        if (data._migrationVersion < 5) {
+            migrateTreatments(data);
+            data._migrationVersion = 5;
+        }
+        
+        console.log('Migration completed to version:', data._migrationVersion);
+        return true;
+    } catch (e) {
+        console.error('Migration failed:', e.message);
+        return false;
+    }
+}
+
+function normalizeVeteranData(data) {
+    if (Array.isArray(data.veterans)) {
+        data.veterans.forEach(v => {
+            if (!v.status) v.status = 'Active';
+            if (!('codeStatus' in v)) v.codeStatus = '';
+            if (!v.mobility) v.mobility = 'Ambulatory';
+            if (!v.fallRisk) v.fallRisk = 'Standard';
+            if (!v.levelOfCare) v.levelOfCare = veteranLevelOfCare(v);
+        });
+    }
+}
+
+function normalizeProviderData(data) {
+    if (Array.isArray(data.providers)) {
+        data.providers.forEach(p => {
+            if (!p.clinic) p.clinic = p.specialty || '';
+        });
+    }
+}
+
+function normalizeManagedLists(data) {
+    if (!data.managedLists) data.managedLists = {};
+    
+    Object.entries(managedListDefaults).forEach(([key, values]) => {
+        if (!Array.isArray(data.managedLists[key])) {
+            // Initialize from defaults
+            data.managedLists[key] = values.map((value, i) => ({
+                id: `${key}-${i+1}`,
+                value: value,
+                active: true
+            }));
+        } else {
+            // Normalize existing entries - handle mixed string/object formats
+            data.managedLists[key] = data.managedLists[key].map((x, i) => {
+                if (typeof x === 'string') {
+                    return { id: `${key}-${i+1}`, value: x, active: true };
+                }
+                if (typeof x === 'object' && x !== null) {
+                    // Ensure required fields exist
+                    if (!x.id) x.id = `${key}-${i+1}`;
+                    if (typeof x.active !== 'boolean') x.active = true;
+                    return x;
+                }
+                return { id: `${key}-${i+1}`, value: '', active: false };
+            });
+        }
+    });
+}
+
+function migrateTreatments(data) {
+    if (Array.isArray(data.treatments)) {
+        data.treatments.forEach(t => {
+            if (!Array.isArray(t.sections)) {
+                // Legacy flat record -> wrap as one section
+                t.sections = [{
+                    frequency: t.frequency || 'Daily',
+                    start: t.start || '',
+                    end: t.end || '',
+                    shift: t.shift || 'Day',
+                    days: Array.isArray(t.days) ? t.days : [],
+                    instructions: (t.instructions || t.type || '')
+                }];
+                if (!t.month) t.month = '';
+            }
+        });
+    }
+}
+
+// Run migrations on current data
+if (migrateData(db)) {
+    console.log('Data migration successful');
+} else {
+    console.warn('Data migration failed - continuing with potentially inconsistent data');
+}
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
 
@@ -425,6 +529,11 @@ function importData(file){
    const incoming=JSON.parse(raw);
    if(!incoming||typeof incoming!=='object')throw new Error('Object expected');
    if(!Array.isArray(incoming.veterans))throw new Error('Missing veterans array — not a BravoShift backup');
+        // Validate imported data structure
+        if (!validateImportedData(incoming)) {
+            throw new Error("Invalid data structure - missing required fields");
+        }
+
    const backup={...(typeof db==='object'?db:{})};
    ['veterans','appointments','treatments','providers'].forEach(k=>{if(Array.isArray(incoming[k]))backup[k]=incoming[k]});
    backup.managedLists=(incoming.managedLists&&typeof incoming.managedLists==='object')?incoming.managedLists:(backup.managedLists||{});
@@ -444,6 +553,34 @@ function importData(file){
  r.readAsText(file);
 }
 
+
+
+function validateImportedData(data) {
+    try {
+        // Basic structure validation
+        if (!data || typeof data !== 'object') return false;
+        
+        // Check for required arrays
+        if (!Array.isArray(data.veterans)) return false;
+        if (!Array.isArray(data.appointments)) return false;
+        if (!Array.isArray(data.providers)) return false;
+        if (!Array.isArray(data.treatments)) return false;
+        
+        // Check veteran structure
+        for (const vet of data.veterans) {
+            if (!vet || typeof vet !== 'object') return false;
+            if (!vet.room && !vet.name) return false; // At least one identifier
+        }
+        
+        // Check managed lists structure
+        if (data.managedLists && typeof data.managedLists !== 'object') return false;
+        
+        return true;
+    } catch (e) {
+        console.error('Data validation failed:', e);
+        return false;
+    }
+}
 function today(){return new Date().toISOString().slice(0,10)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let b=[...document.querySelectorAll('nav button')].find(x=>x.dataset.tab===id);if(b)b.classList.add('active');renderAll()}
@@ -549,7 +686,12 @@ function deleteVeteran(id){
  db.treatments=db.treatments.filter(t=>t.vetId!==id);
  appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
  Object.keys(db.treatmentCompletions).forEach(key=>{if(treatmentIds.has(key.split('|')[0]))delete db.treatmentCompletions[key]});
+try {
  persist();renderAll();alert(`${v.name} and all linked records were permanently deleted.`)
+} catch (e) {
+    console.error("Initialization failed:", e.message);
+    alert("App initialization error. Please check console and reload.");
+}
 }
 function renderVeterans(){
  vetRows.innerHTML=db.veterans.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'',archived=v.status==='Discharged / Archived';return `<tr class="${archived?'archived':''}"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button> <button class="secondary" onclick="toggleVeteranArchive('${v.id}')">${archived?'Restore':'Archive'}</button> <button class="danger" onclick="deleteVeteran('${v.id}')">Delete</button></td></tr>`}).join('')
@@ -836,6 +978,7 @@ function renderTreatments(){
 }
 
 function generateReport(){
+    try {
  let date=reportDate.value||today();reportDate.value=date;
  let day=D[new Date(date+'T12:00:00').getDay()];
  let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>roomCompare(a.room,b.room));
@@ -873,6 +1016,11 @@ function generateReport(){
  <div class="care-grid"><div class="compact-card"><h3>Skin</h3><div class="body">${due('skin').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Weights</h3><div class="body">${due('weight').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}<br>${esc(v.weightMethod||'Method not entered')}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Vitals</h3><div class="body">${due('vitals').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Day Showers</h3><div class="body">${due('shower').filter(v=>v.showerShift!=='Night').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Night Showers</h3><div class="body">${due('shower').filter(v=>v.showerShift==='Night').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Labs</h3><div class="body">${vets.filter(v=>v.labsDate).map(v=>`<b>Rm ${esc(v.room)} — ${esc(v.name)}</b><br>${esc(v.labsDate).replace(/\n/g,'<br>')}`).join('<br>')||'No labs on record'}</div></div></div>
  <div class="notes-sign"><div class="compact-card"><h3>Shift Change Notes</h3><div class="notes-box"></div></div><div class="compact-card"><h3>Charge RN Signatures</h3><div class="signatures"><div class="signature">Day / Date-Time</div><div class="signature">Night / Date-Time</div></div></div></div>
  </div>`
+    }
+        return null;
+        alert("Error generating morning report. Please check console for details.");
+        console.error("Morning report generation failed:", e.message);
+    } catch (e) {
 }
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
 function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title>
