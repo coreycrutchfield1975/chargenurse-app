@@ -169,9 +169,9 @@ button.primary{border-radius:7px;font-weight:800}
 <button class="nav-tab" data-tab="calendar">Calendar</button><button class="nav-tab" data-tab="transport">Transport</button><button class="nav-tab" data-tab="treatments">Treatments</button><button class="nav-tab" data-tab="staff">Staff Assignments</button>
 <button class="nav-tab" data-tab="reports">Morning Report</button><button class="nav-tab" data-tab="lists">Managed Lists</button>
 <span class="nav-data" style="grid-column:5;display:flex;align-items:center;justify-content:flex-end;position:relative">
-<button class="hamburger-btn" onclick="toggleHamburger()" title="More options">☰</button>
+<button class="hamburger-btn" id="hamburgerBtn" title="More options">☰</button>
 <div class="hamburger-dropdown" id="hamburgerMenu">
-<button onclick="exportData();closeHamburger()" title="Download a JSON backup to store in SharePoint">⬇ Export Data</button>
+<button onclick="exportData();document.getElementById('hamburgerMenu').classList.remove('open')" title="Download a JSON backup to store in SharePoint">⬇ Export Data</button>
 <label class="file-btn" title="Import a backup downloaded from SharePoint">⬆ Import Data<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label>
 </div>
 </span>
@@ -1165,8 +1165,8 @@ try {
 }
 
 
-function toggleHamburger(){var m=document.getElementById('hamburgerMenu');if(m){m.classList.toggle('open');}}function closeHamburger(){var m=document.getElementById('hamburgerMenu');if(m){m.classList.remove('open');}}
-// Close hamburger on outside click
-document.addEventListener('click',function(e){var m=document.getElementById('hamburgerMenu');if(m&&m.classList.contains('open')&&!e.target.closest('.nav-data')){m.classList.remove('open');}});
+// Hamburger menu
+document.getElementById('hamburgerBtn')?.addEventListener('click',function(){var m=document.getElementById('hamburgerMenu');if(m){m.classList.toggle('open')}});
+document.addEventListener('click',function(e){var m=document.getElementById('hamburgerMenu');if(m&&m.classList.contains('open')&&!e.target.closest('.nav-data')){m.classList.remove('open')}});
 </script>
 </body></html>
