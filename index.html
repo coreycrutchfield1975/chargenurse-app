@@ -308,7 +308,7 @@ if(!db.managedLists)db.managedLists={};
 if(!db.tickets)db.tickets={};
 if(!Array.isArray(db.treatments))db.treatments=[];
 if(!db.treatmentCompletions)db.treatmentCompletions={};
-Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
+// Managed lists initialization moved to migration system (normalizeManagedLists)
 if(!db.managedLists.diets.some(x=>x.value==='Easy to Chew'))db.managedLists.diets.push({id:'diets-easy-to-chew',value:'Easy to Chew',active:true});
 const levelOfCareNames={LTC:'LTC',EOL:'EOL',SSR:'SSR',RESP:'RESP'};
 function veteranLevelOfCare(v){return v?.levelOfCare||levelOfCareNames[v?.specialty]||v?.specialty||''}
@@ -331,6 +331,7 @@ function migrateToiletingOptions(data){
  }
 }
 // Run migration on current data
+// migrateData(db) called after function definition below
 
 // === Robust Data Migration System ===
 function migrateData(data) {
@@ -443,10 +444,16 @@ function migrateTreatments(data) {
 }
 
 // Run migrations on current data
-if (migrateData(db)) {
-    console.log('Data migration successful');
+if (typeof migrateData === 'function') {
+    if (migrateData(db)) {
+        console.log('Data migration successful');
+    } else {
+        console.warn('Data migration failed - continuing with potentially inconsistent data');
+    }
 } else {
-    console.warn('Data migration failed - continuing with potentially inconsistent data');
+    console.warn('Migration system not available - using legacy initialization');
+    // Legacy initialization fallback
+    Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 }
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
