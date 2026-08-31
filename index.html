@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BravoShift — Nurse CommandPost Center</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzExMmU1MSIvPgogIDx0ZXh0IHg9IjE2IiB5PSIyNCIgZm9udC1zaXplPSIyMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZkYjgxZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iYm9sZCI+QjwvdGV4dD4KPC9zdmc+Cg==">
 
 <style>
 :root{
@@ -1004,7 +1004,7 @@ function generateReport(){
  let aaCount=vets.filter(v=>['Leave of Absence','At Appointment'].includes(String(v.status||'').trim())).length;
  let due=(k)=>vets.filter(v=>{if(k==='fsbs')return !!v.fsbsTimes&&((v.fsbsFrequency||'Selected Days')==='Daily'||(v.schedules?.fsbs||[]).includes(day));if(k!=='weight')return(v.schedules?.[k]||[]).includes(day);let f=v.weightFrequency||'Weekly';if(f==='Daily')return true;if(f==='Monthly')return false;return(v.schedules?.weight||[]).includes(day)});
  let txDue=db.treatments.filter(t=>treatmentDueOn(t,date));
- let txOutstanding=txDue.filter(t=>!treatmentCompleted(t,date));
+ let txOutstanding=txDue.filter(t=>!treatmentCompletedAll(t,date));
  let travelAttention=ap.filter(a=>{let tr=db.travel[a.id];return a.transport&&(!tr||['In Progress','Failed'].includes(tr.status))});
  let offUnit=vets.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
  let newAdmissions=vets.filter(v=>v.admission&&Math.floor((new Date(date+'T12:00:00')-new Date(v.admission+'T12:00:00'))/86400000)<=1&&new Date(v.admission+'T12:00:00')<=new Date(date+'T12:00:00'));
