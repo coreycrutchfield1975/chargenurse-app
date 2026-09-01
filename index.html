@@ -703,19 +703,17 @@ function renderHome(){
  let offUnit=active.filter(v=>['At Appointment','Leave of Absence','Hospital'].includes(v.status));
  let cutoff=Date.now()-24*60*60*1000;
  let newAdmissions=active.filter(v=>v.admission&&new Date(v.admission+'T12:00:00').getTime()>=cutoff);
- let alerts=getDashboardAlerts(outstanding,offUnit,newAdmissions);
+ let alerts=getDashboardAlerts(newAdmissions);
  let travelFollow=db.appointments.filter(a=>a.status!=='Cancelled'&&db.travel[a.id]&&['In Progress','Failed'].includes(db.travel[a.id].status));
  statVets.textContent=active.length;statAppts.textContent=ta.length;statNeeds.textContent=outstanding.length;statAlerts.textContent=alerts.length;
  statOffUnit.textContent=offUnit.length;statNewAdmissions.textContent=newAdmissions.length;statTrans.textContent=travelFollow.length;statPickups.textContent=done.length;
- document.getElementById('alerts').innerHTML=alerts.length?alerts.slice(0,10).map(a=>`<div class="card alert ${a.level==='critical'?'critical':''}"><b>${esc(a.title)}</b><div>${esc(a.message)}</div></div>`).join(''):'<div class="card"><b>Operational Readiness: Green</b><div>No priority follow-up identified.</div></div>';
+ document.getElementById('alerts').innerHTML=alerts.length?alerts.slice(0,10).map(a=>`<div class="card alert ${a.level==='critical'?'critical':''}"><b>${esc(a.title)}</b><div>${esc(a.message)}</div></div>`).join(''):'<div class="card"><b>All Clear</b><div>No new admissions or pending VAEA notes.</div></div>';
  document.getElementById('todayList').innerHTML=ta.length?ta.sort((a,b)=>a.time.localeCompare(b.time)).map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];return `<div class="card"><b>${esc(a.time)} — Room ${esc(v?.room||'')} ${esc(v?.name||'')}</b><div>${esc(a.clinic||a.destination||'')}</div><span class="muted">Pickup ${esc(a.pickup||'Not set')} · ${esc(a.transport||'Transport not set')} · Travel ${esc(tr?.status||'Not created')}</span></div>`}).join(''):'<div class="card">No appointments today.</div>';
  document.getElementById('dashboardTreatments').innerHTML=outstanding.length?outstanding.slice(0,10).map(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,today());return `<div class="card"><b>Room ${esc(v?.room||'')} — ${esc(v?.name||'')} · <span class="muted">${esc(t.category)} · ${esc(t.month||'')}</span></b><div>${dueSecs.map(s=>esc(s.instructions||s.frequency||'item')).join('<br>')}</div></div>`}).join(''):'<div class="card">No outstanding treatments due today.</div>';
  document.getElementById('unitStatus').innerHTML=`<div class="card"><b>Veterans off unit</b><div>${offUnit.length?offUnit.map(v=>`Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.status)})`).join('<br>'):'None'}</div></div><div class="card"><b>Admissions within 24 hours</b><div>${newAdmissions.length?newAdmissions.map(v=>`Room ${esc(v.room)} — ${esc(v.name)}`).join('<br>'):'None'}</div></div><div class="card"><b>Shift assignments</b><div>${shiftAssignmentReadiness()}</div></div>`;
 }
-function getDashboardAlerts(outstanding=[],offUnit=[],newAdmissions=[]){
+function getDashboardAlerts(newAdmissions=[]){
  let out=getAlerts();
- outstanding.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,today());let txt=dueSecs.map(s=>s.instructions||s.frequency||'item').join('; ');out.push({title:t.category==='Licensed'?'Licensed Treatment Due':'Treatment Due',message:`Room ${v?.room||''} — ${v?.name||''}: ${txt} (${esc(t.month||'')})`,level:t.category==='Licensed'?'critical':'warning'})});
- offUnit.forEach(v=>out.push({title:'Veteran Off Unit',message:`Room ${v.room} — ${v.name}: ${v.status}`,level:'info'}));
  newAdmissions.forEach(v=>out.push({title:'New Admission Review',message:`Room ${v.room} — ${v.name} admitted within 24 hours`,level:'info'}));
  return out;
 }
