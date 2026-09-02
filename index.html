@@ -1075,7 +1075,7 @@ function renderTreatments(){
  let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,date);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v,isDue:sectionDueOn(s,date),done:sectionCompleted(t,si,date)})})});
  rows=rows.filter(x=>{let st=!x.t.active?'Archived':x.done?'Completed Today':x.isDue?'Due':'Scheduled',hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)&&(!status||st===status)&&(!due||(due==='today'&&x.isDue)||(due==='overdue'&&x.isDue&&!x.done))}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
  let dueRows=db.treatments.filter(t=>treatmentDueOn(t,date));txDueCount.textContent=dueRows.length;txLicensedCount.textContent=dueRows.filter(t=>t.category==='Licensed').length;txNonLicensedCount.textContent=dueRows.filter(t=>t.category==='Non-Licensed').length;txOverdueCount.textContent=db.treatments.filter(t=>{let d=planSectionsDue(t,date);return d.length&&d.some((_,i)=>!sectionCompleted(t,t.sections.indexOf(_),date))}).length;
- treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleSectionComplete('${x.t.id}',${x.si},'${date}')">${x.done?'Done':'Do'}</button>`:'—'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleSectionComplete('${x.t.id}',${x.si},'${date}')">${x.done?'Done':'Do'}</button>`:'—'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
 }
 
 function generateReport(){
@@ -1124,6 +1124,22 @@ function generateReport(){
     }
 }
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
+
+function printVetTreatments(id){
+ let t=db.treatments.find(x=>x.id===id);
+ if(!t)return;
+ let v=db.veterans.find(x=>x.id===t.vetId);
+ let all=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false).sort((a,b)=>a.month?.localeCompare(b.month));
+ let w=window.open('','_blank');
+ w.document.write('<html><head><title>Treatments — '+esc(v?.name||'')+'</title><style>@page{size:letter landscape;margin:.3in}body{font-family:Segoe UI,Arial,sans-serif;font-size:12pt;padding:20px}h2{font-size:16pt;margin:0 0 2px}.muted{color:#666}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #555;padding:6px;text-align:left;vertical-align:top}th{background:#eef3f7;font-size:11pt}td{font-size:11pt}.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10pt;font-weight:700}.confirmed{background:#d8f3df;color:#17652a}.failed{background:#ffd9d9;color:#8a1717}.section-row td{border-top:0}</style></head><body>'
+ + '<h2>Treatment Plan — '+esc(v?.name||'')+' <span class="muted">Room '+esc(v?.room||'')+'</span></h2>'
+ + '<p class="muted">Printed: '+new Date().toLocaleDateString()+'</p>'
+ + '<table><thead><tr><th>Month</th><th>Category</th><th>Frequency</th><th>Days</th><th>Shift</th><th>Instructions</th></tr></thead><tbody>'
+ + all.map(tx=>tx.sections?.map((s,i)=>'<tr><td>'+esc(tx.month||'')+'</td><td><span class="badge '+(tx.category==='Licensed'?'failed':'confirmed')+'">'+esc(tx.category)+'</span></td><td>'+esc(s.frequency||'')+'</td><td>'+(s.days?.length?esc(s.days.join(', ')):'')+'</td><td>'+esc(s.shift||'')+'</td><td>'+esc(s.instructions||'')+'</td></tr>').join('')||'').join('')
+ + '</tbody></table></body></html>');
+ w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
+
 function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title>
 <style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
 function addProvider(){if(!pName.value.trim())return;let clinic=pClinic.value.trim();db.providers.push({id:'p'+Date.now(),name:pName.value.trim(),clinic,specialty:clinic,facility:pFacility.value.trim(),address:pAddress.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pClinic','pFacility','pAddress','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
