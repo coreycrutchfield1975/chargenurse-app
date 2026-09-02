@@ -1129,17 +1129,79 @@ function printVetTreatments(id){
  let t=db.treatments.find(x=>x.id===id);
  if(!t)return;
  let v=db.veterans.find(x=>x.id===t.vetId);
- let all=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false).sort((a,b)=>a.month?.localeCompare(b.month));
- let w=window.open('','_blank');
- w.document.write('<html><head><title>Treatments — '+esc(v?.name||'')+'</title><style>@page{size:letter landscape;margin:.3in}body{font-family:Segoe UI,Arial,sans-serif;font-size:12pt;padding:20px}h2{font-size:16pt;margin:0 0 2px}.muted{color:#666}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #555;padding:6px;text-align:left;vertical-align:top}th{background:#eef3f7;font-size:11pt}td{font-size:11pt}.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10pt;font-weight:700}.confirmed{background:#d8f3df;color:#17652a}.failed{background:#ffd9d9;color:#8a1717}.section-row td{border-top:0}</style></head><body>'
- + '<h2>Treatment Plan — '+esc(v?.name||'')+' <span class="muted">Room '+esc(v?.room||'')+'</span></h2>'
- + '<p class="muted">Printed: '+new Date().toLocaleDateString()+'</p>'
- + '<table><thead><tr><th>Month</th><th>Category</th><th>Frequency</th><th>Days</th><th>Shift</th><th>Instructions</th></tr></thead><tbody>'
- + all.map(tx=>tx.sections?.map((s,i)=>'<tr><td>'+esc(tx.month||'')+'</td><td><span class="badge '+(tx.category==='Licensed'?'failed':'confirmed')+'">'+esc(tx.category)+'</span></td><td>'+esc(s.frequency||'')+'</td><td>'+(s.days?.length?esc(s.days.join(', ')):'')+'</td><td>'+esc(s.shift||'')+'</td><td>'+esc(s.instructions||'')+'</td></tr>').join('')||'').join('')
- + '</tbody></table></body></html>');
+ if(!v)return;
+ // Get all treatments for this veteran, grouped by category
+ let licensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Licensed');
+ let nonLicensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Non-Licensed');
+ function dayHeaders(startDay){
+  let h='';
+  for(let i=0;i<14;i++){
+   const dayNum=startDay+i;
+   h+='<th class="day-header" style="width:28px;text-align:center;padding:4px;background:#e6dfd1;border:1px solid #bbb;font-size:10px;color:#333">'+dayNum+'</th>';}
+  return h;
+ }
+ function shiftRow(label,light){
+  let boxes='';
+  for(let i=0;i<14;i++){
+   boxes+='<td class="initials-cell" style="padding:2px;border:1px solid #999;text-align:center;vertical-align:middle"><div class="initials-box" style="width:28px;height:28px;border:1px solid #333;margin:0 auto;background:#fff"></div></td>';}
+  return '<tr><td class="shift-label-cell" style="font-weight:bold;padding:6px 8px;background:'+light+';border:1px solid #ccc;font-size:11px">'+label+'</td>'+boxes+'</tr>';
+ }
+ function buildSectionsHTML(tx,catColor,catLight){
+  let html='';
+  (tx.sections||[]).forEach((sec,idx)=>{
+   html+='<div class="treatment-section" style="page-break-inside:avoid;margin-top:20px;padding:15px;border:1px solid #ccc;border-left:6px solid '+catColor+';border-radius:8px;background:#f9f9f9">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<h3 style="margin:0;font-size:14px;color:#1a0f00">Section '+(idx+1)+' \u2013 '+esc(sec.frequency||'Daily')+'</h3>'
+    +'<div style="font-size:11px;color:#555">'
+    +((sec.start||'')?'Start: '+esc(sec.start):'No start date')+' '+((sec.end||'')?' \u2022 End: '+esc(sec.end):'\u2022 No end date')+'</div></div>'
+    +'<div style="margin-bottom:10px"><div style="font-weight:bold;font-size:11px;color:#555;margin-bottom:4px">Instructions</div>'
+    +'<div style="padding:8px;background:#fff;border:1px solid #ddd;border-radius:4px;font-size:12px;min-height:40px">'+esc(sec.instructions||'')+'</div></div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px"><thead><tr>'
+    +'<th style="width:80px;text-align:left;padding:4px;background:#e6dfd1;border:1px solid #555">Shift</th>'
+    +dayHeaders(parseInt(tx.startDay)||1)+'</tr></thead><tbody>'
+    +shiftRow('Day Shift',catLight)+shiftRow('PRN Shift',catLight)+shiftRow('Night Shift',catLight)
+    +'</tbody></table>'
+    +'<div style="margin-top:8px;font-size:10px;color:#777;text-align:center">Staff: initial in the appropriate box each time this treatment is provided.</div>'
+    +'</div>';
+  });
+  return html;
+ }
+ function categoryBlock(catLabel,treatments,catColor,catLight){
+  if(!treatments.length)return '';
+  let html='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin:20px 0 10px">'
+   +'<h2 style="font-size:18px;margin:0;color:#1a0f00">'+esc(catLabel)+'</h2>'
+   +'<div style="font-size:28px;font-weight:900;letter-spacing:2px;color:'+catColor+';text-transform:uppercase;border:3px solid '+catColor+';padding:5px 15px;border-radius:8px;background:'+catLight+'">'+esc(catLabel)+'</div></div>';
+  treatments.forEach((tx,ti)=>{
+   html+='<table class="header-table" style="width:100%;border-collapse:collapse;margin-bottom:15px;border:1px solid #bba">'
+    +'<tr><th style="background:#f8f1e5;padding:6px;border:1px solid #bba;font-size:11px;text-align:left">Treatment '+(ti+1)+'</th>'
+    +'<td style="padding:6px;border:1px solid #bba;font-size:11px">'+esc(tx.month||'')+'</td>'
+    +'<th style="background:#f8f1e5;padding:6px;border:1px solid #bba;font-size:11px;text-align:left">Block</th>'
+    +'<td style="padding:6px;border:1px solid #bba;font-size:11px">'+esc(tx.block||'')+'</td></tr>'
+    +'</table>'+buildSectionsHTML(tx,catColor,catLight);
+  });
+  return html;
+ }
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked \u2014 enable pop-ups on this site to print.');return}
+ w.document.write('<html><head><title>BravoShift Treatment Plan \u2014 '+esc(v.name)+'</title>'
+  +'<style> @page{size:landscape;margin:.3in}'
+  +'body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in;background:#fefcf7}'
+  +'h1{font-size:18px;margin:0;color:#1a0f00}.muted{color:#665}.header-table{width:100%;border-collapse:collapse;margin-bottom:20px}'
+  +'.header-table th,.header-table td{border:1px solid #bba;padding:6px;vertical-align:top;text-align:left}'
+  +'.header-table th{background:#f8f1e5;color:#1a0f00}.treatment-section{margin-bottom:25px}'
+  +'@media print{th{background:#f8f1e5!important}}</style></head><body>'
+  +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">'
+  +'<div><h1>BRAVOSHIFT \u2014 CLC TREATMENT PLAN</h1>'
+  +'<p class="muted" style="font-size:11px">Reference for the unit treatment book \u2014 for staff use only.</p></div></div>'
+  +'<table class="header-table"><tr>'
+  +'<th>Veteran</th><td>'+esc(v.name)+'</td><th>Room</th><td>'+esc(v.room)+'</td><th>Last 4</th><td>'+esc(v.last4||'')+'</td>'
+  +'<th>Printed</th><td>'+new Date().toLocaleDateString()+'</td></tr></table>'
+  +categoryBlock('Licensed',licensed,'#7c4dff','#f0e8ff')
+  +categoryBlock('Non-Licensed',nonLicensed,'#2e9d50','#e8f7ef')
+  +'<p class="muted" style="margin-top:30px;font-size:11px">Keep this sheet at the nurse\u2019s station.</p>'
+  +'</body></html>');
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
-
 function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title>
 <style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
 function addProvider(){if(!pName.value.trim())return;let clinic=pClinic.value.trim();db.providers.push({id:'p'+Date.now(),name:pName.value.trim(),clinic,specialty:clinic,facility:pFacility.value.trim(),address:pAddress.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pClinic','pFacility','pAddress','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
