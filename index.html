@@ -1197,7 +1197,7 @@ function printVetTreatments(id){
   +'<th>Veteran</th><td>'+esc(v.name)+'</td><th>Room</th><td>'+esc(v.room)+'</td><th>Last 4</th><td>'+esc(v.last4||'')+'</td>'
   +'<th>Printed</th><td>'+new Date().toLocaleDateString()+'</td></tr></table>'
   +categoryBlock('Licensed',licensed,'#7c4dff','#f0e8ff')
-  +categoryBlock('Non-Licensed',nonLicensed,'#2e9d50','#e8f7ef')
+  +'<div style="page-break-before:always;break-before:page"></div>'+categoryBlock('Non-Licensed',nonLicensed,'#2e9d50','#e8f7ef')
   +'<p class="muted" style="margin-top:30px;font-size:11px">Keep this sheet at the nurse\u2019s station.</p>'
   +'</body></html>');
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
