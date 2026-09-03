@@ -823,7 +823,7 @@ function renderVeterans(){
 function openAppointment(id=''){
  let a=db.appointments.find(x=>x.id===id);aId.value=a?.id||'';vetOptions(aVet);providerOptions(aProvider);aVet.value=a?.vetId||'';aProvider.value=a?.providerId||'';fillProvider();aDate.value=a?.date||today();aTime.value=a?.time||'';aClinic.value=a?.clinic||'';aReason.value=a?.reason||'Consult';aDestination.value=a?.destination||'';aPickup.value=a?.pickup||'';aTransport.value=a?.transport||'';aEscort.value=a?.escort||'';aStatus.value=a?.status||'Upcoming';aTravelStatus.value=db.travel[a?.id]?.status||'';aNotes.value=a?.notes||'';openModal('apptModal')
 }
-function fillProvider(){let p=db.providers.find(x=>x.id===aProvider.value);aProviderClinic.value=providerClinic(p);aFacility.value=p?.facility||'';aCity.value=p?.city||'';aPhone.value=p?.phone||'';if(p&&!aDestination.value)aDestination.value=[p.address,p.facility,p.city].filter(Boolean).join(', ')}
+function fillProvider(){let p=db.providers.find(x=>x.id===aProvider.value);aProviderClinic.value=providerClinic(p);aFacility.value=p?.facility||'';aCity.value=p?.city||'';aPhone.value=p?.phone||'';aDestination.value=[p.address,p.facility,p.city].filter(Boolean).join(', ')}
 function saveAppointment(){
  if(!aVet.value||!aProvider.value||!aDate.value||!aTime.value){alert('Veteran, provider, date, and time are required.');return}
  let duplicate=db.appointments.find(x=>x.id!==aId.value&&x.vetId===aVet.value&&x.date===aDate.value&&x.time===aTime.value&&x.status!=='Cancelled');
