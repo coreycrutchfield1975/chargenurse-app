@@ -164,6 +164,10 @@ button.primary{border-radius:7px;font-weight:800}
 <main>
 <section id="home" class="tab active">
 <div class="greeting"><strong id="shiftGreeting">BravoShift is ready.</strong><span id="shiftStatus">Your command post is ready for review.</span></div>
+<div id="autoSaveBanner" style="display:none;margin:0 0 14px;padding:10px 16px;background:#fff4cf;border-left:6px solid var(--yellow);border-radius:10px;font-weight:700;font-size:14px">
+  <span id="autoSaveBannerText">Auto-save to S: drive needs reconnected</span>
+  <button class="secondary" onclick="setAutoSaveFolder()" style="margin-left:12px;padding:6px 14px;font-weight:700">Reconnect</button>
+</div>
 <div class="stats">
 <div class="card stat"><span>Active Veterans</span><b id="statVets">0</b></div>
 <div class="card stat"><span>Today's Appointments</span><b id="statAppts">0</b></div>
@@ -556,10 +560,10 @@ let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 let autoSaveDir=null;
 function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir)autoSave();localStorage.setItem('autoSaveEnabled','true')}
 async function autoSave(){try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
-async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';persist()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
-function disableAutoSave(){autoSaveDir=null;localStorage.removeItem('autoSaveEnabled');document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999'}
+async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';document.getElementById('autoSaveBanner').style.display='none';persist()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
+function disableAutoSave(){autoSaveDir=null;localStorage.removeItem('autoSaveEnabled');document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999';document.getElementById('autoSaveBanner').style.display='none'}
 // On page load, show reconnect button if auto-save was previously enabled
-function checkAutoSavePref(){if(localStorage.getItem('autoSaveEnabled')==='true'){document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Reconnect to continue auto-saving to S: drive';document.getElementById('autoSaveStatus').style.color='#f6c344'}}
+function checkAutoSavePref(){if(localStorage.getItem('autoSaveEnabled')==='true'){document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Reconnect to continue auto-saving to S: drive';document.getElementById('autoSaveStatus').style.color='#f6c344';document.getElementById('autoSaveBanner').style.display='block'}else{document.getElementById('autoSaveBanner').style.display='none'}}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
 function exportData(){
