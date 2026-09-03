@@ -1247,7 +1247,7 @@ function addManagedValue(){let key=mlCategory.value,value=mlValue.value.trim();i
 function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(item){item.active=!item.active;persist();renderAll()}}
 function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
 try {
- reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();
+ reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();
 } catch (e) {
  console.error("App initialization render failed:", e.message);
 }
