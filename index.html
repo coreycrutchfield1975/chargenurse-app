@@ -237,16 +237,12 @@ button.primary{border-radius:7px;font-weight:800}
 <section id="treatments" class="tab">
 <div class="toolbar"><h2>Treatments</h2><button class="secondary" onclick="resetTreatmentFilters()">Clear Filters</button><button class="primary green right" onclick="openTreatment()">Assign Treatment</button></div>
 <div class="stats">
-<div class="card stat"><span>Due Today</span><b id="txDueCount">0</b></div>
 <div class="card stat"><span>Licensed</span><b id="txLicensedCount">0</b></div>
 <div class="card stat"><span>Non-Licensed</span><b id="txNonLicensedCount">0</b></div>
-<div class="card stat"><span>Overdue</span><b id="txOverdueCount">0</b></div>
 </div>
 <div class="panel"><div class="formgrid">
 <div><label>Search</label><input id="txSearch" placeholder="Veteran, room, treatment..." oninput="renderTreatments()"></div>
 <div><label>Category</label><select id="txFilterCategory" onchange="renderTreatments()"><option value="">All</option><option>Licensed</option><option>Non-Licensed</option></select></div>
-<div><label>Status</label><select id="txFilterStatus" onchange="renderTreatments()"><option value="">All</option><option>Active</option><option>Completed Today</option><option>Archived</option></select></div>
-<div><label>Due</label><select id="txFilterDue" onchange="renderTreatments()"><option value="">All</option><option value="today">Due Today</option><option value="overdue">Overdue</option></select></div>
 </div></div>
 <div id="treatmentList"></div>
 </section>
@@ -943,7 +939,6 @@ function sectionCompletedKey(tid,secIdx,date){return `s${tid}|${secIdx}|${date}`
 function sectionCompleted(t,secIdx,date){return !!db.treatmentCompletions[sectionCompletedKey(t.id,secIdx,date)]}
 // A plan marked fully complete today when all its due sections are completed
 function treatmentCompletedAll(t,date){let due=planSectionsDue(t,date);return due.length>0&&due.every((_,i)=>sectionCompleted(t,t.sections.indexOf(_),date))}
-function toggleSectionComplete(tid,secIdx,date){let key=sectionCompletedKey(tid,secIdx,date);if(db.treatmentCompletions[key])delete db.treatmentCompletions[key];else db.treatmentCompletions[key]={completedAt:new Date().toISOString()};persist();renderAll()}
 function printTreatment(){
  const vet=db.veterans.find(v=>v.id===txVet.value);
  const month=txMonth.value||'';
@@ -1085,13 +1080,13 @@ function saveTreatment(){
  let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
 }
 function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
-function resetTreatmentFilters(){txSearch.value='';txFilterCategory.value='';txFilterStatus.value='';txFilterDue.value='';renderTreatments()}
+function resetTreatmentFilters(){txSearch.value='';txFilterCategory.value='';renderTreatments()}
 function renderTreatments(){
- if(!document.getElementById('treatmentList'))return;let date=today(),q=(txSearch?.value||'').toLowerCase(),cat=txFilterCategory?.value||'',status=txFilterStatus?.value||'',due=txFilterDue?.value||'';
- let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,date);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v,isDue:sectionDueOn(s,date),done:sectionCompleted(t,si,date)})})});
- rows=rows.filter(x=>{let st=!x.t.active?'Archived':x.done?'Completed Today':x.isDue?'Due':'Scheduled',hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)&&(!status||st===status)&&(!due||(due==='today'&&x.isDue)||(due==='overdue'&&x.isDue&&!x.done))}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
- let dueRows=db.treatments.filter(t=>treatmentDueOn(t,date));txDueCount.textContent=dueRows.length;txLicensedCount.textContent=dueRows.filter(t=>t.category==='Licensed').length;txNonLicensedCount.textContent=dueRows.filter(t=>t.category==='Non-Licensed').length;txOverdueCount.textContent=db.treatments.filter(t=>{let d=planSectionsDue(t,date);return d.length&&d.some((_,i)=>!sectionCompleted(t,t.sections.indexOf(_),date))}).length;
- treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Today</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td>${x.isDue?`<button class="${x.done?'secondary':'primary green'}" onclick="toggleSectionComplete('${x.t.id}',${x.si},'${date}')">${x.done?'Done':'Do'}</button>`:'—'}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+ if(!document.getElementById('treatmentList'))return;let q=(txSearch?.value||'').toLowerCase(),cat=txFilterCategory?.value||'';
+ let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v})})});
+ rows=rows.filter(x=>{let hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
+ txLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Licensed').length;txNonLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Non-Licensed').length;
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
 }
 
 function generateReport(){
