@@ -279,6 +279,7 @@ button.primary{border-radius:7px;font-weight:800}
     <p style="font-size:14px;margin-bottom:16px;color:var(--muted)">Set a folder on your S: drive and all changes save automatically.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center">
       <button class="primary green" id="autoSaveBtn" onclick="setAutoSaveFolder()" style="padding:14px 28px;font-size:16px">📁 Set Auto-Save Folder</button>
+      <button class="primary" id="autoSaveReconnect" onclick="setAutoSaveFolder()" style="padding:14px 28px;font-size:16px;display:none;background:var(--orange)">🔄 Reconnect to S: Drive</button>
       <button class="secondary" id="autoSaveDisable" onclick="disableAutoSave()" style="padding:14px 28px;font-size:16px;display:none">Disable Auto-Save</button>
     </div>
     <p id="autoSaveStatus" style="margin-top:12px;font-size:14px;font-weight:700;color:#999">Auto-save: OFF</p>
@@ -557,10 +558,12 @@ if (typeof migrateData === 'function') {
 }
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 let autoSaveDir=null;
-function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir)autoSave()}
-async function autoSave(){try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON - saved to S: drive';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - '+e.message;document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
-async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';persist()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
-function disableAutoSave(){autoSaveDir=null;document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999'}
+function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir)autoSave();localStorage.setItem('autoSaveEnabled','true')}
+async function autoSave(){try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
+async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';persist()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
+function disableAutoSave(){autoSaveDir=null;localStorage.removeItem('autoSaveEnabled');document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999'}
+// On page load, show reconnect button if auto-save was previously enabled
+function checkAutoSavePref(){if(localStorage.getItem('autoSaveEnabled')==='true'){document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Reconnect to continue auto-saving to S: drive';document.getElementById('autoSaveStatus').style.color='#f6c344'}}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
 function exportData(){
