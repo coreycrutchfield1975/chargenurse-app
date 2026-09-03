@@ -258,16 +258,16 @@ button.primary{border-radius:7px;font-weight:800}
 
 <section id="lists" class="tab">
 <div class="toolbar"><h2>Managed Lists</h2></div>
+<div style="display:flex;gap:8px;margin:4px 0 12px">
+  <button class="secondary" id="subtabL" style="font-weight:700;font-size:13px;padding:6px 16px;background:var(--navy);color:white" onclick="showSubTab('lists-main')">Lists</button>
+  <button class="secondary" id="subtabP" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-print')">Print Forms</button>
+</div>
+<div id="lists-main" style="display:block">
 <div class="grid">
 <div class="panel"><h3>Providers / Clinics</h3><div class="toolbar" style="margin:0 0 8px"><button class="primary" onclick="addProvider()">Add Provider</button><button class="secondary" onclick="printProviders()">🖨️ Print List</button></div><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Clinic</label><input id="pClinic" list="clinicData"></div><div><label>Facility</label><input id="pFacility" list="facilityData"></div><div><label>Address</label><input id="pAddress" placeholder="Street, City, State"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div></div><datalist id="specialtyData"></datalist><datalist id="facilityData"></datalist><datalist id="clinicData"></datalist><datalist id="escortData"></datalist><div id="providerList"></div></div>
 <div class="panel"><h3>Clinical & Workflow Lists</h3><p class="muted">Add values once and reuse them throughout BravoShift. Archive values to remove them from new entries without changing historical records.</p><div class="formgrid"><div class="span2"><label>List</label><select id="mlCategory" onchange="renderManagedListEditor()"></select></div><div class="span2"><label>New Value</label><input id="mlValue" placeholder="Enter a new list value" onkeydown="if(event.key==='Enter'){event.preventDefault();addManagedValue()}"></div><div class="span4"><button class="primary" onclick="addManagedValue()">Add Value</button></div></div><div id="managedListEditor"></div></div>
 </div>
-<hr style="margin:6px 0;border:none;border-top:2px solid var(--line)">
-<div style="display:flex;gap:8px;margin:8px 0">
-  <button class="secondary" id="subtabL" style="font-weight:700;font-size:13px;padding:6px 16px;background:var(--navy);color:white" onclick="showSubTab('lists-main')">Managed Lists</button>
-  <button class="secondary" id="subtabP" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-print')">Print Forms</button>
 </div>
-<div id="lists-main" style="display:block"></div>
 <div id="lists-print" style="display:none">
   <div class="panel" style="max-width:600px;margin:10px auto;padding:20px">
     <p style="font-size:15px;margin-bottom:16px;color:var(--muted)">Ready-to-print forms for the unit. Click a form to open a print window.</p>
