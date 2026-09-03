@@ -14,7 +14,7 @@
 
 *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
 header{background:linear-gradient(100deg,#17365d,#1f6feb,#7c4dff,#d7559b)!important;border-bottom:4px solid var(--yellow);color:var(--yellow);text-align:center}
-header h1{margin:0;font-size:30px;letter-spacing:.8px;color:var(--yellow)}.brandline{margin-top:3px;font-size:15px;font-weight:800;}.unitline{margin-top:5px;font-size:14px;opacity:.96;}.sub{margin-top:7px;opacity:.9;font-size:12px}.greeting{margin:0 0 14px;padding:14px 16px;border-left:6px solid var(--blue);background:white;border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}.greeting strong{display:block;font-size:19px;color:var(--navy)}.greeting span{display:block;margin-top:4px;color:var(--muted)}.warning{padding:10px 20px;background:#fff4cf;border-left:6px solid var(--yellow);font-weight:700}
+header h1{margin:0;font-size:30px;letter-spacing:.8px;color:var(--yellow)}.brandline{margin-top:3px;font-size:15px;font-weight:800;}.unitline{margin-top:5px;font-size:14px;opacity:.96;}.sub{margin-top:7px;opacity:.9;font-size:12px}.log-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px}.log-day{border:1px solid var(--line);border-radius:8px;padding:8px;background:white;min-height:100px;display:flex;flex-direction:column}.log-day-head{font-weight:700;font-size:12px;color:var(--navy);padding-bottom:4px;border-bottom:1px solid var(--line);margin-bottom:4px;text-align:center}.log-day-body{font-size:11px;flex:1;overflow-y:auto;word-wrap:break-word}.greeting{margin:0 0 14px;padding:14px 16px;border-left:6px solid var(--blue);background:white;border-radius:10px;box-shadow:0 2px 8px rgba(20,40,70,.06)}.greeting strong{display:block;font-size:19px;color:var(--navy)}.greeting span{display:block;margin-top:4px;color:var(--muted)}.warning{padding:10px 20px;background:#fff4cf;border-left:6px solid var(--yellow);font-weight:700}
 nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#1a1a2e;border-bottom:2px solid var(--yellow);padding:10px 12px;position:sticky;top:0;z-index:4}
 nav button{border:0;background:transparent;padding:8px 4px;font-weight:700;border-bottom:4px solid transparent;cursor:pointer;white-space:normal;color:white;font-size:11px;text-align:center;border-radius:8px;transition:background .2s}
 nav button.active{background:rgba(255,255,255,0.15);border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 12px rgba(246,195,68,0.2)}
@@ -187,8 +187,9 @@ button.primary{border-radius:7px;font-weight:800}
 </section>
 
 <section id="veterans" class="tab">
-<div class="toolbar"><h2>Veteran Roster</h2><button class="primary purple right" onclick="openVeteran()">Add Veteran</button></div>
+<div class="toolbar"><h2>Veteran Roster</h2><button class="primary teal right" onclick="openDailyLog()" style="margin-right:8px">Daily Progress Log</button><button class="primary purple right" onclick="openVeteran()">Add Veteran</button></div>
 <div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Status</th><th>Level of Care</th><th>Floor Provider</th><th>Days on Unit</th><th>Code Status</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Mobility</th><th>Fall Risk</th><th>Toileting</th><th>Side Rails</th><th>Notes</th><th></th></tr></thead><tbody id="vetRows"></tbody></table></div>
+<div class="panel" id="dailyLogPanel"><div class="toolbar"><h2>Daily Progress Log</h2><div><button class="secondary" onclick="logWeekShift(-1)">◀ Prev</button><span id="logWeekLabel" style="font-weight:700;margin:0 12px;font-size:14px;display:inline-block;min-width:200px;text-align:center"></span><button class="secondary" onclick="logWeekShift(1)">Next ▶</button><select id="logVetFilter" onchange="renderDailyLogWeek()" style="margin-left:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;max-width:260px"></select></div></div><div id="dailyLogGrid" style="min-height:60px"><p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p></div></div>
 </section>
 
 <section id="appointments" class="tab">
@@ -292,6 +293,16 @@ button.primary{border-radius:7px;font-weight:800}
   </div>
 </section></main>
 
+<div id="logModal" class="modal"><div class="modalbox">
+<div class="toolbar"><h2>Daily Progress Log</h2><button class="secondary right" onclick="closeModal('logModal')">Close</button></div>
+<div class="formgrid">
+<div class="span2"><label>Veteran *</label><select id="logVet"></select></div>
+<div><label>Date</label><input id="logDate" type="date"></div>
+<div><label>No Changes</label><label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;margin-top:4px"><input type="checkbox" id="logNoChanges" style="width:auto;margin:0"> Mark as no changes — no additional notes needed</label></div>
+<div class="span4"><label>Progress Notes</label><textarea id="logText" style="min-height:100px" placeholder="How is the Veteran doing today?"></textarea></div>
+</div>
+<div class="toolbar"><button class="primary" onclick="saveDailyLog()">Save Log</button><button class="secondary" onclick="closeModal('logModal')">Cancel</button></div>
+</div></div>
 <div id="vetModal" class="modal"><div class="modalbox">
 <div class="toolbar"><h2>Add / Edit Veteran</h2><button class="secondary right" onclick="closeModal('vetModal')">Close</button></div>
 <input type="hidden" id="vId">
@@ -384,11 +395,11 @@ const southRooms=parseRooms([...roomBlockReference.south.three,...roomBlockRefer
 let db;
 try {
  db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
-  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}
+  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{}
  };
 } catch (e) {
  console.error('Failed to load database from localStorage:', e.message);
- db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{}};
+ db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{}};
 }
 const managedListDefaults={
  floorProviders:['McCain','Cook'],
@@ -823,6 +834,13 @@ try {
     alert("App initialization error. Please check console and reload.");
 }
 }
+let logWeekStart=weekStart(today());
+function weekStart(ds){let d=new Date(ds+'T12:00:00');let day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}
+function openDailyLog(vetId=''){vetOptions(document.getElementById('logVet'));document.getElementById('logVet').value=vetId||'';document.getElementById('logDate').value=today();document.getElementById('logNoChanges').checked=false;document.getElementById('logText').value='';let v=db.veterans.find(x=>x.id===document.getElementById('logVet').value);if(v){let e=db.dailyLogs[v.id]?.[today()];if(e){document.getElementById('logNoChanges').checked=!!e.noChanges;document.getElementById('logText').value=e.text||''}}openModal('logModal')}
+function saveDailyLog(){let vet=document.getElementById('logVet'),date=document.getElementById('logDate'),noChg=document.getElementById('logNoChanges'),text=document.getElementById('logText');if(!vet.value){alert('Select a Veteran.');return}if(!noChg.checked&&!text.value.trim()){alert('Enter notes or check No Changes.');return}let v=db.veterans.find(x=>x.id===vet.value);if(!v)return;db.dailyLogs[v.id]=db.dailyLogs[v.id]||{};db.dailyLogs[v.id][date.value]={text:text.value.trim(),noChanges:noChg.checked};let cutoff=new Date();cutoff.setDate(cutoff.getDate()-35);let c=cutoff.toISOString().slice(0,10);Object.keys(db.dailyLogs[v.id]).forEach(d=>{if(d<c)delete db.dailyLogs[v.id][d]});persist();closeModal('logModal');document.getElementById('logVetFilter').value=v.id;renderDailyLogWeek()}
+function logWeekShift(dir){let d=new Date(logWeekStart+'T12:00:00');d.setDate(d.getDate()+dir*7);logWeekStart=d.toISOString().slice(0,10);renderDailyLogWeek()}
+function renderDailyLogWeek(){let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived');let cur=document.getElementById('logVetFilter').value;document.getElementById('logVetFilter').innerHTML='<option value="">Select Veteran…</option>'+vets.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>'<option value="'+v.id+'">Room '+esc(v.room)+' \u2014 '+esc(v.name)+' ('+esc(v.last4)+')</option>').join('');if(cur&&[...document.getElementById('logVetFilter').options].some(o=>o.value===cur))document.getElementById('logVetFilter').value=cur;let start=new Date(logWeekStart+'T12:00:00');let end=new Date(start);end.setDate(end.getDate()+6);document.getElementById('logWeekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' \u2013 '+end.toLocaleDateString(undefined,{month:'short',day:'numeric'});let grid=document.getElementById('dailyLogGrid');let vid=document.getElementById('logVetFilter').value;if(!vid){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p>';return}let v=db.veterans.find(x=>x.id===vid);if(!v){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Veteran not found.</p>';return}let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];let cells=days.map((dn,i)=>{let d=new Date(start);d.setDate(d.getDate()+i);let ds=d.toISOString().slice(0,10);let e=db.dailyLogs[vid]?.[ds];let content=e? (e.noChanges?'<span style="color:var(--teal);font-style:italic">No changes</span>':esc(e.text)) : '<span class="muted">\u2014</span>';return '<div class="log-day"><div class="log-day-head">'+dn+' '+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="log-day-body">'+content+'</div><button class="secondary" style="margin-top:6px;font-size:10px;padding:3px 6px" onclick="openDailyLogFor(&quot;'+vid+'&quot;,&quot;'+ds+'&quot;)">'+(e?'Edit':'Add')+'</button></div>'});grid.innerHTML='<div class="log-grid">'+cells.join('')+'</div>'}
+function openDailyLogFor(vid,ds){openDailyLog(vid);document.getElementById('logDate').value=ds;let e=db.dailyLogs[vid]?.[ds];if(e){document.getElementById('logNoChanges').checked=!!e.noChanges;document.getElementById('logText').value=e.text||''}}
 function renderVeterans(){
  vetRows.innerHTML=db.veterans.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'',archived=v.status==='Discharged / Archived';return `<tr class="${archived?'archived':''}"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button> <button class="secondary" onclick="toggleVeteranArchive('${v.id}')">${archived?'Restore':'Archive'}</button> <button class="danger" onclick="deleteVeteran('${v.id}')">Delete</button></td></tr>`}).join('')
 }
@@ -1262,7 +1280,7 @@ function addManagedValue(){let key=mlCategory.value,value=mlValue.value.trim();i
 function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(item){item.active=!item.active;persist();renderAll()}}
 function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
 try {
- reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();
+ reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();renderDailyLogWeek();
 } catch (e) {
  console.error("App initialization render failed:", e.message);
 }
