@@ -274,7 +274,15 @@ button.primary{border-radius:7px;font-weight:800}
       <button class="primary" style="padding:14px 28px;font-size:16px" onclick="exportData()">⬇ Export Data</button>
       <label class="primary" style="padding:14px 28px;font-size:16px;cursor:pointer;background:var(--teal);border-radius:7px;display:inline-flex;align-items:center;gap:6px;font-weight:800;color:white">⬆ Import Data<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label>
     </div>
-    <p style="margin-top:20px;font-size:13px;color:var(--muted)">Export creates a JSON backup file. Import restores from a previous backup.</p>
+    <hr style="margin:24px 0;border:none;border-top:1px solid var(--line)">
+    <h3 style="margin:0 0 12px;color:var(--navy)">Auto-Save to S: Drive</h3>
+    <p style="font-size:14px;margin-bottom:16px;color:var(--muted)">Set a folder on your S: drive and all changes save automatically.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center">
+      <button class="primary green" id="autoSaveBtn" onclick="setAutoSaveFolder()" style="padding:14px 28px;font-size:16px">📁 Set Auto-Save Folder</button>
+      <button class="secondary" id="autoSaveDisable" onclick="disableAutoSave()" style="padding:14px 28px;font-size:16px;display:none">Disable Auto-Save</button>
+    </div>
+    <p id="autoSaveStatus" style="margin-top:12px;font-size:14px;font-weight:700;color:#999">Auto-save: OFF</p>
+    <p style="margin-top:8px;font-size:12px;color:var(--muted)">Works best in Chrome or Edge. You will be prompted to select a folder once.</p>
   </div>
 </section></main>
 
@@ -548,7 +556,11 @@ if (typeof migrateData === 'function') {
     Object.entries(managedListDefaults).forEach(([key,values])=>{if(!Array.isArray(db.managedLists[key]))db.managedLists[key]=values.map((value,i)=>({id:`${key}-${i+1}`,value,active:true}));else db.managedLists[key]=db.managedLists[key].map((x,i)=>typeof x==='string'?{id:`${key}-${i+1}`,value:x,active:true}:x)});
 }
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
-function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db))}
+let autoSaveDir=null;
+function persist(){localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir)autoSave()}
+async function autoSave(){try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON - saved to S: drive';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - '+e.message;document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
+async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';persist()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
+function disableAutoSave(){autoSaveDir=null;document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999'}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
 function exportData(){
