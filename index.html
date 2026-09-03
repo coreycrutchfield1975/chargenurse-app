@@ -164,10 +164,7 @@ button.primary{border-radius:7px;font-weight:800}
 <main>
 <section id="home" class="tab active">
 <div class="greeting"><strong id="shiftGreeting">BravoShift is ready.</strong><span id="shiftStatus">Your command post is ready for review.</span></div>
-<div id="autoSaveBanner" style="display:none;margin:0 0 14px;padding:10px 16px;background:#fff4cf;border-left:6px solid var(--yellow);border-radius:10px;font-weight:700;font-size:14px">
-  <span id="autoSaveBannerText">Auto-save to S: drive needs reconnected</span>
-  <button class="secondary" onclick="setAutoSaveFolder()" style="margin-left:12px;padding:6px 14px;font-weight:700">Reconnect</button>
-</div>
+<div id="autoSaveBanner" style="display:none;margin:0 0 14px;padding:10px 16px;background:#fff4cf;border-left:6px solid var(--yellow);border-radius:10px;font-size:14px"><span id="autoSaveBannerText" style="font-weight:700">Auto-save to S: drive needs reconnected</span> <button class="secondary" onclick="setAutoSaveFolder()" style="margin-left:12px;padding:6px 14px;font-weight:700">Reconnect</button> <span style="margin-left:12px;font-size:12px;color:#666">First time? Go to <a href="#" onclick="showTab('data');return false" style="color:var(--navy)">Import/Export tab</a> for setup instructions.</span></div>
 <div class="stats">
 <div class="card stat"><span>Active Veterans</span><b id="statVets">0</b></div>
 <div class="card stat"><span>Today's Appointments</span><b id="statAppts">0</b></div>
@@ -284,6 +281,14 @@ button.primary{border-radius:7px;font-weight:800}
     </div>
     <p id="autoSaveStatus" style="margin-top:12px;font-size:14px;font-weight:700;color:#999">Auto-save: OFF</p>
     <p style="margin-top:8px;font-size:12px;color:var(--muted)">Works best in Chrome or Edge. You will be prompted to select a folder once.</p>
+    <hr style="margin:24px 0;border:none;border-top:1px solid var(--line)">
+    <h3 style="margin:0 0 12px;color:var(--navy)">📖 First Time Setup</h3>
+    <div style="text-align:left;font-size:13px;color:var(--ink);line-height:1.6">
+      <p><b>Step 1:</b> Add your Veterans, Appointments, and Treatments — everything saves automatically in your browser.</p>
+      <p><b>Step 2:</b> Once you have data, click <b>"Set Auto-Save Folder"</b> above and pick your S: drive folder. This saves a backup file that other nurses can use.</p>
+      <p><b>Step 3 (next time you open the app):</b> A gold banner will appear on the Dashboard — click <b>"Reconnect"</b> and pick the same folder. Your data loads from the S: drive file.</p>
+      <p><b>Tip:</b> If you're opening on a new computer, go to <b>Import Data</b> first and select the bravoshift-data.json file from your S: drive, then set up auto-save.</p>
+    </div>
   </div>
 </section></main>
 
