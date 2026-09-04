@@ -262,6 +262,20 @@ button.primary{border-radius:7px;font-weight:800}
   <button class="secondary" id="subtabL" style="font-weight:700;font-size:13px;padding:6px 16px;background:var(--navy);color:white" onclick="showSubTab('lists-main')">Lists</button>
   <button class="secondary" id="subtabP" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-print')">Print Forms</button>
 </div>
+<div id="lists-sop" style="display:none">
+  <div class="grid">
+    <div class="panel">
+      <h3>SOP / Directives</h3>
+      <p class="muted">Upload or reference SOP documents and directives from the S: drive. Click to open in a new tab.</p>
+      <div id="sopList" style="margin-top:12px">
+        <p class="muted" style="font-style:italic">No SOPs added yet. Use Add SOP button to reference documents.</p>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <button class="primary" onclick="addSop()">Add SOP</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="lists-main" style="display:block">
 <div class="grid">
 <div class="panel"><h3>Providers / Clinics</h3><div class="toolbar" style="margin:0 0 8px"><button class="primary" onclick="addProvider()">Add Provider</button><button class="secondary" onclick="printProviders()">🖨️ Print List</button></div><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Clinic</label><input id="pClinic" list="clinicData"></div><div><label>Facility</label><input id="pFacility" list="facilityData"></div><div><label>Address</label><input id="pAddress" placeholder="Street, City, State"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div></div><datalist id="specialtyData"></datalist><datalist id="facilityData"></datalist><datalist id="clinicData"></datalist><datalist id="escortData"></datalist><div id="providerList"></div></div>
@@ -1452,6 +1466,70 @@ ${dutyList(dayOnly)}
 </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
+function renderSops(){
+ var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
+ var el=document.getElementById("sopList");
+ if(!el)return;
+ if(!items.length){
+  el.innerHTML="<p class=\"muted\" style=\"font-style:italic\">No SOPs added yet. Use Add SOP button above to reference documents.</p>";
+  return;
+ }
+ el.innerHTML="";
+ for(var i=0;i<items.length;i++){
+  var e=items[i];
+  var div=document.createElement("div");
+  div.style.display="flex"; div.style.alignItems="center"; div.style.gap="8px";
+  div.style.padding="8px 12px"; div.style.margin="4px 0";
+  div.style.border="1px solid var(--border)";
+  div.style.borderRadius="6px"; div.style.background="var(--card-bg)";
+  var span=document.createElement("span");
+  span.style.flex="1";
+  var a=document.createElement("a");
+  a.href=e.url; a.target="_blank";
+  a.style.fontWeight="600"; a.style.color="var(--link)";
+  a.textContent=e.name;
+  span.appendChild(a);
+  span.appendChild(document.createElement("br"));
+  var urlSpan=document.createElement("span");
+  urlSpan.className="muted"; urlSpan.style.fontSize="11px";
+  urlSpan.textContent=e.url;
+  span.appendChild(urlSpan);
+  div.appendChild(span);
+  var delBtn=document.createElement("button");
+  delBtn.className="danger"; delBtn.textContent="Delete";
+  delBtn.style.fontSize="12px"; delBtn.style.padding="4px 10px";
+  delBtn.style.background="var(--red)"; delBtn.style.color="white";
+  delBtn.style.border="none"; delBtn.style.borderRadius="4px";
+  delBtn.style.cursor="pointer";
+  delBtn.onclick=(function(id){return function(){deleteSop(id)}})(e.id);
+  div.appendChild(delBtn);
+  el.appendChild(div);
+ }
+}
+function addSop(){
+ var name=prompt("Enter a name for this SOP (e.g., Fall Prevention Policy):");
+ if(!name)return;
+ var url=prompt("Enter the file path or URL (e.g. S:\\\\Shared\\\\SOPs\\\\fall-prevention.pdf):");
+ if(!url)return;
+ var entry={id:"sop_"+Date.now(),name:name,url:url};
+ var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
+ items.push(entry);
+ localStorage.setItem("bravoshift_sops",JSON.stringify(items));
+ renderSops();
+}
+function deleteSop(id){
+ var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
+ items=items.filter(function(e){return e.id!==id});
+ localStorage.setItem("bravoshift_sops",JSON.stringify(items));
+ renderSops();
+}
+(function(){
+ var _origST=showTab;
+ showTab=function(tab){
+  _origST(tab);
+  if(tab==="lists")renderSops();
+ };
+})();
 function renderProviders(){const sortedProviders=db.providers.slice().sort((a,b)=>a.name.localeCompare(b.name));providerList.innerHTML='<table><thead><tr><th>Name</th><th>Clinic</th><th>Facility</th><th>Address</th><th>City</th><th>Phone</th><th class="no-print">Status / Actions</th></tr></thead><tbody>'+sortedProviders.map(p=>`<tr class="${p.active?'':'archived'}"><td>${esc(p.name)}</td><td>${esc(providerClinic(p))}</td><td>${esc(p.facility)}</td><td>${esc(p.address||'')}</td><td>${esc(p.city||'')}</td><td>${esc(p.phone)}</td><td class="no-print"><span class="badge ${p.active?'confirmed':'cancelled'}">${p.active?'Active':'Archived'}</span> <button class="secondary" onclick="editProvider('${p.id}')">Edit</button> <button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button> <button class="danger" onclick="deleteProvider('${p.id}')">Delete</button></td></tr>`).join('')+'</tbody></table>'}
 function managedValueRefs(key,value,replaceWith){let refs=0,swap=(obj,field)=>{if(obj?.[field]===value){refs++;if(replaceWith!==undefined)obj[field]=replaceWith}};if(key==='floorProviders')db.veterans.forEach(x=>swap(x,'floorProvider'));if(key==='levelsOfCare')db.veterans.forEach(x=>{swap(x,'levelOfCare');swap(x,'specialty')});if(key==='medicationMethods')db.veterans.forEach(x=>swap(x,'meds'));if(key==='diets')db.veterans.forEach(x=>swap(x,'diet'));if(key==='isolationTypes')db.veterans.forEach(x=>swap(x,'isolation'));if(key==='assistLevels')db.veterans.forEach(x=>swap(x,'assist'));if(key==='mobilityOptions')db.veterans.forEach(x=>swap(x,'mobility'));if(key==='fallRiskLevels')db.veterans.forEach(x=>swap(x,'fallRisk'));if(key==='toiletingOptions')db.veterans.forEach(x=>swap(x,'toileting'));if(key==='transportationModes'){db.appointments.forEach(x=>swap(x,'transport'));Object.values(db.travel).forEach(x=>swap(x,'mode'))}if(key==='appointmentReasons'){db.appointments.forEach(x=>swap(x,'reason'));Object.values(db.travel).forEach(x=>swap(x,'reason'))}if(key==='clinics'){db.appointments.forEach(x=>swap(x,'clinic'));Object.values(db.travel).forEach(x=>swap(x,'clinic'));db.providers.forEach(x=>{swap(x,'clinic');swap(x,'specialty')})}if(key==='escorts'){db.appointments.forEach(x=>swap(x,'escort'));Object.values(db.travel).forEach(x=>swap(x,'escort'))}if(key==='facilities'){db.appointments.forEach(x=>swap(x,'destination'));Object.values(db.travel).forEach(x=>swap(x,'destination'));db.providers.forEach(x=>swap(x,'facility'))}if(key==='treatmentTypes')db.treatments.forEach(x=>swap(x,'type'));return refs}
 function editManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(!item)return;let next=prompt(`Edit ${managedListLabels[key]} value:`,item.value);if(next===null)return;next=next.trim();if(!next||next===item.value)return;let duplicate=(db.managedLists[key]||[]).find(x=>x.id!==id&&x.value.toLowerCase()===next.toLowerCase());if(duplicate){alert('That value already exists in this list.');return}let refs=managedValueRefs(key,item.value);if(refs&&!confirm(`Rename “${item.value}” to “${next}” everywhere?\n\nThis updates ${refs} saved reference(s), including historical records.`))return;managedValueRefs(key,item.value,next);item.value=next;persist();renderAll()}
