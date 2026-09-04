@@ -1299,7 +1299,7 @@ function printHourlyRoundingSheet(){
  const dayHrs=['0600','0700','0800','0900','1000','1100','1200','1300','1400','1500','1600','1700','1800'];
  const cols=['Time','Initials','Bed Alarm','Fall Mats','Pain','Potty','BM','Position','Possessions','Devices','Comments'];
  function sheet(hrs,label){
-  let rows=hrs.map(h=>`<tr><td style="font-weight:700;padding:3px 6px;border:1px solid #999;width:50px">${h}</td>${cols.slice(1).map(()=>'<td style="border:1px solid #999;height:22px;padding:2px"></td>').join('')}</tr>`).join('');
+  let rows=hrs.map(h=>`<tr><td style="font-weight:700;padding:4px 8px;border:1px solid #999;width:50px">${h}</td>${cols.slice(1).map(()=>'<td style="border:1px solid #999;height:32px;padding:3px"></td>').join('')}</tr>`).join('');
   return `<h2 style="font-size:14px;margin:18px 0 4px;color:#1a0f00">${label}</h2>
   <div style="display:flex;gap:20px;margin:4px 0 8px;font-size:11px"><span><b>Unit:</b> _______________</span><span><b>Room#:</b> _______________</span><span><b>Date:</b> _______________</span></div>
   <div style="font-size:10px;margin:0 0 6px;color:#555">Isolation: Y  N &nbsp; Type: _______________ &nbsp; Fall Risk: L  M  H &nbsp; Transfer/Ambulate: _______________ &nbsp; Oral Care: A  I  D</div>
