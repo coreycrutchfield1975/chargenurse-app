@@ -177,7 +177,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="card stat"><span>Transport Follow-up</span><b id="statTrans">0</b></div>
 <div class="card stat"><span>Today Pickups</span><b id="statPickups">0</b></div>
 </div>
-<div class="toolbar"><button class="primary purple" onclick="openVeteran()">Add Veteran</button><button class="primary" onclick="openAppointment()">Add Appointment</button><button class="primary green" onclick="openTreatment()">Assign Treatment</button><button class="primary teal" onclick="openStaff()">Shift Assignment</button><button class="primary pink" onclick="showTab('reports')">Morning Report</button><button class="secondary" id="clearStationBtn" onclick="clearStation()" style="margin-left:8px;background:var(--red);color:white;border:none">Clear Station</button></div>
+<div class="toolbar"><button class="primary purple" onclick="openVeteran()">Add Veteran</button><button class="primary" onclick="openAppointment()">Add Appointment</button><button class="primary green" onclick="openTreatment()">Assign Treatment</button><button class="primary teal" onclick="openStaff()">Shift Assignment</button><button class="primary pink" onclick="showTab('reports')">Morning Report</button></div>
 <div class="grid">
 <div class="panel"><h2>Priority Action Board</h2><div id="alerts"></div></div>
 <div class="panel"><h2>Today's Schedule</h2><div id="todayList"></div></div>
@@ -603,11 +603,6 @@ function stopSyncPolling(){if(syncTimer){clearInterval(syncTimer);syncTimer=null
 async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';document.getElementById('autoSaveBanner').style.display='none';persist();startSyncPolling()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
 function disableAutoSave(){autoSaveDir=null;stopSyncPolling();localStorage.removeItem('autoSaveEnabled');document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999';document.getElementById('autoSaveBanner').style.display='none'}
 // On page load, show reconnect button if auto-save was previously enabled
-let idleTimer=null;const IDLE_TIMEOUT=15*60*1000; // 15 minutes
-function resetIdleTimer(){if(idleTimer)clearTimeout(idleTimer);idleTimer=setTimeout(clearStation,IDLE_TIMEOUT)}
-function clearStation(){if(!confirm('Clear all data from this station? This does not delete the S: drive file.')){resetIdleTimer();return}db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{}};localStorage.removeItem('cn-spectrum-db');localStorage.removeItem('autoSaveEnabled');autoSaveDir=null;stopSyncPolling();disableAutoSave();renderAll();document.getElementById('clearStationBtn').style.display='none';alert('Station cleared. Reconnect to S: drive to continue working.')}
-// Wrap persist to reset idle timer
-var _origPersist=persist;persist=function(){resetIdleTimer();return _origPersist.apply(this,arguments)};
 function checkAutoSavePref(){if(localStorage.getItem('autoSaveEnabled')==='true'){document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Reconnect to continue auto-saving to S: drive';document.getElementById('autoSaveStatus').style.color='#f6c344';document.getElementById('autoSaveBanner').style.display='block'}else{document.getElementById('autoSaveBanner').style.display='none'}}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
@@ -1465,7 +1460,7 @@ function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>
 function showSubTab(id){var tabs=document.querySelectorAll('#lists > div[id^="lists-"]');tabs.forEach(function(t){t.style.display='none'});var el=document.getElementById(id);if(el)el.style.display='block';var btns=document.querySelectorAll('#lists [id^="subtab"]');btns.forEach(function(b){b.style.background='transparent';b.style.color='var(--ink)'});var btn=document.getElementById('subtab'+id.split('-')[1].charAt(0).toUpperCase());if(btn){btn.style.background='var(--navy)';btn.style.color='white'}}
 function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
 try {
- reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();resetIdleTimer();renderDailyLogWeek();
+ reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();renderDailyLogWeek();
 } catch (e) {
  console.error("App initialization render failed:", e.message);
 }
