@@ -285,6 +285,8 @@ button.primary{border-radius:7px;font-weight:800}
       <select id="qmWeekSelect" style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;max-width:200px" onchange="switchQmWeek()"></select>
       <button class="primary" onclick="addQmWeek()" style="font-size:12px;padding:5px 12px">+ New Week</button>
       <button class="secondary" onclick="deleteQmWeek()" style="font-size:12px;padding:5px 12px;background:var(--red);color:white;border:none">Delete Week</button>
+      <button class="secondary" onclick="exportQmData()" style="font-size:12px;padding:5px 12px">📤 Export QM</button>
+      <button class="secondary" onclick="importQmData()" style="font-size:12px;padding:5px 12px">📥 Import QM</button>
       <button class="secondary" onclick="printQmWeek()" style="font-size:12px;padding:5px 12px">🖨️ Print</button>
     </div>
   </div>
@@ -1612,7 +1614,7 @@ function renderQmWeekContent(weekId){
  html+=qmSectionCard('antipsychotics','Antipsychotics / PRN Psychotropics',w,['vet','medication','lastGdr','cpUpdated','dose','notes']);
  html+='</div><div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">';
  html+=qmSectionCard('wanderguards','Wanderguards',w,['vet','placed','carePlanned','riskNote']);
- html+=qmSectionCard('bedAlarms','Bed Alarms',w,['vet','cpUpdated']);
+ html+=qmSectionCard('bedAlarms','Bed Alarms',w,['vet','cpUpdated','notes']);
  html+=qmSectionCard('hospice','Hospice',w,['vet','orderCpUpdated','maa','concerns']);
  html+='</div>';
  html+='<div style="margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
@@ -1633,7 +1635,7 @@ function qmSectionCard(section,label,w,fields){
    h+='<tr>';
    fields.forEach(function(f){
     var val=item[f]||'';
-    if(f==='cpUpdated'||f==='facilityAcquired'||f==='placed'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
+    if(f==='cpUpdated'||f==='facilityAcquired'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
     if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):esc(val)}
     h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
    });
@@ -1695,7 +1697,7 @@ function openQmModal(section,editId,weekId){
  var fields=qmSectionFields(section);
  var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto"><h3 style="margin:0 0 10px;font-size:16px">'+(editId?'Edit':'Add')+' Entry</h3><div id="qmModalFields">';
  fields.forEach(function(f){
-  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px">'+esc(f.label)+'</label>';
+  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>';
   if(f.type==='vet'){
    content+='<select id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">-- Select --</option>';
    db.veterans.forEach(function(v){content+='<option value="'+esc(v.id)+'"'+(entry[f.key]===v.id?' selected':'')+'>'+esc(v.name)+' ('+esc(v.room)+')</option>'});
@@ -1711,7 +1713,7 @@ function openQmModal(section,editId,weekId){
   }
   content+='</div>';
  });
- content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="saveQmModal(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode)" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="saveQmModal(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="primary" onclick="saveQmModalAndNext(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px;background:var(--green,#2e9d50)">Save &amp; Next</button><button class="secondary" onclick="closeQmModal()" style="padding:8px;font-size:13px">Cancel</button></div></div>';
  modal.innerHTML=content;
  document.body.appendChild(modal);
 }
@@ -1722,8 +1724,8 @@ function qmSectionFields(section){
   catheters:[{key:'vet',label:'Veteran',type:'vet'},{key:'type',label:'Type (Foley/Straight)',type:'text'},{key:'providerOrder',label:'Provider Order Date',type:'date'},{key:'reason',label:'Reason',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   behaviors:[{key:'vet',label:'Veteran',type:'vet'},{key:'behaviors',label:'Behaviors',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   antipsychotics:[{key:'vet',label:'Veteran',type:'vet'},{key:'medication',label:'Medication',type:'text'},{key:'lastGdr',label:'Last GDR Date',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'dose',label:'Dose',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
-  wanderguards:[{key:'vet',label:'Veteran',type:'vet'},{key:'placed',label:'Placed',type:'yesno'},{key:'carePlanned',label:'Care Planned?',type:'yesno'},{key:'riskNote',label:'Risk Note/Order',type:'yesno'}],
-  bedAlarms:[{key:'vet',label:'Veteran',type:'vet'},{key:'cpUpdated',label:'CP Updated?',type:'yesno'}],
+  wanderguards:[{key:'vet',label:'Veteran',type:'text'},{key:'placed',label:'Placed Date',type:'date'},{key:'carePlanned',label:'Care Planned?',type:'yesno'},{key:'riskNote',label:'Risk Note/Order',type:'yesno'}],
+  bedAlarms:[{key:'vet',label:'Veteran',type:'text'},{key:'cpUpdated',label:'CP Updated?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
   hospice:[{key:'vet',label:'Veteran',type:'vet'},{key:'orderCpUpdated',label:'Order/CP Updated',type:'yesno'},{key:'maa',label:'MAA',type:'yesno'},{key:'concerns',label:'Concerns/Notes',type:'textarea'}]};
  return map[section]||[];
 }
@@ -1790,7 +1792,7 @@ function addPermEntry(section){
  var vr=document.createElement('div');
  var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:500px;width:90%"><h3 style="margin:0 0 10px;font-size:16px">Add Entry</h3><div id="permFields">';
  fields.forEach(function(f){
-  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px">'+esc(f.label)+'</label>';
+  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>';
   if(f.type==='vet'){
    content+='<select id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">-- Select --</option>';
    db.veterans.forEach(function(v){content+='<option value="'+esc(v.name)+' '+esc(v.last4)+'">'+esc(v.name)+' ('+esc(v.room)+')</option>'});
@@ -1806,16 +1808,16 @@ function addPermEntry(section){
   }
   content+='</div>';
  });
- content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="savePermEntry(\''+section+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode)" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="savePermEntry(\''+section+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="closeQmModal()" style="padding:8px;font-size:13px">Cancel</button></div></div>';
  vr.innerHTML=content;
  document.body.appendChild(vr);
 }
 function permFields(section){
  var map={ssrDischarges:[{key:'lastName',label:'Last Name',type:'text'},{key:'firstName',label:'First Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'dischargeDate',label:'PPS Discharge Date',type:'date'},{key:'planned',label:'Planned/Unplanned',type:'text'},{key:'followUpDate',label:'Follow-up End Date',type:'date'},{key:'disposition',label:'Disposition',type:'text'},{key:'remainedInCommunity',label:'Remained in Community?',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
-  infections:[{key:'name',label:'Name',type:'vet'},{key:'date',label:'Date',type:'date'},{key:'infectionType',label:'Infection Type',type:'text'},{key:'room',label:'Room Number',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
-  sideRails:[{key:'name',label:'Name',type:'vet'},{key:'assessmentComplete',label:'Assessment/Consent Complete',type:'yesno'},{key:'order',label:'Order',type:'yesno'},{key:'carePlanned',label:'Care Planned',type:'yesno'}],
-  fallsLog:[{key:'name',label:'Name',type:'vet'},{key:'date',label:'Date of Fall',type:'date'},{key:'time',label:'Time',type:'text'},{key:'lastRounding',label:'Last Rounding',type:'text'},{key:'txSpecialty',label:'Tx Specialty',type:'text'},{key:'witnessed',label:'Witnessed/Unwitnessed',type:'text'},{key:'injury',label:'Injury?',type:'yesno'},{key:'injuryType',label:'Type of Injury',type:'text'},{key:'staffMember',label:'Staff Member',type:'text'},{key:'hospitalTransfer',label:'Transfer to Hospital',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
-  erVisits:[{key:'name',label:'Name',type:'vet'},{key:'treatingSpecialty',label:'Treating Specialty',type:'text'},{key:'dateSent',label:'Date Sent Out',type:'date'},{key:'sentTo',label:'Sent To',type:'text'},{key:'datePrevEntry',label:'Date of Prev Entry',type:'date'},{key:'admissionReentry',label:'Admission/Re-entry',type:'text'},{key:'daysSinceEntry',label:'Days Since Entry',type:'text'},{key:'enteredFrom',label:'Entered From',type:'text'},{key:'reason',label:'Reason Sent Out',type:'textarea'},{key:'admitted',label:'Admitted?',type:'yesno'},{key:'admittingDx',label:'Admitting Dx',type:'text'}]};
+  infections:[{key:'name',label:'Name',type:'text'},{key:'date',label:'Date',type:'date'},{key:'infectionType',label:'Infection Type',type:'text'},{key:'room',label:'Room Number',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  sideRails:[{key:'name',label:'Name',type:'text'},{key:'assessmentComplete',label:'Assessment/Consent Complete',type:'yesno'},{key:'order',label:'Order',type:'yesno'},{key:'carePlanned',label:'Care Planned',type:'yesno'}],
+  fallsLog:[{key:'name',label:'Name',type:'text'},{key:'date',label:'Date of Fall',type:'date'},{key:'time',label:'Time',type:'text'},{key:'lastRounding',label:'Last Rounding',type:'text'},{key:'txSpecialty',label:'Tx Specialty',type:'text'},{key:'witnessed',label:'Witnessed/Unwitnessed',type:'text'},{key:'injury',label:'Injury?',type:'yesno'},{key:'injuryType',label:'Type of Injury',type:'text'},{key:'staffMember',label:'Staff Member',type:'text'},{key:'hospitalTransfer',label:'Transfer to Hospital',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  erVisits:[{key:'name',label:'Name',type:'text'},{key:'treatingSpecialty',label:'Treating Specialty',type:'text'},{key:'dateSent',label:'Date Sent Out',type:'date'},{key:'sentTo',label:'Sent To',type:'text'},{key:'datePrevEntry',label:'Date of Prev Entry',type:'date'},{key:'admissionReentry',label:'Admission/Re-entry',type:'text'},{key:'daysSinceEntry',label:'Days Since Entry',type:'text'},{key:'enteredFrom',label:'Entered From',type:'text'},{key:'reason',label:'Reason Sent Out',type:'textarea'},{key:'admitted',label:'Admitted?',type:'yesno'},{key:'admittingDx',label:'Admitting Dx',type:'text'}]};
  return map[section]||[];
 }
 function savePermEntry(section){
@@ -1845,6 +1847,69 @@ function deletePermEntry(section,id){
  openPermTracker(section);
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
+}
+function closeQmModal(){
+ var modal=document.querySelector('div[style*="z-index:9999"]');
+ if(modal&&modal.parentNode)document.body.removeChild(modal);
+}
+function saveQmModalAndNext(section,editId,weekId){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ if(!w[section])w[section]=[];
+ var fields=qmSectionFields(section);
+ var entry={};
+ fields.forEach(function(f){
+  var el=document.getElementById('qmF_'+f.key);
+  if(el)entry[f.key]=el.value;
+ });
+ if(editId&&editId!==''){
+  var idx=w[section].findIndex(function(x){return x._id===editId});
+  if(idx>=0){Object.assign(w[section][idx],entry);w[section][idx]._id=editId}
+ }else{
+  entry._id='qm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  w[section].push(entry);
+ }
+ closeQmModal();
+ persist();
+ renderQmWeekContent(sel.value);
+ openQmModal(section,null,weekId);
+}
+function exportQmData(){
+ var data=JSON.stringify(db.qmLog);
+ var blob=new Blob([data],{type:"application/json"});
+ var url=URL.createObjectURL(blob);
+ var a=document.createElement("a");
+ a.href=url; a.download="bravoshift-qm-log-"+new Date().toISOString().slice(0,10)+".json";
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
+}
+function importQmData(){
+ var input=document.createElement("input");
+ input.type="file"; input.accept=".json";
+ input.onchange=function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+   try{
+    var data=JSON.parse(ev.target.result);
+    if(!data.weeks&&!data.ssrDischarges){alert("Invalid QM log file.");return}
+    if(!confirm("This will REPLACE all current QM data with the imported data. Continue?"))return;
+    db.qmLog=data;
+    persist();
+    populateQmWeekSelect();
+    var el=document.getElementById("qmContent");
+    if(el)el.innerHTML='<p class="muted" style="font-style:italic;text-align:center;padding:40px">QM data imported. Select a week to view.</p>';
+    alert("QM data imported successfully!");
+   }catch(err){alert("Error reading file: "+err.message)}
+  };
+  reader.readAsText(file);
+ };
+ input.click();
 }
 function printQmWeek(){
  var sel=document.getElementById('qmWeekSelect');
