@@ -1570,7 +1570,7 @@ function populateQmWeekSelect(){
 function addQmWeek(){
  var d=prompt('Enter meeting date (YYYY-MM-DD):');
  if(!d)return;
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)){alert('Please use YYYY-MM-DD format (e.g. 2026-08-27)');return}
+ if(!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d)){alert('Please use YYYY-MM-DD format (e.g. 2026-08-27)');return}
  if(db.qmLog.weeks[d]){alert('Week '+d+' already exists!');return}
  db.qmLog.weeks[d]={meetingDate:d,reviewPeriod:'',attendance:[],falls:[],pressureUlcers:[],weightChanges:[],catheters:[],behaviors:[],antipsychotics:[],wanderguards:[],bedAlarms:[],hospice:[],otherIssues:''};
  persist();
