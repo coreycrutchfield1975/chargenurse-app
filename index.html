@@ -1338,72 +1338,90 @@ function printShiftChangeCheckList(){
 function printChargeNurseDutiesCheckoff(){
  const w=window.open('','_blank');
  if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
- const duties=[
+ const nightOnly=[
   '24 Hr Chart Review',
-  'Wandering System (sign log)',
   'BMS (Update icons)',
-  'Crash Cart',
   'Stop Orders',
-  "AED's",
   'Glucometer controls North and South',
-  'BCBU',
   'Temp and Cleaning log North and South',
-  'Device days of Care',
   'Weights documented',
-  'Travel Meds',
   'Missed Med List from 1830-2230',
-  'TX Documented',
   'Missed Med Whole Shift, print @ 0600 (hand off to oncoming charge nurse)',
-  'Missed Med Whole Shift, print @ 1800 (hand off to oncoming charge nurse)',
   'Q shift notes (COVID, Foley, etc)',
-  'Missed Med List for 0700-1000',
   'Snacks Documented',
-  'Missed Med List for 1100-1600',
   'Supplements documented',
   'Oral Care Charted',
-  'Fire Doors (open to ensure it alarms at the door and north nurses station)',
-  'Narc Renewals Done',
+  'TX Documented',
   'Did you check for appointments?',
   'Did you check for Labs?',
   'Weekly (Tuesday) O2 tubing/nebs, urinals, and water pitchers changed',
-  'Did you check for ordered labs?',
   'Pyxis Narc inventory (Wednesday)',
   'Restart BCBU Computer (Sunday)',
-  'Print MARS weekly on (Monday)',
   'Med Rooms free of expired supplies and Corrugated boxes (Sunday)',
-  'Flush Eye Wash Station on (Sundays)',
   'North Wing TX sheets updated/printed (Last Saturday of pay period)',
   'Clean washing machine daily and add A Fresh Monthly (on 1st)',
-  'Contingency Phone Checked on (Sunday)',
   'Clean dryer lint tray Nightly',
-  'Clean ALL Fridges and Microwaves (Tuesday)(LDI)',
   'Clean Med Carts (Friday)',
-  'South Wing TX sheets updated/Printed (Last Saturday of pay period)',
   'Med Cart Checklist completed by Med Nurse',
   'Weekly Medication Cart audit Completed',
  ];
+ const dayOnly=[
+  'Wandering System (sign log)',
+  'Crash Cart',
+  "AED's",
+  'BCBU',
+  'Device days of Care',
+  'Travel Meds',
+  'TX Documented',
+  'Missed Med Whole Shift, print @ 1800 (hand off to oncoming charge nurse)',
+  'Missed Med List for 0700-1000',
+  'Missed Med List for 1100-1600',
+  'Supplements Documented',
+  'Oral Care charted',
+  'Fire Doors (open to ensure it alarms at the door and north nurses station)',
+  'Narc Renewals Done',
+  'Q Shift Notes (COVID, Foley, etc)',
+  'Did you check for appointments?',
+  'Did you check for ordered labs?',
+  'Print MARS weekly on (Monday)',
+  'Flush Eye Wash Station on (Sundays)',
+  'Contingency Phone Checked on (Sunday)',
+  'Clean ALL Fridges and Microwaves (Tuesday)(LDI)',
+  'South Wing TX sheets updated/Printed (Last Saturday of pay period)',
+  'Med Cart Checklist Completed by Med Nurse',
+  'Weekly Medication Cart Audit Completed',
+ ];
+ function dutyList(items){
+  return '<div class="duty-list">'+items.map(function(d){return '<div class="duty-item"><span class="cb">&#x25a1;</span> '+d+'</div>';}).join('')+'</div>';
+ }
  w.document.write(`<html><head><title>Charge Nurse Duties Checkoff</title>
-<style>@page{size:landscape;margin:.25in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:15px;margin:0 0 3px;color:#1a0f00}.sh{font-size:9px;margin:1px 0 3px;display:flex;gap:14px;flex-wrap:wrap}.admit{font-size:9px;margin:2px 0}.admit span{margin-right:20px}.admit b{margin-right:2px}.census{width:100%;border-collapse:collapse;margin:2px 0 3px}.census td,.census th{border:1px solid #999;padding:2px 5px;text-align:center;font-size:9px}.census th{background:#f0e6d6;font-weight:700}.census td.l{font-weight:700;text-align:left;width:12%}.duty-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin:1px 0}.duty-item{font-size:9px;padding:1px 0;line-height:1.2;display:flex;align-items:flex-start;gap:2px}.cb{font-size:11px;flex-shrink:0}.med-init{border:1px solid #999;padding:3px 8px;margin:3px 0;font-size:9px;display:flex;gap:30px;flex-wrap:wrap}.sig{margin:4px 0;font-size:10px}.sig div{margin:4px 0}.cal{margin:2px 0;font-size:10px}.cal div{margin:3px 0}.footer{font-size:8px;color:#888;text-align:center;margin-top:4px}@media print{th{background:#f0e6d6!important}}</style></head><body>
+<style>@page{size:landscape;margin:.2in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:9px;color:#1a0f00;padding:.12in}h1{font-size:15px;margin:0 0 2px;color:#1a0f00}.sh{font-size:9px;margin:1px 0 3px;display:flex;gap:14px;flex-wrap:wrap}.admit{font-size:9px;margin:1px 0 3px}.admit span{margin-right:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0}.col{border:1px solid #555;padding:4px 6px;border-radius:4px}.col h2{font-size:11px;margin:0 0 2px;padding:2px 4px;background:#f0e6d6;border:1px solid #999;text-align:center}.duty-list{margin:1px 0}.duty-item{font-size:8px;padding:1px 0;line-height:1.15;display:flex;align-items:flex-start;gap:2px}.cb{font-size:10px;flex-shrink:0}.census{width:100%;border-collapse:collapse;margin:2px 0}.census td,.census th{border:1px solid #999;padding:1px 4px;text-align:center;font-size:8px}.census th{background:#f0e6d6}.census td.l{font-weight:700;text-align:left;width:12%}.med-init{border:1px solid #999;padding:2px 6px;margin:3px 0;font-size:8px;display:flex;gap:20px;flex-wrap:wrap}.sig{margin:3px 0;font-size:9px}.sig div{margin:3px 0}.cal{margin:1px 0;font-size:9px}.cal div{margin:2px 0}.footer{font-size:7px;color:#888;text-align:center;margin-top:3px}@media print{th{background:#f0e6d6!important}}</style></head><body>
 <h1>Charge Nurse Duties Checkoff</h1>
 <div class="sh"><span><b>Shift:</b> 1800-0630 (Night) ____ &nbsp;|&nbsp; 0600-1830 (Day) ____</span><span><b>Date:</b> _______________</span></div>
 <div class="admit"><span><b>Admissions (time of admission):</b> ____________________</span><span><b>Discharges (time when left the floor):</b> ____________________</span><br>
 <span><b>BCMA Wireless/Med Cart issues (North/South):</b> ____________________</span></div>
-<h2 style="font-size:10px;margin:2px 0 1px;padding:2px 4px;background:#f0e6d6;border:1px solid #999">Census: Long Term, Short Stay, Respite, End of Life, Total, AA, ASIH, HIB</h2>
-<table class="census"><tr><th style="width:12%"></th><th>LT</th><th>SS</th><th>Resp</th><th>EOL</th><th>Total</th><th>AA</th><th>ASIH</th><th>HIB</th></tr>
+<h2 style="font-size:10px;margin:2px 0 1px;padding:2px 4px;background:#f0e6d6;border:1px solid #999">Census: Long Term, Short Stay, Respite, End of Life, Total, Authorized Absence, Away Sick in Hospital, Heads in Bed</h2>
+<table class="census"><tr><th style="width:14%"></th><th>LT</th><th>SS</th><th>Resp</th><th>EOL</th><th>Total</th><th>AA</th><th>ASIH</th><th>HIB</th></tr>
 <tr><td class="l">Night Shift</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td></tr>
 <tr><td class="l">Day Shift</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td><td>____</td></tr></table>
-<div style="margin:2px 0 3px;font-size:10px"><b>Incidents:</b> _________________________________</div>
-<div style="font-size:10px;font-weight:700;margin:2px 0;padding:2px 4px;background:#f0e6d6;border:1px solid #999">Charge Nurse Duties Checklist:</div>
-<div class="duty-grid">
-${duties.map(function(d){return '<div class="duty-item"><span class="cb">&#x25a1;</span> '+d+'</div>';}).join('')}
+<div style="margin:2px 0 4px;font-size:9px"><b>Incidents:</b> _________________________________</div>
+<div class="grid">
+<div class="col">
+<h2>Night Shift 1800-0630</h2>
+${dutyList(nightOnly)}
 </div>
-<div class="med-init"><b>Med Rooms free of expired supplies and Corrugated boxes (Sunday):</b> &nbsp; <b>N Med Nurse</b> ________ &nbsp; <b>S Med Nurse</b> ________</div>
+<div class="col">
+<h2>Day Shift 0600-1830</h2>
+${dutyList(dayOnly)}
+</div>
+</div>
+<div class="med-init"><b>Med Rooms free of expired supplies and Corrugated boxes (Sunday) &mdash;</b> <b>N Med Nurse</b> ________ &nbsp; <b>S Med Nurse</b> ________</div>
 <div class="sig">
 <div><b>CN Signature:</b> _________________________________________</div>
 <div><b>CN Signature:</b> _________________________________________</div>
 </div>
-<div class="cal"><b>Call-Ins:</b> ________________________________________________________________________</div>
-<div class="cal"><b>Covered by:</b> _____________________________________________________________________</div>
+<div class="cal"><div><b>Call-Ins:</b> ________________________________________________________________________</div>
+<div><b>Covered by:</b> _____________________________________________________________________</div></div>
 <div class="footer">Generated by BravoShift — ${new Date().toLocaleDateString()}</div>
 </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
