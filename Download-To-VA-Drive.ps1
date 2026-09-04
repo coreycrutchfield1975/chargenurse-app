@@ -27,8 +27,6 @@ if (-not (Test-Path $targetFolder)) {
 # List of essential files to download
 $files = @(
     "index.html",
-    "morning-report.html",
-    "legacy/bravoshift-v1.8-final.html",
     "favicon.svg"
 )
 

@@ -1,0 +1,71 @@
+
+====================================
+CHARGENURSE APP - SINGLE FILE VERSION
+====================================
+
+You now have a completely standalone version of the chargenurse app.
+
+FILE: chargenurse-standalone.html
+SIZE: 110,523 bytes
+STATUS: Ready to use
+
+===========
+HOW TO USE
+===========
+
+1. Save the HTML file to your VA computer (S: drive, desktop, etc.)
+2. Double-click the file to open in any web browser
+3. The app runs entirely in your browser - no internet required
+4. All data is saved to your browser's localStorage
+
+===========
+KEY FEATURES
+===========
+
+• Dashboard with veteran counts, appointments, treatments
+• Veteran roster management
+• Appointment scheduling with transportation tracking
+• Treatment assignments (Licensed/Non-Licensed)
+• Morning report generation and printing
+• Staff shift assignments
+• Data export/import (for SharePoint backup)
+
+===========
+DATA SECURITY
+===========
+
+• NO data is sent to any server
+• All data stays in your browser
+• Export backups to JSON for SharePoint storage
+• Import from previous backups
+
+===========
+PRINTING
+===========
+
+• Morning report: Use "Print" button in Morning Report tab
+• Tickets to ride: Generate from Transport tab
+• Travel requests: Generate from Transport tab
+
+===========
+TROUBLESHOOTING
+===========
+
+• If the file won't open: Try Chrome, Edge, or Firefox
+• If data disappears: Check browser settings (clearing cache deletes data)
+• Always export backups before clearing browser data
+
+===========
+UPDATING
+===========
+
+To get updates later:
+1. Download new version from GitHub
+2. Export your current data (Dashboard → Export Data)
+3. Open new HTML file
+4. Import your backup
+
+====================================
+LAST UPDATED: chargenurse-standalone.html
+CHANGES: Removed priority/risk sections from morning report, improved print layout
+====================================

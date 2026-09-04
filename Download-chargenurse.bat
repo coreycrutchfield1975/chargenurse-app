@@ -15,13 +15,10 @@ echo.
 
 REM Create target folder if it doesn't exist
 if not exist "%TARGET_FOLDER%" mkdir "%TARGET_FOLDER%"
-if not exist "%TARGET_FOLDER%\legacy" mkdir "%TARGET_FOLDER%\legacy"
 
 REM List of files to download
 set FILES[0]=index.html
-set FILES[1]=morning-report.html
-set FILES[2]=legacy/bravoshift-v1.8-final.html
-set FILES[3]=favicon.svg
+set FILES[2]=favicon.svg
 
 set i=0
 :download_loop
