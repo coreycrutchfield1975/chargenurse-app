@@ -1602,7 +1602,7 @@ function renderQmWeekContent(weekId){
  var html='<div style="margin-bottom:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span><b>Meeting Date:</b> <input type="date" id="qmMeetingDate" value="'+esc(weekId)+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px" onchange="saveQmMeta()"></span>';
  html+='<span><b>Review Period:</b> <input type="text" id="qmReviewPeriod" value="'+esc(w.reviewPeriod||'')+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:180px" onchange="saveQmMeta()" placeholder="e.g. 7/1-7/31"></span></div>';
- html+='<div style="margin-top:4px;font-size:12px"><b>Attendance:</b> <input type="text" id="qmAttendance" value="'+esc(w.attendance||[]).join(', ')+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:80%" onchange="saveQmAttendance()" placeholder="e.g. Karen Miller, Kim Serrano, ..."></div></div>';
+ html+='<div style="margin-top:4px;font-size:12px"><b>Attendance:</b> <input type="text" id="qmAttendance" value="'+esc((w.attendance||[]).join(', '))+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:80%" onchange="saveQmAttendance()" placeholder="e.g. Karen Miller, Kim Serrano, ..."></div></div>';
  html+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">';
  html+=qmSectionCard('falls','Falls',w,['vet','date','cpUpdated','notes']);
  html+=qmSectionCard('pressureUlcers','Pressure Ulcers',w,['vet','dateAcquired','cpUpdated','facilityAcquired','notes']);
