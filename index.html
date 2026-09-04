@@ -1363,6 +1363,13 @@ function printChargeNurseDutiesCheckoff(){
   'Pyxis Narc Inventory (Wed)',
   'Restart BCBU Computer (Sun)',
   'Med rooms free of expired supplies & corrugated boxes (Sun)',
+  'North Wing TX sheets updated/printed (last Sat of pay period)',
+  'Clean washing machine (daily)',
+  'Fresh monthly on 15th',
+  'Clean dryer lint tray (nightly)',
+  'Clean med carts (Friday)',
+  'Med Cart Checklist completed',
+  'Weekly Medication Cart Audit completed',
  ];
  const dayH=[
   'Wandering System (sign log)',
@@ -1384,6 +1391,9 @@ function printChargeNurseDutiesCheckoff(){
   'Weights Documented',
   'Contingency Phone Checked (Sun)',
   'Clean ALL Fridges & Microwaves (Tue)(LDI)',
+  'South Wing TX sheets updated/printed (last Sat of pay period)',
+  'Med Cart Checklist completed',
+  'Weekly Medication Cart Audit completed',
  ];
  function statsRow(){
   return '<table class="census"><tr><td class="lbl">LT</td><td>____</td><td class="lbl">SS</td><td>____</td><td class="lbl">Resp</td><td>____</td><td class="lbl">EOL</td><td>____</td><td class="lbl">Total</td><td>____</td><td class="lbl">AA</td><td>____</td><td class="lbl">ASIH</td><td>____</td><td class="lbl">HIB</td><td>____</td></tr></table>';
@@ -1392,7 +1402,7 @@ function printChargeNurseDutiesCheckoff(){
   return items.map(function(d){return '<div class="duty-item"><span class="cb">&#x25a1;</span> '+d+'</div>';}).join('');
  }
  w.document.write(`<html><head><title>Charge Nurse Duties Checkoff</title>
-<style>@page{size:landscape;margin:.2in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:9px;color:#1a0f00;padding:.1in}h1{font-size:15px;margin:0 0 1px;color:#1a0f00}.hdr{font-size:9px;margin:0 0 4px;display:flex;gap:12px;flex-wrap:wrap}.hdr span{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.col{border:1px solid #555;padding:4px 6px;border-radius:4px}.col h2{font-size:11px;margin:0 0 3px;padding:2px 4px;background:#f0e6d6;border:1px solid #999}.census{width:100%;border-collapse:collapse;margin:2px 0}.census td{text-align:center;padding:1px 2px;border:1px solid #999;font-size:8px;width:6%}.census td.lbl{font-weight:700;background:#f0e6d6;width:5%}.admit-box{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin:2px 0}.admit-box div{border:1px solid #999;padding:1px 3px;font-size:8px;height:22px}.admit-box div b{font-size:8px}.duty-item{font-size:8px;padding:1px 0;line-height:1.2;display:flex;align-items:flex-start;gap:2px}.cb{font-size:10px;flex-shrink:0}.extras{font-size:8px;margin:2px 0;line-height:1.3}.extras span{white-space:nowrap}.sig{font-size:9px;margin:3px 0;display:flex;gap:20px;flex-wrap:wrap}.callins{border:1px solid #999;padding:3px 6px;margin:3px 0;font-size:8px;display:flex;gap:20px;flex-wrap:wrap}.footer{font-size:7px;color:#888;text-align:center;margin-top:2px}@media print{th{background:#f0e6d6!important}}</style></head><body>
+<style>@page{size:landscape;margin:.2in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:9px;color:#1a0f00;padding:.1in}h1{font-size:15px;margin:0 0 1px;color:#1a0f00}.hdr{font-size:9px;margin:0 0 4px;display:flex;gap:12px;flex-wrap:wrap}.hdr span{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.col{border:1px solid #555;padding:4px 6px;border-radius:4px}.col h2{font-size:11px;margin:0 0 3px;padding:2px 4px;background:#f0e6d6;border:1px solid #999}.census{width:100%;border-collapse:collapse;margin:2px 0}.census td{text-align:center;padding:1px 2px;border:1px solid #999;font-size:8px;width:6%}.census td.lbl{font-weight:700;background:#f0e6d6;width:5%}.admit-box{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin:2px 0}.admit-box div{border:1px solid #999;padding:1px 3px;font-size:8px;height:22px}.admit-box div b{font-size:8px}.duty-item{font-size:8px;padding:1px 0;line-height:1.2;display:flex;align-items:flex-start;gap:2px}.cb{font-size:10px;flex-shrink:0}.sig{font-size:9px;margin:3px 0;display:flex;gap:20px;flex-wrap:wrap}.callins{border:1px solid #999;padding:3px 6px;margin:3px 0;font-size:8px;display:flex;gap:20px;flex-wrap:wrap}.footer{font-size:7px;color:#888;text-align:center;margin-top:2px}@media print{th{background:#f0e6d6!important}}</style></head><body>
 <h1>Charge Nurse Duties Checkoff</h1>
 <div class="hdr"><span><b>Shift:</b> 1800-0630 (Night) ____ &nbsp;|&nbsp; 0600-1830 (Day) ____</span><span><b>Date:</b> _______________</span><span><b>Wing:</b> _______________</span></div>
 <div class="admit-box"><div><b>Admissions</b><br><br></div><div><b>Discharges</b><br><br></div><div><b>BCMA/Wireless Issues</b><br><br></div></div>
@@ -1402,11 +1412,6 @@ function printChargeNurseDutiesCheckoff(){
 ${statsRow()}
 <div style="margin:1px 0;font-size:8px"><b>Incidents:</b> ____ &nbsp; <b>Med nurse North:</b> ____ &nbsp; <b>Med nurse South:</b> ____</div>
 ${dutyList(nightH)}
-<div class="extras">
-<b>North Wing TX sheets updated/printed (last Sat of pay period):</b> ____<br>
-<b>Clean washing machine:</b> daily ____ &nbsp; <b>Fresh monthly (15th):</b> ____ &nbsp; <b>Clean dryer lint:</b> nightly ____<br>
-<b>Clean med carts (Fri):</b> ____ &nbsp; <b>Med Cart Checklist:</b> ____ &nbsp; <b>Weekly Med Cart Audit:</b> ____
-</div>
 <div class="sig"><b>CN Signature:</b> ______________________________</div>
 </div>
 <div class="col">
@@ -1414,10 +1419,6 @@ ${dutyList(nightH)}
 ${statsRow()}
 <div style="margin:1px 0;font-size:8px"><b>Incidents:</b> ____</div>
 ${dutyList(dayH)}
-<div class="extras">
-<b>South Wing TX sheets updated/printed (last Sat of pay period):</b> ____<br>
-<b>Med Cart Checklist:</b> ____ &nbsp; <b>Weekly Med Cart Audit:</b> ____
-</div>
 <div class="sig"><b>CN Signature:</b> ______________________________</div>
 </div>
 </div>
