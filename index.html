@@ -262,6 +262,7 @@ button.primary{border-radius:7px;font-weight:800}
   <button class="secondary" id="subtabL" style="font-weight:700;font-size:13px;padding:6px 16px;background:var(--navy);color:white" onclick="showSubTab('lists-main')">Lists</button>
   <button class="secondary" id="subtabP" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-print')">Print Forms</button>
   <button class="secondary" id="subtabS" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-sop')">SOP/Directives</button>
+  <button class="secondary" id="subtabQ" style="font-weight:700;font-size:13px;padding:6px 16px" onclick="showSubTab('lists-qm')">QM Log</button>
 </div>
 <div id="lists-sop" style="display:none">
   <div class="grid">
@@ -277,6 +278,21 @@ button.primary{border-radius:7px;font-weight:800}
     </div>
   </div>
 </div>
+<div id="lists-qm" style="display:none">
+  <div class="toolbar" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
+    <h2 style="margin:0;font-size:16px">Quality Measures / Care Planning Log</h2>
+    <div style="flex:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
+      <select id="qmWeekSelect" style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;max-width:200px" onchange="switchQmWeek()"></select>
+      <button class="primary" onclick="addQmWeek()" style="font-size:12px;padding:5px 12px">+ New Week</button>
+      <button class="secondary" onclick="deleteQmWeek()" style="font-size:12px;padding:5px 12px;background:var(--red);color:white;border:none">Delete Week</button>
+      <button class="secondary" onclick="printQmWeek()" style="font-size:12px;padding:5px 12px">🖨️ Print</button>
+    </div>
+  </div>
+  <div id="qmContent" style="max-height:calc(100vh - 260px);overflow-y:auto">
+    <p class="muted" style="font-style:italic;text-align:center;padding:40px">Select or create a week to begin...</p>
+  </div>
+</div>
+
 <div id="lists-main" style="display:block">
 <div class="grid">
 <div class="panel"><h3>Providers / Clinics</h3><div class="toolbar" style="margin:0 0 8px"><button class="primary" onclick="addProvider()">Add Provider</button><button class="secondary" onclick="printProviders()">🖨️ Print List</button></div><div class="formgrid"><div class="span2"><label>Name</label><input id="pName"></div><div><label>Clinic</label><input id="pClinic" list="clinicData"></div><div><label>Facility</label><input id="pFacility" list="facilityData"></div><div><label>Address</label><input id="pAddress" placeholder="Street, City, State"></div><div><label>City</label><input id="pCity"></div><div><label>Phone</label><input id="pPhone"></div></div><datalist id="specialtyData"></datalist><datalist id="facilityData"></datalist><datalist id="clinicData"></datalist><datalist id="escortData"></datalist><div id="providerList"></div></div>
@@ -1528,9 +1544,348 @@ function deleteSop(id){
  var _origST=showTab;
  showTab=function(tab){
   _origST(tab);
-  if(tab==="lists")renderSops();
+  if(tab==="lists"){renderSops();initQmLog()};
  };
 })();
+function initQmLog(){
+ if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+ populateQmWeekSelect();
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel)return;
+ if(sel.options.length>0&&!sel.value){sel.value=sel.options[0].value;switchQmWeek()}
+}
+function populateQmWeekSelect(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel)return;
+ var cur=sel.value;
+ sel.innerHTML='<option value="">-- Select Week --</option>';
+ var weeks=Object.keys(db.qmLog.weeks||{}).sort().reverse();
+ weeks.forEach(function(w){
+  var opt=document.createElement('option');
+  opt.value=w;opt.textContent=w;
+  sel.appendChild(opt);
+ });
+ if(cur&&weeks.indexOf(cur)>=0)sel.value=cur;
+}
+function addQmWeek(){
+ var d=prompt('Enter meeting date (YYYY-MM-DD):');
+ if(!d)return;
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)){alert('Please use YYYY-MM-DD format (e.g. 2026-08-27)');return}
+ if(db.qmLog.weeks[d]){alert('Week '+d+' already exists!');return}
+ db.qmLog.weeks[d]={meetingDate:d,reviewPeriod:'',attendance:[],falls:[],pressureUlcers:[],weightChanges:[],catheters:[],behaviors:[],antipsychotics:[],wanderguards:[],bedAlarms:[],hospice:[],otherIssues:''};
+ persist();
+ populateQmWeekSelect();
+ var sel=document.getElementById('qmWeekSelect');
+ sel.value=d;
+ switchQmWeek();
+}
+function deleteQmWeek(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ if(!confirm('Delete week '+sel.value+' and all its data? This cannot be undone.'))return;
+ delete db.qmLog.weeks[sel.value];
+ persist();
+ populateQmWeekSelect();
+ var el=document.getElementById('qmContent');
+ if(el)el.innerHTML='<p class="muted" style="font-style:italic;text-align:center;padding:40px">Select or create a week to begin...</p>';
+}
+function switchQmWeek(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value){var el=document.getElementById('qmContent');if(el)el.innerHTML='<p class="muted" style="font-style:italic;text-align:center;padding:40px">Select or create a week to begin...</p>';return}
+ renderQmWeekContent(sel.value);
+}
+function renderQmWeekContent(weekId){
+ var el=document.getElementById('qmContent');
+ if(!el)return;
+ var w=db.qmLog.weeks[weekId];
+ if(!w){el.innerHTML='<p class="muted">No data for this week.</p>';return}
+ var html='<div style="margin-bottom:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
+ html+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span><b>Meeting Date:</b> <input type="date" id="qmMeetingDate" value="'+esc(weekId)+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px" onchange="saveQmMeta()"></span>';
+ html+='<span><b>Review Period:</b> <input type="text" id="qmReviewPeriod" value="'+esc(w.reviewPeriod||'')+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:180px" onchange="saveQmMeta()" placeholder="e.g. 7/1-7/31"></span></div>';
+ html+='<div style="margin-top:4px;font-size:12px"><b>Attendance:</b> <input type="text" id="qmAttendance" value="'+esc(w.attendance||[]).join(', ')+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:80%" onchange="saveQmAttendance()" placeholder="e.g. Karen Miller, Kim Serrano, ..."></div></div>';
+ html+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">';
+ html+=qmSectionCard('falls','Falls',w,['vet','date','cpUpdated','notes']);
+ html+=qmSectionCard('pressureUlcers','Pressure Ulcers',w,['vet','dateAcquired','cpUpdated','facilityAcquired','notes']);
+ html+=qmSectionCard('weightChanges','Significant Weight Changes',w,['vet','lossGain','cpUpdated','notes']);
+ html+=qmSectionCard('catheters','Urinary Catheters',w,['vet','type','providerOrder','reason','notes']);
+ html+=qmSectionCard('behaviors','Behaviors',w,['vet','behaviors','notes']);
+ html+=qmSectionCard('antipsychotics','Antipsychotics / PRN Psychotropics',w,['vet','medication','lastGdr','cpUpdated','dose','notes']);
+ html+='</div><div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">';
+ html+=qmSectionCard('wanderguards','Wanderguards',w,['vet','placed','carePlanned','riskNote']);
+ html+=qmSectionCard('bedAlarms','Bed Alarms',w,['vet','cpUpdated']);
+ html+=qmSectionCard('hospice','Hospice',w,['vet','orderCpUpdated','maa','concerns']);
+ html+='</div>';
+ html+='<div style="margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
+ html+='<div style="display:flex;justify-content:space-between;align-items:center"><b>Other Issues / Notes</b></div>';
+ html+='<textarea id="qmOtherIssues" style="width:100%;height:60px;margin-top:4px;padding:6px;font-size:12px;border:1px solid #999;border-radius:4px" onchange="saveQmMeta()" placeholder="Additional notes for this week...">'+esc(w.otherIssues||'')+'</textarea></div>';
+ html+=qmPermanentTrackers();
+ el.innerHTML=html;
+}
+function qmSectionCard(section,label,w,fields){
+ var items=w[section]||[];
+ var fieldLabels={vet:'Veteran',date:'Date',dateAcquired:'Date Acquired',cpUpdated:'CP Updated',facilityAcquired:'Facility Acquired?',notes:'Notes',lossGain:'Loss/Gain',type:'Type',providerOrder:'Provider Order Date',reason:'Reason',behaviors:'Behaviors',medication:'Medication',lastGdr:'Last GDR',dose:'Dose',placed:'Placed',carePlanned:'Care Planned?',riskNote:'Risk Note/Order',orderCpUpdated:'Order/CP Updated',maa:'MAA',concerns:'Concerns/Notes'};
+ var h='<div style="border:1px solid var(--border);border-radius:6px;background:var(--card-bg);padding:6px 8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b style="font-size:13px">'+label+'</b><button class="primary" onclick="openQmModal(\''+section+'\',null,\''+esc(w.meetingDate||'')+'\')" style="font-size:11px;padding:3px 10px">+ Add</button></div>';
+ if(!items.length){h+='<p class="muted" style="font-size:11px;font-style:italic;padding:4px 0">No entries.</p>'}
+ else{
+  h+='<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  h+='<tr style="background:#f0e6d6">'+fields.map(function(f){return '<th style="padding:2px 4px;border:1px solid #999;text-align:left;font-size:10px">'+(fieldLabels[f]||f)+'</th>'}).join('')+'<th style="padding:2px 4px;border:1px solid #999;width:50px">Actions</th></tr>';
+  items.forEach(function(item,i){
+   h+='<tr>';
+   fields.forEach(function(f){
+    var val=item[f]||'';
+    if(f==='cpUpdated'||f==='facilityAcquired'||f==='placed'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
+    if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):esc(val)}
+    h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
+   });
+   h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px;white-space:nowrap"><button onclick="openQmModal(\''+section+'\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;margin-right:2px">Edit</button><button onclick="deleteQmEntry(\''+section+'\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Del</button></td>'
+   h+='</tr>';
+  });
+  h+='</table>';
+ }
+ h+='</div>';
+ return h;
+}
+function qmPermanentTrackers(){
+ var h='<div style="margin-top:8px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">Permanent Trackers (Data accumulates over time)</b></div>';
+ h+='<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">';
+ h+='<button class="secondary" onclick="openPermTracker(\'ssrDischarges\')" style="font-size:11px;padding:4px 10px">SSR Discharges ('+((db.qmLog.ssrDischarges||[]).length)+')</button>';
+ h+='<button class="secondary" onclick="openPermTracker(\'infections\')" style="font-size:11px;padding:4px 10px">Infections ('+((db.qmLog.infections||[]).length)+')</button>';
+ h+='<button class="secondary" onclick="openPermTracker(\'sideRails\')" style="font-size:11px;padding:4px 10px">Side Rails ('+((db.qmLog.sideRails||[]).length)+')</button>';
+ h+='<button class="secondary" onclick="openPermTracker(\'fallsLog\')" style="font-size:11px;padding:4px 10px">Falls Log ('+((db.qmLog.fallsLog||[]).length)+')</button>';
+ h+='<button class="secondary" onclick="openPermTracker(\'erVisits\')" style="font-size:11px;padding:4px 10px">ER Visits & Rehospitalizations ('+((db.qmLog.erVisits||[]).length)+')</button>';
+ h+='</div></div>';
+ return h;
+}
+function saveQmMeta(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ var md=document.getElementById('qmMeetingDate');
+ if(md)w.meetingDate=md.value;
+ var rp=document.getElementById('qmReviewPeriod');
+ if(rp)w.reviewPeriod=rp.value;
+ var oi=document.getElementById('qmOtherIssues');
+ if(oi)w.otherIssues=oi.value;
+ persist();
+}
+function saveQmAttendance(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ var el=document.getElementById('qmAttendance');
+ if(!el)return;
+ w.attendance=el.value.split(',').map(function(s){return s.trim()}).filter(function(s){return s});
+ persist();
+}
+function openQmModal(section,editId,weekId){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value){alert('Select a week first.');return}
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ var entry={};
+ if(editId!==null&&editId!==undefined){
+  var items=w[section]||[];
+  var found=items.find(function(x){return x._id===editId||items.indexOf(x)===parseInt(editId)});
+  if(found)entry=JSON.parse(JSON.stringify(found));
+ }
+ var modal=document.createElement('div');
+ modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+ var fields=qmSectionFields(section);
+ var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto"><h3 style="margin:0 0 10px;font-size:16px">'+(editId?'Edit':'Add')+' Entry</h3><div id="qmModalFields">';
+ fields.forEach(function(f){
+  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px">'+esc(f.label)+'</label>';
+  if(f.type==='vet'){
+   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">-- Select --</option>';
+   db.veterans.forEach(function(v){content+='<option value="'+esc(v.id)+'"'+(entry[f.key]===v.id?' selected':'')+'>'+esc(v.name)+' ('+esc(v.room)+')</option>'});
+   content+='</select>';
+  }else if(f.type==='yesno'){
+   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">--</option><option value="Yes"'+(entry[f.key]==='Yes'?' selected':'')+'>Yes</option><option value="No"'+(entry[f.key]==='No'?' selected':'')+'>No</option></select>';
+  }else if(f.type==='textarea'){
+   content+='<textarea id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px;min-height:50px">'+esc(entry[f.key]||'')+'</textarea>';
+  }else if(f.type==='date'){
+   content+='<input type="date" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+  }else{
+   content+='<input type="text" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+  }
+  content+='</div>';
+ });
+ content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="saveQmModal(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode)" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ modal.innerHTML=content;
+ document.body.appendChild(modal);
+}
+function qmSectionFields(section){
+ var map={falls:[{key:'vet',label:'Veteran',type:'vet'},{key:'date',label:'Date of Fall',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  pressureUlcers:[{key:'vet',label:'Veteran',type:'vet'},{key:'dateAcquired',label:'Date Acquired',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'facilityAcquired',label:'Facility Acquired?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  weightChanges:[{key:'vet',label:'Veteran',type:'vet'},{key:'lossGain',label:'Loss/Gain',type:'text'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  catheters:[{key:'vet',label:'Veteran',type:'vet'},{key:'type',label:'Type (Foley/Straight)',type:'text'},{key:'providerOrder',label:'Provider Order Date',type:'date'},{key:'reason',label:'Reason',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  behaviors:[{key:'vet',label:'Veteran',type:'vet'},{key:'behaviors',label:'Behaviors',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  antipsychotics:[{key:'vet',label:'Veteran',type:'vet'},{key:'medication',label:'Medication',type:'text'},{key:'lastGdr',label:'Last GDR Date',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'dose',label:'Dose',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  wanderguards:[{key:'vet',label:'Veteran',type:'vet'},{key:'placed',label:'Placed',type:'yesno'},{key:'carePlanned',label:'Care Planned?',type:'yesno'},{key:'riskNote',label:'Risk Note/Order',type:'yesno'}],
+  bedAlarms:[{key:'vet',label:'Veteran',type:'vet'},{key:'cpUpdated',label:'CP Updated?',type:'yesno'}],
+  hospice:[{key:'vet',label:'Veteran',type:'vet'},{key:'orderCpUpdated',label:'Order/CP Updated',type:'yesno'},{key:'maa',label:'MAA',type:'yesno'},{key:'concerns',label:'Concerns/Notes',type:'textarea'}]};
+ return map[section]||[];
+}
+function saveQmModal(section,editId,weekId){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ if(!w[section])w[section]=[];
+ var fields=qmSectionFields(section);
+ var entry={};
+ fields.forEach(function(f){
+  var el=document.getElementById('qmF_'+f.key);
+  if(el)entry[f.key]=el.value;
+ });
+ if(editId&&editId!==''){
+  var idx=w[section].findIndex(function(x){return x._id===editId});
+  if(idx>=0){Object.assign(w[section][idx],entry);w[section][idx]._id=editId}
+ }else{
+  entry._id='qm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  w[section].push(entry);
+ }
+ var modal=document.querySelector('div[style*="z-index:9999"]');
+ if(modal&&modal.parentNode)document.body.removeChild(modal);
+ persist();
+ renderQmWeekContent(sel.value);
+}
+function deleteQmEntry(section,id,weekId){
+ if(!confirm('Delete this entry?'))return;
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value)return;
+ var w=db.qmLog.weeks[sel.value];
+ if(!w||!w[section])return;
+ w[section]=w[section].filter(function(x){return x._id!==id});
+ persist();
+ renderQmWeekContent(sel.value);
+}
+function openPermTracker(section){
+ var items=db.qmLog[section]||[];
+ var titleMap={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits & Rehospitalizations'};
+ var modal=document.createElement('div');
+ modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+ var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:700px;width:95%;max-height:80vh;overflow-y:auto"><h3 style="margin:0 0 10px;font-size:16px">'+(titleMap[section]||section)+'</h3>';
+ content+='<div style="display:flex;gap:6px;margin-bottom:8px"><button class="primary" onclick="addPermEntry(\''+section+'\')" style="font-size:12px;padding:4px 12px">+ Add Entry</button></div>';
+ if(!items.length){content+='<p class="muted" style="font-style:italic">No entries yet.</p>'}
+ else{
+  content+='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:#f0e6d6">';
+  var cols=Object.keys(items[0]||{}).filter(function(k){return k!=='_id'});
+  cols.forEach(function(c){content+='<th style="padding:3px 6px;border:1px solid #999;text-align:left;font-size:10px">'+esc(c)+'</th>'});
+  content+='<th style="padding:3px 6px;border:1px solid #999;width:50px">Actions</th></tr>';
+  items.forEach(function(item,i){
+   content+='<tr>';
+   cols.forEach(function(c){content+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px">'+esc(item[c]||'')+'</td>'});
+   content+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="deletePermEntry(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
+  });
+  content+='</table>';
+ }
+ content+='<div style="margin-top:10px;text-align:right"><button class="secondary" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode)" style="padding:6px 14px;font-size:12px">Close</button></div></div>';
+ modal.innerHTML=content;
+ document.body.appendChild(modal);
+}
+function addPermEntry(section){
+ var fields=permFields(section);
+ var vr=document.createElement('div');
+ var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:500px;width:90%"><h3 style="margin:0 0 10px;font-size:16px">Add Entry</h3><div id="permFields">';
+ fields.forEach(function(f){
+  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px">'+esc(f.label)+'</label>';
+  if(f.type==='vet'){
+   content+='<select id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">-- Select --</option>';
+   db.veterans.forEach(function(v){content+='<option value="'+esc(v.name)+' '+esc(v.last4)+'">'+esc(v.name)+' ('+esc(v.room)+')</option>'});
+   content+='</select>';
+  }else if(f.type==='yesno'){
+   content+='<select id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">--</option><option value="Yes">Yes</option><option value="No">No</option></select>';
+  }else if(f.type==='textarea'){
+   content+='<textarea id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px;min-height:50px"></textarea>';
+  }else if(f.type==='date'){
+   content+='<input type="date" id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+  }else{
+   content+='<input type="text" id="pf_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+  }
+  content+='</div>';
+ });
+ content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="savePermEntry(\''+section+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode)" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ vr.innerHTML=content;
+ document.body.appendChild(vr);
+}
+function permFields(section){
+ var map={ssrDischarges:[{key:'lastName',label:'Last Name',type:'text'},{key:'firstName',label:'First Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'dischargeDate',label:'PPS Discharge Date',type:'date'},{key:'planned',label:'Planned/Unplanned',type:'text'},{key:'followUpDate',label:'Follow-up End Date',type:'date'},{key:'disposition',label:'Disposition',type:'text'},{key:'remainedInCommunity',label:'Remained in Community?',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  infections:[{key:'name',label:'Name',type:'vet'},{key:'date',label:'Date',type:'date'},{key:'infectionType',label:'Infection Type',type:'text'},{key:'room',label:'Room Number',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
+  sideRails:[{key:'name',label:'Name',type:'vet'},{key:'assessmentComplete',label:'Assessment/Consent Complete',type:'yesno'},{key:'order',label:'Order',type:'yesno'},{key:'carePlanned',label:'Care Planned',type:'yesno'}],
+  fallsLog:[{key:'name',label:'Name',type:'vet'},{key:'date',label:'Date of Fall',type:'date'},{key:'time',label:'Time',type:'text'},{key:'lastRounding',label:'Last Rounding',type:'text'},{key:'txSpecialty',label:'Tx Specialty',type:'text'},{key:'witnessed',label:'Witnessed/Unwitnessed',type:'text'},{key:'injury',label:'Injury?',type:'yesno'},{key:'injuryType',label:'Type of Injury',type:'text'},{key:'staffMember',label:'Staff Member',type:'text'},{key:'hospitalTransfer',label:'Transfer to Hospital',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  erVisits:[{key:'name',label:'Name',type:'vet'},{key:'treatingSpecialty',label:'Treating Specialty',type:'text'},{key:'dateSent',label:'Date Sent Out',type:'date'},{key:'sentTo',label:'Sent To',type:'text'},{key:'datePrevEntry',label:'Date of Prev Entry',type:'date'},{key:'admissionReentry',label:'Admission/Re-entry',type:'text'},{key:'daysSinceEntry',label:'Days Since Entry',type:'text'},{key:'enteredFrom',label:'Entered From',type:'text'},{key:'reason',label:'Reason Sent Out',type:'textarea'},{key:'admitted',label:'Admitted?',type:'yesno'},{key:'admittingDx',label:'Admitting Dx',type:'text'}]};
+ return map[section]||[];
+}
+function savePermEntry(section){
+ var fields=permFields(section);
+ var entry={};
+ fields.forEach(function(f){
+  var el=document.getElementById('pf_'+f.key);
+  if(el)entry[f.key]=el.value;
+ });
+ entry._id='perm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+ if(!db.qmLog[section])db.qmLog[section]=[];
+ db.qmLog[section].push(entry);
+ persist();
+ var modal=document.querySelector('div[style*="z-index:9999"]')||document.activeElement.closest('div[style*="z-index"]');
+ if(modal&&modal.parentNode)document.body.removeChild(modal);
+ // Re-open the tracker view
+ openPermTracker(section);
+ // Also re-render the week content if on a week
+ var sel=document.getElementById('qmWeekSelect');
+ if(sel&&sel.value)renderQmWeekContent(sel.value);
+}
+function deletePermEntry(section,id){
+ if(!confirm('Delete this entry?'))return;
+ if(!db.qmLog[section])return;
+ db.qmLog[section]=db.qmLog[section].filter(function(x){return x._id!==id});
+ persist();
+ openPermTracker(section);
+ var sel=document.getElementById('qmWeekSelect');
+ if(sel&&sel.value)renderQmWeekContent(sel.value);
+}
+function printQmWeek(){
+ var sel=document.getElementById('qmWeekSelect');
+ if(!sel||!sel.value){alert('Select a week first.');return}
+ var w=db.qmLog.weeks[sel.value];
+ if(!w)return;
+ var win=window.open('','_blank');
+ if(!win){alert('Pop-up blocked.');return}
+ var html='<html><head><title>QM Log - '+sel.value+'</title><style>@page{size:landscape;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;color:#1a0f00;padding:.2in}h1{font-size:18px;margin:0 0 4px;color:#1a0f00}.meta{font-size:11px;color:#555;margin:0 0 8px}.section{margin:8px 0;border:1px solid #999;border-radius:4px;padding:6px 8px}.section h2{font-size:13px;margin:0 0 4px;padding:2px 6px;background:#f0e6d6;border:1px solid #999}table{width:100%;border-collapse:collapse;margin:4px 0}th,td{padding:3px 6px;border:1px solid #999;font-size:10px;text-align:left}th{background:#f0e6d6;font-weight:700}.footer{font-size:8px;color:#888;margin-top:12px;text-align:center}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ html+='<h1>Quality Measures / Care Planning Log</h1>';
+ html+='<div class="meta"><b>Meeting Date:</b> '+esc(sel.value)+' &nbsp;|&nbsp; <b>Review Period:</b> '+esc(w.reviewPeriod||'')+'</div>';
+ if(w.attendance&&w.attendance.length){
+  html+='<div class="section"><b>Attendance:</b> '+esc(w.attendance.join(', '))+'</div>';
+ }
+ var sections=[{key:'falls',label:'Falls'},{key:'pressureUlcers',label:'Pressure Ulcers'},{key:'weightChanges',label:'Significant Weight Changes'},{key:'catheters',label:'Urinary Catheters'},{key:'behaviors',label:'Behaviors'},{key:'antipsychotics',label:'Antipsychotics / PRN Psychotropics'},{key:'wanderguards',label:'Wanderguards'},{key:'bedAlarms',label:'Bed Alarms'},{key:'hospice',label:'Hospice'}];
+ sections.forEach(function(s){
+  var items=w[s.key]||[];
+  if(!items.length)return;
+  html+='<div class="section"><h2>'+s.label+'</h2><table><tr>';
+  var keys=Object.keys(items[0]).filter(function(k){return k!=='_id'});
+  keys.forEach(function(k){html+='<th>'+esc(k)+'</th>'});
+  html+='</tr>';
+  items.forEach(function(item){
+   html+='<tr>';
+   keys.forEach(function(k){
+    var val=item[k]||'';
+    if(k==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):esc(val)}
+    html+='<td>'+esc(val)+'</td>';
+   });
+   html+='</tr>';
+  });
+  html+='</table></div>';
+ });
+ if(w.otherIssues){html+='<div class="section"><b>Other Issues / Notes:</b><br>'+esc(w.otherIssues)+'</div>'}
+ html+='<div class="footer">Generated by BravoShift — '+new Date().toLocaleDateString()+'</div></body></html>';
+ win.document.write(html);
+ win.document.close();
+ win.focus();
+ setTimeout(function(){win.print()},350);
+}
+
 function renderProviders(){const sortedProviders=db.providers.slice().sort((a,b)=>a.name.localeCompare(b.name));providerList.innerHTML='<table><thead><tr><th>Name</th><th>Clinic</th><th>Facility</th><th>Address</th><th>City</th><th>Phone</th><th class="no-print">Status / Actions</th></tr></thead><tbody>'+sortedProviders.map(p=>`<tr class="${p.active?'':'archived'}"><td>${esc(p.name)}</td><td>${esc(providerClinic(p))}</td><td>${esc(p.facility)}</td><td>${esc(p.address||'')}</td><td>${esc(p.city||'')}</td><td>${esc(p.phone)}</td><td class="no-print"><span class="badge ${p.active?'confirmed':'cancelled'}">${p.active?'Active':'Archived'}</span> <button class="secondary" onclick="editProvider('${p.id}')">Edit</button> <button class="secondary" onclick="archiveProvider('${p.id}')">${p.active?'Archive':'Restore'}</button> <button class="danger" onclick="deleteProvider('${p.id}')">Delete</button></td></tr>`).join('')+'</tbody></table>'}
 function managedValueRefs(key,value,replaceWith){let refs=0,swap=(obj,field)=>{if(obj?.[field]===value){refs++;if(replaceWith!==undefined)obj[field]=replaceWith}};if(key==='floorProviders')db.veterans.forEach(x=>swap(x,'floorProvider'));if(key==='levelsOfCare')db.veterans.forEach(x=>{swap(x,'levelOfCare');swap(x,'specialty')});if(key==='medicationMethods')db.veterans.forEach(x=>swap(x,'meds'));if(key==='diets')db.veterans.forEach(x=>swap(x,'diet'));if(key==='isolationTypes')db.veterans.forEach(x=>swap(x,'isolation'));if(key==='assistLevels')db.veterans.forEach(x=>swap(x,'assist'));if(key==='mobilityOptions')db.veterans.forEach(x=>swap(x,'mobility'));if(key==='fallRiskLevels')db.veterans.forEach(x=>swap(x,'fallRisk'));if(key==='toiletingOptions')db.veterans.forEach(x=>swap(x,'toileting'));if(key==='transportationModes'){db.appointments.forEach(x=>swap(x,'transport'));Object.values(db.travel).forEach(x=>swap(x,'mode'))}if(key==='appointmentReasons'){db.appointments.forEach(x=>swap(x,'reason'));Object.values(db.travel).forEach(x=>swap(x,'reason'))}if(key==='clinics'){db.appointments.forEach(x=>swap(x,'clinic'));Object.values(db.travel).forEach(x=>swap(x,'clinic'));db.providers.forEach(x=>{swap(x,'clinic');swap(x,'specialty')})}if(key==='escorts'){db.appointments.forEach(x=>swap(x,'escort'));Object.values(db.travel).forEach(x=>swap(x,'escort'))}if(key==='facilities'){db.appointments.forEach(x=>swap(x,'destination'));Object.values(db.travel).forEach(x=>swap(x,'destination'));db.providers.forEach(x=>swap(x,'facility'))}if(key==='treatmentTypes')db.treatments.forEach(x=>swap(x,'type'));return refs}
 function editManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>x.id===id);if(!item)return;let next=prompt(`Edit ${managedListLabels[key]} value:`,item.value);if(next===null)return;next=next.trim();if(!next||next===item.value)return;let duplicate=(db.managedLists[key]||[]).find(x=>x.id!==id&&x.value.toLowerCase()===next.toLowerCase());if(duplicate){alert('That value already exists in this list.');return}let refs=managedValueRefs(key,item.value);if(refs&&!confirm(`Rename “${item.value}” to “${next}” everywhere?\n\nThis updates ${refs} saved reference(s), including historical records.`))return;managedValueRefs(key,item.value,next);item.value=next;persist();renderAll()}
