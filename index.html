@@ -1612,12 +1612,34 @@ function renderQmWeekContent(weekId){
  html+=qmSectionCard('catheters','Urinary Catheters',w,['vet','type','providerOrder','reason','notes']);
  html+=qmSectionCard('behaviors','Behaviors',w,['vet','behaviors','notes']);
  html+=qmSectionCard('antipsychotics','Antipsychotics / PRN Psychotropics',w,['vet','medication','lastGdr','cpUpdated','dose','notes']);
- html+='</div><div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">';
- html+=qmSectionCard('wanderguards','Wanderguards',w,['vet','placed','carePlanned','riskNote']);
- html+=qmSectionCard('bedAlarms','Bed Alarms',w,['vet','cpUpdated','notes']);
- html+=qmSectionCard('hospice','Hospice',w,['vet','orderCpUpdated','maa','concerns']);
- html+='</div>';
- html+='<div style="margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
+ html+='</div><div class="grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
+  html+=qmSectionCard('wanderguards','Wanderguards',w,['vet','placed','carePlanned','riskNote']);
+  html+=qmSectionCard('bedAlarms','Bed Alarms',w,['vet','cpUpdated','notes']);
+  html+='</div><div style="margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
+   html+='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">Hospice</b><button class="primary" onclick="openQmModal(\'hospice\',null,\''+esc(w.meetingDate||'')+'\')" style="font-size:11px;padding:3px 10px">+ Add</button></div>';
+   var hItems=w.hospice||[];
+   if(!hItems.length){html+='<p class="muted" style="font-size:11px;font-style:italic;padding:4px 0">No entries.</p>'}
+   else{
+    html+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:2px"><tr style="background:#f0e6d6">';
+    ['vet','orderCpUpdated','maa','concerns'].forEach(function(f){
+     var lbl={vet:'Veteran',orderCpUpdated:'Order/CP Updated',maa:'MAA',concerns:'Concerns/Notes'};
+     html+='<th style="padding:2px 4px;border:1px solid #999;text-align:left;font-size:10px">'+lbl[f]+'</th>';
+    });
+    html+='<th style="padding:2px 4px;border:1px solid #999;width:50px">Actions</th></tr>';
+    hItems.forEach(function(item,i){
+     html+='<tr>';
+     ['vet','orderCpUpdated','maa','concerns'].forEach(function(f){
+      var val=item[f]||'';
+      if(f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
+      if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):esc(val)}
+      html+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
+     });
+     html+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px;white-space:nowrap"><button onclick="openQmModal(\'hospice\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;margin-right:2px">Edit</button><button onclick="deleteQmEntry(\'hospice\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Del</button></td></tr>';
+    });
+    html+='</table>';
+   }
+   html+='</div>';
+   html+='<div style="margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)">';
  html+='<div style="display:flex;justify-content:space-between;align-items:center"><b>Other Issues / Notes</b></div>';
  html+='<textarea id="qmOtherIssues" style="width:100%;height:60px;margin-top:4px;padding:6px;font-size:12px;border:1px solid #999;border-radius:4px" onchange="saveQmMeta()" placeholder="Additional notes for this week...">'+esc(w.otherIssues||'')+'</textarea></div>';
  html+=qmPermanentTrackers();
@@ -1844,7 +1866,7 @@ function permFields(section){
  return map[section]||[];
 }
 function closeQmModal(){
- var modal=document.querySelector('div[style*="z-index:9999"]');
+ var modal=document.querySelector('div[style*="z-index:"]');
  if(modal&&modal.parentNode)document.body.removeChild(modal);
 }
 function saveQmModalAndNext(section,editId,weekId){
