@@ -1607,7 +1607,7 @@ function renderQmWeekContent(weekId){
  html+='<div style="margin-top:4px;font-size:12px"><b>Attendance:</b> <input type="text" id="qmAttendance" value="'+esc((w.attendance||[]).join(', '))+'" style="padding:3px 6px;font-size:12px;border:1px solid #999;border-radius:3px;width:80%" onchange="saveQmAttendance()" placeholder="e.g. Karen Miller, Kim Serrano, ..."></div></div>';
  html+='<div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">';
  html+=qmSectionCard('falls','Falls',w,['vet','date','cpUpdated','notes']);
- html+=qmSectionCard('pressureUlcers','Pressure Ulcers',w,['vet','dateAcquired','cpUpdated','facilityAcquired','notes']);
+ html+=qmSectionCard('pressureUlcers','Pressure Ulcers',w,['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes']);
  html+=qmSectionCard('weightChanges','Significant Weight Changes',w,['vet','lossGain','cpUpdated','notes']);
  html+=qmSectionCard('catheters','Urinary Catheters',w,['vet','type','providerOrder','reason','notes']);
  html+=qmSectionCard('behaviors','Behaviors',w,['vet','behaviors','notes']);
@@ -1647,7 +1647,7 @@ function renderQmWeekContent(weekId){
 }
 function qmSectionCard(section,label,w,fields){
  var items=w[section]||[];
- var fieldLabels={vet:'Veteran',date:'Date',dateAcquired:'Date Acquired',cpUpdated:'CP Updated',facilityAcquired:'Facility Acquired?',notes:'Notes',lossGain:'Loss/Gain',type:'Type',providerOrder:'Provider Order Date',reason:'Reason',behaviors:'Behaviors',medication:'Medication',lastGdr:'Last GDR',dose:'Dose',placed:'Placed',carePlanned:'Care Planned?',riskNote:'Risk Note/Order',orderCpUpdated:'Order/CP Updated',maa:'MAA',concerns:'Concerns/Notes'};
+ var fieldLabels={vet:'Veteran',date:'Date',dateAcquired:'Date Acquired',presentOnAdmission:'On Admission',cpUpdated:'CP Updated',facilityAcquired:'Facility Acquired?',notes:'Notes',lossGain:'Loss/Gain',type:'Type',providerOrder:'Provider Order Date',reason:'Reason',behaviors:'Behaviors',medication:'Medication',lastGdr:'Last GDR',dose:'Dose',placed:'Placed',carePlanned:'Care Planned?',riskNote:'Risk Note/Order',orderCpUpdated:'Order/CP Updated',maa:'MAA',concerns:'Concerns/Notes'};
  var h='<div style="border:1px solid var(--border);border-radius:6px;background:var(--card-bg);padding:6px 8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b style="font-size:13px">'+label+'</b><button class="primary" onclick="openQmModal(\''+section+'\',null,\''+esc(w.meetingDate||'')+'\')" style="font-size:11px;padding:3px 10px">+ Add</button></div>';
  if(!items.length){h+='<p class="muted" style="font-size:11px;font-style:italic;padding:4px 0">No entries.</p>'}
  else{
@@ -1657,7 +1657,7 @@ function qmSectionCard(section,label,w,fields){
    h+='<tr>';
    fields.forEach(function(f){
     var val=item[f]||'';
-    if(f==='cpUpdated'||f==='facilityAcquired'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
+    if(f==='cpUpdated'||f==='facilityAcquired'||f==='presentOnAdmission'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
     if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):esc(val)}
     h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
    });
@@ -1741,7 +1741,7 @@ function openQmModal(section,editId,weekId){
 }
 function qmSectionFields(section){
  var map={falls:[{key:'vet',label:'Veteran',type:'vet'},{key:'date',label:'Date of Fall',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
-  pressureUlcers:[{key:'vet',label:'Veteran',type:'vet'},{key:'dateAcquired',label:'Date Acquired',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'facilityAcquired',label:'Facility Acquired?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  pressureUlcers:[{key:'vet',label:'Veteran',type:'vet'},{key:'presentOnAdmission',label:'Present on Admission',type:'yesno'},{key:'dateAcquired',label:'Date Acquired (if not on admission)',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'facilityAcquired',label:'Facility Acquired?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
   weightChanges:[{key:'vet',label:'Veteran',type:'vet'},{key:'lossGain',label:'Loss/Gain',type:'text'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
   catheters:[{key:'vet',label:'Veteran',type:'vet'},{key:'type',label:'Type (Foley/Straight)',type:'text'},{key:'providerOrder',label:'Provider Order Date',type:'date'},{key:'reason',label:'Reason',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   behaviors:[{key:'vet',label:'Veteran',type:'vet'},{key:'behaviors',label:'Behaviors',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
