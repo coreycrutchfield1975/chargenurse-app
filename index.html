@@ -1747,8 +1747,8 @@ function qmSectionFields(section){
   catheters:[{key:'vet',label:'Veteran',type:'vet'},{key:'type',label:'Type (Foley/Straight)',type:'text'},{key:'providerOrder',label:'Provider Order Date',type:'date'},{key:'reason',label:'Reason',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   behaviors:[{key:'vet',label:'Veteran',type:'vet'},{key:'behaviors',label:'Behaviors',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   antipsychotics:[{key:'vet',label:'Veteran',type:'vet'},{key:'medication',label:'Medication',type:'text'},{key:'lastGdr',label:'Last GDR Date',type:'date'},{key:'cpUpdated',label:'CP Updated',type:'yesno'},{key:'dose',label:'Dose',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
-  wanderguards:[{key:'vet',label:'Veteran',type:'text'},{key:'placed',label:'Placed Date',type:'date'},{key:'carePlanned',label:'Care Planned?',type:'yesno'},{key:'riskNote',label:'Risk Note/Order',type:'yesno'}],
-  bedAlarms:[{key:'vet',label:'Veteran',type:'text'},{key:'cpUpdated',label:'CP Updated?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
+  wanderguards:[{key:'vet',label:'Veteran',type:'vet'},{key:'placed',label:'Placed Date',type:'date'},{key:'carePlanned',label:'Care Planned?',type:'yesno'},{key:'riskNote',label:'Risk Note/Order',type:'yesno'}],
+  bedAlarms:[{key:'vet',label:'Veteran',type:'vet'},{key:'cpUpdated',label:'CP Updated?',type:'yesno'},{key:'notes',label:'Notes',type:'textarea'}],
   hospice:[{key:'vet',label:'Veteran',type:'vet'},{key:'orderCpUpdated',label:'Order/CP Updated',type:'yesno'},{key:'maa',label:'MAA',type:'yesno'},{key:'concerns',label:'Concerns/Notes',type:'textarea'}]};
  return map[section]||[];
 }
@@ -1838,25 +1838,41 @@ function savePermEntryInline(section){
  if(!db.qmLog[section])db.qmLog[section]=[];
  db.qmLog[section].push(entry);
  persist();
- // Clear form and refresh table
+ // Clear form and refresh the table in-place
  clearPermForm();
+ refreshPermTable(section);
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
- // Re-open the tracker to show updated table
- openPermTracker(section);
 }
 function clearPermForm(){
  var inputs=document.querySelectorAll('[id^="pf_"]');
  inputs.forEach(function(el){if(el.type==='text'||el.type==='date')el.value='';else if(el.tagName==='SELECT')el.value='';else if(el.tagName==='TEXTAREA')el.value=''});
+}
+function refreshPermTable(section){
+ var items=db.qmLog[section]||[];
+ var el=document.getElementById('permTableArea');
+ if(!el)return;
+ if(!items.length){el.innerHTML='<p class="muted" style="font-style:italic;font-size:12px;padding:8px 0">No entries yet. Add one above.</p>';return}
+ var html='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:#f0e6d6">';
+ var cols=Object.keys(items[0]||{}).filter(function(k){return k!=='_id'});
+ cols.forEach(function(c){html+='<th style="padding:3px 6px;border:1px solid #999;text-align:left;font-size:10px">'+esc(c)+'</th>'});
+ html+='<th style="padding:3px 6px;border:1px solid #999;width:50px">Actions</th></tr>';
+ items.forEach(function(item,i){
+  html+='<tr>';
+  cols.forEach(function(c){html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px">'+esc(item[c]||'')+'</td>'});
+  html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="deletePermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
+ });
+ html+='</table>';
+ el.innerHTML=html;
 }
 function deletePermEntryInline(section,id){
  if(!confirm('Delete this entry?'))return;
  if(!db.qmLog[section])return;
  db.qmLog[section]=db.qmLog[section].filter(function(x){return x._id!==id});
  persist();
+ refreshPermTable(section);
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
- openPermTracker(section);
 }
 function permFields(section){
  var map={ssrDischarges:[{key:'lastName',label:'Last Name',type:'text'},{key:'firstName',label:'First Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'dischargeDate',label:'PPS Discharge Date',type:'date'},{key:'planned',label:'Planned/Unplanned',type:'text'},{key:'followUpDate',label:'Follow-up End Date',type:'date'},{key:'disposition',label:'Disposition',type:'text'},{key:'remainedInCommunity',label:'Remained in Community?',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
