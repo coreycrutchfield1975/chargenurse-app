@@ -1717,25 +1717,26 @@ function openQmModal(section,editId,weekId){
  var modal=document.createElement('div');
  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
  var fields=qmSectionFields(section);
- var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto"><h3 style="margin:0 0 10px;font-size:16px">'+(editId?'Edit':'Add')+' Entry</h3><div id="qmModalFields">';
+ var content='<div style="background:#ffffff;padding:18px 20px;border-radius:8px;max-width:600px;width:92%;max-height:85vh;overflow-y:auto"><h3 style="margin:0 0 8px;font-size:16px;color:#1a0f00">'+(editId?'Edit':'Add')+' Entry</h3>';
+ content+='<div style="padding:10px 12px;border:1px solid var(--yellow);border-radius:6px;background:#fffbe6"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
  fields.forEach(function(f){
-  content+='<div style="margin:6px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>';
+  content+='<div style="margin:2px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>';
   if(f.type==='vet'){
-   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">-- Select --</option>';
+   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff"><option value="">-- Select --</option>';
    db.veterans.forEach(function(v){content+='<option value="'+esc(v.id)+'"'+(entry[f.key]===v.id?' selected':'')+'>'+esc(v.name)+' ('+esc(v.room)+')</option>'});
    content+='</select>';
   }else if(f.type==='yesno'){
-   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">--</option><option value="Yes"'+(entry[f.key]==='Yes'?' selected':'')+'>Yes</option><option value="No"'+(entry[f.key]==='No'?' selected':'')+'>No</option></select>';
+   content+='<select id="qmF_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff"><option value="">--</option><option value="Yes"'+(entry[f.key]==='Yes'?' selected':'')+'>Yes</option><option value="No"'+(entry[f.key]==='No'?' selected':'')+'>No</option></select>';
   }else if(f.type==='textarea'){
-   content+='<textarea id="qmF_'+f.key+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px;min-height:50px">'+esc(entry[f.key]||'')+'</textarea>';
+   content+='<textarea id="qmF_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;min-height:44px;background:#fff;color:#1a0f00">'+esc(entry[f.key]||'')+'</textarea>';
   }else if(f.type==='date'){
-   content+='<input type="date" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+   content+='<input type="date" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00">';
   }else{
-   content+='<input type="text" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+   content+='<input type="text" id="qmF_'+f.key+'" value="'+esc(entry[f.key]||'')+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00">';
   }
   content+='</div>';
  });
- content+='</div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="saveQmModal(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="primary" onclick="saveQmModalAndNext(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px;background:var(--green,#2e9d50)">Save &amp; Next</button><button class="secondary" onclick="closeQmModal()" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ content+='</div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="saveQmModal(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="primary" onclick="saveQmModalAndNext(\''+section+'\',\''+esc(editId||'')+'\',\''+esc(weekId||'')+'\')" style="flex:1;padding:8px;font-size:13px;background:var(--green,#2e9d50)">Save &amp; Next</button><button class="secondary" onclick="closeQmModal()" style="padding:8px;font-size:13px">Cancel</button></div></div>';
  modal.innerHTML=content;
  document.body.appendChild(modal);
 }
