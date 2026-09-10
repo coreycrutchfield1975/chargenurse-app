@@ -85,8 +85,8 @@ textarea.ii{resize:vertical;min-height:60px}
 <div class="tabs np">
   <button class="act" onclick="showTab('inst',this)">📋 Instructions</button>
   <button onclick="showTab('intro',this)">🎤 Introduction</button>
-  <button onclick="showTab('qs',this)">❓ Questions</button>
   <button onclick="showTab('mat',this)">📊 Matrix</button>
+  <button onclick="showTab('qs',this)">❓ Questions</button>
   <button onclick="showTab('rec',this)">✅ Recommendations</button>
 </div>
 
@@ -141,28 +141,6 @@ If you are a bargaining unit member, you have a right to have union representati
   </div>
 </div>
 
-<!-- TAB: Questions -->
-<div id="tc-qs" class="tc">
-  <div class="cd np">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">❓ Interview Questions</h2>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
-        <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
-        <button class="btn btn-suc btn-sm" onclick="addQ()">➕ Add Q</button>
-        <button class="btn btn-out btn-sm" onclick="resetQs()">↩ Defaults</button>
-      </div>
-    </div>
-  </div>
-  <div id="qs-empty" class="cd np" style="text-align:center;padding:.75rem;color:var(--muted)">
-    Add applicants in the <strong>Matrix</strong> tab first.
-  </div>
-  <div id="qs-wrap"></div>
-  <div class="cd" style="background:rgba(13,110,253,.04);border:2px solid var(--primary);text-align:center">
-    <h2 style="border:none;margin-bottom:0">📊 Score: <span id="qs-tot">0</span> / <span id="qs-max">40</span></h2>
-  </div>
-</div>
-
 <!-- TAB: Matrix -->
 <div id="tc-mat" class="tc">
   <div class="cd np">
@@ -194,6 +172,28 @@ If you are a bargaining unit member, you have a right to have union representati
       </thead>
       <tbody id="mt-body"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- TAB: Questions -->
+<div id="tc-qs" class="tc">
+  <div class="cd np">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">❓ Interview Questions</h2>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
+        <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
+        <button class="btn btn-suc btn-sm" onclick="addQ()">➕ Add Q</button>
+        <button class="btn btn-out btn-sm" onclick="resetQs()">↩ Defaults</button>
+      </div>
+    </div>
+  </div>
+  <div id="qs-empty" class="cd np" style="text-align:center;padding:.75rem;color:var(--muted)">
+    Add applicants in the <strong>Matrix</strong> tab first.
+  </div>
+  <div id="qs-wrap"></div>
+  <div class="cd" style="background:rgba(13,110,253,.04);border:2px solid var(--primary);text-align:center">
+    <h2 style="border:none;margin-bottom:0">📊 Score: <span id="qs-tot">0</span> / <span id="qs-max">40</span></h2>
   </div>
 </div>
 
