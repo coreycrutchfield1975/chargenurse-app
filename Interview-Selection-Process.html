@@ -3,636 +3,604 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Interview Selection Process — VA CLC</title>
+<title>Interview Selection Process</title>
 <style>
-/* ── Bright Professional Theme ── */
-:root{
-  --primary:#0d6efd;
-  --primary-dark:#0a58ca;
-  --teal:#0ea5e9;
-  --green:#10b981;
-  --gold:#f59e0b;
-  --cream:#fefce8;
-  --bg:#f0f7ff;
-  --surface:#ffffff;
-  --border:#d1d9e6;
-  --text:#1e293b;
-  --muted:#64748b;
-  --success:#059669;
-}
+:root{--primary:#0d6efd;--primary-dark:#0a58ca;--teal:#0ea5e9;--green:#10b981;--gold:#f59e0b;--bg:#f0f7ff;--surface:#fff;--border:#d1d9e6;--text:#1e293b;--muted:#64748b}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding-bottom:3rem}
-/* Header */
-.app-header{background:linear-gradient(135deg,var(--primary),var(--teal));color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(13,110,253,.25)}
-.app-header h1{font-size:1.3rem;font-weight:700}
-.app-header .header-actions{display:flex;gap:8px}
-.app-header button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:600}
-.app-header button:hover{background:rgba(255,255,255,.35)}
-/* Tabs */
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding-bottom:3rem}
+.hdr{background:linear-gradient(135deg,var(--primary),var(--teal));color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.hdr h1{font-size:1.3rem;font-weight:700}
+.hdr .ha{display:flex;gap:8px}
+.hdr button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:600}
+.hdr button:hover{background:rgba(255,255,255,.35)}
 .tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;position:sticky;top:0;z-index:10}
-.tabs button{padding:.8rem 1.4rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap;position:relative;transition:all .15s}
+.tabs button{padding:.8rem 1.4rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--primary)}
-.tabs button.active{color:var(--primary);border-bottom:3px solid var(--primary);background:rgba(13,110,253,.04)}
-.tab-content{display:none;max-width:1000px;margin:0 auto;padding:1.5rem}
-.tab-content.active{display:block}
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.card h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--teal);display:flex;align-items:center;gap:8px}
-.card h3{font-size:.95rem;color:var(--text);margin-bottom:.75rem;font-weight:600}
-/* Labels */
-label{display:block;font-weight:600;font-size:.85rem;margin-bottom:4px;color:var(--text)}
-/* Inputs */
-input[type="text"],input[type="number"],textarea,select{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--surface);color:var(--text);transition:border-color .15s}
-input:focus,textarea:focus,select:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(13,110,253,.1)}
-textarea{resize:vertical;min-height:60px}
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;border:none;transition:all .15s}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 12px rgba(13,110,253,.3)}
-.btn-success{background:var(--green);color:#fff}
-.btn-success:hover{background:#059669;box-shadow:0 4px 12px rgba(16,185,129,.3)}
-.btn-outline{background:transparent;border:2px solid var(--border);color:var(--muted)}
-.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
-.btn-danger{background:#ef4444;color:#fff}
-.btn-danger:hover{background:#dc2626}
+.tabs button.act{color:var(--primary);border-bottom:3px solid var(--primary);background:rgba(13,110,253,.04)}
+.tc{display:none;max-width:1100px;margin:0 auto;padding:1.5rem}
+.tc.act{display:block}
+.cd{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.cd h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--teal)}
+.lb{display:block;font-weight:600;font-size:.85rem;margin-bottom:4px}
+.ii{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--surface);color:var(--text)}
+.ii:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(13,110,253,.1)}
+textarea.ii{resize:vertical;min-height:60px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;border:none}
+.btn-pri{background:var(--primary);color:#fff}
+.btn-pri:hover{background:var(--primary-dark)}
+.btn-suc{background:var(--green);color:#fff}
+.btn-out{background:transparent;border:2px solid var(--border);color:var(--muted)}
+.btn-dan{background:#ef4444;color:#fff}
 .btn-sm{padding:5px 12px;font-size:.78rem}
-/* Question block */
-.question{position:relative;padding:1.2rem;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(13,110,253,.02)}
-.question-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:8px}
-.question-number{font-weight:700;color:var(--primary);font-size:.9rem;min-width:28px}
-.question-text{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;line-height:1.5;resize:vertical;min-height:50px}
-.question-text:focus{border-color:var(--primary);outline:none}
-/* 1-5 Scoring */
-.scoring{display:flex;gap:8px;margin:.5rem 0;flex-wrap:wrap}
-.score-option{display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border:2px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;transition:all .12s;user-select:none}
-.score-option:hover{border-color:var(--primary);background:rgba(13,110,253,.05)}
-.score-option.selected{border-color:var(--primary);background:var(--primary);color:#fff}
-.score-option input[type="radio"]{display:none}
-.notes-field{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:.8rem;margin-top:6px;min-height:40px;resize:vertical;font-style:italic}
-/* Matrix table */
-.matrix-table{width:100%;border-collapse:collapse;font-size:.85rem}
-.matrix-table th,.matrix-table td{padding:8px 12px;border:1px solid var(--border);text-align:left;vertical-align:top}
-.matrix-table th{background:var(--primary);color:#fff;font-weight:600;font-size:.8rem}
-.matrix-table td{background:var(--surface)}
-.matrix-table tr:nth-child(even) td{background:rgba(13,110,253,.03)}
-.matrix-table .tier-row td{font-size:.82rem;padding:5px 12px}
-.matrix-table select{width:100%;padding:4px 6px;border:2px solid var(--border);border-radius:6px;font-size:.8rem}
-.matrix-table input{width:100%;padding:4px 6px;border:2px solid var(--border);border-radius:6px;font-size:.8rem}
-.matrix-table .total-cell{font-weight:700;color:var(--primary);font-size:1rem}
-/* Score badge */
-.score-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-weight:700;font-size:.75rem;margin-left:6px}
-.score-badge.high{background:rgba(16,185,129,.15);color:var(--green)}
-.score-badge.med{background:rgba(245,158,11,.15);color:var(--gold)}
-.score-badge.low{background:rgba(239,68,68,.15);color:#ef4444}
-/* Signature line */
-.sig-field{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:.5rem;padding:.5rem 0;border-top:1px dotted var(--border)}
-.sig-field label{font-size:.8rem;margin-bottom:0;min-width:80px}
-.sig-field input{flex:1;min-width:120px;border:none;border-bottom:2px solid var(--border);padding:4px 0;font-size:.85rem;border-radius:0;background:transparent}
-.sig-field input:focus{border-bottom-color:var(--primary);box-shadow:none}
-.sig-field .date-input{flex:0 0 160px}
-/* Print layout */
-.print-page{page-break-after:always;padding:1rem 0}
+.qb{padding:1.2rem;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(13,110,253,.02)}
+.qn{font-weight:700;color:var(--primary);font-size:.9rem}
+.sr{display:flex;gap:8px;margin:.5rem 0;flex-wrap:wrap}
+.sb{display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border:2px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600}
+.sb:hover{border-color:var(--primary);background:rgba(13,110,253,.05)}
+.sb.on{border-color:var(--primary);background:var(--primary);color:#fff}
+.mt{width:100%;border-collapse:collapse;font-size:.8rem}
+.mt th,.mt td{padding:6px 8px;border:1px solid var(--border);text-align:left;vertical-align:middle}
+.mt th{background:var(--primary);color:#fff;font-weight:600;font-size:.75rem;white-space:nowrap}
+.mt td{background:var(--surface)}
+.mt tr:nth-child(even) td{background:rgba(13,110,253,.03)}
+.mt .tot{font-weight:700;color:var(--primary);font-size:.9rem}
+.mt .mx{font-size:.7rem;color:var(--muted);font-weight:400}
+.r1{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.7rem;font-weight:700;background:var(--gold);color:#fff}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000}
+.mb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:12px;padding:1.5rem;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
+.mb h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.mg .fw{grid-column:1/-1}
+.ma{display:flex;gap:12px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.sl{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding:.5rem 0;border-top:1px dotted var(--border)}
+.sl .lb2{font-size:.8rem;margin-bottom:0;min-width:80px;font-weight:400}
+.sl input{flex:1;min-width:100px;border:none;border-bottom:2px solid var(--border);padding:4px 0;font-size:.85rem;border-radius:0;background:transparent}
+.sl input:focus{border-bottom-color:var(--primary)}
 @media print{
-  body{background:#fff;padding:0;font-size:11pt}
-  .app-header,.tabs,.no-print{display:none!important}
-  .tab-content{display:block!important;padding:0;max-width:100%}
-  .card{border:1px solid #ccc;break-inside:avoid;box-shadow:none;padding:1rem}
-  .card h2{color:#0d6efd}
-  .matrix-table th{background:#0d6efd!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  .score-option.selected{border-color:#333!important;background:#e8e8e8!important;color:#333!important}
-  .sig-field input{border-bottom:1px solid #999}
-  textarea,input{background:#fff!important;color:#000!important;border:1px solid #ccc!important}
-  .question-text{border:1px solid #ccc!important}
-  .print-page{page-break-after:always}
+  body{background:#fff;color:#000;padding:0;font-size:10pt}
+  .hdr,.tabs,.np{display:none!important}
+  .tc{display:none!important;padding:0;max-width:100%}
+  .tc.p{display:block!important}
+  .cd{border:1px solid #ccc;break-inside:avoid;box-shadow:none;padding:.8rem;margin-bottom:1rem}
+  .cd h2{color:#0d6efd!important}
+  .mt th{background:#0d6efd!important;color:#fff!important;-webkit-print-color-adjust:exact!important}
+  .sb.on{border-color:#333!important;background:#e0e0e0!important;color:#000!important}
+  .sl input{border-bottom:1px solid #999;background:transparent!important}
+  .pb{page-break-after:always}
 }
 </style>
 </head>
 <body>
 
-<div class="app-header">
+<div class="hdr">
   <h1>📋 Interview Selection Process</h1>
-  <div class="header-actions no-print">
+  <div class="ha np">
     <button onclick="saveAll()">💾 Save</button>
     <button onclick="loadSaved()">📂 Load</button>
-    <button onclick="window.print()">🖨️ Print</button>
+    <button onclick="doClear()">🗑️ Clear</button>
+    <button onclick="doPrint()">🖨️ Print</button>
   </div>
 </div>
 
-<div class="tabs no-print">
-  <button class="active" onclick="showTab('instructions',this)">📋 Panel Instructions</button>
-  <button onclick="showTab('introduction',this)">🎤 Introduction</button>
-  <button onclick="showTab('questions',this)">❓ Questions</button>
-  <button onclick="showTab('matrix',this)">📊 Matrix</button>
-  <button onclick="showTab('recommendations',this)">✅ Recommendations</button>
+<div class="tabs np">
+  <button class="act" onclick="showTab('inst',this)">📋 Instructions</button>
+  <button onclick="showTab('intro',this)">🎤 Introduction</button>
+  <button onclick="showTab('mat',this)">📊 Matrix</button>
+  <button onclick="showTab('qs',this)">❓ Questions</button>
+  <button onclick="showTab('rec',this)">✅ Recommendations</button>
 </div>
 
-<!-- ═══ TAB A: PANEL INSTRUCTIONS ═══ -->
-<div id="tab-instructions" class="tab-content active">
-  <div class="card">
-    <h2>📋 Panel Instructions <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(reference — read-only)</span></h2>
-    <div style="line-height:1.7;font-size:.95rem;color:var(--text)">
-      <p><strong>1.</strong> The Interview Panel Leader will determine how the team will function (one person ask all questions or round robin). Panel will repeat and/or provide clarification as requested by the applicant.</p>
-      <p style="margin-top:.5rem"><strong>2.</strong> At the beginning of each interview, Panel Members should write the applicant's name at the top of the interview questions and rate the applicant's responses to each question using a scale of 1-5 with "1" being little or no experience and "5" being extensive experience. Brief comments should be written to support their rating decision.</p>
-      <p style="margin-top:.5rem"><strong>3.</strong> At the conclusion of each interview, Panel Members will tally the scores for each of the questions/items and will document the total score in the space provided and sign and date the document.</p>
-      <p style="margin-top:.5rem"><strong>4.</strong> At the conclusion of the interview process, the Interview Panel Leader should:</p>
-      <ul style="margin-left:2rem;margin-top:.3rem">
-        <li>Complete the Interview Panel Recommendations, including signatures from each of the Interview Panel Members.</li>
-        <li>Return all documents, including Interview Panel Recommendations, to the selecting official.</li>
-      </ul>
-      <p style="margin-top:.5rem"><strong>5.</strong> Members of the panel should not discuss who qualified for the position, an interview, or who the selection is except with the appropriate management official.</p>
+<!-- TAB: Instructions -->
+<div id="tc-inst" class="tc act">
+  <div class="cd">
+    <h2>📋 Panel Instructions</h2>
+    <div style="line-height:1.7;font-size:.95rem">
+      <p><strong>1.</strong> The Interview Panel Leader will determine how the team will function. Panel will repeat or clarify as requested.</p>
+      <p style="margin-top:.5rem"><strong>2.</strong> Write the applicant's name, rate responses 1-5, and add brief comments to support each rating.</p>
+      <p style="margin-top:.5rem"><strong>3.</strong> At the end of each interview, tally the scores, total, sign and date.</p>
+      <p style="margin-top:.5rem"><strong>4.</strong> The Panel Leader will complete the recommendations with signatures and return to the selecting official.</p>
+      <p style="margin-top:.5rem"><strong>5.</strong> Do not discuss candidates except with appropriate management.</p>
     </div>
   </div>
-  
-  <div class="card print-page">
-    <h2>📋 Candidate Information</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-      <div>
-        <label>Name of Candidate</label>
-        <input type="text" id="candidate-name" placeholder="Enter candidate name" oninput="autoSave()">
-      </div>
-      <div>
-        <label>Position</label>
-        <input type="text" id="candidate-position" placeholder="Position applied for" oninput="autoSave()">
-      </div>
-      <div>
-        <label>Date of Interview</label>
-        <input type="text" id="interview-date" placeholder="MM/DD/YYYY" oninput="autoSave()">
-      </div>
-      <div>
-        <label>Panel Member Name</label>
-        <input type="text" id="panel-member-name" placeholder="Your name" oninput="autoSave()">
-      </div>
-    </div>
-</div>
-</div>
-
-<!-- ═══ TAB B: INTRODUCTION ═══ -->
-<div id="tab-introduction" class="tab-content">
-  <div class="card">
-    <h2>🎤 Interview Introduction <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(read to each candidate — editable)</span></h2>
-    <div style="margin-bottom:1rem">
-      <label>Introduction Script</label>
-      <textarea id="intro-script" style="min-height:320px;line-height:1.6;font-size:.9rem" oninput="autoSave()">INTERVIEW PANEL LEADER: Read the following introduction to each candidate at the beginning of the interview.
-
-The interview panel will be asking you a series of questions, and you will be rated based on your actual responses. All applicants for this position will be asked the same questions, and are encouraged to elaborate on their responses in order to give a full and complete picture of their experience and qualifications for the position, and to communicate to the panel their suitability. Only one panel member will be asking the questions, but other panel members may ask you to repeat or clarify your responses. In addition, if you are unclear on any of the questions you are asked, please let me know and we will repeat or clarify the question for you.
-
-It is the intent of this panel not to deviate from these questions, however, after you respond, each of the panel members may ask other questions related to the question if necessary to clarify your response. Any subsequent questions asked will be strictly related to the initial question posed. Please be sure to speak loudly enough to be heard, and speak slowly as each panel member may desire to take notes.
-
-This interview will include a total of (fill in number) questions and is slotted for 1 hour. We will not be using video for interviews today. We are all a friendly group today on the panel so I encourage you to relax and enjoy the opportunity to tell us how your actions and dedication in your role help to support the overall mission of the VA. You may ask questions at any time during the interview process.
-
-Our last advice is to take your time as this is really an opportunity for you to shine and breathe!</textarea>
-    </div>
-    
-    <div style="margin-top:1rem;padding:1rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px">
-      <h3 style="color:var(--green);font-size:.9rem;margin-bottom:.5rem">🗣️ Current Poplar Bluff Employees Only</h3>
-      <p style="font-size:.85rem;line-height:1.5">If you currently work at the John J. Pershing VA Medical Center, please be aware that the panel members are prohibited from using any personal knowledge they may have about you or your work history during the interview process. Instead, they will rate your responses to each individual question. Therefore, it is imperative that you elaborate on your responses to provide a complete picture of your knowledge, experience and qualifications for the position for which you are applying.</p>
-      <p style="font-size:.85rem;line-height:1.5;margin-top:.5rem">If you are a bargaining unit member, you have a right to have union representation during this interview.</p>
-      <div style="margin-top:.5rem;display:flex;flex-direction:column;gap:6px;font-size:.85rem">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="1" onchange="autoSave()"> ☐ 1. Union representative present:</label>
-        <input type="text" id="union-rep-name" placeholder="Union representative name" style="margin-left:2rem;width:60%" oninput="autoSave()">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="2" onchange="autoSave()"> ☐ 2. Bargaining unit member, waived representation</label>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="3" onchange="autoSave()"> ☐ 3. Not a bargaining unit member</label>
-      </div>
+  <div class="cd">
+    <h2>Scoring Scale</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;font-size:.8rem;text-align:center">
+      <div style="padding:8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-weight:600">1<br><span style="font-weight:400;font-size:.75rem;color:var(--muted)">Not adequate</span></div>
+      <div style="padding:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;font-weight:600">2<br><span style="font-weight:400;font-size:.75rem;color:var(--muted)">Minimally adequate</span></div>
+      <div style="padding:8px;background:#fefce8;border:1px solid #fef08a;border-radius:6px;font-weight:600">3<br><span style="font-weight:400;font-size:.75rem;color:var(--muted)">Acceptable</span></div>
+      <div style="padding:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-weight:600">4<br><span style="font-weight:400;font-size:.75rem;color:var(--muted)">Above acceptable</span></div>
+      <div style="padding:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-weight:600">5<br><span style="font-weight:400;font-size:.75rem;color:var(--muted)">Far exceeds</span></div>
     </div>
   </div>
 </div>
 
-<!-- ═══ TAB C: QUESTIONS ═══ -->
-<div id="tab-questions" class="tab-content">
-  <div class="card no-print">
+<!-- TAB: Introduction -->
+<div id="tc-intro" class="tc">
+  <div class="cd">
+    <h2>🎤 Interview Introduction <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
+    <textarea id="intro" class="ii" style="min-height:320px;line-height:1.6" oninput="autoSave()">INTERVIEW PANEL LEADER: Read the following introduction to each candidate at the beginning of the interview.
+
+The interview panel will be asking you a series of questions, and you will be rated based on your actual responses. All applicants for this position will be asked the same questions, and are encouraged to elaborate on their responses in order to give a full and complete picture of their experience and qualifications for the position, and to communicate to the panel their suitability. Only one panel member will be asking the questions, but other panel members may ask you to repeat or clarify your responses.
+
+It is the intent of this panel not to deviate from these questions, however, after you respond, each of the panel members may ask other questions related to the question if necessary to clarify your response.
+
+This interview will include a total of questions and is slotted for 1 hour. We are all a friendly group today on the panel so I encourage you to relax and enjoy the opportunity to tell us how your actions and dedication in your role help to support the overall mission of the VA.
+
+Current Poplar Bluff Employees Only: If you currently work at the John J. Pershing VA Medical Center, please be aware that the panel members are prohibited from using any personal knowledge they may have about you or your work history during the interview process.
+
+If you are a bargaining unit member, you have a right to have union representation during this interview.</textarea>
+  </div>
+  <div class="cd">
+    <h3 style="color:var(--green);font-size:.9rem;margin-bottom:.5rem">Union Representation</h3>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:.85rem">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="1" onchange="autoSave()"> ☐ 1. Union representative present:</label>
+      <input type="text" id="u-rep" placeholder="Representative name" style="margin-left:2rem;width:60%" onchange="autoSave()">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="2" onchange="autoSave()"> ☐ 2. Waived representation</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="3" onchange="autoSave()"> ☐ 3. Not a bargaining unit member</label>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Matrix -->
+<div id="tc-mat" class="tc">
+  <div class="cd np">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="margin-bottom:0;border:none;padding-bottom:0">❓ Interview Questions</h2>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-success btn-sm" onclick="addQuestion()">➕ Add Question</button>
-        <button class="btn btn-outline btn-sm" onclick="resetQuestions()">↩ Reset to Defaults</button>
-      </div>
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">📊 Applicant Scoring Matrix</h2>
+      <button class="btn btn-pri" onclick="openModal()">➕ Add Applicant</button>
     </div>
-    <p style="font-size:.85rem;color:var(--muted);margin-top:.5rem">Click question text to edit. Tap a score to select. Notes expand as you type.</p>
   </div>
-  
-  <div id="questions-container">
-    <!-- Questions will be rendered by JS -->
+  <div id="mt-empty" class="cd" style="text-align:center;padding:2rem;color:var(--muted)">
+    No applicants yet. Click <strong>Add Applicant</strong>.
   </div>
-  
-  <div class="card" style="background:rgba(13,110,253,.04);border:2px solid var(--primary);text-align:center">
-    <h2 style="border:none;justify-content:center;margin-bottom:0">📊 Total Score: <span id="questions-total">0</span> / <span id="questions-possible">40</span></h2>
-  </div>
-</div>
-
-<!-- ═══ TAB D: MATRIX ═══ -->
-<div id="tab-matrix" class="tab-content">
-  <div class="card">
-    <h2>📊 Applicant Scoring Matrix</h2>
-    <table class="matrix-table">
+  <div class="cd" style="overflow-x:auto;padding:8px">
+    <table class="mt" id="mt-tbl" style="display:none">
       <thead>
         <tr>
-          <th style="width:30%">Category</th>
-          <th style="width:50%">Tiers &amp; Scoring</th>
-          <th style="width:10%">Score<br><span style="font-weight:400;font-size:.7rem">(select)</span></th>
-          <th style="width:10%">Weight</th>
+          <th>#</th><th>Applicant</th><th>Date</th>
+          <th>RN Exp<br><span class="mx">/3</span></th>
+          <th>Education<br><span class="mx">/3</span></th>
+          <th>ACLS/BLS</th>
+          <th>MED/SURG<br><span class="mx">/3</span></th>
+          <th>Urgent Care<br><span class="mx">/3</span></th>
+          <th>ER<br><span class="mx">/3</span></th>
+          <th>Resume<br><span class="mx">/5</span></th>
+          <th>Interview<br><span class="mx" id="mt-ivm">/40</span></th>
+          <th>Total<br><span class="mx" id="mt-tm">/61</span></th>
+          <th>Notes</th>
+          <th class="np"></th>
         </tr>
       </thead>
-      <tbody>
-        <tr><td><strong>RN Experience</strong></td><td><div style="display:flex;flex-wrap:wrap;gap:4px;font-size:.75rem"><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">1-5 yrs = 1</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">5-10 yrs = 2</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">10+ yrs = 3</span></div></td><td><select id="matrix-experience" onchange="autoSave();updateMatrixTotal()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></td><td class="total-cell" id="matrix-experience-total">0</td></tr>
-        <tr><td><strong>Education</strong></td><td><div style="display:flex;flex-wrap:wrap;gap:4px;font-size:.75rem"><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">Associates = 1</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">BSN = 2</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">MSN+ = 3</span></div></td><td><select id="matrix-education" onchange="autoSave();updateMatrixTotal()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></td><td class="total-cell" id="matrix-education-total">0</td></tr>
-        <tr><td><strong>Primary Care / Case Mgmt</strong></td><td><div style="display:flex;flex-wrap:wrap;gap:4px;font-size:.75rem"><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">NO = 0</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">YES = 1</span></div></td><td><select id="matrix-primarycare" onchange="autoSave();updateMatrixTotal()"><option value="0">0</option><option value="1">1</option></select></td><td class="total-cell" id="matrix-primarycare-total">0</td></tr>
-        <tr><td><strong>PACT Experience</strong></td><td><div style="display:flex;flex-wrap:wrap;gap:4px;font-size:.75rem"><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">&lt;6 mo = 0</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">7mo-7yr = 1</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">1-2 yr = 2</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">3-5 yr = 3</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">5+ yr = 4</span></div></td><td><select id="matrix-pact" onchange="autoSave();updateMatrixTotal()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></td><td class="total-cell" id="matrix-pact-total">0</td></tr>
-        <tr><td><strong>Triage/ER or Med Surg</strong></td><td><div style="display:flex;flex-wrap:wrap;gap:4px;font-size:.75rem"><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">&lt;6 mo = 0</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">7mo-2yr = 1</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">3-5 yr = 2</span><span style="padding:2px 8px;border:1px solid var(--border);border-radius:4px">5+ yr = 4</span></div></td><td><select id="matrix-triage" onchange="autoSave();updateMatrixTotal()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="4">4</option></select></td><td class="total-cell" id="matrix-triage-total">0</td></tr>
-      </tbody>
-      <tfoot>
-        <tr style="background:rgba(13,110,253,.06)">
-          <td colspan="2" style="text-align:right;font-weight:700;font-size:1.1rem;padding:10px 12px"><strong>Matrix Total</strong></td>
-          <td style="font-weight:700;font-size:1.1rem"><span id="matrix-grand-total">0</span></td>
-          <td style="font-weight:700;font-size:1.1rem">/15</td>
-        </tr>
-      </tfoot>
+      <tbody id="mt-body"></tbody>
     </table>
-    
-    <div style="margin-top:1rem">
-      <label>Comments / Notes</label>
-      <textarea id="matrix-comments" rows="3" oninput="autoSave()" placeholder="Enter any comments about the matrix scoring..."></textarea>
-    </div>
-    
-    <div style="margin-top:1rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:.5rem 0;border-top:1px dotted var(--border)">
-      <label style="margin-bottom:0;font-size:.8rem;min-width:60px">Proceed to Interviews:</label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:.85rem"><input type="radio" name="proceed" value="yes" onchange="autoSave()"> ✅ Yes</label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:.85rem"><input type="radio" name="proceed" value="no" onchange="autoSave()"> ❌ No</label>
-    </div>
   </div>
 </div>
 
-<!-- ═══ TAB E: RECOMMENDATIONS ═══ -->
-<div id="tab-recommendations" class="tab-content">
-  <div class="card print-page">
+<!-- TAB: Questions -->
+<div id="tc-qs" class="tc">
+  <div class="cd np">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">❓ Interview Questions</h2>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
+        <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
+        <button class="btn btn-suc btn-sm" onclick="addQ()">➕ Add Q</button>
+        <button class="btn btn-out btn-sm" onclick="resetQs()">↩ Defaults</button>
+      </div>
+    </div>
+  </div>
+  <div id="qs-empty" class="cd np" style="text-align:center;padding:.75rem;color:var(--muted)">
+    Add applicants in the <strong>Matrix</strong> tab first.
+  </div>
+  <div id="qs-wrap"></div>
+  <div class="cd" style="background:rgba(13,110,253,.04);border:2px solid var(--primary);text-align:center">
+    <h2 style="border:none;margin-bottom:0">📊 Score: <span id="qs-tot">0</span> / <span id="qs-max">40</span></h2>
+  </div>
+</div>
+
+<!-- TAB: Recommendations -->
+<div id="tc-rec" class="tc">
+  <div class="cd pb">
     <h2>✅ Interview Panel Recommendations</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-      <div><label>Date</label><input type="text" id="rec-date" placeholder="MM/DD/YYYY" oninput="autoSave()"></div>
-      <div><label>Position</label><input type="text" id="rec-position" oninput="autoSave()"></div>
-      <div><label># of Positions</label><input type="text" id="rec-positions-count" oninput="autoSave()"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div><label class="lb">Date</label><input type="text" id="r-d" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Position</label><input type="text" id="r-p" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb"># Positions</label><input type="text" id="r-pn" class="ii" onchange="autoSave()"></div>
     </div>
-    
-    <p style="font-size:.85rem;margin-bottom:1rem;font-style:italic;color:var(--muted)">With fair and unbiased judgement based on the responses provided by the applicant for the above position the interview panel recommends:</p>
-    
-    <table class="matrix-table" style="margin-bottom:1rem">
+    <p style="font-size:.85rem;margin-bottom:1rem;font-style:italic;color:var(--muted)">With fair and unbiased judgement based on the responses provided by the applicants for the above position the interview panel recommends:</p>
+    <table class="mt" style="margin-bottom:1rem">
       <thead><tr><th>Candidate</th><th>Interview Score</th><th>Resume Score</th><th>Total</th></tr></thead>
-      <tbody>
-        <tr><td><input type="text" id="rec-candidate1" placeholder="Candidate name" oninput="autoSave()"></td><td><input type="text" id="rec-interview1" oninput="autoSave()"></td><td><input type="text" id="rec-resume1" oninput="autoSave()"></td><td class="total-cell" id="rec-total1">0</td></tr>
-        <tr><td><input type="text" id="rec-candidate2" placeholder="Candidate name" oninput="autoSave()"></td><td><input type="text" id="rec-interview2" oninput="autoSave()"></td><td><input type="text" id="rec-resume2" oninput="autoSave()"></td><td class="total-cell" id="rec-total2">0</td></tr>
-        <tr><td><input type="text" id="rec-candidate3" placeholder="Candidate name" oninput="autoSave()"></td><td><input type="text" id="rec-interview3" oninput="autoSave()"></td><td><input type="text" id="rec-resume3" oninput="autoSave()"></td><td class="total-cell" id="rec-total3">0</td></tr>
-      </tbody>
+      <tbody id="r-body"><tr><td style="color:var(--muted);font-size:.85rem" colspan="4">Auto-populates from Matrix</td></tr></tbody>
     </table>
-    
     <div style="margin:.75rem 0">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" id="rec-no-selection" onchange="autoSave()"> ☐ It is the opinion of the interview panel that no selection should be made.</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" id="r-ns" onchange="autoSave()"> ☐ No selection should be made.</label>
     </div>
-    
-    <h3 style="color:var(--primary);margin-top:1rem">Selected Candidate (Rank Order)</h3>
+    <h3 style="color:var(--primary);margin-top:1rem">Selected (Rank Order)</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
-      <div><label>Candidate</label><input type="text" id="rec-selected" oninput="autoSave()"></div>
-      <div><label>Score</label><input type="text" id="rec-selected-score" oninput="autoSave()"></div>
+      <div><label class="lb">Candidate</label><input type="text" id="r-sn" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Score</label><input type="text" id="r-ss" class="ii" onchange="autoSave()"></div>
     </div>
-    
-    <h3 style="color:var(--muted);margin-top:1rem">Alternative Selections</h3>
+    <h3 style="color:var(--muted);margin-top:1rem">Alternatives</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
-      <div><label>Candidate</label><input type="text" id="rec-alt1-candidate" oninput="autoSave()"></div>
-      <div><label>Score</label><input type="text" id="rec-alt1-score" oninput="autoSave()"></div>
-      <div><label>Candidate</label><input type="text" id="rec-alt2-candidate" oninput="autoSave()"></div>
-      <div><label>Score</label><input type="text" id="rec-alt2-score" oninput="autoSave()"></div>
+      <div><label class="lb">Candidate</label><input type="text" id="r-a1n" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Score</label><input type="text" id="r-a1s" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Candidate</label><input type="text" id="r-a2n" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Score</label><input type="text" id="r-a2s" class="ii" onchange="autoSave()"></div>
     </div>
-    
     <h3 style="color:var(--primary);margin-top:1rem">Signatures</h3>
-    
-    <div class="sig-field"><label>Interview Panel Chair:</label><input type="text" id="rec-chair1-name" placeholder="Name" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Signature:</span><input type="text" id="rec-chair1-sig" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="rec-chair1-date" class="date-input" oninput="autoSave()"></div>
-    
-    <div class="sig-field" style="margin-top:1.5rem"><label style="min-width:auto">Panel Members:</label><input type="text" id="rec-member1-name" placeholder="Name" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Signature:</span><input type="text" id="rec-member1-sig" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="rec-member1-date" class="date-input" oninput="autoSave()"></div>
-    <div class="sig-field"><label style="min-width:auto"></label><input type="text" id="rec-member2-name" placeholder="Name" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Signature:</span><input type="text" id="rec-member2-sig" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="rec-member2-date" class="date-input" oninput="autoSave()"></div>
-    <div class="sig-field"><label style="min-width:auto"></label><input type="text" id="rec-member3-name" placeholder="Name" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Signature:</span><input type="text" id="rec-member3-sig" oninput="autoSave()"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="rec-member3-date" class="date-input" oninput="autoSave()"></div>
+    <div class="sl"><label class="lb2">Panel Chair:</label><input type="text" id="r-cn" placeholder="Name"><span style="font-size:.8rem;color:var(--muted)">Sig:</span><input type="text" id="r-cs"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="r-cd" style="flex:0 0 140px"></div>
+    <div class="sl"><label class="lb2">Members:</label><input type="text" id="r-m1n" placeholder="Name"><span style="font-size:.8rem;color:var(--muted)">Sig:</span><input type="text" id="r-m1s"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="r-m1d" style="flex:0 0 140px"></div>
+    <div class="sl"><label class="lb2"></label><input type="text" id="r-m2n" placeholder="Name"><span style="font-size:.8rem;color:var(--muted)">Sig:</span><input type="text" id="r-m2s"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="r-m2d" style="flex:0 0 140px"></div>
+    <div class="sl"><label class="lb2"></label><input type="text" id="r-m3n" placeholder="Name"><span style="font-size:.8rem;color:var(--muted)">Sig:</span><input type="text" id="r-m3s"><span style="font-size:.8rem;color:var(--muted)">Date:</span><input type="text" id="r-m3d" style="flex:0 0 140px"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="app-modal" class="mo np">
+  <div class="mb">
+    <h2 id="am-title">Add Applicant</h2>
+    <form onsubmit="saveModal();return false">
+      <input type="hidden" id="am-id">
+      <div class="mg">
+        <div class="fw"><label class="lb">Name *</label><input type="text" id="am-n" class="ii" required></div>
+        <div class="fw"><label class="lb">Date of Interview</label><input type="text" id="am-d" class="ii" placeholder="MM/DD/YYYY"></div>
+        <div><label class="lb">RN Experience</label>
+          <select id="am-rn" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
+        <div><label class="lb">Education</label>
+          <select id="am-ed" class="ii"><option value="0">—</option><option value="1">Associates = 1</option><option value="2">BSN = 2</option><option value="3">MSN+ = 3</option></select></div>
+        <div><label class="lb">ACLS/BLS</label>
+          <select id="am-acls" class="ii"><option value="-1">N/A</option><option value="1">Yes = 1</option><option value="0">No = 0</option></select></div>
+        <div><label class="lb">MED/SURG Exp</label>
+          <select id="am-ms" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
+        <div><label class="lb">Urgent Care / Triage</label>
+          <select id="am-uc" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
+        <div><label class="lb">ER Experience</label>
+          <select id="am-er" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
+        <div><label class="lb">Resume Score 1-5</label>
+          <select id="am-rs" class="ii"><option value="0">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+        <div class="fw"><label class="lb">Notes</label><textarea id="am-notes" class="ii" rows="2" placeholder="Comments..."></textarea></div>
+      </div>
+      <div class="ma">
+        <button type="button" class="btn btn-out" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-pri">Save Applicant</button>
+      </div>
+    </form>
   </div>
 </div>
 
 <script>
-// ===== DEFAULT QUESTIONS =====
-var DEFAULT_QUESTIONS = [
+var DQS = [
   "Give a specific example of a time when you had to deal with an angry customer. What was the problem and what was the outcome? What was your role in diffusing the situation?",
   "Describe a change in your work you have personally had to make in the last couple years. At the time, how did you feel about making the change? What did you do to make the change? How do you feel about the change now?",
   "A part of this job is documenting your work. Give a specific example of something you had to write for your supervisor in the past three months. What feedback did you get from your supervisor?",
   "Tell us about a job or setting where great attention to detail was required to complete a task. What steps were involved? How did you handle that situation?",
-  "Tell me about a specific time when people outside your organization were criticizing it unfairly. What did you do or say? How successful were you in changing minds or attitudes? What evidence suggests that level of success?",
-  "How does the work you are currently doing affect your organization's ability to meet its mission and goals? Do you think your work is important? If yes, why? If no, why not?",
+  "Tell me about a specific time when people outside your organization were criticizing it unfairly. What did you do or say? How successful were you?",
+  "How does the work you are currently doing affect your organizations ability to meet its mission and goals? Do you think your work is important?",
   "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
   "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?"
 ];
 
-// ===== STATE =====
 var questions = [];
-var STORAGE_KEY = 'interview_process_save';
+var applicants = [];
+var SK = 'ip_data';
 
-// ===== INIT =====
 function init(){
-  questions = DEFAULT_QUESTIONS.slice();
-  renderQuestions();
-  loadFromLocalStorage();
-  updateMatrixTotal();
+  questions = DQS.slice();
+  loadFromStore();
+  renderAll();
 }
 
-// ===== SAVE/LOAD =====
-function autoSave(){
-  localStorage.setItem(STORAGE_KEY + '_draft', getStateJSON());
-  updateQuestionTotals();
+function renderAll(){
+  renderApps();
+  renderQs();
+  renderMat();
+  renderRecs();
 }
 
-function getStateJSON(){
-  var state = {
-    candidateName: getVal('candidate-name'),
-    candidatePosition: getVal('candidate-position'),
-    interviewDate: getVal('interview-date'),
-    panelMemberName: getVal('panel-member-name'),
-    introScript: getVal('intro-script'),
-    union: document.querySelector('input[name="union"]:checked') ? document.querySelector('input[name="union"]:checked').value : '',
-    unionRepName: getVal('union-rep-name'),
-    questions: questions,
-    scores: {},
-    notes: {},
-    matrixExperience: getVal('matrix-experience'),
-    matrixEducation: getVal('matrix-education'),
-    matrixPrimaryCare: getVal('matrix-primarycare'),
-    matrixPact: getVal('matrix-pact'),
-    matrixTriage: getVal('matrix-triage'),
-    matrixComments: getVal('matrix-comments'),
-    proceed: document.querySelector('input[name="proceed"]:checked') ? document.querySelector('input[name="proceed"]:checked').value : '',
-    recDate: getVal('rec-date'),
-    recPosition: getVal('rec-position'),
-    recPositionsCount: getVal('rec-positions-count'),
-    recCandidate1: getVal('rec-candidate1'),
-    recInterview1: getVal('rec-interview1'),
-    recResume1: getVal('rec-resume1'),
-    recCandidate2: getVal('rec-candidate2'),
-    recInterview2: getVal('rec-interview2'),
-    recResume2: getVal('rec-resume2'),
-    recCandidate3: getVal('rec-candidate3'),
-    recInterview3: getVal('rec-interview3'),
-    recResume3: getVal('rec-resume3'),
-    recNoSelection: document.getElementById('rec-no-selection').checked,
-    recSelected: getVal('rec-selected'),
-    recSelectedScore: getVal('rec-selected-score'),
-    recAlt1Candidate: getVal('rec-alt1-candidate'),
-    recAlt1Score: getVal('rec-alt1-score'),
-    recAlt2Candidate: getVal('rec-alt2-candidate'),
-    recAlt2Score: getVal('rec-alt2-score'),
-    recChair1Name: getVal('rec-chair1-name'),
-    recChair1Sig: getVal('rec-chair1-sig'),
-    recChair1Date: getVal('rec-chair1-date'),
-    recMember1Name: getVal('rec-member1-name'),
-    recMember1Sig: getVal('rec-member1-sig'),
-    recMember1Date: getVal('rec-member1-date'),
-    recMember2Name: getVal('rec-member2-name'),
-    recMember2Sig: getVal('rec-member2-sig'),
-    recMember2Date: getVal('rec-member2-date'),
-    recMember3Name: getVal('rec-member3-name'),
-    recMember3Sig: getVal('rec-member3-sig'),
-    recMember3Date: getVal('rec-member3-date')
-  };
-  // Gather scores from rendered questions
-  document.querySelectorAll('.question').forEach(function(q){
-    var idx = q.dataset.idx;
-    var selected = q.querySelector('input[type="radio"]:checked');
-    if(selected) state.scores[idx] = selected.value;
-    var note = q.querySelector('.notes-field');
-    if(note) state.notes[idx] = note.value;
-  });
-  return JSON.stringify(state);
-}
+// HELPERS
+function gv(i){ var e=document.getElementById(i); return e ? e.value : ''; }
+function sv(i,v){ var e=document.getElementById(i); if(e && v!==undefined) e.value=v; }
+function E(i){ return document.getElementById(i); }
 
-function getVal(id){
-  var el = document.getElementById(id);
-  return el ? el.value : '';
-}
-
-function saveAll(){
-  localStorage.setItem(STORAGE_KEY, getStateJSON());
-  alert('Saved! Interview data stored in browser.');
-}
-
-function loadSaved(){
-  var data = localStorage.getItem(STORAGE_KEY);
-  if(!data){ alert('No saved interview found.'); return; }
-  restoreState(JSON.parse(data));
-  alert('Loaded saved interview data.');
-}
-
-function loadFromLocalStorage(){
-  var draft = localStorage.getItem(STORAGE_KEY + '_draft');
-  if(draft) restoreState(JSON.parse(draft));
-}
-
-function restoreState(s){
-  if(!s) return;
-  setVal('candidate-name', s.candidateName);
-  setVal('candidate-position', s.candidatePosition);
-  setVal('interview-date', s.interviewDate);
-  setVal('panel-member-name', s.panelMemberName);
-  setVal('intro-script', s.introScript);
-  if(s.union){
-    var r = document.querySelector('input[name="union"][value="'+s.union+'"]');
-    if(r) r.checked = true;
-  }
-  setVal('union-rep-name', s.unionRepName);
-  if(s.questions && s.questions.length) questions = s.questions.slice();
-  renderQuestions();
-  setTimeout(function(){
-    // Restore scores and notes after render
-    if(s.scores){
-      Object.keys(s.scores).forEach(function(idx){
-        var q = document.querySelector('.question[data-idx="'+idx+'"]');
-        if(q){
-          var r = q.querySelector('input[value="'+s.scores[idx]+'"]');
-          if(r) r.checked = true;
-          var opt = r.closest('.score-option');
-          if(opt) opt.classList.add('selected');
-        }
-      });
-    }
-    if(s.notes){
-      Object.keys(s.notes).forEach(function(idx){
-        var n = document.querySelector('.question[data-idx="'+idx+'"] .notes-field');
-        if(n) n.value = s.notes[idx] || '';
-      });
-    }
-    updateQuestionTotals();
-  }, 50);
-  
-  setVal('matrix-experience', s.matrixExperience);
-  setVal('matrix-education', s.matrixEducation);
-  setVal('matrix-primarycare', s.matrixPrimaryCare);
-  setVal('matrix-pact', s.matrixPact);
-  setVal('matrix-triage', s.matrixTriage);
-  setVal('matrix-comments', s.matrixComments);
-  if(s.proceed){
-    var r = document.querySelector('input[name="proceed"][value="'+s.proceed+'"]');
-    if(r) r.checked = true;
-  }
-  setVal('rec-date', s.recDate);
-  setVal('rec-position', s.recPosition);
-  setVal('rec-positions-count', s.recPositionsCount);
-  setVal('rec-candidate1', s.recCandidate1);
-  setVal('rec-interview1', s.recInterview1);
-  setVal('rec-resume1', s.recResume1);
-  setVal('rec-candidate2', s.recCandidate2);
-  setVal('rec-interview2', s.recInterview2);
-  setVal('rec-resume2', s.recResume2);
-  setVal('rec-candidate3', s.recCandidate3);
-  setVal('rec-interview3', s.recInterview3);
-  setVal('rec-resume3', s.recResume3);
-  if(s.recNoSelection) document.getElementById('rec-no-selection').checked = true;
-  setVal('rec-selected', s.recSelected);
-  setVal('rec-selected-score', s.recSelectedScore);
-  setVal('rec-alt1-candidate', s.recAlt1Candidate);
-  setVal('rec-alt1-score', s.recAlt1Score);
-  setVal('rec-alt2-candidate', s.recAlt2Candidate);
-  setVal('rec-alt2-score', s.recAlt2Score);
-  setVal('rec-chair1-name', s.recChair1Name);
-  setVal('rec-chair1-sig', s.recChair1Sig);
-  setVal('rec-chair1-date', s.recChair1Date);
-  setVal('rec-member1-name', s.recMember1Name);
-  setVal('rec-member1-sig', s.recMember1Sig);
-  setVal('rec-member1-date', s.recMember1Date);
-  setVal('rec-member2-name', s.recMember2Name);
-  setVal('rec-member2-sig', s.recMember2Sig);
-  setVal('rec-member2-date', s.recMember2Date);
-  setVal('rec-member3-name', s.recMember3Name);
-  setVal('rec-member3-sig', s.recMember3Sig);
-  setVal('rec-member3-date', s.recMember3Date);
-  updateMatrixTotal();
-}
-
-function setVal(id, v){
-  var el = document.getElementById(id);
-  if(el && v !== undefined && v !== null) el.value = v;
-}
-
-// ===== QUESTIONS RENDER =====
-function renderQuestions(){
-  var container = document.getElementById('questions-container');
-  var html = '';
-  questions.forEach(function(q, i){
-    html += '<div class="question" data-idx="'+i+'">'+
-      '<div class="question-header">'+
-        '<span class="question-number">Q'+(i+1)+'.</span>'+
-        '<button class="btn btn-danger btn-sm no-print" onclick="deleteQuestion('+i+')" style="flex-shrink:0" title="Delete question">🗑️</button>'+
-      '</div>'+
-      '<textarea class="question-text" oninput="updateQuestion('+i+',this.value);autoSave()">'+esc(q)+'</textarea>'+
-      '<div class="scoring" id="scoring-'+i+'">'+
-        [1,2,3,4,5].map(function(v){
-          return '<label class="score-option" onclick="selectScore('+i+','+v+')">'+
-            '<input type="radio" name="score-'+i+'" value="'+v+'" onchange="autoSave();updateQuestionTotals()"> '+v+'</label>';
-        }).join('')+
-      '</div>'+
-      '<textarea class="notes-field" placeholder="Notes / comments to support rating..." oninput="autoSave()"></textarea>'+
-    '</div>';
-  });
-  container.innerHTML = html;
-  updateQuestionTotals();
-}
-
-function updateQuestion(idx, val){
-  questions[idx] = val;
-  autoSave();
-}
-
-function selectScore(idx, val){
-  var q = document.querySelector('.question[data-idx="'+idx+'"]');
-  if(!q) return;
-  var opts = q.querySelectorAll('.score-option');
-  opts.forEach(function(o){ o.classList.remove('selected'); });
-  var target = q.querySelector('input[value="'+val+'"]');
-  if(target){
-    target.checked = true;
-    var label = target.closest('.score-option');
-    if(label) label.classList.add('selected');
-  }
-  autoSave();
-  updateQuestionTotals();
-}
-
-function updateQuestionTotals(){
-  var total = 0, possible = questions.length * 5;
-  document.querySelectorAll('.question').forEach(function(q){
-    var checked = q.querySelector('input[type="radio"]:checked');
-    if(checked) total += parseInt(checked.value) || 0;
-  });
-  document.getElementById('questions-total').textContent = total;
-  document.getElementById('questions-possible').textContent = possible;
-  // Update rec totals
-  var i1 = document.getElementById('rec-interview1');
-  if(i1 && !i1.value) i1.value = total;
-  updateRecTotals();
-}
-
-function updateRecTotals(){
-  for(var i=1; i<=3; i++){
-    var iv = parseInt(document.getElementById('rec-interview'+i).value) || 0;
-    var rs = parseInt(document.getElementById('rec-resume'+i).value) || 0;
-    document.getElementById('rec-total'+i).textContent = iv + rs;
-  }
-}
-
-function addQuestion(){
-  questions.push("New question — click to edit.");
-  renderQuestions();
-  autoSave();
-  // Scroll to new question
-  var container = document.getElementById('questions-container');
-  var lastQ = container.lastElementChild;
-  if(lastQ) lastQ.scrollIntoView({behavior:'smooth'});
-}
-
-function deleteQuestion(idx){
-  if(questions.length <= 1){ alert('Must have at least one question.'); return; }
-  if(!confirm('Delete question Q'+(idx+1)+'?')) return;
-  questions.splice(idx, 1);
-  renderQuestions();
-  autoSave();
-}
-
-function resetQuestions(){
-  if(!confirm('Reset to default 8 questions? This cannot be undone.')) return;
-  questions = DEFAULT_QUESTIONS.slice();
-  renderQuestions();
-  autoSave();
-}
-
-// ===== MATRIX =====
-function updateMatrixTotal(){
-  var exp = parseInt(document.getElementById('matrix-experience').value) || 0;
-  var edu = parseInt(document.getElementById('matrix-education').value) || 0;
-  var pc = parseInt(document.getElementById('matrix-primarycare').value) || 0;
-  var pact = parseInt(document.getElementById('matrix-pact').value) || 0;
-  var tri = parseInt(document.getElementById('matrix-triage').value) || 0;
-  
-  document.getElementById('matrix-experience-total').textContent = exp;
-  document.getElementById('matrix-education-total').textContent = edu;
-  document.getElementById('matrix-primarycare-total').textContent = pc;
-  document.getElementById('matrix-pact-total').textContent = pact;
-  document.getElementById('matrix-triage-total').textContent = tri;
-  
-  var total = exp + edu + pc + pact + tri;
-  document.getElementById('matrix-grand-total').textContent = total;
-}
-
-// ===== TAB NAV =====
-function showTab(id, btn){
-  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
-  document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('tab-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-}
-
-// ===== HELPERS =====
 function esc(s){
+  if(!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ===== START =====
+// STORAGE
+function state(){
+  var u = document.querySelector('input[name="union"]:checked');
+  return {
+    qs: questions, aa: applicants, intro: gv('intro'),
+    u: u ? u.value : '', ur: gv('u-rep'),
+    rd: gv('r-d'), rp: gv('r-p'), rpn: gv('r-pn'),
+    rns: E('r-ns').checked,
+    rsn: gv('r-sn'), rss: gv('r-ss'),
+    r1n: gv('r-a1n'), r1s: gv('r-a1s'),
+    r2n: gv('r-a2n'), r2s: gv('r-a2s'),
+    cn: gv('r-cn'), cs: gv('r-cs'), cd: gv('r-cd'),
+    m1n: gv('r-m1n'), m1s: gv('r-m1s'), m1d: gv('r-m1d'),
+    m2n: gv('r-m2n'), m2s: gv('r-m2s'), m2d: gv('r-m2d'),
+    m3n: gv('r-m3n'), m3s: gv('r-m3s'), m3d: gv('r-m3d')
+  };
+}
+
+function toSt(k){ localStorage.setItem(k, JSON.stringify(state())); }
+function autoSave(){ toSt(SK+'_d'); }
+function saveAll(){ toSt(SK); alert('Saved!'); }
+
+function loadSaved(){
+  var d=localStorage.getItem(SK);
+  if(!d){ alert('No saved data.'); return; }
+  fromSt(JSON.parse(d));
+  renderAll();
+  alert('Loaded.');
+}
+
+function loadFromStore(){
+  var d=localStorage.getItem(SK+'_d');
+  if(d) try{ fromSt(JSON.parse(d)); }catch(e){}
+}
+
+function doClear(){
+  if(!confirm('Clear all data?')) return;
+  localStorage.removeItem(SK);
+  localStorage.removeItem(SK+'_d');
+  location.reload();
+}
+
+function fromSt(s){
+  if(!s) return;
+  if(s.qs && s.qs.length) questions = s.qs.slice();
+  if(s.aa) applicants = s.aa;
+  sv('intro', s.intro);
+  if(s.u){ var r=document.querySelector('input[name="union"][value="'+s.u+'"]'); if(r) r.checked=true; }
+  sv('u-rep', s.ur);
+  sv('r-d', s.rd); sv('r-p', s.rp); sv('r-pn', s.rpn);
+  E('r-ns').checked = s.rns || false;
+  sv('r-sn', s.rsn); sv('r-ss', s.rss);
+  sv('r-a1n', s.r1n); sv('r-a1s', s.r1s);
+  sv('r-a2n', s.r2n); sv('r-a2s', s.r2s);
+  sv('r-cn', s.cn); sv('r-cs', s.cs); sv('r-cd', s.cd);
+  sv('r-m1n', s.m1n); sv('r-m1s', s.m1s); sv('r-m1d', s.m1d);
+  sv('r-m2n', s.m2n); sv('r-m2s', s.m2s); sv('r-m2d', s.m2d);
+  sv('r-m3n', s.m3n); sv('r-m3s', s.m3s); sv('r-m3d', s.m3d);
+}
+
+// TABS
+function showTab(id, btn){
+  document.querySelectorAll('.tc').forEach(function(t){ t.classList.remove('act'); });
+  document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('act'); });
+  E('tc-'+id).classList.add('act');
+  if(btn) btn.classList.add('act');
+}
+
+// PRINT
+function doPrint(){
+  var tabs=['qs','mat','rec'];
+  for(var i=0;i<tabs.length;i++) { var e=E('tc-'+tabs[i]); if(e) e.classList.add('p'); }
+  window.print();
+  for(var i=0;i<tabs.length;i++) { var e=E('tc-'+tabs[i]); if(e) e.classList.remove('p'); }
+}
+
+// APPLICANT DROPDOWN
+function renderApps(){
+  var sel=E('qs-app');
+  if(!sel) return;
+  if(applicants.length===0){
+    sel.innerHTML='<option value="">— No applicants —</option>';
+    E('qs-empty').style.display='block';
+    E('qs-wrap').style.display='none';
+    return;
+  }
+  E('qs-empty').style.display='none';
+  E('qs-wrap').style.display='block';
+  var h='<option value="">— Select —</option>';
+  for(var i=0;i<applicants.length;i++){
+    h+='<option value="'+applicants[i].id+'">'+esc(applicants[i].name)+(applicants[i].date?' ('+esc(applicants[i].date)+')':'')+'</option>';
+  }
+  sel.innerHTML=h;
+}
+
+// QUESTIONS
+function renderQs(){
+  var wrap=E('qs-wrap');
+  if(!wrap) return;
+  var aid=E('qs-app').value||'';
+  var app=null;
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ app=applicants[i]; break; }
+  if(applicants.length>0 && !app){ /* was deleted, reset select */ }
+  var h='';
+  for(var i=0;i<questions.length;i++){
+    var sc=app&&app.qs ? (app.qs[i]||0) : 0;
+    var nt=app&&app.qn ? (app.qn[i]||'') : '';
+    h+='<div class="qb">'
+      +'<div class="np" style="display:flex;justify-content:space-between">'
+      +'<span class="qn">Q'+(i+1)+'</span>'
+      +'<button class="btn btn-dan btn-sm" onclick="delQ('+i+')">🗑️</button></div>'
+      +'<textarea class="ii" style="min-height:50px;margin-bottom:4px" oninput="updQ('+i+',this.value)">'+esc(questions[i])+'</textarea>'
+      +'<div class="sr">';
+    for(var v=1;v<=5;v++){
+      h+='<span class="sb'+(v===sc?' on':'')+'" onclick="setQ(\''+esc(aid)+'\','+i+','+v+')">'+v+'</span>';
+    }
+    h+='</div>'
+      +'<textarea class="ii" style="min-height:40px;font-style:italic;margin-top:4px" placeholder="Notes..." oninput="setQn(\''+esc(aid)+'\','+i+',this.value)">'+esc(nt)+'</textarea>'
+      +'</div>';
+  }
+  wrap.innerHTML=h;
+  updTot();
+}
+
+function setQ(aid,qi,v){
+  if(!aid||aid===''){ alert('Select an applicant first.'); return; }
+  for(var i=0;i<applicants.length;i++){
+    if(applicants[i].id===aid){
+      if(!applicants[i].qs) applicants[i].qs={};
+      applicants[i].qs[qi]=v;
+      break;
+    }
+  }
+  renderQs();
+  renderMat();
+  autoSave();
+}
+
+function setQn(aid,qi,v){
+  if(!aid) return;
+  for(var i=0;i<applicants.length;i++){
+    if(applicants[i].id===aid){
+      if(!applicants[i].qn) applicants[i].qn={};
+      applicants[i].qn[qi]=v;
+      break;
+    }
+  }
+  autoSave();
+}
+
+function updQ(i,v){ questions[i]=v; autoSave(); }
+function addQ(){ questions.push("New question — edit me."); renderQs(); autoSave(); }
+function delQ(i){
+  if(questions.length<=1){ alert('Need at least one question.'); return; }
+  if(!confirm('Delete Q'+(i+1)+'?')) return;
+  questions.splice(i,1);
+  for(var j=0;j<applicants.length;j++){
+    if(applicants[j].qs) delete applicants[j].qs[i];
+    if(applicants[j].qn) delete applicants[j].qn[i];
+  }
+  renderQs(); autoSave();
+}
+function resetQs(){
+  if(!confirm('Reset to default 8 questions?')) return;
+  questions = DQS.slice();
+  renderQs(); autoSave();
+}
+function onSwitchApp(){ renderQs(); autoSave(); }
+
+function updTot(){
+  var aid=E('qs-app').value||'';
+  var max=questions.length*5;
+  E('qs-max').textContent=max;
+  var tot=0;
+  if(aid){
+    for(var i=0;i<applicants.length;i++){
+      if(applicants[i].id===aid && applicants[i].qs){
+        Object.keys(applicants[i].qs).forEach(function(k){ tot+=parseInt(applicants[i].qs[k])||0; });
+      }
+    }
+  }
+  E('qs-tot').textContent=tot;
+}
+
+// MATRIX
+function getIV(a){ var t=0; if(a.qs) Object.keys(a.qs).forEach(function(k){ t+=parseInt(a.qs[k])||0; }); return t; }
+function getTot(a){
+  return (parseInt(a.rn)||0)+(parseInt(a.ed)||0)+((a.acls===-1?0:(parseInt(a.acls)||0)))
+    +(parseInt(a.ms)||0)+(parseInt(a.uc)||0)+(parseInt(a.er)||0)
+    +(parseInt(a.rs)||0)+getIV(a);
+}
+
+function renderMat(){
+  var tb=E('mt-body'); var emp=E('mt-empty'); var tbl=E('mt-tbl');
+  if(!tb||!emp||!tbl) return;
+  if(applicants.length===0){ emp.style.display='block'; tbl.style.display='none'; return; }
+  emp.style.display='none'; tbl.style.display='table';
+  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  var h='';
+  for(var i=0;i<sorted.length;i++){
+    var a=sorted[i];
+    var iv=getIV(a); var to=getTot(a);
+    h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td>'
+      +'<td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>'
+      +'<td>'+(a.rn||0)+'</td><td>'+(a.ed||0)+'</td>'
+      +'<td>'+(a.acls===-1?'—':(a.acls||0))+'</td>'
+      +'<td>'+(a.ms||0)+'</td><td>'+(a.uc||0)+'</td><td>'+(a.er||0)+'</td>'
+      +'<td>'+(a.rs||0)+'</td><td>'+iv+'</td><td class="tot">'+to+'</td>'
+      +'<td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td>'
+      +'<td class="np" style="display:flex;gap:4px">'
+      +'<button onclick="openModal(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">✏️</button>'
+      +'<button onclick="delApp(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">🗑️</button>'
+      +'</td></tr>';
+  }
+  tb.innerHTML=h;
+  var ivm=questions.length*5;
+  E('mt-ivm').textContent='/'+ivm;
+  E('mt-tm').textContent='/'+(15+5+ivm);
+  renderRecs();
+}
+
+function delApp(id){
+  if(!confirm('Delete applicant and all scores?')) return;
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ applicants.splice(i,1); break; }
+  renderAll(); autoSave();
+}
+
+// MODAL
+function openModal(id){
+  E('am-title').textContent=id?'Edit Applicant':'Add Applicant';
+  E('am-id').value=id||'';
+  if(id){
+    var a=null;
+    for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ a=applicants[i]; break; }
+    if(a){
+      sv('am-n',a.name); sv('am-d',a.date||'');
+      sv('am-rn',a.rn||0); sv('am-ed',a.ed||0);
+      sv('am-acls',a.acls===undefined?-1:a.acls);
+      sv('am-ms',a.ms||0); sv('am-uc',a.uc||0); sv('am-er',a.er||0); sv('am-rs',a.rs||0);
+      sv('am-notes',a.notes||'');
+    }
+  }else{
+    ['am-n','am-d','am-notes'].forEach(function(x){ sv(x,''); });
+    ['am-rn','am-ed','am-ms','am-uc','am-er','am-rs'].forEach(function(x){ sv(x,0); });
+    sv('am-acls',-1);
+  }
+  E('app-modal').style.display='block';
+}
+
+function saveModal(){
+  var id=E('am-id').value;
+  var name=E('am-n').value.trim()||'Unnamed';
+  var obj={
+    name:name, date:E('am-d').value,
+    rn:parseInt(E('am-rn').value)||0, ed:parseInt(E('am-ed').value)||0,
+    acls:parseInt(E('am-acls').value)||0,
+    ms:parseInt(E('am-ms').value)||0, uc:parseInt(E('am-uc').value)||0,
+    er:parseInt(E('am-er').value)||0, rs:parseInt(E('am-rs').value)||0,
+    notes:E('am-notes').value, qs:{}, qn:{}
+  };
+  if(id){
+    for(var i=0;i<applicants.length;i++){
+      if(applicants[i].id===id){
+        obj.id=id; obj.qs=applicants[i].qs||{}; obj.qn=applicants[i].qn||{};
+        applicants[i]=obj; break;
+      }
+    }
+  }else{
+    obj.id='a_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);
+    applicants.push(obj);
+  }
+  closeModal(); renderAll(); autoSave();
+}
+function closeModal(){ E('app-modal').style.display='none'; }
+
+// RECS
+function renderRecs(){
+  var tb=E('r-body');
+  if(!tb) return;
+  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  if(sorted.length===0){
+    tb.innerHTML='<tr><td style="color:var(--muted);font-size:.85rem" colspan="4">Auto-populates from Matrix</td></tr>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<sorted.length;i++){
+    var iv=getIV(sorted[i]); var to=getTot(sorted[i]);
+    h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>';
+  }
+  tb.innerHTML=h;
+  if(sorted.length>0){ sv('r-sn',sorted[0].name); sv('r-ss',getTot(sorted[0])); }
+  if(sorted.length>1){ sv('r-a1n',sorted[1].name); sv('r-a1s',getTot(sorted[1])); }
+  if(sorted.length>2){ sv('r-a2n',sorted[2].name); sv('r-a2s',getTot(sorted[2])); }
+}
+
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
