@@ -424,27 +424,38 @@ function printQs(){
   for(var ai=0;ai<applicants.length;ai++){
     var a=applicants[ai];
     if(ai>0) h+='<div class="pb"></div>';
-    h+='<h1 class="h1">📋 Applicant: <strong>'+esc(a.name)+'</strong>'+(a.date?' — '+esc(a.date):'')+'</h1>';
-    h+='<div class="scal">'+
-      '<div>1<br><span style="font-size:10px;color:#888">Not adequate</span></div>'+
-      '<div>2<br><span style="font-size:10px;color:#888">Minimally adequate</span></div>'+
-      '<div>3<br><span style="font-size:10px;color:#888">Acceptable</span></div>'+
-      '<div>4<br><span style="font-size:10px;color:#888">Above acceptable</span></div>'+
-      '<div>5<br><span style="font-size:10px;color:#888">Far exceeds</span></div>'+
-    '</div>';
+    // WORD DOC HEADER: Applicant name + interview date
+    h+='<h1 class="h1">Interview Selection Process Report</h1>'+
+      '<p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date of Interview:</strong> '+esc(a.date||'__________')+'</p>';
+    // LIKERT SCALE INSTRUCTIONS
+    h+='<div class="sec"><h2>Instructions for Using Rating Scale</h2>'+
+      '<p style="font-size:12px;margin:6px 0;line-height:1.5">Rate each response from 1 (Not adequate) to 5 (Far exceeds). '+
+      'Select the rating that best describes the applicant\'s response. Use the guide below:</p>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">'+
+      '<tr><th style="width:8%">Score</th><th>Definition</th></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fef2f2">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate — Response does not demonstrate the skill or behavior</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fff7ed">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate — Response partially demonstrates the skill or behavior</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fefce8">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable — Response adequately demonstrates the skill or behavior</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#f0fdf4">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable — Response clearly demonstrates the skill or behavior</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#eff6ff">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds — Response strongly demonstrates the skill or behavior</td></tr>'+
+      '</table></div>';
+    // QUESTIONS TABLE matching Word doc format
+    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px">'+
+      '<thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:left">Question</th>'+
+      '<th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th>'+
+      '<th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:left">Notes / Answers</th></tr></thead><tbody>';
     var tot=0;
     for(var qi=0;qi<questions.length;qi++){
       var sc=a.qs?parseInt(a.qs[qi])||0:0;
       var nt=a.qn?a.qn[qi]||'':'';
       tot+=sc;
-      h+='<div class="q">'+
-        '<div class="qn">Q'+(qi+1)+'.</div>'+
-        '<div class="qt">'+esc(questions[qi])+'</div>'+
-        '<div class="sc">Score: <b>'+sc+'</b> / 5 &nbsp;|&nbsp; '+[1,2,3,4,5].map(function(v){ return (v===sc?'✓ '+v:v); }).join(' &nbsp;')+'</div>'+
-        (nt?'<div class="nt">Notes: '+esc(nt)+'</div>':'')+
-      '</div>';
+      h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top">'+
+        '<strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td>'+
+        '<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;vertical-align:middle;font-weight:700">'+sc+'</td>'+
+        '<td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
     }
-    h+='<p style="font-size:16px;font-weight:700;color:#0d6efd;margin-top:12px">Total Score: '+tot+' / '+(questions.length*5)+'</p>';
+    h+='</tbody></table>';
+    h+='<p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total Score: '+tot+' / '+(questions.length*5)+'</p>';
   }
   printHTML('Interview Questions by Applicant', h);
 }
