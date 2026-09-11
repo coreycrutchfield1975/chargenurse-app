@@ -5,56 +5,70 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interview Selection Process</title>
 <style>
-:root{--primary:#0d6efd;--primary-dark:#0a58ca;--teal:#0ea5e9;--green:#10b981;--gold:#f59e0b;--bg:#f0f7ff;--surface:#fff;--border:#d1d9e6;--text:#1e293b;--muted:#64748b}
+:root{--primary:#0d6efd;--primary-dark:#0a58ca;--teal:#0ea5e9;--green:#10b981;--gold:#f59e0b;--bg:#f0f7ff;--surface:#fff;--border:#d1d9e6;--text:#1e293b;--muted:#64748b;--toast-bg:#323232;--badge-gold:#f59e0b}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding-bottom:3rem}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding-bottom:3rem;font-size:1rem}
 .hdr{background:linear-gradient(135deg,var(--primary),var(--teal));color:#fff;padding:.4rem .6rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.hdr h1{font-size:.95rem;font-weight:700;flex-shrink:0}
+.hdr h1{font-size:1rem;font-weight:700;flex-shrink:0}
 .hdr .ha{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-.hdr button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:4px 7px;border-radius:6px;font-size:.7rem;cursor:pointer;font-weight:600;white-space:nowrap}
+.hdr button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:4px 7px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:600;white-space:nowrap}
 .hdr button:hover{background:rgba(255,255,255,.35)}
 .tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;position:sticky;top:0;z-index:10;margin-top:10px;padding:0 4px}
-.tabs button{padding:.8rem 1.4rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.tabs button{padding:.8rem 1.4rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem;cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--primary)}
 .tabs button.act{color:var(--primary);border-bottom:3px solid var(--primary);background:rgba(13,110,253,.04)}
 .tc{display:none;max-width:1100px;margin:0 auto;padding:1.5rem}
 .tc.act{display:block}
 .cd{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
-.cd h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--teal)}
-.lb{display:block;font-weight:600;font-size:.85rem;margin-bottom:4px}
-.ii{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--surface);color:var(--text)}
+.cd h2{font-size:1.15rem;color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--teal)}
+.lb{display:block;font-weight:600;font-size:.9rem;margin-bottom:4px}
+.ii{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:.95rem;background:var(--surface);color:var(--text)}
 .ii:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(13,110,253,.1)}
 textarea.ii{resize:vertical;min-height:60px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;border:none}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;border:none}
 .btn-pri{background:var(--primary);color:#fff}
 .btn-pri:hover{background:var(--primary-dark)}
 .btn-suc{background:var(--green);color:#fff}
 .btn-out{background:transparent;border:2px solid var(--border);color:var(--muted)}
 .btn-dan{background:#ef4444;color:#fff}
-.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-sm{padding:5px 12px;font-size:.82rem}
 .qb{padding:1.2rem;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(13,110,253,.02)}
-.qn{font-weight:700;color:var(--primary);font-size:.9rem}
+.qn{font-weight:700;color:var(--primary);font-size:.95rem}
 .sr{display:flex;gap:8px;margin:.5rem 0;flex-wrap:wrap}
-.sb{display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border:2px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600}
+.sb{display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 10px;border:2px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:600}
 .sb:hover{border-color:var(--primary);background:rgba(13,110,253,.05)}
 .sb.on{border-color:var(--primary);background:var(--primary);color:#fff}
-.mt{width:100%;border-collapse:collapse;font-size:.8rem}
+.mt{width:100%;border-collapse:collapse;font-size:.85rem}
 .mt th,.mt td{padding:6px 8px;border:1px solid var(--border);text-align:left;vertical-align:middle}
-.mt th{background:var(--primary);color:#fff;font-weight:600;font-size:.75rem;white-space:nowrap}
+.mt th{background:var(--primary);color:#fff;font-weight:600;font-size:.8rem;white-space:nowrap}
 .mt td{background:var(--surface)}
 .mt tr:nth-child(even) td{background:rgba(13,110,253,.03)}
-.mt .tot{font-weight:700;color:var(--primary);font-size:.9rem}
+.mt .tot{font-weight:700;color:var(--primary);font-size:.95rem}
+.mt .intv{background:rgba(16,185,129,.05)!important}
+.mt .tcol{background:rgba(245,158,11,.08)!important}
 .r1{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.7rem;font-weight:700;background:var(--gold);color:#fff}
 .mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000}
 .mb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:12px;padding:1.5rem;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
-.mb h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem}
+.mb h2{font-size:1.15rem;color:var(--primary);margin-bottom:1rem}
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
 .mg .fw{grid-column:1/-1}
 .ma{display:flex;gap:12px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
 .sl{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding:.5rem 0;border-top:1px dotted var(--border)}
-.sl .lb2{font-size:.8rem;margin-bottom:0;min-width:80px;font-weight:400}
-.sl input{flex:1;min-width:100px;border:none;border-bottom:2px solid var(--border);padding:4px 0;font-size:.85rem;border-radius:0;background:transparent}
+.sl .lb2{font-size:.85rem;margin-bottom:0;min-width:80px;font-weight:400}
+.sl input{flex:1;min-width:100px;border:none;border-bottom:2px solid var(--border);padding:4px 0;font-size:.9rem;border-radius:0;background:transparent}
 .sl input:focus{border-bottom-color:var(--primary)}
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.ts{background:var(--toast-bg);color:#fff;padding:10px 20px;border-radius:8px;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transform:translateY(10px);transition:all .3s;max-width:350px;pointer-events:auto}
+.ts.show{opacity:1;transform:translateY(0)}
+/* Step indicator */
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:.85rem}
+.steps .sp{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;color:var(--muted)}
+.steps .sp.act{background:var(--primary);color:#fff;font-weight:600}
+.steps .sp.done{color:var(--green)}
+.steps .ar{color:var(--border);margin:0 2px}
+/* Profile badge */
+.pb-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:.8rem;font-weight:600;background:var(--badge-gold);color:#fff}
 @media print{
   body{background:#fff;color:#000;padding:0;font-size:10pt}
   .hdr,.tabs,.np{display:none!important}
@@ -93,6 +107,7 @@ textarea.ii{resize:vertical;min-height:60px}
 
 <!-- TAB: Instructions -->
 <div id="tc-inst" class="tc act">
+  <div class="steps" id="step-indicator"></div>
   <div class="cd">
     <h2>Panel Instructions</h2>
     <div style="line-height:1.7;font-size:.95rem">
@@ -146,7 +161,7 @@ If you are a bargaining unit member, you have a right to have union representati
 <div id="tc-mat" class="tc">
   <div class="cd np">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Applicant Scoring Matrix</h2>
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Applicant Scoring Matrix <span id="profile-badge" class="pb-badge"></span></h2>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <label style="margin-bottom:0;font-size:.8rem">Position:</label>
         <select id="profile-select" style="width:200px" onchange="switchProfile(this.value)"></select>
@@ -238,6 +253,8 @@ If you are a bargaining unit member, you have a right to have union representati
   </div>
 </div>
 
+<div id="toast"></div>
+
 <!-- PROFILE MANAGER MODAL -->
 <div id="profile-modal" class="mo np">
   <div class="mb" style="max-width:700px">
@@ -260,6 +277,7 @@ If you are a bargaining unit member, you have a right to have union representati
       </div>
     </div>
     <div class="ma">
+      <button type="button" class="btn btn-pri" onclick="saveProfileTemplate()">Save Template</button>
       <button type="button" class="btn btn-out" onclick="closeProfileManager()">Close</button>
     </div>
   </div>
@@ -277,7 +295,7 @@ If you are a bargaining unit member, you have a right to have union representati
         <div class="fw"><label class="lb">Notes</label><textarea id="am-notes" class="ii" rows="2" placeholder="Comments..."></textarea></div>
       </div>
       <div class="ma">
-        <button type="button" class="btn btn-out" onclick="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-out" onclick="closeModal()">Close</button>
         <button type="submit" class="btn btn-pri">Save Applicant</button>
       </div>
     </form>
@@ -320,7 +338,7 @@ function loadProfiles(){
 }
 loadProfiles();
 
-function init(){ questions=DQS.slice(); loadFromStore(); renderAll(); }
+function init(){ questions=DQS.slice(); loadFromStore(); renderAll(); renderSteps(); }
 function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); }
 
 function renderProfileSelect(){
@@ -342,6 +360,11 @@ function openProfileManager(){
   editingProfileName = activeProfileName;
   renderColumnEditor();
   document.getElementById('profile-modal').style.display='block';
+}
+function saveProfileTemplate(){
+  saveProfiles();
+  showToast('Template saved');
+  closeProfileManager();
 }
 function closeProfileManager(){ document.getElementById('profile-modal').style.display='none'; }
 
@@ -507,6 +530,39 @@ function sv(i,v){ var e=document.getElementById(i); if(e&&v!==undefined) e.value
 function E(i){ return document.getElementById(i); }
 function esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// Toast notifications
+function showToast(msg, type){
+  var t=document.createElement('div'); t.className='ts'; t.textContent=msg;
+  document.getElementById('toast').appendChild(t);
+  setTimeout(function(){ t.classList.add('show'); }, 10);
+  setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.parentNode.removeChild(t); }, 300); }, 2500);
+}
+
+// Step indicator
+function renderSteps(){
+  var s=E('step-indicator'); if(!s) return;
+  var steps=['Create Profile','Add Applicants','Score Questions','Review Matrix','Recommendations'];
+  var stateMap={inst:0,intro:0,mat:0,qs:0,rec:0};
+  // Determine current step based on active tab
+  var activeTab = document.querySelector('.tabs button.act');
+  var currentIdx = 0;
+  if(activeTab){
+    var tabs=['inst','intro','mat','qs','rec'];
+    for(var ti=0;ti<tabs.length;ti++){
+      if(activeTab.onclick && activeTab.onclick.toString().includes(tabs[ti])){ currentIdx=ti; break; }
+    }
+  }
+  var h='';
+  for(var i=0;i<steps.length;i++){
+    var cls='sp';
+    if(i<currentIdx) cls+=' done';
+    if(i===currentIdx) cls+=' act';
+    h+='<span class="'+cls+'">'+(i<currentIdx?'\u2713 ':'')+steps[i]+'</span>';
+    if(i<steps.length-1) h+='<span class="ar">\u2192</span>';
+  }
+  s.innerHTML=h;
+}
+
 function state(){
   var u = document.querySelector('input[name="union"]:checked');
   return {
@@ -564,6 +620,7 @@ function showTab(id,btn){
   document.querySelectorAll('.tc').forEach(function(t){ t.classList.remove('act'); });
   document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('act'); });
   E('tc-'+id).classList.add('act'); if(btn) btn.classList.add('act');
+  renderSteps();
 }
 
 function printHTML(title, bodyHTML){
@@ -707,6 +764,9 @@ function getCS(a,cid){ if(cid==='acls'&&a[cid]===-1) return '-'; var v=a[cid]; r
 function renderMat(){
   var tb=E('mt-body'); var emp=E('mt-empty'); var tbl=E('mt-tbl');
   if(!tb||!emp||!tbl) return;
+  // Update profile badge
+  var badge=E('profile-badge');
+  if(badge) badge.textContent=activeProfileName||'';
   if(!activeProfileName||!positionProfiles[activeProfileName]){
     emp.style.display='block'; emp.innerHTML='No position profile selected. Click <strong>Manage</strong> to create one first.'; tbl.style.display='none'; return;
   }
@@ -715,7 +775,7 @@ function renderMat(){
   var cols=profileColumns(); var ivm=questions.length*5; var tm=profileColMax()+ivm;
   var hh='<th>#</th><th>Applicant</th><th>Date</th>';
   for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
-  hh+='<th>Interview<br><span class="mx">/'+ivm+'</span></th><th>Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
+  hh+='<th class="intv">Interview<br><span class="mx">/'+ivm+'</span></th><th class="tcol">Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
   E('mt-header').innerHTML=hh;
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var h='';
@@ -723,7 +783,7 @@ function renderMat(){
     var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
     h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
     for(var ci=0;ci<cols.length;ci++) h+='<td>'+getCS(a,cols[ci].id)+'</td>';
-    h+='<td>'+iv+'</td><td class="tot">'+to+'</td><td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td><td class="np" style="display:flex;gap:4px"><button onclick="openModal(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Edit</button><button onclick="delApp(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Del</button></td></tr>';
+    h+='<td class="intv">'+iv+'</td><td class="tot tcol">'+to+'</td><td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td><td class="np" style="display:flex;gap:4px"><button onclick="openModal(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Edit</button><button onclick="delApp(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Del</button></td></tr>';
   }
   tb.innerHTML=h; renderRecs();
 }
