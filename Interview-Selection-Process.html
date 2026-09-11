@@ -9,11 +9,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding-bottom:3rem}
 .hdr{background:linear-gradient(135deg,var(--primary),var(--teal));color:#fff;padding:.4rem .6rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.hdr h1{font-size:.95rem;font-weight:700;flex-shrink:0;min-width:0}
+.hdr h1{font-size:.95rem;font-weight:700;flex-shrink:0}
 .hdr .ha{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .hdr button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:4px 7px;border-radius:6px;font-size:.7rem;cursor:pointer;font-weight:600;white-space:nowrap}
 .hdr button:hover{background:rgba(255,255,255,.35)}
-.tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;position:sticky;top:0;z-index:10;margin-top:10px}
+.tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;position:sticky;top:0;z-index:10;margin-top:10px;padding:0 4px}
 .tabs button{padding:.8rem 1.4rem;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--primary)}
 .tabs button.act{color:var(--primary);border-bottom:3px solid var(--primary);background:rgba(13,110,253,.04)}
@@ -44,10 +44,9 @@ textarea.ii{resize:vertical;min-height:60px}
 .mt td{background:var(--surface)}
 .mt tr:nth-child(even) td{background:rgba(13,110,253,.03)}
 .mt .tot{font-weight:700;color:var(--primary);font-size:.9rem}
-.mt .mx{font-size:.7rem;color:var(--muted);font-weight:400}
 .r1{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.7rem;font-weight:700;background:var(--gold);color:#fff}
 .mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000}
-.mb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:12px;padding:1.5rem;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
+.mb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border-radius:12px;padding:1.5rem;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
 .mb h2{font-size:1.1rem;color:var(--primary);margin-bottom:1rem}
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
 .mg .fw{grid-column:1/-1}
@@ -73,34 +72,34 @@ textarea.ii{resize:vertical;min-height:60px}
 <body>
 
 <div class="hdr">
-  <h1>📋 Interview Selection Process</h1>
+  <h1>Interview Selection Process</h1>
   <div class="ha np">
-    <button onclick="saveAll()">💾 Save</button>
-    <button onclick="loadSaved()">📂 Load</button>
-    <button onclick="doClear()">🗑️ Clear</button>
-    <button onclick="printQs()" style="background:rgba(16,185,129,.6)">🖨️ Print Applicant Qs</button>
-    <button onclick="printMat()" style="background:rgba(16,185,129,.6)">🖨️ Print Matrix</button>
-    <button onclick="printRec()" style="background:rgba(16,185,129,.6)">🖨️ Print Recs</button>
+    <button onclick="exportData()">Export</button>
+    <button onclick="importData()">Import</button>
+    <button onclick="doClear()">Clear</button>
+    <button onclick="printQs()" style="background:rgba(16,185,129,.6)">Print Applicant Qs</button>
+    <button onclick="printMat()" style="background:rgba(16,185,129,.6)">Print Matrix</button>
+    <button onclick="printRec()" style="background:rgba(16,185,129,.6)">Print Recs</button>
   </div>
 </div>
 
 <div class="tabs np">
-  <button class="act" onclick="showTab('inst',this)">📋 Instructions</button>
-  <button onclick="showTab('intro',this)">🎤 Introduction</button>
-  <button onclick="showTab('mat',this)">📊 Matrix</button>
-  <button onclick="showTab('qs',this)">❓ Questions</button>
-  <button onclick="showTab('rec',this)">✅ Recommendations</button>
+  <button class="act" onclick="showTab('inst',this)">Instructions</button>
+  <button onclick="showTab('intro',this)">Introduction</button>
+  <button onclick="showTab('mat',this)">Matrix</button>
+  <button onclick="showTab('qs',this)">Questions</button>
+  <button onclick="showTab('rec',this)">Recommendations</button>
 </div>
 
 <!-- TAB: Instructions -->
 <div id="tc-inst" class="tc act">
   <div class="cd">
-    <h2>📋 Panel Instructions</h2>
+    <h2>Panel Instructions</h2>
     <div style="line-height:1.7;font-size:.95rem">
-      <p><strong>1.</strong> The Interview Panel Leader will determine how the team will function. Panel will repeat or clarify as requested.</p>
-      <p style="margin-top:.5rem"><strong>2.</strong> Write the applicant's name, rate responses 1-5, and add brief comments to support each rating.</p>
+      <p><strong>1.</strong> The Interview Panel Leader will determine how the team will function.</p>
+      <p style="margin-top:.5rem"><strong>2.</strong> Write the applicant's name, rate responses 1-5, add brief comments.</p>
       <p style="margin-top:.5rem"><strong>3.</strong> At the end of each interview, tally the scores, total, sign and date.</p>
-      <p style="margin-top:.5rem"><strong>4.</strong> The Panel Leader will complete the recommendations with signatures and return to the selecting official.</p>
+      <p style="margin-top:.5rem"><strong>4.</strong> The Panel Leader will complete the recommendations with signatures.</p>
       <p style="margin-top:.5rem"><strong>5.</strong> Do not discuss candidates except with appropriate management.</p>
     </div>
   </div>
@@ -119,7 +118,7 @@ textarea.ii{resize:vertical;min-height:60px}
 <!-- TAB: Introduction -->
 <div id="tc-intro" class="tc">
   <div class="cd">
-    <h2>🎤 Interview Introduction <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
+    <h2>Interview Introduction <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
     <textarea id="intro" class="ii" style="min-height:320px;line-height:1.6" oninput="autoSave()">INTERVIEW PANEL LEADER: Read the following introduction to each candidate at the beginning of the interview.
 
 The interview panel will be asking you a series of questions, and you will be rated based on your actual responses. All applicants for this position will be asked the same questions, and are encouraged to elaborate on their responses in order to give a full and complete picture of their experience and qualifications for the position, and to communicate to the panel their suitability. Only one panel member will be asking the questions, but other panel members may ask you to repeat or clarify your responses.
@@ -135,10 +134,10 @@ If you are a bargaining unit member, you have a right to have union representati
   <div class="cd">
     <h3 style="color:var(--green);font-size:.9rem;margin-bottom:.5rem">Union Representation</h3>
     <div style="display:flex;flex-direction:column;gap:6px;font-size:.85rem">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="1" onchange="autoSave()"> ☐ 1. Union representative present:</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="1" onchange="autoSave()"> 1. Union representative present:</label>
       <input type="text" id="u-rep" placeholder="Representative name" style="margin-left:2rem;width:60%" onchange="autoSave()">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="2" onchange="autoSave()"> ☐ 2. Waived representation</label>
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="3" onchange="autoSave()"> ☐ 3. Not a bargaining unit member</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="2" onchange="autoSave()"> 2. Waived representation</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="radio" name="union" value="3" onchange="autoSave()"> 3. Not a bargaining unit member</label>
     </div>
   </div>
 </div>
@@ -147,27 +146,25 @@ If you are a bargaining unit member, you have a right to have union representati
 <div id="tc-mat" class="tc">
   <div class="cd np">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">📊 Applicant Scoring Matrix</h2>
-      <button class="btn btn-pri" onclick="openModal()">➕ Add Applicant</button>
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Applicant Scoring Matrix</h2>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <label style="margin-bottom:0;font-size:.8rem">Position:</label>
+        <select id="profile-select" style="width:200px" onchange="switchProfile(this.value)"></select>
+        <button class="btn btn-out btn-sm" onclick="openProfileManager()">Manage</button>
+        <button class="btn btn-pri btn-sm" onclick="openModal()">Add Applicant</button>
+      </div>
     </div>
   </div>
   <div id="mt-empty" class="cd" style="text-align:center;padding:2rem;color:var(--muted)">
-    No applicants yet. Click <strong>Add Applicant</strong>.
+    No position profile selected. Click <strong>Manage</strong> to create one first.
   </div>
   <div class="cd" style="overflow-x:auto;padding:8px">
     <table class="mt" id="mt-tbl" style="display:none">
       <thead>
-        <tr>
+        <tr id="mt-header">
           <th>#</th><th>Applicant</th><th>Date</th>
-          <th>RN Exp<br><span class="mx">/3</span></th>
-          <th>Education<br><span class="mx">/3</span></th>
-          <th>ACLS/BLS</th>
-          <th>MED/SURG<br><span class="mx">/3</span></th>
-          <th>Urgent Care<br><span class="mx">/3</span></th>
-          <th>ER<br><span class="mx">/3</span></th>
-          <th>Resume<br><span class="mx">/5</span></th>
-          <th>Interview<br><span class="mx" id="mt-ivm">/40</span></th>
-          <th>Total<br><span class="mx" id="mt-tm">/61</span></th>
+          <th>Interview</th>
+          <th>Total</th>
           <th>Notes</th>
           <th class="np"></th>
         </tr>
@@ -181,12 +178,12 @@ If you are a bargaining unit member, you have a right to have union representati
 <div id="tc-qs" class="tc">
   <div class="cd np">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">❓ Interview Questions</h2>
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Interview Questions</h2>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
         <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
-        <button class="btn btn-suc btn-sm" onclick="addQ()">➕ Add Q</button>
-        <button class="btn btn-out btn-sm" onclick="resetQs()">↩ Defaults</button>
+        <button class="btn btn-suc btn-sm" onclick="addQ()">Add Q</button>
+        <button class="btn btn-out btn-sm" onclick="resetQs()">Defaults</button>
       </div>
     </div>
   </div>
@@ -195,14 +192,14 @@ If you are a bargaining unit member, you have a right to have union representati
   </div>
   <div id="qs-wrap"></div>
   <div class="cd" style="background:rgba(13,110,253,.04);border:2px solid var(--primary);text-align:center">
-    <h2 style="border:none;margin-bottom:0">📊 Score: <span id="qs-tot">0</span> / <span id="qs-max">40</span></h2>
+    <h2 style="border:none;margin-bottom:0">Score: <span id="qs-tot">0</span> / <span id="qs-max">40</span></h2>
   </div>
 </div>
 
 <!-- TAB: Recommendations -->
 <div id="tc-rec" class="tc">
   <div class="cd pb">
-    <h2>✅ Interview Panel Recommendations</h2>
+    <h2>Interview Panel Recommendations</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
       <div><label class="lb">Date</label><input type="text" id="r-d" class="ii" onchange="autoSave()"></div>
       <div><label class="lb">Position</label><input type="text" id="r-p" class="ii" onchange="autoSave()"></div>
@@ -210,16 +207,21 @@ If you are a bargaining unit member, you have a right to have union representati
     </div>
     <p style="font-size:.85rem;margin-bottom:1rem;font-style:italic;color:var(--muted)">With fair and unbiased judgement based on the responses provided by the applicants for the above position the interview panel recommends:</p>
     <table class="mt" style="margin-bottom:1rem">
-      <thead><tr><th>Candidate</th><th>Interview Score</th><th>Resume Score</th><th>Total</th></tr></thead>
+      <thead><tr><th>Candidate</th><th>Matrix Score</th><th>Interview Score</th><th>Resume Score</th><th>Total</th></tr></thead>
       <tbody id="r-body"><tr><td style="color:var(--muted);font-size:.85rem" colspan="4">Auto-populates from Matrix</td></tr></tbody>
     </table>
     <div style="margin:.75rem 0">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" id="r-ns" onchange="autoSave()"> ☐ No selection should be made.</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" id="r-ns" onchange="autoSave()"> No selection should be made.</label>
     </div>
     <h3 style="color:var(--primary);margin-top:1rem">Selected (Rank Order)</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
       <div><label class="lb">Candidate</label><input type="text" id="r-sn" class="ii" onchange="autoSave()"></div>
       <div><label class="lb">Score</label><input type="text" id="r-ss" class="ii" onchange="autoSave()"></div>
+    </div>
+    <h3 style="color:var(--primary);margin-top:1rem">Recommended Candidate</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+      <div><label class="lb">Candidate</label><input type="text" id="r-rec-name" class="ii" onchange="autoSave()"></div>
+      <div><label class="lb">Reason</label><input type="text" id="r-rec-reason" class="ii" placeholder="Why recommended?" onchange="autoSave()"></div>
     </div>
     <h3 style="color:var(--muted);margin-top:1rem">Alternatives</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
@@ -236,29 +238,42 @@ If you are a bargaining unit member, you have a right to have union representati
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- PROFILE MANAGER MODAL -->
+<div id="profile-modal" class="mo np">
+  <div class="mb" style="max-width:700px">
+    <h2>Position Profiles</h2>
+    <div style="margin-bottom:1rem">
+      <label class="lb">Saved Profiles</label>
+      <div id="profile-list"></div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input type="text" id="new-profile-name" class="ii" placeholder="New profile name..." style="flex:1">
+        <button class="btn btn-suc btn-sm" onclick="addProfile()">Add</button>
+      </div>
+    </div>
+    <div id="column-editor" style="border-top:1px solid var(--border);padding-top:1rem">
+      <h3 style="font-size:.95rem;color:var(--primary);margin-bottom:.5rem">Columns: <span id="ce-title"></span></h3>
+      <div id="ce-columns"></div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input type="text" id="ce-new-label" class="ii" placeholder="Column label..." style="flex:1">
+        <input type="number" id="ce-new-max" class="ii" placeholder="Max" style="width:70px" min="0">
+        <button class="btn btn-suc btn-sm" onclick="addColumn()">Add Column</button>
+      </div>
+    </div>
+    <div class="ma">
+      <button type="button" class="btn btn-out" onclick="closeProfileManager()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPLICANT MODAL -->
 <div id="app-modal" class="mo np">
   <div class="mb">
     <h2 id="am-title">Add Applicant</h2>
     <form onsubmit="saveModal();return false">
       <input type="hidden" id="am-id">
-      <div class="mg">
+      <div class="mg" id="am-fields">
         <div class="fw"><label class="lb">Name *</label><input type="text" id="am-n" class="ii" required></div>
         <div class="fw"><label class="lb">Date of Interview</label><input type="text" id="am-d" class="ii" placeholder="MM/DD/YYYY"></div>
-        <div><label class="lb">RN Experience</label>
-          <select id="am-rn" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
-        <div><label class="lb">Education</label>
-          <select id="am-ed" class="ii"><option value="0">—</option><option value="1">Associates = 1</option><option value="2">BSN = 2</option><option value="3">MSN+ = 3</option></select></div>
-        <div><label class="lb">ACLS/BLS</label>
-          <select id="am-acls" class="ii"><option value="-1">N/A</option><option value="1">Yes = 1</option><option value="0">No = 0</option></select></div>
-        <div><label class="lb">MED/SURG Exp</label>
-          <select id="am-ms" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
-        <div><label class="lb">Urgent Care / Triage</label>
-          <select id="am-uc" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
-        <div><label class="lb">ER Experience</label>
-          <select id="am-er" class="ii"><option value="0">—</option><option value="1">1-5 yrs = 1</option><option value="2">5-10 yrs = 2</option><option value="3">10+ yrs = 3</option></select></div>
-        <div><label class="lb">Resume Score 1-5</label>
-          <select id="am-rs" class="ii"><option value="0">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
         <div class="fw"><label class="lb">Notes</label><textarea id="am-notes" class="ii" rows="2" placeholder="Comments..."></textarea></div>
       </div>
       <div class="ma">
@@ -271,72 +286,248 @@ If you are a bargaining unit member, you have a right to have union representati
 
 <script>
 var DQS = [
-  "Give a specific example of a time when you had to deal with an angry customer. What was the problem and what was the outcome? What was your role in diffusing the situation?",
-  "Describe a change in your work you have personally had to make in the last couple years. At the time, how did you feel about making the change? What did you do to make the change? How do you feel about the change now?",
-  "A part of this job is documenting your work. Give a specific example of something you had to write for your supervisor in the past three months. What feedback did you get from your supervisor?",
-  "Tell us about a job or setting where great attention to detail was required to complete a task. What steps were involved? How did you handle that situation?",
-  "Tell me about a specific time when people outside your organization were criticizing it unfairly. What did you do or say? How successful were you?",
-  "How does the work you are currently doing affect your organizations ability to meet its mission and goals? Do you think your work is important?",
-  "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
-  "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?"
+  "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
+  "Describe a change in your work you have personally had to make. How did you feel about it?",
+  "Give a specific example of something you had to write for your supervisor. What feedback did you get?",
+  "Tell us about a job where great attention to detail was required. How did you handle it?",
+  "Tell me about a time when people outside your organization were criticizing it unfairly. What did you do?",
+  "How does your current work affect your organizations ability to meet its mission and goals?",
+  "Describe a situation where you felt you had not communicated well. How did you correct it?",
+  "Tell me about a time when you resolved a difficult customer complaint. What was the outcome?"
 ];
 
 var questions = [];
 var applicants = [];
 var SK = 'ip_data';
+var positionProfiles = {};
+var activeProfileName = '';
+var editingProfileName = '';
 
-function init(){
-  questions = DQS.slice();
-  loadFromStore();
+function getProfile(n){ return positionProfiles[n] || null; }
+function activeProfile(){ return activeProfileName ? (positionProfiles[activeProfileName] || null) : null; }
+function profileColumns(){ var p = activeProfile(); return p ? (p.columns || []) : []; }
+function profileColMax(){ var c = profileColumns(); var t=0; for(var i=0;i<c.length;i++){ if(c[i].max!==null&&c[i].max!==undefined) t+=parseInt(c[i].max)||0; } return t; }
+
+function saveProfiles(){
+  localStorage.setItem(SK+'_prof', JSON.stringify(positionProfiles));
+  localStorage.setItem(SK+'_act', activeProfileName);
+}
+function loadProfiles(){
+  try {
+    var d = localStorage.getItem(SK+'_prof'); if(d) positionProfiles = JSON.parse(d);
+    var a = localStorage.getItem(SK+'_act'); if(a && positionProfiles[a]) activeProfileName = a;
+  } catch(e){}
+}
+loadProfiles();
+
+function init(){ questions=DQS.slice(); loadFromStore(); renderAll(); }
+function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); }
+
+function renderProfileSelect(){
+  var sel = document.getElementById('profile-select');
+  if(!sel) return;
+  var names = Object.keys(positionProfiles);
+  var h = '<option value="">-- Select position --</option>';
+  for(var i=0;i<names.length;i++) h += '<option value="'+esc(names[i])+'"'+(names[i]===activeProfileName?' selected':'')+'>'+esc(names[i])+'</option>';
+  sel.innerHTML = h;
+}
+
+function switchProfile(name){
+  if(!name || !positionProfiles[name]){ activeProfileName=''; saveProfiles(); renderAll(); return; }
+  activeProfileName = name; saveProfiles(); renderAll();
+}
+
+function openProfileManager(){
+  renderProfileList();
+  editingProfileName = activeProfileName;
+  renderColumnEditor();
+  document.getElementById('profile-modal').style.display='block';
+}
+function closeProfileManager(){ document.getElementById('profile-modal').style.display='none'; }
+
+function renderProfileList(){
+  var list = document.getElementById('profile-list');
+  if(!list) return;
+  var names = Object.keys(positionProfiles);
+  if(names.length===0){ list.innerHTML='<p class="muted">No saved profiles.</p>'; return; }
+  var h = '';
+  for(var i=0;i<names.length;i++){
+    h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;margin-bottom:4px">';
+    h += '<span style="flex:1">'+esc(names[i])+'</span>';
+    h += '<button class="btn btn-sm btn-out" onclick="editProfileColumns(\''+names[i]+'\')">Columns</button>';
+    h += '<button class="btn btn-sm btn-out" onclick="renameProfile(\''+names[i]+'\')">Rename</button>';
+    h += '<button class="btn btn-sm btn-dan" onclick="deleteProfile(\''+names[i]+'\')">Delete</button></div>';
+  }
+  list.innerHTML = h;
+}
+
+function addProfile(){
+  var name = document.getElementById('new-profile-name').value.trim();
+  if(!name){ alert('Enter a profile name.'); return; }
+  if(positionProfiles[name]){ alert('Profile "'+name+'" already exists.'); return; }
+  positionProfiles[name] = { columns: [
+    {id:'c1',label:'Criteria 1',max:5,opts:[]},
+    {id:'c2',label:'Criteria 2',max:5,opts:[]},
+    {id:'c3',label:'Criteria 3',max:5,opts:[]},
+    {id:'c4',label:'Criteria 4',max:5,opts:[]},
+    {id:'rs',label:'Resume',max:5,opts:[]}
+  ]};
+  saveProfiles();
+  document.getElementById('new-profile-name').value='';
+  activeProfileName = name;
   renderAll();
 }
 
-function renderAll(){
-  renderApps();
-  renderQs();
-  renderMat();
-  renderRecs();
+function renameProfile(name){
+  var n = prompt('Rename "'+name+'" to:', name);
+  if(!n||n===name) return; n=n.trim();
+  if(positionProfiles[n]){ alert('Profile "'+n+'" already exists.'); return; }
+  positionProfiles[n]=positionProfiles[name]; delete positionProfiles[name];
+  if(activeProfileName===name) activeProfileName=n;
+  saveProfiles(); renderAll();
 }
 
-// HELPERS
-function gv(i){ var e=document.getElementById(i); return e ? e.value : ''; }
-function sv(i,v){ var e=document.getElementById(i); if(e && v!==undefined) e.value=v; }
+function deleteProfile(name){
+  if(!confirm('Delete "'+name+'"?')) return;
+  delete positionProfiles[name];
+  if(activeProfileName===name){ var k=Object.keys(positionProfiles); activeProfileName=k[0]||''; }
+  saveProfiles(); renderAll();
+}
+
+function editProfileColumns(name){ editingProfileName=name; renderColumnEditor(); }
+
+function renderColumnEditor(){
+  var title = document.getElementById('ce-title');
+  var list = document.getElementById('ce-columns');
+  if(!title||!list) return;
+  var prof = positionProfiles[editingProfileName] || positionProfiles[activeProfileName];
+  if(!prof){ list.innerHTML='<p class="muted">Select a profile to edit.</p>'; return; }
+  title.textContent = editingProfileName;
+  var h = '';
+  for(var i=0;i<prof.columns.length;i++){
+    var col = prof.columns[i];
+    // Main column row
+    h += '<div style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">';
+    h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
+    h += '<span style="font-weight:600;min-width:100px">'+esc(col.label)+'</span>';
+    h += '<span class="muted">/'+(col.max===null||col.max===undefined?'x':col.max)+'</span>';
+    h += '<input type="text" value="'+esc(col.label)+'" style="flex:1;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.78rem" placeholder="Label" onchange="updateCol('+i+',this.value)">';
+    h += '<input type="number" value="'+(col.max||'')+'" style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.78rem" placeholder="Max" min="0" onchange="updateColMax('+i+',this.value)">';
+    if(prof.columns.length>1) h += '<button class="btn btn-sm btn-dan" onclick="delCol('+i+')">x</button>';
+    h += '</div>';
+    // Options section
+    h += '<div style="margin-top:4px;padding:4px 0 0 8px;border-top:1px dotted var(--border)">';
+    if(col.opts && col.opts.length>0){
+      h += '<div style="margin-bottom:3px">';
+      for(var oi=0;oi<col.opts.length;oi++){
+        var parts = col.opts[oi].split('=');
+        var val = parts.length>1?parts[0].trim():String(oi+1);
+        var desc = parts.length>1?parts.slice(1).join('=').trim():col.opts[oi];
+        h += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;font-size:.78rem">';
+        h += '<span style="font-weight:600;min-width:20px">'+esc(val)+'</span>';
+        h += '<span style="color:var(--muted)">=</span>';
+        h += '<span style="flex:1">'+esc(desc)+'</span>';
+        h += '<button onclick="delOption('+i+','+oi+')" style="border:none;background:none;cursor:pointer;color:#ef4444;font-size:.7rem;padding:0 2px">x</button>';
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    // Add option row
+    h += '<div style="display:flex;gap:4px;margin-top:3px">';
+    h += '<select id="opt-val-'+i+'" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;font-size:.78rem">';
+        var m = col.max||5;
+        for(var sv=0;sv<=m;sv++) h += '<option value="'+sv+'">'+sv+'</option>';
+        h += '</select>';
+    h += '<input type="text" id="opt-desc-'+i+'" placeholder="Description" style="flex:1;padding:2px 4px;border:1px solid var(--border);border-radius:4px;font-size:.78rem">';
+    h += '<button class="btn btn-sm btn-suc" onclick="addOption('+i+')" style="padding:2px 8px;font-size:.7rem">Add</button>';
+    h += '</div>';
+    h += '</div>';
+    h += '</div>'; // end column container
+  }
+  list.innerHTML = h;
+}
+
+function updateCol(i, newLabel){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof||!prof.columns[i]) return;
+  prof.columns[i].label = newLabel;
+  saveProfiles(); renderAll();
+}
+function updateColMax(i, val){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof||!prof.columns[i]) return;
+  prof.columns[i].max = val==='' ? null : parseInt(val)||0;
+  saveProfiles(); renderAll();
+}
+function addOption(colIdx){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof||!prof.columns[colIdx]) return;
+  var val = document.getElementById('opt-val-'+colIdx).value;
+  var desc = document.getElementById('opt-desc-'+colIdx).value.trim();
+  if(!desc){ alert('Enter a description.'); return; }
+  if(val==='') val = '0';
+  var opt = val + ' = ' + desc;
+  if(!prof.columns[colIdx].opts) prof.columns[colIdx].opts = [];
+  prof.columns[colIdx].opts.push(opt);
+  document.getElementById('opt-val-'+colIdx).value = '';
+  document.getElementById('opt-desc-'+colIdx).value = '';
+  saveProfiles(); renderColumnEditor(); renderAll();
+}
+function delOption(colIdx, optIdx){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof||!prof.columns[colIdx]||!prof.columns[colIdx].opts) return;
+  if(!confirm('Delete this option?')) return;
+  prof.columns[colIdx].opts.splice(optIdx, 1);
+  saveProfiles(); renderColumnEditor(); renderAll();
+}
+
+function addColumn(){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof) return;
+  var label = document.getElementById('ce-new-label').value.trim();
+  if(!label){ alert('Enter a column label.'); return; }
+  var max = parseInt(document.getElementById('ce-new-max').value)||5;
+  var id = 'col_'+Date.now()+'_'+Math.random().toString(36).substr(2,4);
+  prof.columns.push({id:id,label:label,max:max,opts:[]});
+  document.getElementById('ce-new-label').value=''; document.getElementById('ce-new-max').value='';
+  saveProfiles(); renderColumnEditor(); renderAll();
+}
+
+function delCol(i){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof||!prof.columns[i]) return;
+  if(prof.columns.length<=1){ alert('Need at least one column.'); return; }
+  if(!confirm('Delete "'+prof.columns[i].label+'"?')) return;
+  prof.columns.splice(i,1);
+  saveProfiles(); renderColumnEditor(); renderAll();
+}
+
+function gv(i){ var e=document.getElementById(i); return e?e.value:''; }
+function sv(i,v){ var e=document.getElementById(i); if(e&&v!==undefined) e.value=v; }
 function E(i){ return document.getElementById(i); }
+function esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function esc(s){
-  if(!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// STORAGE
 function state(){
   var u = document.querySelector('input[name="union"]:checked');
   return {
-    qs: questions, aa: applicants, intro: gv('intro'),
-    u: u ? u.value : '', ur: gv('u-rep'),
-    rd: gv('r-d'), rp: gv('r-p'), rpn: gv('r-pn'),
-    rns: E('r-ns').checked,
-    rsn: gv('r-sn'), rss: gv('r-ss'),
-    r1n: gv('r-a1n'), r1s: gv('r-a1s'),
-    r2n: gv('r-a2n'), r2s: gv('r-a2s'),
-    cn: gv('r-cn'), cs: gv('r-cs'), cd: gv('r-cd'),
-    m1n: gv('r-m1n'), m1s: gv('r-m1s'), m1d: gv('r-m1d'),
-    m2n: gv('r-m2n'), m2s: gv('r-m2s'), m2d: gv('r-m2d'),
-    m3n: gv('r-m3n'), m3s: gv('r-m3s'), m3d: gv('r-m3d')
+    qs:questions, aa:applicants, intro:gv('intro'),
+    u:u?u.value:'', ur:gv('u-rep'),
+    rd:gv('r-d'), rp:gv('r-p'), rpn:gv('r-pn'),
+    rns:E('r-ns').checked,
+    rsn:gv('r-sn'), rss:gv('r-ss'),
+    rrn:gv('r-rec-name'), rrr:gv('r-rec-reason'),
+    r1n:gv('r-a1n'), r1s:gv('r-a1s'),
+    r2n:gv('r-a2n'), r2s:gv('r-a2s'),
+    cn:gv('r-cn'), cs:gv('r-cs'), cd:gv('r-cd'),
+    m1n:gv('r-m1n'), m1s:gv('r-m1s'), m1d:gv('r-m1d'),
+    m2n:gv('r-m2n'), m2s:gv('r-m2s'), m2d:gv('r-m2d'),
+    m3n:gv('r-m3n'), m3s:gv('r-m3s'), m3d:gv('r-m3d'),
+    _prof:positionProfiles, _act:activeProfileName
   };
 }
 
 function toSt(k){ localStorage.setItem(k, JSON.stringify(state())); }
 function autoSave(){ toSt(SK+'_d'); }
-function saveAll(){ toSt(SK); alert('Saved!'); }
-
-function loadSaved(){
-  var d=localStorage.getItem(SK);
-  if(!d){ alert('No saved data.'); return; }
-  fromSt(JSON.parse(d));
-  renderAll();
-  alert('Loaded.');
-}
 
 function loadFromStore(){
   var d=localStorage.getItem(SK+'_d');
@@ -345,77 +536,45 @@ function loadFromStore(){
 
 function doClear(){
   if(!confirm('Clear all data?')) return;
-  localStorage.removeItem(SK);
-  localStorage.removeItem(SK+'_d');
-  location.reload();
+  localStorage.removeItem(SK); localStorage.removeItem(SK+'_d'); location.reload();
 }
 
 function fromSt(s){
   if(!s) return;
-  if(s.qs && s.qs.length) questions = s.qs.slice();
-  if(s.aa) applicants = s.aa;
-  sv('intro', s.intro);
+  if(s.qs&&s.qs.length) questions=s.qs.slice();
+  if(s.aa) applicants=s.aa;
+  sv('intro',s.intro);
   if(s.u){ var r=document.querySelector('input[name="union"][value="'+s.u+'"]'); if(r) r.checked=true; }
-  sv('u-rep', s.ur);
-  sv('r-d', s.rd); sv('r-p', s.rp); sv('r-pn', s.rpn);
-  E('r-ns').checked = s.rns || false;
-  sv('r-sn', s.rsn); sv('r-ss', s.rss);
-  sv('r-a1n', s.r1n); sv('r-a1s', s.r1s);
-  sv('r-a2n', s.r2n); sv('r-a2s', s.r2s);
-  sv('r-cn', s.cn); sv('r-cs', s.cs); sv('r-cd', s.cd);
-  sv('r-m1n', s.m1n); sv('r-m1s', s.m1s); sv('r-m1d', s.m1d);
-  sv('r-m2n', s.m2n); sv('r-m2s', s.m2s); sv('r-m2d', s.m2d);
-  sv('r-m3n', s.m3n); sv('r-m3s', s.m3s); sv('r-m3d', s.m3d);
+  sv('u-rep',s.ur);
+  sv('r-d',s.rd); sv('r-p',s.rp); sv('r-pn',s.rpn);
+  E('r-ns').checked=s.rns||false;
+  sv('r-sn',s.rsn); sv('r-ss',s.rss);
+  sv('r-rec-name',s.rrn); sv('r-rec-reason',s.rrr);
+  sv('r-a1n',s.r1n); sv('r-a1s',s.r1s);
+  sv('r-a2n',s.r2n); sv('r-a2s',s.r2s);
+  sv('r-cn',s.cn); sv('r-cs',s.cs); sv('r-cd',s.cd);
+  sv('r-m1n',s.m1n); sv('r-m1s',s.m1s); sv('r-m1d',s.m1d);
+  sv('r-m2n',s.m2n); sv('r-m2s',s.m2s); sv('r-m2d',s.m2d);
+  sv('r-m3n',s.m3n); sv('r-m3s',s.m3s); sv('r-m3d',s.m3d);
+  if(s._prof) positionProfiles=s._prof;
+  if(s._act&&positionProfiles[s._act]) activeProfileName=s._act;
 }
 
-// TABS
-function showTab(id, btn){
+function showTab(id,btn){
   document.querySelectorAll('.tc').forEach(function(t){ t.classList.remove('act'); });
   document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('act'); });
-  E('tc-'+id).classList.add('act');
-  if(btn) btn.classList.add('act');
+  E('tc-'+id).classList.add('act'); if(btn) btn.classList.add('act');
 }
 
-// PRINT (uses hidden iframe — no popup blocker issues)
 function printHTML(title, bodyHTML){
   var iframe=document.createElement('iframe');
   iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
   document.body.appendChild(iframe);
   var doc=iframe.contentWindow.document;
   doc.open();
-  doc.write('<html><head><title>'+esc(title)+'</title><style>'+
-    '*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:850px;margin:0 auto;padding:20px;color:#222}'+
-    '.pb{page-break-after:always}'+
-    '.h1{font-size:20px;color:#0d6efd;border-bottom:2px solid #0d6efd;padding-bottom:6px}'+
-    'table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}'+
-    'th,td{padding:6px 8px;border:1px solid #bbb;text-align:left;vertical-align:middle}'+
-    'th{background:#0d6efd;color:#fff;font-size:11px;white-space:nowrap}'+
-    'tr:nth-child(even) td{background:#f8faff}'+
-    '.tot{font-weight:700;color:#0d6efd;font-size:14px}'+
-    '.sec{margin-top:20px;padding-top:10px;border-top:2px solid #0d6efd}'+
-    '.sec h2{font-size:14px;color:#0d6efd;margin-bottom:6px}'+
-    '.def{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;font-size:11px}'+
-    '.def div{padding:6px;border:1px solid #ddd;border-radius:4px;text-align:center}'+
-    '.cat{font-size:12px;margin:8px 0;padding:6px 10px;background:#f0f7ff;border-left:3px solid #0d6efd}'+
-    '.cat b{display:inline-block;min-width:120px}'+
-    '.q{border:1px solid #ddd;padding:12px;margin-bottom:8px;border-radius:6px}'+
-    '.qn{font-weight:700;color:#0d6efd;font-size:14px}'+
-    '.qt{font-size:13px;margin:6px 0;line-height:1.5}'+
-    '.sc{margin:6px 0;font-size:13px}'+
-    '.sc b{color:#0d6efd}'+
-    '.nt{border-top:1px dotted #ddd;margin-top:6px;padding-top:6px;font-size:12px;color:#555;font-style:italic}'+
-    '.scal{display:flex;gap:8px;margin:8px 0;font-size:11px;text-align:center}'+
-    '.scal div{flex:1;padding:4px;border:1px solid #ddd;border-radius:4px}'+
-    '.sig{margin-top:20px;padding-top:10px;border-top:1px dotted #999}'+
-    '.sig-line{display:flex;gap:20px;margin:8px 0;font-size:13px}'+
-    '.sig-line span{min-width:100px}'+
-    '</style></head><body>'+bodyHTML+'</body></html>');
+  doc.write('<html><head><title>'+esc(title)+'</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:850px;margin:0 auto;padding:20px;color:#222}.pb{page-break-after:always}.h1{font-size:20px;color:#0d6efd;border-bottom:2px solid #0d6efd;padding-bottom:6px}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}th,td{padding:6px 8px;border:1px solid #bbb;text-align:left;vertical-align:middle}th{background:#0d6efd;color:#fff;font-size:11px}tr:nth-child(even) td{background:#f8faff}.tot{font-weight:700;color:#0d6efd;font-size:14px}.sec{margin-top:20px;padding-top:10px;border-top:2px solid #0d6efd}.sec h2{font-size:14px;color:#0d6efd;margin-bottom:6px}.cat{font-size:12px;margin:8px 0;padding:6px 10px;background:#f0f7ff;border-left:3px solid #0d6efd}.cat b{display:inline-block;min-width:120px}.q{border:1px solid #ddd;padding:12px;margin-bottom:8px;border-radius:6px}.qn{font-weight:700;color:#0d6efd;font-size:14px}.qt{font-size:13px;margin:6px 0;line-height:1.5}.sc{margin:6px 0;font-size:13px}.sc b{color:#0d6efd}.nt{border-top:1px dotted #ddd;margin-top:6px;padding-top:6px;font-size:12px;color:#555;font-style:italic}.sig{margin-top:20px;padding-top:10px;border-top:1px dotted #999}.sig-line{display:flex;gap:20px;margin:8px 0;font-size:13px}.sig-line span{min-width:100px}</style></head><body>'+bodyHTML+'</body></html>');
   doc.close();
-  setTimeout(function(){
-    iframe.contentWindow.print();
-    // Remove iframe after print dialog closes
-    setTimeout(function(){ document.body.removeChild(iframe); }, 100);
-  }, 300);
+  setTimeout(function(){ iframe.contentWindow.print(); setTimeout(function(){ document.body.removeChild(iframe); },100); },300);
 }
 
 function printQs(){
@@ -424,315 +583,251 @@ function printQs(){
   for(var ai=0;ai<applicants.length;ai++){
     var a=applicants[ai];
     if(ai>0) h+='<div class="pb"></div>';
-    // WORD DOC HEADER: Applicant name + interview date
-    h+='<h1 class="h1">Interview Selection Process Report</h1>'+
-      '<p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date of Interview:</strong> '+esc(a.date||'__________')+'</p>';
-    // LIKERT SCALE INSTRUCTIONS
-    h+='<div class="sec"><h2>Instructions for Using Rating Scale</h2>'+
-      '<p style="font-size:12px;margin:6px 0;line-height:1.5">Rate each response from 1 (Not adequate) to 5 (Far exceeds). '+
-      'Select the rating that best describes the applicant\'s response. Use the guide below:</p>'+
-      '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">'+
-      '<tr><th style="width:8%">Score</th><th>Definition</th></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fef2f2">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate — Response does not demonstrate the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fff7ed">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate — Response partially demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fefce8">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable — Response adequately demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#f0fdf4">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable — Response clearly demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#eff6ff">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds — Response strongly demonstrates the skill or behavior</td></tr>'+
-      '</table></div>';
-    // QUESTIONS TABLE matching Word doc format
-    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px">'+
-      '<thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:left">Question</th>'+
-      '<th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th>'+
-      '<th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:left">Notes / Answers</th></tr></thead><tbody>';
+    h+='<h1 class="h1">Interview Selection Process Report</h1><p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date:</strong> '+esc(a.date||'__________')+'</p>';
+    h+='<div class="sec"><h2>Rating Scale</h2><table style="width:100%;border-collapse:collapse;font-size:11px"><tr><th>Score</th><th>Definition</th></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds</td></tr></table></div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px"><thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Question</th><th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th><th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Notes</th></tr></thead><tbody>';
     var tot=0;
     for(var qi=0;qi<questions.length;qi++){
-      var sc=a.qs?parseInt(a.qs[qi])||0:0;
-      var nt=a.qn?a.qn[qi]||'':'';
-      tot+=sc;
-      h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top">'+
-        '<strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td>'+
-        '<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;vertical-align:middle;font-weight:700">'+sc+'</td>'+
-        '<td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
+      var sc=a.qs?parseInt(a.qs[qi])||0:0; var nt=a.qn?a.qn[qi]||'':''; tot+=sc;
+      h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top"><strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td><td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-weight:700">'+sc+'</td><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
     }
-    h+='</tbody></table>';
-    h+='<p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total Score: '+tot+' / '+(questions.length*5)+'</p>';
+    h+='</tbody></table><p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total: '+tot+'/'+(questions.length*5)+'</p>';
   }
-  printHTML('Interview Questions by Applicant', h);
+  printHTML('Interview Questions', h);
 }
 
 function printMat(){
-  if(applicants.length===0){ alert('No applicants in matrix.'); return; }
+  if(applicants.length===0){ alert('No applicants.'); return; }
+  if(!activeProfileName){ alert('Select a position profile first.'); return; }
+  var cols = profileColumns(); if(cols.length===0){ alert('Profile has no columns.'); return; }
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
-  var ivm=questions.length*5;
-  var tm=15+5+ivm;
-  var h='<h1 class="h1">📊 Applicant Scoring Matrix</h1>'+
-    '<table><thead><tr><th>#</th><th>Applicant</th><th>Date</th><th>RN Exp</th><th>Educ</th><th>ACLS</th><th>MED/SURG</th><th>UC/Triage</th><th>ER</th><th>Resume</th><th>Interview</th><th>Total</th></tr></thead><tbody>';
+  var ivm=questions.length*5; var tm=profileColMax()+ivm;
+  var h='<h1 class="h1">Scoring Matrix - '+esc(activeProfileName)+'</h1><table><thead><tr><th>#</th><th>Applicant</th><th>Date</th>';
+  for(var i=0;i<cols.length;i++) h+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span style="font-weight:400;font-size:10px">/'+cols[i].max+'</span>':'')+'</th>';
+  h+='<th>Interview</th><th>Total</th></tr></thead><tbody>';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
-    h+='<tr><td>'+(i===0?'★':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>'+
-      '<td>'+(a.rn||0)+'</td><td>'+(a.ed||0)+'</td><td>'+(a.acls===-1?'—':(a.acls||0))+'</td>'+
-      '<td>'+(a.ms||0)+'</td><td>'+(a.uc||0)+'</td><td>'+(a.er||0)+'</td><td>'+(a.rs||0)+'</td>'+
-      '<td>'+iv+'</td><td class="tot">'+to+'/'+tm+'</td></tr>';
+    h+='<tr><td>'+(i===0?'*':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
+    for(var ci=0;ci<cols.length;ci++){
+      var val=a[cols[ci].id]; if(val===undefined||val===null) val=0;
+      h+='<td>'+(val===-1?'-':val)+'</td>';
+    }
+    h+='<td>'+iv+'</td><td class="tot">'+to+'/'+tm+'</td></tr>';
   }
-  h+='</tbody></table>'+
-    '<div class="sec"><h2>📋 Scoring Criteria</h2>'+
-    '<div class="cat"><b>RN Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Education</b> Associates = 1 &nbsp;|&nbsp; BSN = 2 &nbsp;|&nbsp; MSN or higher = 3</div>'+
-    '<div class="cat"><b>ACLS/BLS</b> Yes = 1 &nbsp;|&nbsp; No = 0 &nbsp;|&nbsp; N/A</div>'+
-    '<div class="cat"><b>MED/SURG Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Urgent Care / Triage</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>ER Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Resume Score</b> 1 through 5</div>'+
-    '<div class="cat"><b>Interview Score</b> Based on '+(questions.length)+' questions, max '+ivm+' points (1-5 per question)</div>'+
-    '</div>'+
-    '<div class="sec"><h2>General Scoring Scale</h2>'+
-    '<div class="def"><div>1<br><span style="font-size:10px;color:#888">Not adequate</span></div>'+
-    '<div>2<br><span style="font-size:10px;color:#888">Minimally adequate</span></div>'+
-    '<div>3<br><span style="font-size:10px;color:#888">Acceptable</span></div>'+
-    '<div>4<br><span style="font-size:10px;color:#888">Above acceptable</span></div>'+
-    '<div>5<br><span style="font-size:10px;color:#888">Far exceeds</span></div></div></div>';
-  printHTML('Applicant Scoring Matrix', h);
+  h+='</tbody></table><div class="sec"><h2>Scoring Criteria</h2>';
+  for(var i=0;i<cols.length;i++){
+    var c=cols[i];
+    h+='<div class="cat"><b>'+esc(c.label)+'</b> '+(c.opts?c.opts.join(' | '):'Score 1-'+(c.max||5))+'</div>';
+  }
+  h+='<div class="cat"><b>Interview</b> '+questions.length+' questions, max '+ivm+'</div></div>';
+  h+='<div class="sec"><h2>Rating Scale</h2><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;font-size:11px;text-align:center">';
+  var labels=['Not adequate','Minimally adequate','Acceptable','Above acceptable','Far exceeds'];
+  for(var i=1;i<=5;i++) h+='<div style="padding:6px;border:1px solid #ddd;border-radius:4px"><strong>'+i+'</strong><br><span style="font-size:10px;color:#888">'+labels[i-1]+'</span></div>';
+  h+='</div></div>';
+  printHTML('Scoring Matrix', h);
 }
 
 function printRec(){
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
-  var h='<h1 class="h1">✅ Interview Panel Recommendations</h1>'+
-    '<p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(gv('r-p')||'__________')+' &nbsp; <strong># of Positions:</strong> '+esc(gv('r-pn')||'__________')+'</p>'+
-    '<p style="font-size:12px;font-style:italic;color:#555">With fair and unbiased judgement based on the responses provided by the applicants for the above position the interview panel recommends:</p>'+
-    '<table><thead><tr><th>Candidate</th><th>Interview Score</th><th>Resume Score</th><th>Total</th></tr></thead><tbody>';
-  for(var i=0;i<sorted.length;i++){
-    var iv=getIV(sorted[i]); var to=getTot(sorted[i]);
-    h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>';
-  }
+  var pos = activeProfileName || gv('r-p')||'';
+  var h='<h1 class="h1">Interview Panel Recommendations</h1><p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(pos)+' &nbsp; #: '+esc(gv('r-pn')||'__________')+'</p>';
+  h+='<p style="font-size:12px;font-style:italic;color:#555">With fair judgement based on the responses provided, the panel recommends:</p>';
+  h+='<table><thead><tr><th>Candidate</th><th>Matrix Score</th><th>Interview</th><th>Resume</th><th>Total</th></tr></thead><tbody>';
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
   h+='</tbody></table>';
-  if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">☐ It is the opinion of the interview panel that no selection should be made.</p>';
-  h+='<div class="sec"><h3 style="color:#0d6efd">Selected (Rank Order)</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>'+
-    '<div class="sec"><h3 style="color:#555">Alternatives</h3><p style="font-size:13px">'+esc(gv('r-a1n')||'__________')+' — '+esc(gv('r-a1s')||'__________')+'<br>'+esc(gv('r-a2n')||'__________')+' — '+esc(gv('r-a2s')||'__________')+'</p></div>'+
-    '<div class="sig"><h3 style="color:#0d6efd;font-size:14px">Signatures</h3>'+
-    '<div class="sig-line"><span>Panel Chair:</span> '+esc(gv('r-cn')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-cs')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-cd')||'__________')+'</div>'+
-    '<div class="sig-line"><span>Panel Member:</span> '+esc(gv('r-m1n')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-m1s')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-m1d')||'__________')+'</div>'+
-    '<div class="sig-line"><span>Panel Member:</span> '+esc(gv('r-m2n')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-m2s')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-m2d')||'__________')+'</div>'+
-    '<div class="sig-line"><span>Panel Member:</span> '+esc(gv('r-m3n')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-m3s')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-m3d')||'__________')+'</div></div>';
-  printHTML('Interview Panel Recommendations', h);
+  if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">No selection should be made.</p>';
+  h+='<div class="sec"><h3>Selected</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>';
+  h+='<div class="sec"><h3>Recommended Candidate</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-rec-name')||'__________')+'</strong> &nbsp; Reason: <strong>'+esc(gv('r-rec-reason')||'__________')+'</strong></p></div>';
+  h+='<div class="sec"><h3>Alternates</h3><p style="font-size:13px">'+esc(gv('r-a1n')||'__________')+' - '+esc(gv('r-a1s')||'__________')+'<br>'+esc(gv('r-a2n')||'__________')+' - '+esc(gv('r-a2s')||'__________')+'</p></div>';
+  h+='<div class="sig"><h3>Signatures</h3><div class="sig-line"><span>Chair:</span> '+esc(gv('r-cn')||'__________')+' &nbsp; Sig: '+esc(gv('r-cs')||'__________')+' &nbsp; Date: '+esc(gv('r-cd')||'__________')+'</div>';
+  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m1n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m1s')||'__________')+' &nbsp; Date: '+esc(gv('r-m1d')||'__________')+'</div>';
+  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m2n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m2s')||'__________')+' &nbsp; Date: '+esc(gv('r-m2d')||'__________')+'</div>';
+  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m3n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m3s')||'__________')+' &nbsp; Date: '+esc(gv('r-m3d')||'__________')+'</div></div>';
+  printHTML('Recommendations', h);
 }
 
-// APPLICANT DROPDOWN
 function renderApps(){
-  var sel=E('qs-app');
-  if(!sel) return;
-  if(applicants.length===0){
-    sel.innerHTML='<option value="">— No applicants —</option>';
-    E('qs-empty').style.display='block';
-    E('qs-wrap').style.display='none';
-    return;
-  }
-  E('qs-empty').style.display='none';
-  E('qs-wrap').style.display='block';
-  var h='<option value="">— Select —</option>';
-  for(var i=0;i<applicants.length;i++){
-    h+='<option value="'+applicants[i].id+'">'+esc(applicants[i].name)+(applicants[i].date?' ('+esc(applicants[i].date)+')':'')+'</option>';
-  }
+  var sel=E('qs-app'); if(!sel) return;
+  if(applicants.length===0){ sel.innerHTML='<option value="">-- No applicants --</option>'; E('qs-empty').style.display='block'; E('qs-wrap').style.display='none'; return; }
+  E('qs-empty').style.display='none'; E('qs-wrap').style.display='block';
+  var h='<option value="">-- Select --</option>';
+  for(var i=0;i<applicants.length;i++) h+='<option value="'+applicants[i].id+'">'+esc(applicants[i].name)+(applicants[i].date?' ('+esc(applicants[i].date)+')':'')+'</option>';
   sel.innerHTML=h;
 }
 
-// QUESTIONS
 function renderQs(){
-  var wrap=E('qs-wrap');
-  if(!wrap) return;
-  var aid=E('qs-app').value||'';
-  var app=null;
+  var wrap=E('qs-wrap'); if(!wrap) return;
+  var aid=E('qs-app').value||''; var app=null;
   for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ app=applicants[i]; break; }
-  if(applicants.length>0 && !app){ /* was deleted, reset select */ }
   var h='';
   for(var i=0;i<questions.length;i++){
-    var sc=app&&app.qs ? (app.qs[i]||0) : 0;
-    var nt=app&&app.qn ? (app.qn[i]||'') : '';
-    h+='<div class="qb">'
-      +'<div class="np" style="display:flex;justify-content:space-between">'
-      +'<span class="qn">Q'+(i+1)+'</span>'
-      +'<button class="btn btn-dan btn-sm" onclick="delQ('+i+')">🗑️</button></div>'
-      +'<textarea class="ii" style="min-height:50px;margin-bottom:4px" oninput="updQ('+i+',this.value)">'+esc(questions[i])+'</textarea>'
-      +'<div class="sr">';
-    for(var v=1;v<=5;v++){
-      h+='<span class="sb'+(v===sc?' on':'')+'" onclick="setQ(\''+esc(aid)+'\','+i+','+v+')">'+v+'</span>';
-    }
-    h+='</div>'
-      +'<textarea class="ii" style="min-height:40px;font-style:italic;margin-top:4px" placeholder="Notes..." oninput="setQn(\''+esc(aid)+'\','+i+',this.value)">'+esc(nt)+'</textarea>'
-      +'</div>';
+    var sc=app&&app.qs?(app.qs[i]||0):0; var nt=app&&app.qn?(app.qn[i]||''):'';
+    h+='<div class="qb"><div class="np" style="display:flex;justify-content:space-between"><span class="qn">Q'+(i+1)+'</span><button class="btn btn-dan btn-sm" onclick="delQ('+i+')">x</button></div><textarea class="ii" style="min-height:50px;margin-bottom:4px" oninput="updQ('+i+',this.value)">'+esc(questions[i])+'</textarea><div class="sr">';
+    for(var v=1;v<=5;v++) h+='<span class="sb'+(v===sc?' on':'')+'" onclick="setQ(\''+esc(aid)+'\','+i+','+v+')">'+v+'</span>';
+    h+='</div><textarea class="ii" style="min-height:40px;font-style:italic;margin-top:4px" placeholder="Notes..." oninput="setQn(\''+esc(aid)+'\','+i+',this.value)">'+esc(nt)+'</textarea></div>';
   }
-  wrap.innerHTML=h;
-  updTot();
+  wrap.innerHTML=h; updTot();
 }
 
 function setQ(aid,qi,v){
-  if(!aid||aid===''){ alert('Select an applicant first.'); return; }
-  for(var i=0;i<applicants.length;i++){
-    if(applicants[i].id===aid){
-      if(!applicants[i].qs) applicants[i].qs={};
-      applicants[i].qs[qi]=v;
-      break;
-    }
-  }
-  renderQs();
-  renderMat();
-  autoSave();
+  if(!aid){ alert('Select an applicant.'); return; }
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ if(!applicants[i].qs) applicants[i].qs={}; applicants[i].qs[qi]=v; break; }
+  renderQs(); renderMat(); autoSave();
 }
-
 function setQn(aid,qi,v){
   if(!aid) return;
-  for(var i=0;i<applicants.length;i++){
-    if(applicants[i].id===aid){
-      if(!applicants[i].qn) applicants[i].qn={};
-      applicants[i].qn[qi]=v;
-      break;
-    }
-  }
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ if(!applicants[i].qn) applicants[i].qn={}; applicants[i].qn[qi]=v; break; }
   autoSave();
 }
-
 function updQ(i,v){ questions[i]=v; autoSave(); }
-function addQ(){ questions.push("New question — edit me."); renderQs(); autoSave(); }
+function addQ(){ questions.push("New question - edit me."); renderQs(); autoSave(); }
 function delQ(i){
   if(questions.length<=1){ alert('Need at least one question.'); return; }
-  if(!confirm('Delete Q'+(i+1)+'?')) return;
-  questions.splice(i,1);
-  for(var j=0;j<applicants.length;j++){
-    if(applicants[j].qs) delete applicants[j].qs[i];
-    if(applicants[j].qn) delete applicants[j].qn[i];
-  }
+  if(!confirm('Delete Q'+(i+1)+'?')) return; questions.splice(i,1);
+  for(var j=0;j<applicants.length;j++){ if(applicants[j].qs) delete applicants[j].qs[i]; if(applicants[j].qn) delete applicants[j].qn[i]; }
   renderQs(); autoSave();
 }
-function resetQs(){
-  if(!confirm('Reset to default 8 questions?')) return;
-  questions = DQS.slice();
-  renderQs(); autoSave();
-}
+function resetQs(){ if(!confirm('Reset?')) return; questions=DQS.slice(); renderQs(); autoSave(); }
 function onSwitchApp(){ renderQs(); autoSave(); }
 
 function updTot(){
-  var aid=E('qs-app').value||'';
-  var max=questions.length*5;
-  E('qs-max').textContent=max;
-  var tot=0;
-  if(aid){
-    for(var i=0;i<applicants.length;i++){
-      if(applicants[i].id===aid && applicants[i].qs){
-        Object.keys(applicants[i].qs).forEach(function(k){ tot+=parseInt(applicants[i].qs[k])||0; });
-      }
-    }
-  }
+  var aid=E('qs-app').value||''; var max=questions.length*5; E('qs-max').textContent=max; var tot=0;
+  if(aid){ for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid&&applicants[i].qs) Object.keys(applicants[i].qs).forEach(function(k){ tot+=parseInt(applicants[i].qs[k])||0; }); }
   E('qs-tot').textContent=tot;
 }
 
-// MATRIX
 function getIV(a){ var t=0; if(a.qs) Object.keys(a.qs).forEach(function(k){ t+=parseInt(a.qs[k])||0; }); return t; }
 function getTot(a){
-  return (parseInt(a.rn)||0)+(parseInt(a.ed)||0)+((a.acls===-1?0:(parseInt(a.acls)||0)))
-    +(parseInt(a.ms)||0)+(parseInt(a.uc)||0)+(parseInt(a.er)||0)
-    +(parseInt(a.rs)||0)+getIV(a);
+  var cols=profileColumns(); var t=0;
+  for(var i=0;i<cols.length;i++){ var cid=cols[i].id; var val=a[cid]; if(val!==undefined&&val!==null) t+=(cid==='acls'&&val===-1)?0:parseInt(val)||0; }
+  return t+getIV(a);
 }
+function getCS(a,cid){ if(cid==='acls'&&a[cid]===-1) return '-'; var v=a[cid]; return (v!==undefined&&v!==null)?v:0; }
 
 function renderMat(){
   var tb=E('mt-body'); var emp=E('mt-empty'); var tbl=E('mt-tbl');
   if(!tb||!emp||!tbl) return;
-  if(applicants.length===0){ emp.style.display='block'; tbl.style.display='none'; return; }
+  if(!activeProfileName||!positionProfiles[activeProfileName]){
+    emp.style.display='block'; emp.innerHTML='No position profile selected. Click <strong>Manage</strong> to create one first.'; tbl.style.display='none'; return;
+  }
+  if(applicants.length===0){ emp.style.display='block'; emp.innerHTML='No applicants yet. Click <strong>Add Applicant</strong>.'; tbl.style.display='none'; return; }
   emp.style.display='none'; tbl.style.display='table';
+  var cols=profileColumns(); var ivm=questions.length*5; var tm=profileColMax()+ivm;
+  var hh='<th>#</th><th>Applicant</th><th>Date</th>';
+  for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
+  hh+='<th>Interview<br><span class="mx">/'+ivm+'</span></th><th>Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
+  E('mt-header').innerHTML=hh;
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var h='';
   for(var i=0;i<sorted.length;i++){
-    var a=sorted[i];
-    var iv=getIV(a); var to=getTot(a);
-    h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td>'
-      +'<td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>'
-      +'<td>'+(a.rn||0)+'</td><td>'+(a.ed||0)+'</td>'
-      +'<td>'+(a.acls===-1?'—':(a.acls||0))+'</td>'
-      +'<td>'+(a.ms||0)+'</td><td>'+(a.uc||0)+'</td><td>'+(a.er||0)+'</td>'
-      +'<td>'+(a.rs||0)+'</td><td>'+iv+'</td><td class="tot">'+to+'</td>'
-      +'<td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td>'
-      +'<td class="np" style="display:flex;gap:4px">'
-      +'<button onclick="openModal(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">✏️</button>'
-      +'<button onclick="delApp(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">🗑️</button>'
-      +'</td></tr>';
+    var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
+    h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
+    for(var ci=0;ci<cols.length;ci++) h+='<td>'+getCS(a,cols[ci].id)+'</td>';
+    h+='<td>'+iv+'</td><td class="tot">'+to+'</td><td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td><td class="np" style="display:flex;gap:4px"><button onclick="openModal(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Edit</button><button onclick="delApp(\'' + a.id + '\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Del</button></td></tr>';
   }
-  tb.innerHTML=h;
-  var ivm=questions.length*5;
-  E('mt-ivm').textContent='/'+ivm;
-  E('mt-tm').textContent='/'+(15+5+ivm);
-  renderRecs();
+  tb.innerHTML=h; renderRecs();
 }
 
 function delApp(id){
-  if(!confirm('Delete applicant and all scores?')) return;
+  if(!confirm('Delete applicant?')) return;
   for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ applicants.splice(i,1); break; }
   renderAll(); autoSave();
 }
 
-// MODAL
+function renderModalFields(a){
+  var container=E('am-fields'); if(!container) return;
+  var fields=container.querySelectorAll('.pf'); fields.forEach(function(f){ f.parentNode.removeChild(f); });
+  var cols=profileColumns(); var ins=container.querySelector('.fw:last-child');
+  for(var ci=0;ci<cols.length;ci++){
+    var col=cols[ci]; var div=document.createElement('div'); div.className='pf';
+    var label=document.createElement('label'); label.className='lb'; label.textContent=col.label;
+    var select=document.createElement('select'); select.className='ii'; select.id='am-'+col.id;
+    if(col.opts&&col.opts.length>0){
+      for(var oi=0;oi<col.opts.length;oi++){
+        var opt=document.createElement('option');
+        var parts=col.opts[oi].split('=');
+        opt.value=parts.length>1?parts[0].trim():parts[0].trim();
+        opt.textContent=col.opts[oi];
+        select.appendChild(opt);
+      }
+      var hz=false; for(var oi=0;oi<select.options.length;oi++) if(parseInt(select.options[oi].value)===0) hz=true;
+      if(!hz&&col.max!==null&&col.max!==undefined){ var z=document.createElement('option'); z.value='0'; z.textContent='-'; select.insertBefore(z,select.firstChild); }
+    } else {
+      for(var v=0;v<=(col.max||5);v++){ var opt=document.createElement('option'); opt.value=String(v); opt.textContent=v===0?'-':String(v); select.appendChild(opt); }
+    }
+    if(a&&a[col.id]!==undefined) select.value=String(a[col.id]);
+    div.appendChild(label); div.appendChild(select); container.insertBefore(div, ins);
+  }
+}
+
 function openModal(id){
   E('am-title').textContent=id?'Edit Applicant':'Add Applicant';
   E('am-id').value=id||'';
   if(id){
-    var a=null;
-    for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ a=applicants[i]; break; }
-    if(a){
-      sv('am-n',a.name); sv('am-d',a.date||'');
-      sv('am-rn',a.rn||0); sv('am-ed',a.ed||0);
-      sv('am-acls',a.acls===undefined?-1:a.acls);
-      sv('am-ms',a.ms||0); sv('am-uc',a.uc||0); sv('am-er',a.er||0); sv('am-rs',a.rs||0);
-      sv('am-notes',a.notes||'');
-    }
-  }else{
-    ['am-n','am-d','am-notes'].forEach(function(x){ sv(x,''); });
-    ['am-rn','am-ed','am-ms','am-uc','am-er','am-rs'].forEach(function(x){ sv(x,0); });
-    sv('am-acls',-1);
-  }
+    for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ var a=applicants[i]; sv('am-n',a.name); sv('am-d',a.date||''); sv('am-notes',a.notes||''); break; }
+  } else { sv('am-n',''); sv('am-d',''); sv('am-notes',''); }
+  renderModalFields(id?findApp(id):null);
   E('app-modal').style.display='block';
 }
+function findApp(id){ for(var i=0;i<applicants.length;i++) if(applicants[i].id===id) return applicants[i]; return null; }
 
 function saveModal(){
-  var id=E('am-id').value;
-  var name=E('am-n').value.trim()||'Unnamed';
-  var obj={
-    name:name, date:E('am-d').value,
-    rn:parseInt(E('am-rn').value)||0, ed:parseInt(E('am-ed').value)||0,
-    acls:parseInt(E('am-acls').value)||0,
-    ms:parseInt(E('am-ms').value)||0, uc:parseInt(E('am-uc').value)||0,
-    er:parseInt(E('am-er').value)||0, rs:parseInt(E('am-rs').value)||0,
-    notes:E('am-notes').value, qs:{}, qn:{}
-  };
-  if(id){
-    for(var i=0;i<applicants.length;i++){
-      if(applicants[i].id===id){
-        obj.id=id; obj.qs=applicants[i].qs||{}; obj.qn=applicants[i].qn||{};
-        applicants[i]=obj; break;
-      }
-    }
-  }else{
-    obj.id='a_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);
-    applicants.push(obj);
-  }
+  var id=E('am-id').value; var name=E('am-n').value.trim()||'Unnamed';
+  var cols=profileColumns(); var obj={name:name,date:E('am-d').value,notes:E('am-notes').value,qs:{},qn:{}};
+  for(var ci=0;ci<cols.length;ci++){ var sel=document.getElementById('am-'+cols[ci].id); obj[cols[ci].id]=sel?parseInt(sel.value)||0:0; }
+  if(id){ for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ obj.id=id; obj.qs=applicants[i].qs||{}; obj.qn=applicants[i].qn||{}; applicants[i]=obj; break; } }
+  else { obj.id='a_'+Date.now()+'_'+Math.random().toString(36).substr(2,6); applicants.push(obj); }
   closeModal(); renderAll(); autoSave();
 }
 function closeModal(){ E('app-modal').style.display='none'; }
 
-// RECS
+function getMatScore(a){
+  var cols=profileColumns(); var t=0;
+  for(var i=0;i<cols.length;i++){ if(cols[i].id==='rs') continue; var val=a[cols[i].id]; if(val!==undefined&&val!==null) t+=(cols[i].id==='acls'&&val===-1)?0:parseInt(val)||0; }
+  return t;
+}
 function renderRecs(){
-  var tb=E('r-body');
-  if(!tb) return;
+  var tb=E('r-body'); if(!tb) return;
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
-  if(sorted.length===0){
-    tb.innerHTML='<tr><td style="color:var(--muted);font-size:.85rem" colspan="4">Auto-populates from Matrix</td></tr>';
-    return;
-  }
+  if(sorted.length===0){ tb.innerHTML='<tr><td style="color:var(--muted)" colspan="5">Auto-populates from Matrix</td></tr>'; return; }
   var h='';
-  for(var i=0;i<sorted.length;i++){
-    var iv=getIV(sorted[i]); var to=getTot(sorted[i]);
-    h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>';
-  }
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
   tb.innerHTML=h;
   if(sorted.length>0){ sv('r-sn',sorted[0].name); sv('r-ss',getTot(sorted[0])); }
   if(sorted.length>1){ sv('r-a1n',sorted[1].name); sv('r-a1s',getTot(sorted[1])); }
   if(sorted.length>2){ sv('r-a2n',sorted[2].name); sv('r-a2s',getTot(sorted[2])); }
+}
+
+// IMPORT / EXPORT
+function exportData(){
+  var d=state(); d._prof=positionProfiles; d._act=activeProfileName;
+  var json=JSON.stringify(d,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='interview-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+}
+
+function importData(){
+  var input=document.createElement('input'); input.type='file'; input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try {
+        var data=JSON.parse(ev.target.result);
+        if(!data.aa&&!data.qs){ alert('Invalid file.'); return; }
+        if(data.qs) questions=data.qs.slice();
+        if(data.aa) applicants=data.aa;
+        if(data._prof){ positionProfiles=data._prof; saveProfiles(); }
+        if(data._act&&positionProfiles[data._act]) activeProfileName=data._act;
+        fromSt(data); renderAll(); alert('Imported.');
+      } catch(e){ alert('Error: '+e.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -360,7 +360,7 @@ button.primary{border-radius:7px;font-weight:800}
 <div class="formgrid">
 <div><label>Room *</label><input id="vRoom" type="text" placeholder="Examples: 12, 12-A, A-204"></div><div class="span2"><label>Name *</label><input id="vName"></div><div><label>Last 4 *</label><input id="vLast4" maxlength="4"></div>
 <div><label>Level of Care</label><select id="vSpecialty"></select></div>
-<div><label>Floor Provider</label><select id="vProvider"></select></div><div><label>Admission Date</label><input id="vAdmission" type="date"></div><div><label>Days on Unit</label><input id="vDays" disabled></div>
+<div><label>Floor Provider</label><select id="vProvider"></select></div><div><label>Admission Date</label><input id="vAdmission" type="date"></div><div><label>Discharge Date</label><input id="vDischargeDate" type="date" placeholder="Leave blank if active"></div><div><label>Days on Unit</label><input id="vDays" disabled></div>
 <div><label>Record Status</label><select id="vStatus"><option value="Active">Active</option><option value="At Appointment">At Appointment</option><option value="Leave of Absence">Leave of Absence (AA)</option><option value="Hospital">Hospital (ASIH)</option><option value="Discharged / Archived">Discharged / Archived</option></select></div><div><label>Code Status</label><select id="vCode"><option></option><option>Full Code</option><option>Full-DNI</option><option>DNR</option><option>DNAR</option><option>Comfort Measures</option><option>See Current Orders</option></select></div>
 <div><label>Meds</label><select id="vMeds"></select></div>
 <div><label>Diet</label><select id="vDiet"></select></div>
@@ -858,7 +858,7 @@ function saveVeteran(){
  if(vWeightFrequency.value==='Weekly'&&!checkedDays('daysWeight').length){alert('Select at least one weekly weight day.');return}
  if(vFsbsFrequency.value==='Selected Days'&&vFsbsTimes.value.trim()&&!checkedDays('daysFsbs').length){alert('Select at least one FS/BS day, or choose Daily.');return}
  let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
- let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
+ let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,dischargeDate:vDischargeDate.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
 function toggleVeteranArchive(id){
@@ -1177,7 +1177,15 @@ function generateReport(){
     try {
  let date=reportDate.value||today();reportDate.value=date;
  let day=D[new Date(date+'T12:00:00').getDay()];
- let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>roomCompare(a.room,b.room));
+ 
+ // Historical filter
+ let vets = db.veterans.filter(v => {
+   if(v.status==='Discharged / Archived' && !v.dischargeDate) return false;
+   if(v.admission && v.admission > date) return false;
+   if(v.dischargeDate && v.dischargeDate <= date) return false;
+   return true;
+ }).slice().sort((a,b)=>roomCompare(a.room,b.room));
+
  let careCounts=Object.fromEntries(['EOL','LTC','SSR','RESP'].map(code=>[code,vets.filter(v=>String(veteranLevelOfCare(v)).toUpperCase().startsWith(code)).length]));
  let ap=db.appointments.filter(a=>a.date===date&&a.status!=='Cancelled').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
  let s=db.staff[date]||{day:{},night:{}};
@@ -1211,6 +1219,11 @@ function generateReport(){
  ${blockReference}</div>
  <div class="care-grid"><div class="compact-card"><h3>Skin</h3><div class="body">${due('skin').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Weights</h3><div class="body">${due('weight').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}<br>${esc(v.weightMethod||'Method not entered')}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Vitals</h3><div class="body">${due('vitals').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Day Showers</h3><div class="body">${due('shower').filter(v=>v.showerShift!=='Night').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="compact-card"><h3>Night Showers</h3><div class="body">${due('shower').filter(v=>v.showerShift==='Night').map(v=>`Rm ${esc(v.room)} — ${esc(v.name)}`).join('<br>')||'None'}</div></div><div class="notes-sign"><div class="compact-card"><h3>Shift Change Notes</h3><div class="notes-box"></div></div><div class="compact-card"><h3>Charge RN Signatures</h3><div class="signatures"><div class="signature">Day / Date-Time</div><div class="signature">Night / Date-Time</div></div></div></div>
  </div>`
+
+ // Save snapshot for today
+ if(date === today()){
+   saveReportSnapshot(date, vets, s);
+ }
     } catch (e) {
         console.error("Morning report generation failed:", e.message);
         alert("Error generating morning report. Please check console for details.");
@@ -2003,6 +2016,35 @@ try {
 
 
 
+
+function saveReportSnapshot(date, vets, s){
+ if(!vets) return;
+ db.snapshots = db.snapshots || {};
+ if(db.snapshots[date]) return; // already saved
+ db.snapshots[date] = {veterans:[], staff:{}};
+ // Deep copy veterans (key fields only)
+ var copy = [];
+ for(var i=0;i<vets.length;i++){
+   var v = vets[i];
+   copy.push({
+     id: v.id, room: v.room, name: v.name, last4: v.last4,
+     status: v.status, levelOfCare: v.levelOfCare, specialty: v.specialty,
+     floorProvider: v.floorProvider, providerId: v.providerId,
+     admission: v.admission, dischargeDate: v.dischargeDate,
+     meds: v.meds, diet: v.diet, isolation: v.isolation,
+     assist: v.assist, mobility: v.mobility, fallRisk: v.fallRisk,
+     toileting: v.toileting, sideRails: v.sideRails,
+     notes: v.notes, fsbsTimes: v.fsbsTimes,
+     fsbsFrequency: v.fsbsFrequency, weightFrequency: v.weightFrequency,
+     weightMethod: v.weightMethod, schedules: v.schedules,
+     showerShift: v.showerShift, labsDate: v.labsDate,
+     vaeaStart: v.vaeaStart, vaeaEnd: v.vaeaEnd, vaeaDone: v.vaeaDone,
+     codeStatus: v.codeStatus, _updatedAt: v._updatedAt
+   });
+ }
+ db.snapshots[date] = {veterans: copy, staff: JSON.parse(JSON.stringify(s||{}))};
+ persist();
+}
 </script>
 <div class="no-print" style="text-align:center;font-size:10px;color:#999;padding:10px 20px;border-top:1px solid #ddd;margin-top:10px">PHI per VA policy. PHI is on S: Drive.</div>
 </body></html>
