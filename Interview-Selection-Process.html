@@ -273,33 +273,20 @@ var applicants = [];
 var SK = 'ip_data';
 
 // POSITION PROFILES
-var DEFAULT_PROFILES = {
-  "Acute Care RN": {
-    columns: [
-      { id: "rn", label: "RN Exp", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
-      { id: "ed", label: "Education", max: 3, opts: ["Associates = 1","BSN = 2","MSN+ = 3"] },
-      { id: "acls", label: "ACLS/BLS", max: null, opts: ["N/A","Yes = 1","No = 0"] },
-      { id: "ms", label: "MED/SURG", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
-      { id: "uc", label: "Urgent Care", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
-      { id: "er", label: "ER", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
-      { id: "rs", label: "Resume", max: 5, opts: ["1","2","3","4","5"] }
-    ]
-  }
-};
-
 var positionProfiles = {};
-var activeProfileName = 'Acute Care RN';
+var activeProfileName = '';
 var editingProfileName = '';
 
 function getProfile(name){
   return positionProfiles[name] || null;
 }
 function activeProfile(){
-  return positionProfiles[activeProfileName] || DEFAULT_PROFILES["Acute Care RN"];
+  return positionProfiles[activeProfileName] || null;
 }
 function profileColumns(){
   var p = activeProfile();
-  return p ? (p.columns || []) : [];
+  if(!p) return [];
+  return p.columns || [];
 }
 function profileColMax(){
   var cols = profileColumns();
@@ -318,11 +305,9 @@ function loadProfiles(){
     var d = localStorage.getItem(SK+'_profiles');
     if(d) positionProfiles = JSON.parse(d);
     var a = localStorage.getItem(SK+'_active');
-    if(a && (positionProfiles[a] || DEFAULT_PROFILES[a])) activeProfileName = a;
+    if(a && positionProfiles[a]) activeProfileName = a;
   } catch(e){}
-  Object.keys(DEFAULT_PROFILES).forEach(function(k){
-    if(!positionProfiles[k]) positionProfiles[k] = JSON.parse(JSON.stringify(DEFAULT_PROFILES[k]));
-  });
+
 }
 loadProfiles();
 
@@ -344,7 +329,6 @@ function renderProfileSelect(){
   var sel = document.getElementById('profile-select');
   if(!sel) return;
   var names = Object.keys(positionProfiles);
-  if(names.length === 0) names = Object.keys(DEFAULT_PROFILES);
   var h = '';
   for(var i=0;i<names.length;i++){
     h += '<option value="'+esc(names[i])+'"'+(names[i]===activeProfileName?' selected':'')+'>'+esc(names[i])+'</option>';
@@ -353,9 +337,9 @@ function renderProfileSelect(){
 }
 
 function switchProfile(name){
-  if(!positionProfiles[name] && !DEFAULT_PROFILES[name]) return;
+  if(!positionProfiles[name]) return;
   activeProfileName = name;
-  if(!positionProfiles[name]) positionProfiles[name] = JSON.parse(JSON.stringify(DEFAULT_PROFILES[name]));
+
   saveProfiles();
   renderAll();
 }
@@ -382,9 +366,7 @@ function renderProfileList(){
     h += '<span style="flex:1;font-weight:'+(isActive?'700':'400')+'">'+esc(names[i])+'</span>';
     h += '<button class="btn btn-sm btn-out" onclick="editProfileColumns(\''+esc(names[i])+'\')">Edit Columns</button>';
     h += '<button class="btn btn-sm btn-out" onclick="renameProfile(\''+esc(names[i])+'\')">Rename</button>';
-    if(!DEFAULT_PROFILES[names[i]]){
-      h += '<button class="btn btn-sm btn-dan" onclick="deleteProfile(\''+esc(names[i])+'\')">Delete</button>';
-    }
+    h += '<button class="btn btn-sm btn-dan" onclick="deleteProfile(\''+esc(names[i])+'\')">Delete</button>';
     h += '</div>';
   }
   h += '</div>';
@@ -421,12 +403,11 @@ function renameProfile(name){
 }
 
 function deleteProfile(name){
-  if(DEFAULT_PROFILES[name]){ alert('Default profiles cannot be deleted.'); return; }
   if(!confirm('Delete profile "'+name+'"?')) return;
   delete positionProfiles[name];
   if(activeProfileName === name){
     var keys = Object.keys(positionProfiles);
-    activeProfileName = keys[0] || 'Acute Care RN';
+    activeProfileName = keys[0] || '';
   }
   saveProfiles();
   renderAll();
@@ -635,7 +616,7 @@ function fromSt(s){
   sv('r-m1n', s.m1n); sv('r-m1s', s.m1s); sv('r-m1d', s.m1d);
   sv('r-m2n', s.m2n); sv('r-m2s', s.m2s); sv('r-m2d', s.m2d);
   sv('r-m3n', s.m3n); sv('r-m3s', s.m3s); sv('r-m3d', s.m3d);
-  if(s._activeProfile && (positionProfiles[s._activeProfile] || DEFAULT_PROFILES[s._activeProfile])){
+  if(s._activeProfile && positionProfiles[s._activeProfile]){
     activeProfileName = s._activeProfile;
   }
 }
@@ -922,6 +903,13 @@ function getColScore(a, cid){
 function renderMat(){
   var tb=E('mt-body'); var emp=E('mt-empty'); var tbl=E('mt-tbl');
   if(!tb||!emp||!tbl) return;
+  // If no active profile, show message
+  if(!activeProfileName || !positionProfiles[activeProfileName]){
+    emp.style.display='block';
+    emp.innerHTML='No position profile selected. Click <strong>\u2699\ufe0f Manage</strong> to create one first.';
+    tbl.style.display='none';
+    return;
+  }
   if(applicants.length===0){ emp.style.display='block'; tbl.style.display='none'; return; }
   emp.style.display='none'; tbl.style.display='table';
   var cols = profileColumns();
