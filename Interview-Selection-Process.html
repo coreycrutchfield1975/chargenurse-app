@@ -75,8 +75,8 @@ textarea.ii{resize:vertical;min-height:60px}
 <div class="hdr">
   <h1>📋 Interview Selection Process</h1>
   <div class="ha np">
-    <button onclick="saveAll()">💾 Save</button>
-    <button onclick="loadSaved()">📂 Load</button>
+    <button onclick="exportData()">📤 Export</button>
+    <button onclick="importData()">📥 Import</button>
     <button onclick="doClear()">🗑️ Clear</button>
     <button onclick="printQs()" style="background:rgba(16,185,129,.6)">🖨️ Print Applicant Qs</button>
     <button onclick="printMat()" style="background:rgba(16,185,129,.6)">🖨️ Print Matrix</button>
@@ -285,17 +285,241 @@ var questions = [];
 var applicants = [];
 var SK = 'ip_data';
 
+// POSITION PROFILES
+var DEFAULT_PROFILES = {
+  "Acute Care RN": {
+    columns: [
+      { id: "rn", label: "RN Exp", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
+      { id: "ed", label: "Education", max: 3, opts: ["Associates = 1","BSN = 2","MSN+ = 3"] },
+      { id: "acls", label: "ACLS/BLS", max: null, opts: ["N/A","Yes = 1","No = 0"] },
+      { id: "ms", label: "MED/SURG", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
+      { id: "uc", label: "Urgent Care", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
+      { id: "er", label: "ER", max: 3, opts: ["1-5 yrs = 1","5-10 yrs = 2","10+ yrs = 3"] },
+      { id: "rs", label: "Resume", max: 5, opts: ["1","2","3","4","5"] }
+    ]
+  }
+};
+
+var positionProfiles = {};
+var activeProfileName = 'Acute Care RN';
+var editingProfileName = '';
+
+function getProfile(name){
+  return positionProfiles[name] || null;
+}
+function activeProfile(){
+  return positionProfiles[activeProfileName] || DEFAULT_PROFILES["Acute Care RN"];
+}
+function profileColumns(){
+  var p = activeProfile();
+  return p ? (p.columns || []) : [];
+}
+function profileColMax(){
+  var cols = profileColumns();
+  var t = 0;
+  for(var i=0;i<cols.length;i++){
+    if(cols[i].max !== null && cols[i].max !== undefined) t += parseInt(cols[i].max)||0;
+  }
+  return t;
+}
+function saveProfiles(){
+  localStorage.setItem(SK+'_profiles', JSON.stringify(positionProfiles));
+  localStorage.setItem(SK+'_active', activeProfileName);
+}
+function loadProfiles(){
+  try {
+    var d = localStorage.getItem(SK+'_profiles');
+    if(d) positionProfiles = JSON.parse(d);
+    var a = localStorage.getItem(SK+'_active');
+    if(a && (positionProfiles[a] || DEFAULT_PROFILES[a])) activeProfileName = a;
+  } catch(e){}
+  Object.keys(DEFAULT_PROFILES).forEach(function(k){
+    if(!positionProfiles[k]) positionProfiles[k] = JSON.parse(JSON.stringify(DEFAULT_PROFILES[k]));
+  });
+}
+loadProfiles();
+
 function init(){
   questions = DQS.slice();
   loadFromStore();
   renderAll();
 }
-
 function renderAll(){
   renderApps();
   renderQs();
   renderMat();
   renderRecs();
+  renderProfileSelect();
+}
+
+// PROFILE MANAGEMENT
+function renderProfileSelect(){
+  var sel = document.getElementById('profile-select');
+  if(!sel) return;
+  var names = Object.keys(positionProfiles);
+  if(names.length === 0) names = Object.keys(DEFAULT_PROFILES);
+  var h = '';
+  for(var i=0;i<names.length;i++){
+    h += '<option value="'+esc(names[i])+'"'+(names[i]===activeProfileName?' selected':'')+'>'+esc(names[i])+'</option>';
+  }
+  sel.innerHTML = h;
+}
+
+function switchProfile(name){
+  if(!positionProfiles[name] && !DEFAULT_PROFILES[name]) return;
+  activeProfileName = name;
+  if(!positionProfiles[name]) positionProfiles[name] = JSON.parse(JSON.stringify(DEFAULT_PROFILES[name]));
+  saveProfiles();
+  renderAll();
+}
+
+function openProfileManager(){
+  renderProfileList();
+  editingProfileName = activeProfileName;
+  renderColumnEditor();
+  document.getElementById('profile-modal').style.display = 'block';
+}
+
+function closeProfileManager(){
+  document.getElementById('profile-modal').style.display = 'none';
+}
+
+function renderProfileList(){
+  var list = document.getElementById('profile-list');
+  if(!list) return;
+  var names = Object.keys(positionProfiles);
+  var h = '<div style="display:flex;flex-direction:column;gap:4px">';
+  for(var i=0;i<names.length;i++){
+    var isActive = names[i] === activeProfileName;
+    h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:'+(isActive?'rgba(13,110,253,.04)':'transparent')+'">';
+    h += '<span style="flex:1;font-weight:'+(isActive?'700':'400')+'">'+esc(names[i])+'</span>';
+    h += '<button class="btn btn-sm btn-out" onclick="editProfileColumns(\''+esc(names[i])+'\')">Edit Columns</button>';
+    h += '<button class="btn btn-sm btn-out" onclick="renameProfile(\''+esc(names[i])+'\')">Rename</button>';
+    if(!DEFAULT_PROFILES[names[i]]){
+      h += '<button class="btn btn-sm btn-dan" onclick="deleteProfile(\''+esc(names[i])+'\')">Delete</button>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+  list.innerHTML = h;
+}
+
+function addProfile(){
+  var name = document.getElementById('new-profile-name').value.trim();
+  if(!name){ alert('Enter a profile name.'); return; }
+  if(positionProfiles[name]){ alert('Profile already exists.'); return; }
+  positionProfiles[name] = { columns: [
+    { id: 'c1', label: 'Criteria 1', max: 5, opts: ['1','2','3','4','5'] },
+    { id: 'c2', label: 'Criteria 2', max: 5, opts: ['1','2','3','4','5'] },
+    { id: 'c3', label: 'Criteria 3', max: 5, opts: ['1','2','3','4','5'] },
+    { id: 'c4', label: 'Criteria 4', max: 5, opts: ['1','2','3','4','5'] },
+    { id: 'rs', label: 'Resume', max: 5, opts: ['1','2','3','4','5'] }
+  ]};
+  saveProfiles();
+  document.getElementById('new-profile-name').value = '';
+  renderProfileList();
+  renderProfileSelect();
+}
+
+function renameProfile(name){
+  var newName = prompt('Rename "'+name+'" to:', name);
+  if(!newName || newName === name) return;
+  newName = newName.trim();
+  if(positionProfiles[newName]){ alert('Profile "'+newName+'" already exists.'); return; }
+  positionProfiles[newName] = positionProfiles[name];
+  delete positionProfiles[name];
+  if(activeProfileName === name) activeProfileName = newName;
+  saveProfiles();
+  renderAll();
+}
+
+function deleteProfile(name){
+  if(DEFAULT_PROFILES[name]){ alert('Default profiles cannot be deleted.'); return; }
+  if(!confirm('Delete profile "'+name+'"?')) return;
+  delete positionProfiles[name];
+  if(activeProfileName === name){
+    var keys = Object.keys(positionProfiles);
+    activeProfileName = keys[0] || 'Acute Care RN';
+  }
+  saveProfiles();
+  renderAll();
+}
+
+function editProfileColumns(name){
+  editingProfileName = name;
+  renderColumnEditor();
+}
+
+function renderColumnEditor(){
+  var title = document.getElementById('ce-title');
+  var list = document.getElementById('ce-columns');
+  if(!title || !list) return;
+  var prof = positionProfiles[editingProfileName];
+  if(!prof){
+    editingProfileName = activeProfileName;
+    prof = positionProfiles[editingProfileName];
+  }
+  title.textContent = editingProfileName;
+  if(!prof || !prof.columns){ list.innerHTML = '<p class="muted">No columns defined.</p>'; return; }
+  var h = '<div style="display:flex;flex-direction:column;gap:4px">';
+  for(var i=0;i<prof.columns.length;i++){
+    var col = prof.columns[i];
+    h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px">';
+    h += '<span style="font-weight:600;min-width:120px">'+esc(col.label)+'</span>';
+    h += '<span class="muted">max: '+(col.max===null||col.max===undefined?'X':col.max)+'</span>';
+    h += '<input type="text" value="'+esc(col.label)+'" style="flex:1;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.78rem" placeholder="Label" onchange="updateColLabel(\''+esc(editingProfileName)+'\','+i+',this.value)">';
+    h += '<input type="number" value="'+(col.max||'')+'" style="width:60px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.78rem" placeholder="Max" min="0" onchange="updateColMax(\''+esc(editingProfileName)+'\','+i+',this.value)">';
+    if(prof.columns.length > 1){
+      h += '<button class="btn btn-sm btn-dan" onclick="deleteColumn(\''+esc(editingProfileName)+'\','+i+')">X</button>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+  list.innerHTML = h;
+}
+
+function updateColLabel(profName, idx, val){
+  var prof = positionProfiles[profName];
+  if(!prof || !prof.columns[idx]) return;
+  prof.columns[idx].label = val;
+  saveProfiles();
+  renderAll();
+}
+
+function updateColMax(profName, idx, val){
+  var prof = positionProfiles[profName];
+  if(!prof || !prof.columns[idx]) return;
+  prof.columns[idx].max = val === '' ? null : parseInt(val)||0;
+  saveProfiles();
+  renderAll();
+}
+
+function addColumn(){
+  var prof = positionProfiles[editingProfileName];
+  if(!prof) return;
+  var label = document.getElementById('ce-new-label').value.trim();
+  if(!label){ alert('Enter a column label.'); return; }
+  var max = parseInt(document.getElementById('ce-new-max').value) || 5;
+  var id = 'col_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
+  var opts = [];
+  for(var v=1;v<=max;v++) opts.push(String(v));
+  prof.columns.push({ id: id, label: label, max: max, opts: opts });
+  document.getElementById('ce-new-label').value = '';
+  document.getElementById('ce-new-max').value = '';
+  saveProfiles();
+  renderColumnEditor();
+  renderAll();
+}
+
+function deleteColumn(profName, idx){
+  var prof = positionProfiles[profName];
+  if(!prof || !prof.columns[idx]) return;
+  if(prof.columns.length <= 1){ alert('Need at least one column.'); return; }
+  if(!confirm('Delete "'+prof.columns[idx].label+'" column?')) return;
+  prof.columns.splice(idx, 1);
+  saveProfiles();
+  renderColumnEditor();
+  renderAll();
 }
 
 // HELPERS
@@ -311,7 +535,7 @@ function esc(s){
 // STORAGE
 function state(){
   var u = document.querySelector('input[name="union"]:checked');
-  return {
+  var s = {
     qs: questions, aa: applicants, intro: gv('intro'),
     u: u ? u.value : '', ur: gv('u-rep'),
     rd: gv('r-d'), rp: gv('r-p'), rpn: gv('r-pn'),
@@ -324,11 +548,69 @@ function state(){
     m2n: gv('r-m2n'), m2s: gv('r-m2s'), m2d: gv('r-m2d'),
     m3n: gv('r-m3n'), m3s: gv('r-m3s'), m3d: gv('r-m3d')
   };
+  s._activeProfile = activeProfileName;
+  s._profiles = positionProfiles;
+  return s;
 }
 
 function toSt(k){ localStorage.setItem(k, JSON.stringify(state())); }
 function autoSave(){ toSt(SK+'_d'); }
-function saveAll(){ toSt(SK); alert('Saved!'); }
+// IMPORT / EXPORT
+function exportData(){
+  var data = state();
+  data._profiles = positionProfiles;
+  data._activeProfile = activeProfileName;
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'interview-data-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+  alert('Exported!');
+}
+
+function importData(){
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var data = JSON.parse(ev.target.result);
+        if(!data.aa && !data.qs){ alert('Invalid interview data file.'); return; }
+        if(data.qs) questions = data.qs.slice();
+        if(data.aa) applicants = data.aa;
+        if(data._profiles){
+          positionProfiles = data._profiles;
+          saveProfiles();
+        }
+        if(data._activeProfile) activeProfileName = data._activeProfile;
+        fromSt(data);
+        saveAll();
+        renderAll();
+        alert('Imported!');
+      } catch(e){
+        alert('Error reading file: ' + e.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function saveAll(){
+  toSt(SK);
+  alert('Saved!');
+}
 
 function loadSaved(){
   var d=localStorage.getItem(SK);
@@ -366,6 +648,9 @@ function fromSt(s){
   sv('r-m1n', s.m1n); sv('r-m1s', s.m1s); sv('r-m1d', s.m1d);
   sv('r-m2n', s.m2n); sv('r-m2s', s.m2s); sv('r-m2d', s.m2d);
   sv('r-m3n', s.m3n); sv('r-m3s', s.m3s); sv('r-m3d', s.m3d);
+  if(s._activeProfile && (positionProfiles[s._activeProfile] || DEFAULT_PROFILES[s._activeProfile])){
+    activeProfileName = s._activeProfile;
+  }
 }
 
 // TABS
@@ -376,7 +661,7 @@ function showTab(id, btn){
   if(btn) btn.classList.add('act');
 }
 
-// PRINT (uses hidden iframe — no popup blocker issues)
+// PRINT
 function printHTML(title, bodyHTML){
   var iframe=document.createElement('iframe');
   iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
@@ -413,7 +698,6 @@ function printHTML(title, bodyHTML){
   doc.close();
   setTimeout(function(){
     iframe.contentWindow.print();
-    // Remove iframe after print dialog closes
     setTimeout(function(){ document.body.removeChild(iframe); }, 100);
   }, 300);
 }
@@ -424,22 +708,19 @@ function printQs(){
   for(var ai=0;ai<applicants.length;ai++){
     var a=applicants[ai];
     if(ai>0) h+='<div class="pb"></div>';
-    // WORD DOC HEADER: Applicant name + interview date
     h+='<h1 class="h1">Interview Selection Process Report</h1>'+
       '<p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date of Interview:</strong> '+esc(a.date||'__________')+'</p>';
-    // LIKERT SCALE INSTRUCTIONS
     h+='<div class="sec"><h2>Instructions for Using Rating Scale</h2>'+
       '<p style="font-size:12px;margin:6px 0;line-height:1.5">Rate each response from 1 (Not adequate) to 5 (Far exceeds). '+
-      'Select the rating that best describes the applicant\'s response. Use the guide below:</p>'+
+      'Select the rating that best describes the applicant response. Use the guide below:</p>'+
       '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">'+
       '<tr><th style="width:8%">Score</th><th>Definition</th></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fef2f2">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate — Response does not demonstrate the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fff7ed">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate — Response partially demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fefce8">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable — Response adequately demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#f0fdf4">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable — Response clearly demonstrates the skill or behavior</td></tr>'+
-      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#eff6ff">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds — Response strongly demonstrates the skill or behavior</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fef2f2">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fff7ed">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#fefce8">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#f0fdf4">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable</td></tr>'+
+      '<tr><td style="text-align:center;font-weight:700;padding:4px;border:1px solid #bbb;background:#eff6ff">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds</td></tr>'+
       '</table></div>';
-    // QUESTIONS TABLE matching Word doc format
     h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px">'+
       '<thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:left">Question</th>'+
       '<th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th>'+
@@ -462,28 +743,34 @@ function printQs(){
 
 function printMat(){
   if(applicants.length===0){ alert('No applicants in matrix.'); return; }
+  var cols = profileColumns();
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var ivm=questions.length*5;
-  var tm=15+5+ivm;
-  var h='<h1 class="h1">📊 Applicant Scoring Matrix</h1>'+
-    '<table><thead><tr><th>#</th><th>Applicant</th><th>Date</th><th>RN Exp</th><th>Educ</th><th>ACLS</th><th>MED/SURG</th><th>UC/Triage</th><th>ER</th><th>Resume</th><th>Interview</th><th>Total</th></tr></thead><tbody>';
+  var pMax = profileColMax();
+  var tm = pMax + ivm;
+  var h='<h1 class="h1">Scoring Matrix - '+esc(activeProfileName)+'</h1>'+
+    '<table><thead><tr><th>#</th><th>Applicant</th><th>Date</th>';
+  for(var ci=0;ci<cols.length;ci++){
+    h+='<th>'+esc(cols[ci].label)+(cols[ci].max!==null&&cols[ci].max!==undefined?'<br><span style="font-weight:400;font-size:10px">/'+cols[ci].max+'</span>':'')+'</th>';
+  }
+  h+='<th>Interview</th><th>Total</th></tr></thead><tbody>';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
-    h+='<tr><td>'+(i===0?'★':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>'+
-      '<td>'+(a.rn||0)+'</td><td>'+(a.ed||0)+'</td><td>'+(a.acls===-1?'—':(a.acls||0))+'</td>'+
-      '<td>'+(a.ms||0)+'</td><td>'+(a.uc||0)+'</td><td>'+(a.er||0)+'</td><td>'+(a.rs||0)+'</td>'+
-      '<td>'+iv+'</td><td class="tot">'+to+'/'+tm+'</td></tr>';
+    h+='<tr><td>'+(i===0?'*':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
+    for(var ci=0;ci<cols.length;ci++){
+      var val = a[cols[ci].id];
+      if(val === undefined || val === null) val = 0;
+      h += '<td>'+(val===-1?'-':val)+'</td>';
+    }
+    h+='<td>'+iv+'</td><td class="tot">'+to+'/'+tm+'</td></tr>';
   }
-  h+='</tbody></table>'+
-    '<div class="sec"><h2>📋 Scoring Criteria</h2>'+
-    '<div class="cat"><b>RN Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Education</b> Associates = 1 &nbsp;|&nbsp; BSN = 2 &nbsp;|&nbsp; MSN or higher = 3</div>'+
-    '<div class="cat"><b>ACLS/BLS</b> Yes = 1 &nbsp;|&nbsp; No = 0 &nbsp;|&nbsp; N/A</div>'+
-    '<div class="cat"><b>MED/SURG Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Urgent Care / Triage</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>ER Experience</b> 1-5 yrs = 1 &nbsp;|&nbsp; 5-10 yrs = 2 &nbsp;|&nbsp; 10+ yrs = 3</div>'+
-    '<div class="cat"><b>Resume Score</b> 1 through 5</div>'+
-    '<div class="cat"><b>Interview Score</b> Based on '+(questions.length)+' questions, max '+ivm+' points (1-5 per question)</div>'+
+  h+='</tbody></table>';
+  h+='<div class="sec"><h2>Scoring Criteria - '+esc(activeProfileName)+'</h2>';
+  for(var ci=0;ci<cols.length;ci++){
+    var c=cols[ci];
+    h+='<div class="cat"><b>'+esc(c.label)+'</b> '+(c.opts?c.opts.map(function(o){return esc(o);}).join(' | '):'Score 1-'+(c.max||5))+'</div>';
+  }
+  h+='<div class="cat"><b>Interview Score</b> Based on '+(questions.length)+' questions, max '+ivm+' points (1-5 per question)</div>'+
     '</div>'+
     '<div class="sec"><h2>General Scoring Scale</h2>'+
     '<div class="def"><div>1<br><span style="font-size:10px;color:#888">Not adequate</span></div>'+
@@ -496,8 +783,8 @@ function printMat(){
 
 function printRec(){
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
-  var h='<h1 class="h1">✅ Interview Panel Recommendations</h1>'+
-    '<p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(gv('r-p')||'__________')+' &nbsp; <strong># of Positions:</strong> '+esc(gv('r-pn')||'__________')+'</p>'+
+  var h='<h1 class="h1">Interview Panel Recommendations</h1>'+
+    '<p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(activeProfileName)+' &nbsp; <strong># of Positions:</strong> '+esc(gv('r-pn')||'__________')+'</p>'+
     '<p style="font-size:12px;font-style:italic;color:#555">With fair and unbiased judgement based on the responses provided by the applicants for the above position the interview panel recommends:</p>'+
     '<table><thead><tr><th>Candidate</th><th>Interview Score</th><th>Resume Score</th><th>Total</th></tr></thead><tbody>';
   for(var i=0;i<sorted.length;i++){
@@ -505,9 +792,9 @@ function printRec(){
     h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>';
   }
   h+='</tbody></table>';
-  if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">☐ It is the opinion of the interview panel that no selection should be made.</p>';
+  if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">No selection should be made.</p>';
   h+='<div class="sec"><h3 style="color:#0d6efd">Selected (Rank Order)</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>'+
-    '<div class="sec"><h3 style="color:#555">Alternatives</h3><p style="font-size:13px">'+esc(gv('r-a1n')||'__________')+' — '+esc(gv('r-a1s')||'__________')+'<br>'+esc(gv('r-a2n')||'__________')+' — '+esc(gv('r-a2s')||'__________')+'</p></div>'+
+    '<div class="sec"><h3 style="color:#555">Alternatives</h3><p style="font-size:13px">'+esc(gv('r-a1n')||'__________')+' - '+esc(gv('r-a1s')||'__________')+'<br>'+esc(gv('r-a2n')||'__________')+' - '+esc(gv('r-a2s')||'__________')+'</p></div>'+
     '<div class="sig"><h3 style="color:#0d6efd;font-size:14px">Signatures</h3>'+
     '<div class="sig-line"><span>Panel Chair:</span> '+esc(gv('r-cn')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-cs')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-cd')||'__________')+'</div>'+
     '<div class="sig-line"><span>Panel Member:</span> '+esc(gv('r-m1n')||'__________')+' &nbsp;&nbsp; Sig: '+esc(gv('r-m1s')||'__________')+' &nbsp;&nbsp; Date: '+esc(gv('r-m1d')||'__________')+'</div>'+
@@ -521,14 +808,14 @@ function renderApps(){
   var sel=E('qs-app');
   if(!sel) return;
   if(applicants.length===0){
-    sel.innerHTML='<option value="">— No applicants —</option>';
+    sel.innerHTML='<option value="">- No applicants -</option>';
     E('qs-empty').style.display='block';
     E('qs-wrap').style.display='none';
     return;
   }
   E('qs-empty').style.display='none';
   E('qs-wrap').style.display='block';
-  var h='<option value="">— Select —</option>';
+  var h='<option value="">- Select -</option>';
   for(var i=0;i<applicants.length;i++){
     h+='<option value="'+applicants[i].id+'">'+esc(applicants[i].name)+(applicants[i].date?' ('+esc(applicants[i].date)+')':'')+'</option>';
   }
@@ -542,7 +829,7 @@ function renderQs(){
   var aid=E('qs-app').value||'';
   var app=null;
   for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ app=applicants[i]; break; }
-  if(applicants.length>0 && !app){ /* was deleted, reset select */ }
+  if(applicants.length>0 && !app){}
   var h='';
   for(var i=0;i<questions.length;i++){
     var sc=app&&app.qs ? (app.qs[i]||0) : 0;
@@ -550,7 +837,7 @@ function renderQs(){
     h+='<div class="qb">'
       +'<div class="np" style="display:flex;justify-content:space-between">'
       +'<span class="qn">Q'+(i+1)+'</span>'
-      +'<button class="btn btn-dan btn-sm" onclick="delQ('+i+')">🗑️</button></div>'
+      +'<button class="btn btn-dan btn-sm" onclick="delQ('+i+')">Delete</button></div>'
       +'<textarea class="ii" style="min-height:50px;margin-bottom:4px" oninput="updQ('+i+',this.value)">'+esc(questions[i])+'</textarea>'
       +'<div class="sr">';
     for(var v=1;v<=5;v++){
@@ -591,7 +878,7 @@ function setQn(aid,qi,v){
 }
 
 function updQ(i,v){ questions[i]=v; autoSave(); }
-function addQ(){ questions.push("New question — edit me."); renderQs(); autoSave(); }
+function addQ(){ questions.push("New question - edit me."); renderQs(); autoSave(); }
 function delQ(i){
   if(questions.length<=1){ alert('Need at least one question.'); return; }
   if(!confirm('Delete Q'+(i+1)+'?')) return;
@@ -627,9 +914,22 @@ function updTot(){
 // MATRIX
 function getIV(a){ var t=0; if(a.qs) Object.keys(a.qs).forEach(function(k){ t+=parseInt(a.qs[k])||0; }); return t; }
 function getTot(a){
-  return (parseInt(a.rn)||0)+(parseInt(a.ed)||0)+((a.acls===-1?0:(parseInt(a.acls)||0)))
-    +(parseInt(a.ms)||0)+(parseInt(a.uc)||0)+(parseInt(a.er)||0)
-    +(parseInt(a.rs)||0)+getIV(a);
+  var cols = profileColumns();
+  var t = 0;
+  for(var ci=0;ci<cols.length;ci++){
+    var cid = cols[ci].id;
+    var val = a[cid];
+    if(val !== undefined && val !== null){
+      t += (cid==='acls' && val===-1) ? 0 : parseInt(val)||0;
+    }
+  }
+  t += getIV(a);
+  return t;
+}
+function getColScore(a, cid){
+  if(cid==='acls' && a[cid]===-1) return '-';
+  var val = a[cid];
+  return (val!==undefined && val!==null) ? val : 0;
 }
 
 function renderMat(){
@@ -637,27 +937,42 @@ function renderMat(){
   if(!tb||!emp||!tbl) return;
   if(applicants.length===0){ emp.style.display='block'; tbl.style.display='none'; return; }
   emp.style.display='none'; tbl.style.display='table';
+  var cols = profileColumns();
+  var ivm=questions.length*5;
+  var pMax = profileColMax();
+  var tm = pMax + ivm;
+  var headerRow = E('mt-header');
+  if(headerRow){
+    var hh = '<th>#</th><th>Applicant</th><th>Date</th>';
+    for(var ci=0;ci<cols.length;ci++){
+      hh += '<th>'+esc(cols[ci].label)+
+        (cols[ci].max!==null&&cols[ci].max!==undefined?'<br><span class="mx">/'+cols[ci].max+'</span>':'')+'</th>';
+    }
+    hh += '<th>Interview<br><span class="mx">/'+ivm+'</span></th>'+
+      '<th>Total<br><span class="mx">/'+tm+'</span></th>'+
+      '<th>Notes</th><th class="np"></th>';
+    headerRow.innerHTML = hh;
+  }
   var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var h='';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i];
     var iv=getIV(a); var to=getTot(a);
     h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td>'
-      +'<td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>'
-      +'<td>'+(a.rn||0)+'</td><td>'+(a.ed||0)+'</td>'
-      +'<td>'+(a.acls===-1?'—':(a.acls||0))+'</td>'
-      +'<td>'+(a.ms||0)+'</td><td>'+(a.uc||0)+'</td><td>'+(a.er||0)+'</td>'
-      +'<td>'+(a.rs||0)+'</td><td>'+iv+'</td><td class="tot">'+to+'</td>'
+      +'<td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
+    for(var ci=0;ci<cols.length;ci++){
+      h += '<td>'+getColScore(a, cols[ci].id)+'</td>';
+    }
+    h+='<td>'+iv+'</td><td class="tot">'+to+'</td>'
       +'<td style="max-width:120px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td>'
       +'<td class="np" style="display:flex;gap:4px">'
-      +'<button onclick="openModal(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">✏️</button>'
-      +'<button onclick="delApp(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">🗑️</button>'
+      +'<button onclick="openModal(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Edit</button>'
+      +'<button onclick="delApp(\''+a.id+'\')" style="padding:2px 8px;font-size:.7rem;cursor:pointer;border:1px solid var(--border);border-radius:4px;background:transparent">Delete</button>'
       +'</td></tr>';
   }
   tb.innerHTML=h;
-  var ivm=questions.length*5;
   E('mt-ivm').textContent='/'+ivm;
-  E('mt-tm').textContent='/'+(15+5+ivm);
+  E('mt-tm').textContent='/'+tm;
   renderRecs();
 }
 
@@ -668,6 +983,63 @@ function delApp(id){
 }
 
 // MODAL
+function renderModalFields(a){
+  var container = E('am-fields');
+  if(!container) return;
+  var fields = container.querySelectorAll('.pf');
+  fields.forEach(function(f){ f.parentNode.removeChild(f); });
+  var cols = profileColumns();
+  var insertBefore = container.querySelector('.fw:last-child');
+  for(var ci=0;ci<cols.length;ci++){
+    var col = cols[ci];
+    var div = document.createElement('div');
+    div.className = 'pf';
+    var label = document.createElement('label');
+    label.className = 'lb';
+    label.textContent = col.label;
+    var select = document.createElement('select');
+    select.className = 'ii';
+    select.id = 'am-'+col.id;
+    if(col.opts && col.opts.length > 0){
+      for(var oi=0;oi<col.opts.length;oi++){
+        var opt = document.createElement('option');
+        var parts = col.opts[oi].split('=');
+        if(parts.length > 1){
+          opt.value = parts[0].trim();
+          opt.textContent = col.opts[oi];
+        } else {
+          opt.value = parts[0].trim();
+          opt.textContent = col.opts[oi];
+        }
+        select.appendChild(opt);
+      }
+      var hasZero = false;
+      for(var oi=0;oi<select.options.length;oi++){
+        if(parseInt(select.options[oi].value) === 0) hasZero = true;
+      }
+      if(!hasZero && col.max !== null && col.max !== undefined){
+        var z = document.createElement('option');
+        z.value = '0';
+        z.textContent = '-';
+        select.insertBefore(z, select.firstChild);
+      }
+    } else {
+      for(var v=0;v<=(col.max||5);v++){
+        var opt = document.createElement('option');
+        opt.value = String(v);
+        opt.textContent = v === 0 ? '-' : String(v);
+        select.appendChild(opt);
+      }
+    }
+    if(a && a[col.id] !== undefined){
+      select.value = String(a[col.id]);
+    }
+    div.appendChild(label);
+    div.appendChild(select);
+    container.insertBefore(div, insertBefore);
+  }
+}
+
 function openModal(id){
   E('am-title').textContent=id?'Edit Applicant':'Add Applicant';
   E('am-id').value=id||'';
@@ -676,30 +1048,24 @@ function openModal(id){
     for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ a=applicants[i]; break; }
     if(a){
       sv('am-n',a.name); sv('am-d',a.date||'');
-      sv('am-rn',a.rn||0); sv('am-ed',a.ed||0);
-      sv('am-acls',a.acls===undefined?-1:a.acls);
-      sv('am-ms',a.ms||0); sv('am-uc',a.uc||0); sv('am-er',a.er||0); sv('am-rs',a.rs||0);
       sv('am-notes',a.notes||'');
     }
   }else{
-    ['am-n','am-d','am-notes'].forEach(function(x){ sv(x,''); });
-    ['am-rn','am-ed','am-ms','am-uc','am-er','am-rs'].forEach(function(x){ sv(x,0); });
-    sv('am-acls',-1);
+    sv('am-n',''); sv('am-d',''); sv('am-notes','');
   }
+  renderModalFields(a);
   E('app-modal').style.display='block';
 }
 
 function saveModal(){
   var id=E('am-id').value;
   var name=E('am-n').value.trim()||'Unnamed';
-  var obj={
-    name:name, date:E('am-d').value,
-    rn:parseInt(E('am-rn').value)||0, ed:parseInt(E('am-ed').value)||0,
-    acls:parseInt(E('am-acls').value)||0,
-    ms:parseInt(E('am-ms').value)||0, uc:parseInt(E('am-uc').value)||0,
-    er:parseInt(E('am-er').value)||0, rs:parseInt(E('am-rs').value)||0,
-    notes:E('am-notes').value, qs:{}, qn:{}
-  };
+  var cols = profileColumns();
+  var obj={name:name, date:E('am-d').value, notes:E('am-notes').value, qs:{}, qn:{}};
+  for(var ci=0;ci<cols.length;ci++){
+    var sel = document.getElementById('am-'+cols[ci].id);
+    obj[cols[ci].id] = sel ? parseInt(sel.value)||0 : 0;
+  }
   if(id){
     for(var i=0;i<applicants.length;i++){
       if(applicants[i].id===id){
