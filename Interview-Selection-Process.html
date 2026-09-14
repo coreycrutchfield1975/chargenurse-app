@@ -379,10 +379,10 @@ If you are a bargaining unit member, you have a right to have union representati
         <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
         <label style="margin-bottom:0;font-size:.8rem">Set:</label>
         <select id="qs-set" style="width:180px" onchange="switchQSet(this.value)"></select>
-        <button class="btn btn-out btn-sm" onclick="saveQSet()">Save Bank</button>
+        <button class="btn btn-out btn-sm" onclick="saveQSet()">Save Set</button>
         <button class="btn btn-out btn-sm" onclick="manageQSets()">Sets</button>
         <button class="btn btn-suc btn-sm" onclick="addQ()">Add Q</button>
-        <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">+ Bank</button>
+        <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">PBI Library</button>
       </div>
     </div>
   </div>
@@ -395,7 +395,7 @@ If you are a bargaining unit member, you have a right to have union representati
   </div>
 </div>
 
-<!-- QUESTION BANK MANAGER MODAL -->
+<!-- QUESTION SET MANAGER -->
 <div id="qset-modal" class="mo np">
   <div class="mb" style="max-width:700px">
     <h2>Question Sets</h2>
@@ -578,7 +578,7 @@ function saveProfileTemplate(){
   closeProfileManager();
 }
 function closeProfileManager(){ document.getElementById('profile-modal').style.display='none'; }
-// QUESTION BANKS
+// QUESTION SETS
 var PBI_LIBRARY = {
   "Standard RN Interview": {
     questions: [
@@ -703,7 +703,7 @@ function saveQSet(){
 function addQSet(){
   var name = document.getElementById('new-qset-name').value.trim();
   if(!name){ alert('Enter a set name.'); return; }
-  if(qSets[name]){ alert('Bank "'+name+'" already exists.'); return; }
+  if(qSets[name]){ alert('Set "'+name+'" already exists.'); return; }
   qSets[name] = {questions: []};
   activeQSet = name;
   questions = [];
@@ -720,7 +720,7 @@ function manageQSets(){
   if(!list) return;
   refreshQSetList();
   var names = Object.keys(qSets);
-  // Load first bank into editor
+  // Load first set into editor
   if(names.length > 0){
     var first = activeQSet || names[0];
     if(qSets[first]){
@@ -748,7 +748,7 @@ function deleteQSet(name){
   saveQSets();
   renderQSetSelect();
   renderQs();
-  // Update the bank list in the modal if open
+  // Update the set list in the modal if open
   var list = document.getElementById('qset-list');
   if(list) refreshQSetList();
 }
@@ -771,16 +771,16 @@ function refreshQSetList(){
 }
 
 function openPbiLibrary(){
-  // Build a list of all questions from all banks
+  // Build a list of all questions from all sets
   var names = Object.keys(qSets);
   var h = '<div style="margin-bottom:8px"><label class="lb">Select questions from the PBI Library:</label></div>';
   var added = 0;
   for(var ni=0;ni<names.length;ni++){
-    var bank = qSets[names[ni]];
-    if(!bank || !bank.questions || bank.questions.length===0) continue;
+    var bnk = qSets[names[ni]];
+    if(!bnk || !bnk.questions || bnk.questions.length===0) continue;
     h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:6px 0 3px;padding:4px 0;border-bottom:1px dotted var(--border)">'+esc(names[ni])+'</div>';
-    for(var qi=0;qi<bank.questions.length;qi++){
-      var q = bank.questions[qi];
+    for(var qi=0;qi<bnk.questions.length;qi++){
+      var q = bnk.questions[qi];
       h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 4px;border-radius:4px;font-size:.82rem;line-height:1.4">';
       h += '<input type="checkbox" id="plq-'+ni+'-'+qi+'" style="margin-top:2px">';
       h += '<label for="plq-'+ni+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(q)+'</label>';
@@ -810,12 +810,12 @@ function addSelectedFromLibrary(){
   var count = 0;
   var names = Object.keys(qSets);
   for(var ni=0;ni<names.length;ni++){
-    var bank = qSets[names[ni]];
-    if(!bank || !bank.questions) continue;
-    for(var qi=0;qi<bank.questions.length;qi++){
+    var bnk = qSets[names[ni]];
+    if(!bnk || !bnk.questions) continue;
+    for(var qi=0;qi<bnk.questions.length;qi++){
       var cb = document.getElementById('plq-'+ni+'-'+qi);
       if(cb && cb.checked){
-        questions.push(bank.questions[qi]);
+        questions.push(bnk.questions[qi]);
         count++;
       }
     }
@@ -832,13 +832,13 @@ function closePbiLibrary(){
 }
 function saveQSetEdit(){
   var name = document.getElementById('qset-edit-name').textContent;
-  if(!name || !qSets[name]){ alert('Select a bank first.'); return; }
+  if(!name || !qSets[name]){ alert('Select a set first.'); return; }
   var text = document.getElementById('qset-edit-area').value;
   var lines = text.split('\n').filter(function(l){ return l.trim(); });
   qSets[name].questions = lines;
   saveQSets();
   showToast('Saved '+lines.length+' questions to "'+name+'"');
-  manageQSets(); // refresh the bank list display
+  manageQSets(); // refresh the list display
 }
 function closeQSetManager(){ document.getElementById('qset-modal').style.display='none'; }
 
