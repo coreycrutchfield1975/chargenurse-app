@@ -549,7 +549,7 @@ function loadProfiles(){
 }
 loadProfiles();
 
-function init(){ questions=DQS.slice(); loadFromStore(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
+function init(){ questions=DQS.slice(); loadFromStore(); loadUserLib(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
 function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQSetSelect(); }
 
 function renderProfileSelect(){
@@ -580,79 +580,79 @@ function saveProfileTemplate(){
 function closeProfileManager(){ document.getElementById('profile-modal').style.display='none'; }
 // QUESTION SETS
 var PBI_LIBRARY = {
-  "Standard RN Interview": {
+  "Standard Interview": {
     questions: [
       "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
-      "Describe a change in your work you have personally had to make in the last couple years. At the time, how did you feel about making the change? What did you do to make the change?",
-      "A part of this job is documenting your work. Give a specific example of something you had to write for your supervisor in the past three months. What feedback did you get?",
-      "Tell us about a job or setting where great attention to detail was required to complete a task. What steps were involved? How did you handle that situation?",
-      "Tell me about a specific time when people outside your organization were criticizing it unfairly. What did you do or say? How successful were you?",
-      "How does the work you are currently doing affect your organization's ability to meet its mission and goals? Do you think your work is important?",
-      "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
-      "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?"
-    ]
-  },
-  "PBI - Customer Service": {
-    questions: [
-      "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
-      "Tell about a situation at work where you realized a person needed help. How did you realize and what did you do?",
-      "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?",
-      "Tell me specifically which co-workers in your organization are your customers. What have you done to improve service to these internal customers?",
-      "Give an example of how you have improved the experience of your internal and external customers. How did you determine improvement was needed?",
-      "In the past, how have you obtained and incorporated customer feedback into your organization's planning and service standards?"
-    ]
-  },
-  "PBI - Interpersonal": {
-    questions: [
-      "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
-      "Give a specific example of a time you had to deal with an upset co-worker, patient, or customer. What was the person upset about and how did you handle it?",
-      "Describe a time when you were able to effectively communicate a difficult idea to a superior. What made your communication work?",
-      "Tell me about a specific time when those with whom you were working could not agree upon the course of action. How did you approach the situation?",
-      "What is your typical way of dealing with conflict? Give me an example. What have you learned from dealing with conflict?",
-      "Describe the most challenging negotiation in which you were involved. What did you do? What were the results?",
-      "Tell me about a meeting in which you had to tell others things they did not want to hear. How did you communicate those ideas?"
-    ]
-  },
-  "PBI - Personal Mastery": {
-    questions: [
-      "Tell us about a job or setting where great attention to detail was required to complete a task. What steps were involved?",
-      "Name three things you have done in the past two years to grow in your job.",
-      "Describe a time when you received negative feedback and turned it into something positive.",
-      "Tell us how you keep your job knowledge current with ongoing changes.",
-      "Give me a specific example of a time when you used good judgment and logic in solving a problem.",
-      "Tell me about a time when you delegated a project effectively. What steps did you take to empower others?",
-      "Describe a time when you disagreed with evaluation or feedback you received about your performance. How did you handle it?"
-    ]
-  },
-  "PBI - Flexibility": {
-    questions: [
-      "Describe a change in your work you have personally had to make in the last couple years. How did you feel about making the change?",
-      "Tell me about the last new procedure you had to learn. What was the hardest aspect? What did you like best?",
-      "Describe a situation where you were responsible for getting others to make a change. What role did you play? What was the outcome?",
-      "Describe a major change you have made in the past two years. How did you accomplish the change? What difficulties did you encounter?",
-      "Describe an instance when you had to think on your feet to extricate yourself from a difficult situation.",
-      "Describe a time when you were faced with an obstacle to an important project. What did you do? Were you able to overcome it?"
-    ]
-  },
-  "PBI - Systems Thinking": {
-    questions: [
-      "How does the work you are currently doing affect your organization's ability to meet its mission and goals?",
-      "Describe a time when you went over and above your job expectation. What motivated you?",
-      "In your current job, what organizational change have you made or contributed to that you are proud of?",
-      "Tell me about a specific time when others in your work group were having difficulty understanding how their work interfaced with other units.",
-      "Describe a change you are responsible for that improved the performance of your work area or organization."
-    ]
-  },
-  "PBI - Creative Thinking": {
-    questions: [
-      "Tell me about two suggestions you have made to your supervisor in the past year. How did you come up with the ideas?",
-      "Tell me about a time when a co-worker had a good idea and you agreed but no one else was willing to listen. How did you handle it?",
-      "What projects have you started on your own? Why did you start them? What did you learn?",
-      "Explain the approach you use for performance improvement. How do you identify problems, measure impact, and deal with them?",
-      "Describe a creative endeavor you can take ownership for that impacted on the efficiency or effectiveness of your organization."
+      "Describe a change in your work you have personally had to make. How did you feel about it? What did you do?",
+      "Give a specific example of something you had to write for your supervisor. What feedback did you get?",
+      "Tell us about a job where great attention to detail was required. What steps were involved?",
+      "Tell me about a time when people outside your organization criticized it unfairly. What did you do?",
+      "How does your current work affect your organization's ability to meet its mission and goals?",
+      "Describe a situation where you felt you had not communicated well. How did you correct it?",
+      "Tell me about a time when you resolved a difficult customer complaint. What was the outcome?"
     ]
   }
 };
+
+// PBI Category Library — read-only questions organized by category
+var PBI_CATEGORIES = {
+  "Customer Service": [
+    "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
+    "Tell about a situation at work where you realized a person needed help. How did you realize and what did you do?",
+    "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?",
+    "Tell me specifically which co-workers are your customers. What have you done to improve service to them?",
+    "Give an example of how you improved the experience of your internal and external customers.",
+    "How have you obtained and incorporated customer feedback into your organization's planning?"
+  ],
+  "Interpersonal Skills": [
+    "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
+    "Give an example of a time you had to deal with an upset co-worker or patient. How did you handle it?",
+    "Describe a time when you effectively communicated a difficult idea to a superior. What made it work?",
+    "Tell me about a time when your team could not agree on a course of action. How did you approach it?",
+    "What is your typical way of dealing with conflict? Give an example.",
+    "Describe the most challenging negotiation you were involved in. What were the results?"
+  ],
+  "Personal Mastery": [
+    "Tell us about a job where great attention to detail was required. What steps were involved?",
+    "Name three things you have done in the past two years to grow in your job.",
+    "Describe a time when you received negative feedback and turned it into something positive.",
+    "How do you keep your job knowledge current with ongoing changes?",
+    "Give an example of a time when you used good judgment and logic in solving a problem.",
+    "Describe a time when you delegated a project effectively. What steps did you take?",
+    "Describe a time when you disagreed with feedback about your performance. How did you handle it?"
+  ],
+  "Flexibility & Adaptability": [
+    "Describe a change in your work you have personally had to make. How did you feel about it?",
+    "Tell me about the last new procedure you had to learn. What was the hardest aspect?",
+    "Describe a situation where you were responsible for getting others to make a change. What happened?",
+    "Describe a major change you made in the past two years. How did you accomplish it?",
+    "Describe an instance when you had to think on your feet in a difficult situation.",
+    "Describe a time when you faced an obstacle on an important project. How did you overcome it?"
+  ],
+  "Systems Thinking": [
+    "How does your current work affect your organization's ability to meet its mission and goals?",
+    "Describe a time when you went above and beyond your job expectations. What motivated you?",
+    "What organizational change have you contributed to that you are proud of?",
+    "Tell me about a time when others had difficulty understanding how their work connected to other units.",
+    "Describe a change you made that improved the performance of your work area or organization."
+  ],
+  "Creative Thinking": [
+    "Tell me about two suggestions you made to your supervisor. How did you come up with them?",
+    "Tell me about a time a co-worker had a good idea but no one else would listen. How did you handle it?",
+    "What projects have you started on your own? Why? What did you learn?",
+    "Describe a creative endeavor you led that improved your organization's effectiveness."
+  ]
+};
+
+// User-added library questions (stored in localStorage)
+var userLibQuestions = [];
+
+function loadUserLib(){
+  try { var d = localStorage.getItem(SK+'_ulib'); if(d) userLibQuestions = JSON.parse(d); } catch(e){}
+}
+function saveUserLib(){
+  localStorage.setItem(SK+'_ulib', JSON.stringify(userLibQuestions));
+}
 
 var qSets = {};
 var activeQSet = 'Standard Interview';
@@ -808,22 +808,31 @@ function openPbiLibrary(){
 
 function addSelectedFromLibrary(){
   var count = 0;
-  var names = Object.keys(qSets);
-  for(var ni=0;ni<names.length;ni++){
-    var bnk = qSets[names[ni]];
-    if(!bnk || !bnk.questions) continue;
-    for(var qi=0;qi<bnk.questions.length;qi++){
-      var cb = document.getElementById('plq-'+ni+'-'+qi);
-      if(cb && cb.checked){
-        questions.push(bnk.questions[qi]);
-        count++;
-      }
+  var catNames = Object.keys(PBI_CATEGORIES);
+  for(var ci=0;ci<catNames.length;ci++){
+    var cat = PBI_CATEGORIES[catNames[ci]];
+    for(var qi=0;qi<cat.length;qi++){
+      var cb = document.getElementById('plq-'+ci+'-'+qi);
+      if(cb && cb.checked){ questions.push(cat[qi]); count++; }
     }
+  }
+  for(var qi=0;qi<userLibQuestions.length;qi++){
+    var cb = document.getElementById('plq-u-'+qi);
+    if(cb && cb.checked){ questions.push(userLibQuestions[qi]); count++; }
   }
   if(count === 0){ alert('Select at least one question.'); return; }
   closePbiLibrary();
   renderQs(); autoSave();
   showToast('Added '+count+' question(s)');
+}
+function addToLibrary(){
+  var q = document.getElementById('new-lib-question').value.trim();
+  if(!q){ alert('Enter a question.'); return; }
+  userLibQuestions.push(q);
+  saveUserLib();
+  document.getElementById('new-lib-question').value = '';
+  openPbiLibrary();
+  showToast('Question added to library');
 }
 
 function closePbiLibrary(){
@@ -1136,7 +1145,7 @@ function printMat(){
   if(applicants.length===0){ alert('No applicants.'); return; }
   if(!activeProfileName){ alert('Select a position profile first.'); return; }
   var cols = profileColumns(); if(cols.length===0){ alert('Profile has no columns.'); return; }
-  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var ivm=questions.length*5; var tm=profileColMax()+ivm;
   var h='<h1 class="h1">Scoring Matrix - '+esc(activeProfileName)+'</h1><table><thead><tr><th>#</th><th>Applicant</th><th>Date</th>';
   for(var i=0;i<cols.length;i++) h+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span style="font-weight:400;font-size:10px">/'+cols[i].max+'</span>':'')+'</th>';
@@ -1164,7 +1173,8 @@ function printMat(){
 }
 
 function printRec(){
-  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
+  var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var pos = activeProfileName || gv('r-p')||'';
   var h='<h1 class="h1">Interview Panel Recommendations</h1><p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(pos)+' &nbsp; #: '+esc(gv('r-pn')||'__________')+'</p>';
   h+='<p style="font-size:12px;font-style:italic;color:#555">With fair judgement based on the responses provided, the panel recommends:</p>';
@@ -1184,10 +1194,11 @@ function printRec(){
 
 function renderApps(){
   var sel=E('qs-app'); if(!sel) return;
-  if(applicants.length===0){ sel.innerHTML='<option value="">-- No applicants --</option>'; E('qs-empty').style.display='block'; E('qs-wrap').style.display='none'; return; }
+  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
+  if(posApps.length===0){ sel.innerHTML='<option value="">-- No applicants --</option>'; E('qs-empty').style.display='block'; E('qs-wrap').style.display='none'; return; }
   E('qs-empty').style.display='none'; E('qs-wrap').style.display='block';
   var h='<option value="">-- Select --</option>';
-  for(var i=0;i<applicants.length;i++) h+='<option value="'+applicants[i].id+'">'+esc(applicants[i].name)+(applicants[i].date?' ('+esc(applicants[i].date)+')':'')+'</option>';
+  for(var i=0;i<posApps.length;i++) h+='<option value="'+posApps[i].id+'">'+esc(posApps[i].name)+(posApps[i].date?' ('+esc(posApps[i].date)+')':'')+'</option>';
   sel.innerHTML=h;
 }
 
@@ -1251,6 +1262,8 @@ function renderMat(){
   // Update profile badge
   var badge=E('profile-badge');
   if(badge) badge.textContent=activeProfileName||'';
+  // Filter applicants for this position
+  var posApps = applicants.filter(function(a){ return a.profile===activeProfileName || !a.profile; });
   if(!activeProfileName||!positionProfiles[activeProfileName]){
     emp.style.display='block'; emp.innerHTML='No position profile selected. Click <strong>Manage</strong> to create one first.'; tbl.style.display='none'; return;
   }
@@ -1261,7 +1274,7 @@ function renderMat(){
   for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
   hh+='<th class="intv">Interview<br><span class="mx">/'+ivm+'</span></th><th class="tcol">Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
   E('mt-header').innerHTML=hh;
-  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var h='';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
@@ -1317,7 +1330,7 @@ function findApp(id){ for(var i=0;i<applicants.length;i++) if(applicants[i].id==
 
 function saveModal(){
   var id=E('am-id').value; var name=E('am-n').value.trim()||'Unnamed';
-  var cols=profileColumns(); var obj={name:name,date:E('am-d').value,notes:E('am-notes').value,qs:{},qn:{}};
+  var cols=profileColumns(); var obj={name:name,date:E('am-d').value,notes:E('am-notes').value,qs:{},qn:{},profile:activeProfileName};
   for(var ci=0;ci<cols.length;ci++){ var sel=document.getElementById('am-'+cols[ci].id); obj[cols[ci].id]=sel?parseInt(sel.value)||0:0; }
   if(id){ for(var i=0;i<applicants.length;i++) if(applicants[i].id===id){ obj.id=id; obj.qs=applicants[i].qs||{}; obj.qn=applicants[i].qn||{}; applicants[i]=obj; break; } }
   else { obj.id='a_'+Date.now()+'_'+Math.random().toString(36).substr(2,6); applicants.push(obj); }
@@ -1332,7 +1345,7 @@ function getMatScore(a){
 }
 function renderRecs(){
   var tb=E('r-body'); if(!tb) return;
-  var sorted=applicants.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
+  var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   if(sorted.length===0){ tb.innerHTML='<tr><td style="color:var(--muted)" colspan="5">Auto-populates from Matrix</td></tr>'; return; }
   var h='';
   for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
