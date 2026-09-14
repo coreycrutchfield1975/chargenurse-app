@@ -81,6 +81,89 @@ textarea.ii{resize:vertical;min-height:60px}
   .sl input{border-bottom:1px solid #999;background:transparent!important}
   .pb{page-break-after:always}
 }
+
+/* ===== Simplified comparison UI ===== */
+:root{
+  --navy:#17365d;
+  --navy2:#234f7d;
+  --soft:#f6f9fc;
+  --success-soft:#ecfdf5;
+  --warning-soft:#fffbeb;
+}
+.hdr{top:0}
+.tabs{top:42px;margin-top:0}
+.tc{max-width:1180px}
+.home-hero{
+  background:linear-gradient(135deg,#17365d,#0d6efd);
+  color:#fff;border:none;border-radius:16px;padding:1.5rem;
+  box-shadow:0 8px 24px rgba(23,54,93,.18)
+}
+.home-hero h2{color:#fff;border:none;margin:0 0 .4rem;padding:0;font-size:1.35rem}
+.home-hero p{color:rgba(255,255,255,.88);line-height:1.5}
+.workflow-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:1rem}
+.workflow-card{
+  background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;
+  cursor:pointer;transition:.15s;text-align:left;min-height:112px
+}
+.workflow-card:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.08);border-color:var(--primary)}
+.workflow-card .num{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;background:var(--primary);color:#fff;font-weight:800;font-size:.8rem}
+.workflow-card strong{display:block;margin:.55rem 0 .25rem;font-size:.92rem}
+.workflow-card small{color:var(--muted);line-height:1.35;display:block}
+.quick-status{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:1rem}
+.status-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px}
+.status-card .v{font-size:1.25rem;font-weight:800;color:var(--navy)}
+.status-card .k{font-size:.76rem;color:var(--muted);margin-top:2px}
+.section-note{
+  padding:10px 12px;border-radius:9px;background:#eef6ff;border-left:4px solid var(--primary);
+  font-size:.86rem;line-height:1.45;color:#334155;margin:.5rem 0 1rem
+}
+.matrix-toolbar{
+  display:flex;gap:8px;align-items:end;flex-wrap:wrap;
+  padding:14px;background:var(--soft);border:1px solid var(--border);border-radius:12px
+}
+.matrix-toolbar .field{min-width:250px;flex:1}
+.matrix-toolbar .field label{display:block;font-size:.76rem;color:var(--muted);font-weight:700;margin-bottom:4px}
+.rubric-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:10px 0 2px}
+.rubric-chip{border:1px solid var(--border);border-radius:9px;padding:9px;background:#fff}
+.rubric-chip b{display:block;font-size:.82rem}
+.rubric-chip span{font-size:.74rem;color:var(--muted)}
+.empty-action{
+  padding:2rem;text-align:center;border:2px dashed #b8c8dc;border-radius:14px;background:#fbfdff;color:var(--muted)
+}
+.empty-action h3{color:var(--navy);margin-bottom:.35rem}
+.wizard-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.wizard-head .step-label{font-size:.78rem;color:var(--muted);font-weight:700}
+.wizard-progress{height:7px;background:#e8eef6;border-radius:99px;overflow:hidden;margin-bottom:16px}
+.wizard-progress span{display:block;height:100%;background:var(--primary);width:33%;transition:.2s}
+.rubric-builder-list{display:flex;flex-direction:column;gap:10px}
+.criterion-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+.criterion-top{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}
+.criterion-card label{display:block;font-size:.76rem;font-weight:700;color:#475569;margin-bottom:4px}
+.guide-toggle{margin-top:8px}
+.guide-area{margin-top:8px;padding:9px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
+.guide-row{display:grid;grid-template-columns:82px 1fr;gap:8px;align-items:center;margin-bottom:5px}
+.guide-row span{font-size:.76rem;color:var(--muted);font-weight:700}
+.wizard-actions{display:flex;justify-content:space-between;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.preview-box{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.preview-box .ph{background:var(--navy);color:#fff;padding:10px 12px;font-weight:700}
+.preview-box table{width:100%;border-collapse:collapse}
+.preview-box th,.preview-box td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-size:.82rem}
+.preview-box th{background:#f1f5f9}
+.small-muted{font-size:.76rem;color:var(--muted)}
+.app-score-help{background:var(--success-soft);border-left:4px solid var(--green);padding:9px 11px;border-radius:8px;font-size:.82rem;line-height:1.4;margin-bottom:10px}
+.adv-box{border-top:1px solid var(--border);margin-top:12px;padding-top:10px}
+.adv-box summary{cursor:pointer;font-size:.8rem;color:var(--muted);font-weight:700}
+@media(max-width:850px){
+  .workflow-grid{grid-template-columns:1fr 1fr}
+  .quick-status{grid-template-columns:1fr 1fr}
+  .criterion-top{grid-template-columns:1fr 90px}
+  .criterion-top .remove-col{grid-column:1/-1;justify-self:end}
+}
+@media(max-width:520px){
+  .workflow-grid,.quick-status{grid-template-columns:1fr}
+  .tabs button{padding:.7rem .8rem;font-size:.8rem}
+}
+
 </style>
 </head>
 <body>
@@ -88,25 +171,56 @@ textarea.ii{resize:vertical;min-height:60px}
 <div class="hdr">
   <h1>Interview Selection Process</h1>
   <div class="ha np">
-    <button onclick="exportData()">Export</button>
-    <button onclick="importData()">Import</button>
-    <button onclick="doClear()">Clear</button>
     <button onclick="printQs()" style="background:rgba(16,185,129,.6)">Print Applicant Qs</button>
     <button onclick="printMat()" style="background:rgba(16,185,129,.6)">Print Matrix</button>
     <button onclick="printRec()" style="background:rgba(16,185,129,.6)">Print Recs</button>
+    <button onclick="toggleTools()">Tools</button>
   </div>
+</div>
+<div id="tools-bar" class="np" style="display:none;background:#17365d;color:#fff;padding:7px 10px;text-align:right;position:sticky;top:42px;z-index:19">
+  <button onclick="exportData()" style="margin-left:4px">Export</button>
+  <button onclick="importData()" style="margin-left:4px">Import</button>
+  <button onclick="doClear()" style="margin-left:4px;background:#7f1d1d;color:#fff">Clear All Data</button>
 </div>
 
 <div class="tabs np">
-  <button class="act" onclick="showTab('inst',this)">Instructions</button>
+  <button class="act" onclick="showTab('home',this)">Start</button>
+  <button onclick="showTab('inst',this)">Instructions</button>
   <button onclick="showTab('intro',this)">Introduction</button>
-  <button onclick="showTab('mat',this)">Matrix</button>
-  <button onclick="showTab('qs',this)">Questions</button>
+  <button onclick="showTab('mat',this)">Rubric & Applicants</button>
+  <button onclick="showTab('qs',this)">Interview Questions</button>
   <button onclick="showTab('rec',this)">Recommendations</button>
 </div>
 
+
+<!-- TAB: Start -->
+<div id="tc-home" class="tc act">
+  <div class="home-hero">
+    <h2>Interview Selection Process</h2>
+    <p>Use the steps below from left to right. The app saves your work automatically on this computer.</p>
+    <div class="quick-status">
+      <div class="status-card"><div class="v" id="home-position">Not selected</div><div class="k">Position</div></div>
+      <div class="status-card"><div class="v" id="home-apps">0</div><div class="k">Applicants</div></div>
+      <div class="status-card"><div class="v" id="home-questions">0</div><div class="k">Interview Questions</div></div>
+      <div class="status-card"><div class="v" id="home-complete">0</div><div class="k">Interviews with scores</div></div>
+    </div>
+  </div>
+  <div class="workflow-grid np">
+    <button class="workflow-card" onclick="goWorkflow('inst')"><span class="num">1</span><strong>Review Instructions</strong><small>Panel instructions and scoring scale.</small></button>
+    <button class="workflow-card" onclick="goWorkflow('mat')"><span class="num">2</span><strong>Build Rubric & Add Applicants</strong><small>Create or choose the position rubric, then enter applicants.</small></button>
+    <button class="workflow-card" onclick="goWorkflow('intro')"><span class="num">3</span><strong>Read Introduction</strong><small>Use the standard interview introduction and document union representation.</small></button>
+    <button class="workflow-card" onclick="goWorkflow('qs')"><span class="num">4</span><strong>Conduct Interviews</strong><small>Score the standard questions and enter panel notes.</small></button>
+    <button class="workflow-card" onclick="goWorkflow('rec')"><span class="num">5</span><strong>Recommendations</strong><small>Review totals, rank candidates, sign and print.</small></button>
+  </div>
+  <div class="cd" style="margin-top:1rem">
+    <h2>Quick Start</h2>
+    <div class="section-note"><strong>First time using the app?</strong> Start with <strong>Rubric & Applicants</strong>. Create a position rubric once, and it will be available for future interviews on this computer. For another position, create a new rubric or copy an existing one and adjust it.</div>
+    <button class="btn btn-pri" onclick="goWorkflow('mat')">Go to Rubric & Applicants →</button>
+  </div>
+</div>
+
 <!-- TAB: Instructions -->
-<div id="tc-inst" class="tc act">
+<div id="tc-inst" class="tc">
   <div class="steps" id="step-indicator"></div>
   <div class="cd">
     <h2>Panel Instructions <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
@@ -162,32 +276,96 @@ If you are a bargaining unit member, you have a right to have union representati
 <!-- TAB: Matrix -->
 <div id="tc-mat" class="tc">
   <div class="cd np">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Applicant Scoring Matrix <span id="profile-badge" class="pb-badge"></span></h2>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <label style="margin-bottom:0;font-size:.8rem">Position:</label>
-        <select id="profile-select" style="width:200px" onchange="switchProfile(this.value)"></select>
-        <button class="btn btn-out btn-sm" onclick="openProfileManager()">Manage</button>
-        <button class="btn btn-pri btn-sm" onclick="openModal()">Add Applicant</button>
-      </div>
+    <h2 style="margin-bottom:.35rem">Position Rubric & Applicant Matrix</h2>
+    <div class="section-note">
+      <strong>For supervisors:</strong> Choose an existing position rubric or create one using the guided builder. A rubric is simply the position-specific criteria you want scored in addition to the interview questions.
     </div>
+    <div class="matrix-toolbar">
+      <div class="field">
+        <label>POSITION RUBRIC</label>
+        <select id="profile-select" class="ii" onchange="switchProfile(this.value)"></select>
+      </div>
+      <button class="btn btn-pri" onclick="openRubricBuilder()">+ New Position Rubric</button>
+      <button class="btn btn-out" id="edit-rubric-btn" onclick="openRubricBuilder(activeProfileName)" disabled>Edit Rubric</button>
+      <button class="btn btn-suc" id="add-app-btn" onclick="openModal()" disabled>+ Add Applicant</button>
+    </div>
+    <div id="rubric-summary" class="rubric-summary"></div>
   </div>
-  <div id="mt-empty" class="cd" style="text-align:center;padding:2rem;color:var(--muted)">
-    No position profile selected. Click <strong>Manage</strong> to create one first.
+
+  <div id="mt-empty" class="empty-action">
+    <h3>No position rubric selected</h3>
+    <p style="margin-bottom:12px">Create a rubric for this position or choose one you previously saved.</p>
+    <button class="btn btn-pri np" onclick="openRubricBuilder()">Create Position Rubric</button>
   </div>
+
   <div class="cd" style="overflow-x:auto;padding:8px">
+    <div id="matrix-help" class="section-note np" style="display:none">
+      <strong>How to use this screen:</strong> Add each applicant, then use <strong>Score / Edit</strong> to enter the position-specific rubric scores. Interview question scores are entered on the <strong>Interview Questions</strong> tab and are automatically added to the total.
+    </div>
     <table class="mt" id="mt-tbl" style="display:none">
       <thead>
         <tr id="mt-header">
           <th>#</th><th>Applicant</th><th>Date</th>
-          <th>Interview</th>
-          <th>Total</th>
-          <th>Notes</th>
-          <th class="np"></th>
+          <th>Interview</th><th>Total</th><th>Notes</th><th class="np"></th>
         </tr>
       </thead>
       <tbody id="mt-body"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- RUBRIC BUILDER MODAL -->
+<div id="rubric-modal" class="mo np">
+  <div class="mb" style="max-width:840px">
+    <div class="wizard-head">
+      <div>
+        <h2 id="rb-title" style="margin:0">Create Position Rubric</h2>
+        <div class="step-label" id="rb-step-label">Step 1 of 3 — Position</div>
+      </div>
+      <button class="btn btn-out btn-sm" type="button" onclick="closeRubricBuilder()">Close</button>
+    </div>
+    <div class="wizard-progress"><span id="rb-progress"></span></div>
+
+    <div id="rb-step-1">
+      <label class="lb">Position / Rubric Name *</label>
+      <input id="rb-name" class="ii" type="text" placeholder="Example: Acute Care RN">
+      <p class="small-muted" style="margin-top:7px">Use the position name supervisors will recognize. This rubric can be reused for future interviews.</p>
+
+      <div id="rb-copy-wrap" style="margin-top:16px">
+        <label class="lb">Optional: Start from an existing rubric</label>
+        <select id="rb-copy" class="ii">
+          <option value="">Start with a blank rubric</option>
+        </select>
+        <p class="small-muted" style="margin-top:5px">Copying is useful when two positions use similar criteria.</p>
+      </div>
+    </div>
+
+    <div id="rb-step-2" style="display:none">
+      <div class="section-note">
+        Add the criteria supervisors use to compare applicants for this specific position. Keep each criterion short and recognizable. The interview score is added automatically, so do not create an “Interview” criterion here.
+      </div>
+      <div id="rb-criteria" class="rubric-builder-list"></div>
+      <button class="btn btn-suc btn-sm" type="button" onclick="rbAddCriterion()">+ Add Criterion</button>
+    </div>
+
+    <div id="rb-step-3" style="display:none">
+      <div class="section-note"><strong>Review before saving.</strong> This is what the position-specific portion of the matrix will contain.</div>
+      <div id="rb-preview" class="preview-box"></div>
+      <details class="adv-box">
+        <summary>Advanced actions</summary>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button id="rb-delete" class="btn btn-dan btn-sm" type="button" onclick="rbDeleteCurrent()" style="display:none">Delete this saved rubric</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="wizard-actions">
+      <button id="rb-back" class="btn btn-out" type="button" onclick="rbBack()" style="visibility:hidden">← Back</button>
+      <div style="display:flex;gap:8px">
+        <button id="rb-next" class="btn btn-pri" type="button" onclick="rbNext()">Next →</button>
+        <button id="rb-save" class="btn btn-suc" type="button" onclick="rbSave()" style="display:none">Save Rubric</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -199,12 +377,12 @@ If you are a bargaining unit member, you have a right to have union representati
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
         <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
-        <label style="margin-bottom:0;font-size:.8rem">Bank:</label>
-        <select id="qs-bank" style="width:180px" onchange="switchQBank(this.value)"></select>
-        <button class="btn btn-out btn-sm" onclick="saveQBank()">Save Bank</button>
-        <button class="btn btn-out btn-sm" onclick="manageQBanks()">Banks</button>
+        <label style="margin-bottom:0;font-size:.8rem">Set:</label>
+        <select id="qs-set" style="width:180px" onchange="switchQSet(this.value)"></select>
+        <button class="btn btn-out btn-sm" onclick="saveQSet()">Save Bank</button>
+        <button class="btn btn-out btn-sm" onclick="manageQSets()">Sets</button>
         <button class="btn btn-suc btn-sm" onclick="addQ()">Add Q</button>
-        <button class="btn btn-out btn-sm" onclick="openPullFromBank()">+ Bank</button>
+        <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">+ Bank</button>
       </div>
     </div>
   </div>
@@ -218,27 +396,27 @@ If you are a bargaining unit member, you have a right to have union representati
 </div>
 
 <!-- QUESTION BANK MANAGER MODAL -->
-<div id="qbank-modal" class="mo np">
+<div id="qset-modal" class="mo np">
   <div class="mb" style="max-width:700px">
-    <h2>Question Banks</h2>
+    <h2>Question Sets</h2>
     <div style="margin-bottom:1rem">
-      <label class="lb">Saved Banks</label>
-      <div id="qbank-list"></div>
+      <label class="lb">Saved Sets</label>
+      <div id="qset-list"></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        <input type="text" id="new-qbank-name" class="ii" placeholder="New bank name..." style="flex:1">
-        <button class="btn btn-suc btn-sm" onclick="addQBank()">Add</button>
+        <input type="text" id="new-qset-name" class="ii" placeholder="New set name..." style="flex:1">
+        <button class="btn btn-suc btn-sm" onclick="addQSet()">Add</button>
       </div>
     </div>
         <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem">
-      <label class="lb">Edit Questions for: <span id="qbank-edit-name" style="font-weight:700"></span></label>
-      <textarea id="qbank-edit-area" class="ii" style="min-height:150px;font-size:.85rem;line-height:1.5" placeholder="One question per line..."></textarea>
+      <label class="lb">Edit Questions for: <span id="qset-edit-name" style="font-weight:700"></span></label>
+      <textarea id="qset-edit-area" class="ii" style="min-height:150px;font-size:.85rem;line-height:1.5" placeholder="One question per line..."></textarea>
       <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn btn-pri btn-sm" onclick="saveQBankEdit()">Save to Bank</button>
+        <button class="btn btn-pri btn-sm" onclick="saveQSetEdit()">Save to Set</button>
       </div>
     </div>
     <div class="ma">
-      <button type="button" class="btn btn-pri" onclick="saveQBank()">Save Current</button>
-      <button type="button" class="btn btn-out" onclick="closeQBankManager()">Close</button>
+      <button type="button" class="btn btn-pri" onclick="saveQSet()">Save Set</button>
+      <button type="button" class="btn btn-out" onclick="closeQSetManager()">Close</button>
     </div>
   </div>
 </div>
@@ -290,7 +468,7 @@ If you are a bargaining unit member, you have a right to have union representati
 <!-- PROFILE MANAGER MODAL -->
 <div id="profile-modal" class="mo np">
   <div class="mb" style="max-width:700px">
-    <h2>Position Profiles</h2>
+    <h2>Advanced Position Profile Manager</h2>
     <div style="margin-bottom:1rem">
       <label class="lb">Saved Profiles</label>
       <div id="profile-list"></div>
@@ -321,6 +499,7 @@ If you are a bargaining unit member, you have a right to have union representati
     <h2 id="am-title">Add Applicant</h2>
     <form onsubmit="saveModal();return false">
       <input type="hidden" id="am-id">
+      <div id="am-score-help" class="app-score-help">Enter the applicant information, then score each position-specific rubric criterion below. Interview question scores are entered separately on the Interview Questions tab.</div>
       <div class="mg" id="am-fields">
         <div class="fw"><label class="lb">Name *</label><input type="text" id="am-n" class="ii" required></div>
         <div class="fw"><label class="lb">Date of Interview</label><input type="text" id="am-d" class="ii" placeholder="MM/DD/YYYY"></div>
@@ -370,8 +549,8 @@ function loadProfiles(){
 }
 loadProfiles();
 
-function init(){ questions=DQS.slice(); loadFromStore(); loadQBanks(); renderAll(); renderSteps(); if(activeQBank && qBanks[activeQBank]) questions=qBanks[activeQBank].questions.slice(); renderQs(); }
-function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQBankSelect(); }
+function init(){ questions=DQS.slice(); loadFromStore(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
+function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQSetSelect(); }
 
 function renderProfileSelect(){
   var sel = document.getElementById('profile-select');
@@ -400,7 +579,7 @@ function saveProfileTemplate(){
 }
 function closeProfileManager(){ document.getElementById('profile-modal').style.display='none'; }
 // QUESTION BANKS
-var DEFAULT_QBANKS = {
+var PBI_LIBRARY = {
   "Standard RN Interview": {
     questions: [
       "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
@@ -475,166 +654,166 @@ var DEFAULT_QBANKS = {
   }
 };
 
-var qBanks = {};
-var activeQBank = 'Standard RN Interview';
+var qSets = {};
+var activeQSet = 'Standard Interview';
 
-function loadQBanks(){
+function loadQSets(){
   try {
     var d = localStorage.getItem(SK+'_qbk');
-    if(d) qBanks = JSON.parse(d);
+    if(d) qSets = JSON.parse(d);
     var a = localStorage.getItem(SK+'_qba');
-    if(a && (qBanks[a] || DEFAULT_QBANKS[a])) activeQBank = a;
+    if(a && (qSets[a] || PBI_LIBRARY[a])) activeQSet = a;
   } catch(e){}
-  Object.keys(DEFAULT_QBANKS).forEach(function(k){
-    if(!qBanks[k]) qBanks[k] = JSON.parse(JSON.stringify(DEFAULT_QBANKS[k]));
+  Object.keys(PBI_LIBRARY).forEach(function(k){
+    if(!qSets[k]) qSets[k] = JSON.parse(JSON.stringify(PBI_LIBRARY[k]));
   });
 }
-function saveQBanks(){
-  localStorage.setItem(SK+'_qbk', JSON.stringify(qBanks));
-  localStorage.setItem(SK+'_qba', activeQBank);
+function saveQSets(){
+  localStorage.setItem(SK+'_qbk', JSON.stringify(qSets));
+  localStorage.setItem(SK+'_qba', activeQSet);
 }
-loadQBanks();
+loadQSets();
 
-function renderQBankSelect(){
-  var sel = document.getElementById('qs-bank');
+function renderQSetSelect(){
+  var sel = document.getElementById('qs-set');
   if(!sel) return;
-  var names = Object.keys(qBanks);
+  var names = Object.keys(qSets);
   var h = '';
-  for(var i=0;i<names.length;i++) h += '<option value="'+esc(names[i])+'"'+(names[i]===activeQBank?' selected':'')+'>'+esc(names[i])+'</option>';
+  for(var i=0;i<names.length;i++) h += '<option value="'+esc(names[i])+'"'+(names[i]===activeQSet?' selected':'')+'>'+esc(names[i])+'</option>';
   sel.innerHTML = h;
 }
 
-function switchQBank(name){
-  if(!name || !qBanks[name]) return;
-  activeQBank = name;
-  if(qBanks[name] && qBanks[name].questions) questions = qBanks[name].questions.slice();
-  saveQBanks();
-  renderQs(); renderQBankSelect(); autoSave();
+function switchQSet(name){
+  if(!name || !qSets[name]) return;
+  activeQSet = name;
+  if(qSets[name] && qSets[name].questions) questions = qSets[name].questions.slice();
+  saveQSets();
+  renderQs(); renderQSetSelect(); autoSave();
 }
 
-function saveQBank(){
-  if(!activeQBank) return;
-  if(!qBanks[activeQBank]) qBanks[activeQBank] = {questions:[]};
-  qBanks[activeQBank].questions = questions.slice();
-  saveQBanks();
-  showToast('Bank "'+activeQBank+'" saved');
-  closeQBankManager();
+function saveQSet(){
+  if(!activeQSet) return;
+  if(!qSets[activeQSet]) qSets[activeQSet] = {questions:[]};
+  qSets[activeQSet].questions = questions.slice();
+  saveQSets();
+  showToast('Set "'+activeQSet+'" saved');
+  closeQSetManager();
 }
 
-function addQBank(){
-  var name = document.getElementById('new-qbank-name').value.trim();
-  if(!name){ alert('Enter a bank name.'); return; }
-  if(qBanks[name]){ alert('Bank "'+name+'" already exists.'); return; }
-  qBanks[name] = {questions: []};
-  activeQBank = name;
+function addQSet(){
+  var name = document.getElementById('new-qset-name').value.trim();
+  if(!name){ alert('Enter a set name.'); return; }
+  if(qSets[name]){ alert('Bank "'+name+'" already exists.'); return; }
+  qSets[name] = {questions: []};
+  activeQSet = name;
   questions = [];
-  saveQBanks();
-  document.getElementById('new-qbank-name').value = '';
-  renderQBankSelect();
+  saveQSets();
+  document.getElementById('new-qset-name').value = '';
+  renderQSetSelect();
   renderQs();
-  showToast('Blank template "'+name+'" created');
-  closeQBankManager();
+  showToast('New set "'+name+'" created');
+  closeQSetManager();
 }
 
-function manageQBanks(){
-  var list = document.getElementById('qbank-list');
+function manageQSets(){
+  var list = document.getElementById('qset-list');
   if(!list) return;
-  refreshQBankList();
-  var names = Object.keys(qBanks);
+  refreshQSetList();
+  var names = Object.keys(qSets);
   // Load first bank into editor
   if(names.length > 0){
-    var first = activeQBank || names[0];
-    if(qBanks[first]){
-      document.getElementById('qbank-edit-name').textContent = first;
-      document.getElementById('qbank-edit-area').value = qBanks[first].questions.join('\n');
+    var first = activeQSet || names[0];
+    if(qSets[first]){
+      document.getElementById('qset-edit-name').textContent = first;
+      document.getElementById('qset-edit-area').value = qSets[first].questions.join('\n');
     }
   }
-  document.getElementById('qbank-modal').style.display = 'block';
+  document.getElementById('qset-modal').style.display = 'block';
 }
 
-function loadQBank(name){
-  if(!qBanks[name]) return;
-  activeQBank = name;
-  questions = qBanks[name].questions.slice();
-  saveQBanks();
-  renderQs(); renderQBankSelect();
-  closeQBankManager();
-  showToast('Loaded "'+name+'"');
+function loadQSet(name){
+  if(!qSets[name]) return;
+  activeQSet = name;
+  questions = qSets[name].questions.slice();
+  saveQSets();
+  renderQs(); renderQSetSelect();
+  closeQSetManager();
+  showToast('Loaded set "'+name+'"');
 }
 
-function deleteQBank(name){
-  if(!confirm('Delete bank "'+name+'"?')) return;
-  delete qBanks[name];
-  if(activeQBank === name){ var keys = Object.keys(qBanks); activeQBank = keys[0] || ''; }
-  saveQBanks();
-  renderQBankSelect();
+function deleteQSet(name){
+  if(!confirm('Delete set "'+name+'"?')) return;
+  delete qSets[name];
+  if(activeQSet === name){ var keys = Object.keys(qSets); activeQSet = keys[0] || ''; }
+  saveQSets();
+  renderQSetSelect();
   renderQs();
   // Update the bank list in the modal if open
-  var list = document.getElementById('qbank-list');
-  if(list) refreshQBankList();
+  var list = document.getElementById('qset-list');
+  if(list) refreshQSetList();
 }
 
-function refreshQBankList(){
-  var list = document.getElementById('qbank-list');
+function refreshQSetList(){
+  var list = document.getElementById('qset-list');
   if(!list) return;
-  var names = Object.keys(qBanks);
-  if(names.length===0){ list.innerHTML='<p class="muted">No banks saved.</p>'; return; }
+  var names = Object.keys(qSets);
+  if(names.length===0){ list.innerHTML='<p class="muted">No question sets saved.</p>'; return; }
   var h = '';
   for(var i=0;i<names.length;i++){
-    var qc = qBanks[names[i]] ? (qBanks[names[i]].questions ? qBanks[names[i]].questions.length : 0) : 0;
+    var qc = qSets[names[i]] ? (qSets[names[i]].questions ? qSets[names[i]].questions.length : 0) : 0;
     h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;margin-bottom:4px">';
-    h += '<span style="flex:1;font-weight:'+(names[i]===activeQBank?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span></span>';
-    h += '<button class="btn btn-sm btn-out" onclick="loadQBank(\''+names[i]+'\')">Load</button>';
-    h += '<button class="btn btn-sm btn-dan" onclick="deleteQBank(\''+names[i]+'\')">Delete</button>';
+    h += '<span style="flex:1;font-weight:'+(names[i]===activeQSet?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span></span>';
+    h += '<button class="btn btn-sm btn-out" onclick="loadQSet(\''+names[i]+'\')">Load</button>';
+    h += '<button class="btn btn-sm btn-dan" onclick="deleteQSet(\''+names[i]+'\')">Delete</button>';
     h += '</div>';
   }
   list.innerHTML = h;
 }
 
-function openPullFromBank(){
+function openPbiLibrary(){
   // Build a list of all questions from all banks
-  var names = Object.keys(qBanks);
-  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions to add to current list:</label></div>';
+  var names = Object.keys(qSets);
+  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions from the PBI Library:</label></div>';
   var added = 0;
   for(var ni=0;ni<names.length;ni++){
-    var bank = qBanks[names[ni]];
+    var bank = qSets[names[ni]];
     if(!bank || !bank.questions || bank.questions.length===0) continue;
     h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:6px 0 3px;padding:4px 0;border-bottom:1px dotted var(--border)">'+esc(names[ni])+'</div>';
     for(var qi=0;qi<bank.questions.length;qi++){
       var q = bank.questions[qi];
       h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 4px;border-radius:4px;font-size:.82rem;line-height:1.4">';
-      h += '<input type="checkbox" id="pbq-'+ni+'-'+qi+'" style="margin-top:2px">';
-      h += '<label for="pbq-'+ni+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(q)+'</label>';
+      h += '<input type="checkbox" id="plq-'+ni+'-'+qi+'" style="margin-top:2px">';
+      h += '<label for="plq-'+ni+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(q)+'</label>';
       h += '</div>';
     }
   }
-  if(h.indexOf('checkbox') < 0) h += '<p class="muted">No bank questions available.</p>';
+  if(h.indexOf('checkbox') < 0) h += '<p class="muted">No PBI questions available.</p>';
   h += '<div class="ma" style="margin-top:8px">';
-  h += '<button class="btn btn-pri" onclick="addSelectedFromBank()">Add Selected</button>';
-  h += '<button class="btn btn-out" onclick="closePullFromBank()">Cancel</button></div>';
+  h += '<button class="btn btn-pri" onclick="addSelectedFromLibrary()">Add Selected</button>';
+  h += '<button class="btn btn-out" onclick="closePbiLibrary()">Cancel</button></div>';
 
   // Show in a floating container
-  var container = document.getElementById('pull-bank-container');
+  var container = document.getElementById('pbi-library-container');
   if(!container){
     container = document.createElement('div');
-    container.id = 'pull-bank-container';
+    container.id = 'pbi-library-container';
     container.className = 'mo np';
     container.style.display = 'block';
-    container.innerHTML = '<div class="mb" style="max-width:600px"><h2>Pull Questions from Bank</h2><div id="pull-bank-content"></div></div>';
+    container.innerHTML = '<div class="mb" style="max-width:600px"><h2>PBI Library</h2><div id="pbi-library-content"></div></div>';
     document.body.appendChild(container);
   }
-  document.getElementById('pull-bank-content').innerHTML = h;
+  document.getElementById('pbi-library-content').innerHTML = h;
   container.style.display = 'block';
 }
 
-function addSelectedFromBank(){
+function addSelectedFromLibrary(){
   var count = 0;
-  var names = Object.keys(qBanks);
+  var names = Object.keys(qSets);
   for(var ni=0;ni<names.length;ni++){
-    var bank = qBanks[names[ni]];
+    var bank = qSets[names[ni]];
     if(!bank || !bank.questions) continue;
     for(var qi=0;qi<bank.questions.length;qi++){
-      var cb = document.getElementById('pbq-'+ni+'-'+qi);
+      var cb = document.getElementById('plq-'+ni+'-'+qi);
       if(cb && cb.checked){
         questions.push(bank.questions[qi]);
         count++;
@@ -642,26 +821,26 @@ function addSelectedFromBank(){
     }
   }
   if(count === 0){ alert('Select at least one question.'); return; }
-  closePullFromBank();
+  closePbiLibrary();
   renderQs(); autoSave();
   showToast('Added '+count+' question(s)');
 }
 
-function closePullFromBank(){
-  var container = document.getElementById('pull-bank-container');
+function closePbiLibrary(){
+  var container = document.getElementById('pbi-library-container');
   if(container) container.style.display = 'none';
 }
-function saveQBankEdit(){
-  var name = document.getElementById('qbank-edit-name').textContent;
-  if(!name || !qBanks[name]){ alert('Select a bank first.'); return; }
-  var text = document.getElementById('qbank-edit-area').value;
+function saveQSetEdit(){
+  var name = document.getElementById('qset-edit-name').textContent;
+  if(!name || !qSets[name]){ alert('Select a bank first.'); return; }
+  var text = document.getElementById('qset-edit-area').value;
   var lines = text.split('\n').filter(function(l){ return l.trim(); });
-  qBanks[name].questions = lines;
-  saveQBanks();
+  qSets[name].questions = lines;
+  saveQSets();
   showToast('Saved '+lines.length+' questions to "'+name+'"');
-  manageQBanks(); // refresh the bank list display
+  manageQSets(); // refresh the bank list display
 }
-function closeQBankManager(){ document.getElementById('qbank-modal').style.display='none'; }
+function closeQSetManager(){ document.getElementById('qset-modal').style.display='none'; }
 
 
 function renderProfileList(){
@@ -875,7 +1054,7 @@ function state(){
     m2n:gv('r-m2n'), m2s:gv('r-m2s'), m2d:gv('r-m2d'),
     m3n:gv('r-m3n'), m3s:gv('r-m3s'), m3d:gv('r-m3d'),
     _prof:positionProfiles, _act:activeProfileName,
-    _qbk:qBanks, _qba:activeQBank
+    _qbk:qSets, _qba:activeQSet
   };
 }
 
@@ -912,8 +1091,8 @@ function fromSt(s){
   sv('r-m3n',s.m3n); sv('r-m3s',s.m3s); sv('r-m3d',s.m3d);
   if(s._prof) positionProfiles=s._prof;
   if(s._act&&positionProfiles[s._act]) activeProfileName=s._act;
-  if(s._qbk){ qBanks=s._qbk; saveQBanks(); }
-  if(s._qba&&(qBanks[s._qba]||DEFAULT_QBANKS[s._qba])){ activeQBank=s._qba; saveQBanks(); }
+  if(s._qbk){ qSets=s._qbk; saveQSets(); }
+  if(s._qba&&(qSets[s._qba]||PBI_LIBRARY[s._qba])){ activeQSet=s._qba; saveQSets(); }
 }
 
 function showTab(id,btn){
@@ -1045,8 +1224,8 @@ function delQ(i){
   renderQs(); autoSave();
 }
 function resetQs(){
-  if(!confirm('Reset to default questions for "'+activeQBank+'"?')) return;
-  if(qBanks[activeQBank]) questions = qBanks[activeQBank].questions.slice();
+  if(!confirm('Reset to default questions for "'+activeQSet+'"?')) return;
+  if(qSets[activeQSet]) questions = qSets[activeQSet].questions.slice();
   else questions = DQS.slice();
   renderQs(); autoSave();
 }
@@ -1165,7 +1344,7 @@ function renderRecs(){
 
 // IMPORT / EXPORT
 function exportData(){
-  var d=state(); d._prof=positionProfiles; d._act=activeProfileName; d._qbk=qBanks; d._qba=activeQBank;
+  var d=state(); d._prof=positionProfiles; d._act=activeProfileName; d._qbk=qSets; d._qba=activeQSet;
   var json=JSON.stringify(d,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -1187,8 +1366,8 @@ function importData(){
         if(data.aa) applicants=data.aa;
         if(data._prof){ positionProfiles=data._prof; saveProfiles(); }
         if(data._act&&positionProfiles[data._act]) activeProfileName=data._act;
-        if(data._qbk){ qBanks=data._qbk; saveQBanks(); }
-        if(data._qba&&(qBanks[data._qba]||DEFAULT_QBANKS[data._qba])) activeQBank=data._qba;
+        if(data._qbk){ qSets=data._qbk; saveQSets(); }
+        if(data._qba&&(qSets[data._qba]||PBI_LIBRARY[data._qba])) activeQSet=data._qba;
         fromSt(data); renderAll(); alert('Imported.');
       } catch(e){ alert('Error: '+e.message); }
     };
@@ -1197,7 +1376,346 @@ function importData(){
   input.click();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+
+// ===== Simplified comparison helpers / guided rubric builder =====
+var rbStep = 1;
+var rbEditingName = '';
+var rbDraft = [];
+
+function toggleTools(){
+  var b=E('tools-bar');
+  if(!b) return;
+  b.style.display = b.style.display==='none' ? 'block' : 'none';
+}
+function goWorkflow(id){
+  var btns=document.querySelectorAll('.tabs button');
+  var target=null;
+  for(var i=0;i<btns.length;i++){
+    if(btns[i].onclick && btns[i].onclick.toString().indexOf("'"+id+"'")>=0){ target=btns[i]; break; }
+  }
+  showTab(id,target);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateHome(){
+  var hp=E('home-position'), ha=E('home-apps'), hq=E('home-questions'), hc=E('home-complete');
+  if(hp) hp.textContent=activeProfileName||'Not selected';
+  if(ha) ha.textContent=applicants.length;
+  if(hq) hq.textContent=questions.length;
+  var c=0;
+  for(var i=0;i<applicants.length;i++) if(getIV(applicants[i])>0) c++;
+  if(hc) hc.textContent=c;
+}
+function renderSteps(){
+  var s=E('step-indicator'); if(!s) return;
+  var steps=['Review Instructions','Build Rubric & Applicants','Read Introduction','Conduct Interviews','Recommendations'];
+  var current=0;
+  var active=document.querySelector('.tabs button.act');
+  if(active){
+    var tx=active.textContent||'';
+    if(tx.indexOf('Rubric')>=0) current=1;
+    else if(tx.indexOf('Introduction')>=0) current=2;
+    else if(tx.indexOf('Interview Questions')>=0) current=3;
+    else if(tx.indexOf('Recommendations')>=0) current=4;
+    else current=0;
+  }
+  var h='';
+  for(var i=0;i<steps.length;i++){
+    var cls='sp'+(i<current?' done':'')+(i===current?' act':'');
+    h+='<span class="'+cls+'">'+(i<current?'\u2713 ':'')+steps[i]+'</span>';
+    if(i<steps.length-1) h+='<span class="ar">\u2192</span>';
+  }
+  s.innerHTML=h;
+}
+var _origShowTab = showTab;
+showTab = function(id,btn){
+  _origShowTab(id,btn);
+  updateHome();
+};
+
+function standardGuide(){
+  return {
+    1:'Not adequate',
+    2:'Minimally adequate',
+    3:'Acceptable',
+    4:'Above acceptable',
+    5:'Far exceeds'
+  };
+}
+function parseColGuide(col){
+  var g={};
+  if(col && col.opts){
+    for(var i=0;i<col.opts.length;i++){
+      var p=String(col.opts[i]).split('=');
+      if(p.length>1) g[String(p[0]).trim()]=p.slice(1).join('=').trim();
+    }
+  }
+  return g;
+}
+function makeDraftFromProfile(name){
+  var p=positionProfiles[name];
+  if(!p || !p.columns) return [];
+  return p.columns.map(function(c){
+    return {id:c.id,label:c.label,max:(c.max===null||c.max===undefined?5:c.max),guide:parseColGuide(c),open:(c.opts&&c.opts.length>0)};
+  });
+}
+function rbRefreshCopyOptions(){
+  var s=E('rb-copy'); if(!s) return;
+  var names=Object.keys(positionProfiles);
+  var h='<option value="">Start with a blank rubric</option>';
+  for(var i=0;i<names.length;i++){
+    if(names[i]===rbEditingName) continue;
+    h+='<option value="'+esc(names[i])+'">'+esc(names[i])+'</option>';
+  }
+  s.innerHTML=h;
+}
+function openRubricBuilder(name){
+  rbEditingName = name || '';
+  rbStep=1;
+  E('rb-title').textContent = rbEditingName ? 'Edit Position Rubric' : 'Create Position Rubric';
+  E('rb-name').value = rbEditingName || '';
+  E('rb-name').disabled = !!rbEditingName;
+  rbDraft = rbEditingName ? makeDraftFromProfile(rbEditingName) : [];
+  if(rbDraft.length===0) rbDraft=[
+    {id:'c_'+Date.now()+'_1',label:'',max:5,guide:{},open:false},
+    {id:'c_'+Date.now()+'_2',label:'',max:5,guide:{},open:false}
+  ];
+  rbRefreshCopyOptions();
+  E('rb-copy-wrap').style.display = rbEditingName ? 'none' : 'block';
+  E('rb-delete').style.display = rbEditingName ? 'inline-flex' : 'none';
+  rbRenderCriteria();
+  rbShowStep();
+  E('rubric-modal').style.display='block';
+}
+function closeRubricBuilder(){ E('rubric-modal').style.display='none'; }
+function rbShowStep(){
+  for(var i=1;i<=3;i++) E('rb-step-'+i).style.display=(i===rbStep?'block':'none');
+  E('rb-step-label').textContent='Step '+rbStep+' of 3 — '+(rbStep===1?'Position':rbStep===2?'Criteria':'Review');
+  E('rb-progress').style.width=(rbStep*33.333)+'%';
+  E('rb-back').style.visibility=rbStep===1?'hidden':'visible';
+  E('rb-next').style.display=rbStep===3?'none':'inline-flex';
+  E('rb-save').style.display=rbStep===3?'inline-flex':'none';
+  if(rbStep===3) rbRenderPreview();
+}
+function rbNext(){
+  if(rbStep===1){
+    var name=E('rb-name').value.trim();
+    if(!name){ alert('Enter the position / rubric name.'); return; }
+    if(!rbEditingName && positionProfiles[name]){ alert('A rubric with that name already exists. Choose it from the list or use a different name.'); return; }
+    var cp=E('rb-copy').value;
+    if(!rbEditingName && cp && positionProfiles[cp]){
+      rbDraft=makeDraftFromProfile(cp).map(function(c){
+        c.id='col_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); return c;
+      });
+      rbRenderCriteria();
+      E('rb-copy').value='';
+    }
+  }
+  if(rbStep===2){
+    var valid=rbDraft.filter(function(c){return String(c.label||'').trim();});
+    if(valid.length===0){ alert('Add at least one scoring criterion.'); return; }
+    rbDraft=valid;
+  }
+  rbStep=Math.min(3,rbStep+1); rbShowStep();
+}
+function rbBack(){ rbStep=Math.max(1,rbStep-1); rbShowStep(); }
+function rbAddCriterion(){
+  rbDraft.push({id:'col_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),label:'',max:5,guide:{},open:false});
+  rbRenderCriteria();
+}
+function rbRemoveCriterion(i){
+  if(rbDraft.length<=1){ alert('Keep at least one criterion.'); return; }
+  rbDraft.splice(i,1); rbRenderCriteria();
+}
+function rbSetLabel(i,v){ rbDraft[i].label=v; }
+function rbSetMax(i,v){
+  var n=parseInt(v)||5; if(n<1)n=1; if(n>20)n=20;
+  rbDraft[i].max=n;
+  var ng={}; Object.keys(rbDraft[i].guide||{}).forEach(function(k){ if(parseInt(k)<=n) ng[k]=rbDraft[i].guide[k]; });
+  rbDraft[i].guide=ng;
+  rbRenderCriteria();
+}
+function rbToggleGuide(i){
+  rbDraft[i].open=!rbDraft[i].open;
+  if(rbDraft[i].open && rbDraft[i].max===5 && Object.keys(rbDraft[i].guide||{}).length===0) rbDraft[i].guide=standardGuide();
+  rbRenderCriteria();
+}
+function rbGuide(i,score,v){ rbDraft[i].guide[String(score)]=v; }
+function rbRenderCriteria(){
+  var w=E('rb-criteria'); if(!w) return;
+  var h='';
+  for(var i=0;i<rbDraft.length;i++){
+    var c=rbDraft[i];
+    h+='<div class="criterion-card">';
+    h+='<div class="criterion-top">';
+    h+='<div><label>Criterion '+(i+1)+'</label><input class="ii" value="'+esc(c.label||'')+'" placeholder="Example: Relevant Experience" oninput="rbSetLabel('+i+',this.value)"></div>';
+    h+='<div><label>Max Points</label><input class="ii" type="number" min="1" max="20" value="'+(c.max||5)+'" onchange="rbSetMax('+i+',this.value)"></div>';
+    h+='<button class="btn btn-dan btn-sm remove-col" type="button" onclick="rbRemoveCriterion('+i+')">Remove</button>';
+    h+='</div>';
+    h+='<div class="guide-toggle"><button class="btn btn-out btn-sm" type="button" onclick="rbToggleGuide('+i+')">'+(c.open?'Hide scoring guidance':'Add scoring guidance (optional)')+'</button>';
+    h+='<span class="small-muted" style="margin-left:8px">Guidance appears in score choices and on the printed matrix.</span></div>';
+    if(c.open){
+      h+='<div class="guide-area">';
+      h+='<div class="small-muted" style="margin-bottom:7px">Describe what each point value means. You may leave any line blank.</div>';
+      for(var s=0;s<=c.max;s++){
+        h+='<div class="guide-row"><span>'+s+' point'+(s===1?'':'s')+'</span><input class="ii" style="padding:6px 8px" value="'+esc((c.guide||{})[String(s)]||'')+'" placeholder="What earns '+s+'?" oninput="rbGuide('+i+','+s+',this.value)"></div>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  w.innerHTML=h;
+}
+function rbRenderPreview(){
+  var name=E('rb-name').value.trim();
+  var h='<div class="ph">'+esc(name)+'</div><table><thead><tr><th>Criterion</th><th style="width:110px">Maximum</th><th>Scoring Guidance</th></tr></thead><tbody>';
+  for(var i=0;i<rbDraft.length;i++){
+    var c=rbDraft[i], parts=[];
+    Object.keys(c.guide||{}).sort(function(a,b){return parseInt(a)-parseInt(b)}).forEach(function(k){if(String(c.guide[k]||'').trim()) parts.push(k+' = '+c.guide[k]);});
+    h+='<tr><td><strong>'+esc(c.label||('Criterion '+(i+1)))+'</strong></td><td>'+c.max+' points</td><td>'+(parts.length?esc(parts.join(' | ')):'Score 0-'+c.max)+'</td></tr>';
+  }
+  h+='</tbody></table>';
+  E('rb-preview').innerHTML=h;
+}
+function rbSave(){
+  var name=E('rb-name').value.trim();
+  if(!name){ alert('Enter a position / rubric name.'); return; }
+  var cols=[];
+  for(var i=0;i<rbDraft.length;i++){
+    var c=rbDraft[i]; if(!String(c.label||'').trim()) continue;
+    var opts=[];
+    Object.keys(c.guide||{}).sort(function(a,b){return parseInt(a)-parseInt(b)}).forEach(function(k){
+      var d=String(c.guide[k]||'').trim(); if(d) opts.push(k+' = '+d);
+    });
+    cols.push({id:c.id||('col_'+Date.now()+'_'+i),label:c.label.trim(),max:parseInt(c.max)||5,opts:opts});
+  }
+  if(cols.length===0){ alert('Add at least one criterion.'); return; }
+  positionProfiles[name]={columns:cols};
+  activeProfileName=name;
+  editingProfileName=name;
+  saveProfiles();
+  closeRubricBuilder();
+  renderAll();
+  showToast('Rubric "'+name+'" saved');
+}
+function rbDeleteCurrent(){
+  if(!rbEditingName || !positionProfiles[rbEditingName]) return;
+  if(!confirm('Delete the saved rubric "'+rbEditingName+'"? Applicants are not deleted, but their rubric scores may no longer match another position.')) return;
+  delete positionProfiles[rbEditingName];
+  if(activeProfileName===rbEditingName) activeProfileName='';
+  saveProfiles(); closeRubricBuilder(); renderAll();
+}
+function renderRubricSummary(){
+  var w=E('rubric-summary'), eb=E('edit-rubric-btn'), ab=E('add-app-btn');
+  if(!w) return;
+  if(!activeProfileName || !positionProfiles[activeProfileName]){
+    w.innerHTML=''; if(eb)eb.disabled=true; if(ab)ab.disabled=true; return;
+  }
+  if(eb)eb.disabled=false; if(ab)ab.disabled=false;
+  var cols=profileColumns(), h='';
+  for(var i=0;i<cols.length;i++){
+    h+='<div class="rubric-chip"><b>'+esc(cols[i].label)+'</b><span>Maximum '+(cols[i].max||5)+' points'+(cols[i].opts&&cols[i].opts.length?' • guidance included':'')+'</span></div>';
+  }
+  w.innerHTML=h;
+}
+
+// Override profile selector rendering so it reads like a rubric, not technical profile management.
+renderProfileSelect = function(){
+  var sel=E('profile-select'); if(!sel) return;
+  var names=Object.keys(positionProfiles);
+  var h='<option value="">-- Choose a saved position rubric --</option>';
+  for(var i=0;i<names.length;i++) h+='<option value="'+esc(names[i])+'"'+(names[i]===activeProfileName?' selected':'')+'>'+esc(names[i])+'</option>';
+  sel.innerHTML=h;
+  renderRubricSummary();
+};
+
+// Override switch to keep controls and home screen current.
+switchProfile = function(name){
+  if(!name || !positionProfiles[name]) activeProfileName='';
+  else activeProfileName=name;
+  saveProfiles(); renderAll(); updateHome();
+};
+
+// Friendlier applicant score fields.
+renderModalFields = function(a){
+  var container=E('am-fields'); if(!container) return;
+  var fields=container.querySelectorAll('.pf'); fields.forEach(function(f){ f.parentNode.removeChild(f); });
+  var cols=profileColumns(); var ins=container.querySelector('.fw:last-child');
+  for(var ci=0;ci<cols.length;ci++){
+    var col=cols[ci], div=document.createElement('div'); div.className='pf';
+    var label=document.createElement('label'); label.className='lb'; label.textContent=col.label+' (0-'+(col.max||5)+' points)';
+    var select=document.createElement('select'); select.className='ii'; select.id='am-'+col.id;
+    var z=document.createElement('option'); z.value='0'; z.textContent='0 — Not scored / no points'; select.appendChild(z);
+    if(col.opts&&col.opts.length>0){
+      for(var oi=0;oi<col.opts.length;oi++){
+        var parts=col.opts[oi].split('='), val=parts[0].trim();
+        if(String(val)==='0') { select.options[0].textContent=col.opts[oi].replace('=','—'); continue; }
+        var opt=document.createElement('option'); opt.value=val; opt.textContent=col.opts[oi].replace('=','—'); select.appendChild(opt);
+      }
+      // Ensure every numeric value remains selectable even if guidance is incomplete.
+      for(var v=1;v<=(col.max||5);v++){
+        var exists=false;
+        for(var oi=0;oi<select.options.length;oi++) if(String(select.options[oi].value)===String(v)) exists=true;
+        if(!exists){ var o=document.createElement('option'); o.value=String(v); o.textContent=String(v); select.appendChild(o); }
+      }
+    } else {
+      for(var v=1;v<=(col.max||5);v++){ var o=document.createElement('option'); o.value=String(v); o.textContent=String(v); select.appendChild(o); }
+    }
+    if(a&&a[col.id]!==undefined) select.value=String(a[col.id]);
+    div.appendChild(label); div.appendChild(select); container.insertBefore(div,ins);
+  }
+};
+
+// Override matrix only for friendlier empty states/actions; score math is unchanged.
+renderMat = function(){
+  var tb=E('mt-body'), emp=E('mt-empty'), tbl=E('mt-tbl');
+  if(!tb||!emp||!tbl) return;
+  var badge=E('profile-badge'); if(badge) badge.textContent=activeProfileName||'';
+  renderRubricSummary();
+  var mh=E('matrix-help');
+  if(!activeProfileName||!positionProfiles[activeProfileName]){
+    emp.style.display='block';
+    emp.innerHTML='<h3>No position rubric selected</h3><p style="margin-bottom:12px">Create a rubric for this position or choose one you previously saved.</p><button class="btn btn-pri np" onclick="openRubricBuilder()">Create Position Rubric</button>';
+    tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
+  }
+  if(applicants.length===0){
+    emp.style.display='block';
+    emp.innerHTML='<h3>'+esc(activeProfileName)+' rubric is ready</h3><p style="margin-bottom:12px">Next, add the first applicant. You will score the position-specific rubric in the applicant window.</p><button class="btn btn-suc np" onclick="openModal()">+ Add First Applicant</button>';
+    tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
+  }
+  emp.style.display='none'; tbl.style.display='table'; if(mh)mh.style.display='block';
+  var cols=profileColumns(), ivm=questions.length*5, tm=profileColMax()+ivm;
+  var hh='<th>#</th><th>Applicant</th><th>Date</th>';
+  for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
+  hh+='<th class="intv">Interview<br><span class="mx">/'+ivm+'</span></th><th class="tcol">Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
+  E('mt-header').innerHTML=hh;
+  var sorted=applicants.slice().sort(function(a,b){return getTot(b)-getTot(a)}), h='';
+  for(var i=0;i<sorted.length;i++){
+    var a=sorted[i], iv=getIV(a), to=getTot(a);
+    h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
+    for(var ci=0;ci<cols.length;ci++) h+='<td>'+getCS(a,cols[ci].id)+'</td>';
+    h+='<td class="intv">'+iv+'</td><td class="tot tcol">'+to+'</td><td style="max-width:140px;font-size:.75rem;color:var(--muted)">'+esc(a.notes||'')+'</td>';
+    h+='<td class="np" style="white-space:nowrap"><button class="btn btn-out btn-sm" onclick="openModal(\''+a.id+'\')">Score / Edit</button> <button class="btn btn-dan btn-sm" onclick="delApp(\''+a.id+'\')">Delete</button></td></tr>';
+  }
+  tb.innerHTML=h; renderRecs(); updateHome();
+};
+
+var _origRenderAll = renderAll;
+renderAll = function(){
+  _origRenderAll();
+  renderRubricSummary();
+  updateHome();
+};
+
+// Start tab should be the initial view in this comparison version.
+function startOnHome(){
+  document.querySelectorAll('.tc').forEach(function(t){t.classList.remove('act')});
+  document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('act')});
+  if(E('tc-home')) E('tc-home').classList.add('act');
+  var b=document.querySelector('.tabs button'); if(b)b.classList.add('act');
+  updateHome();
+}
+
+document.addEventListener('DOMContentLoaded', function(){ init(); startOnHome(); });
 </script>
 </body>
 </html>
