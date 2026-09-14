@@ -549,7 +549,7 @@ function loadProfiles(){
 }
 loadProfiles();
 
-function init(){ questions=DQS.slice(); loadFromStore(); loadUserLib(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
+function init(){ questions=DQS.slice(); loadFromStore(); loadUserLib(); loadUserCat(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
 function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQSetSelect(); }
 
 function renderProfileSelect(){
@@ -595,6 +595,16 @@ var PBI_LIBRARY = {
 };
 
 // PBI Category Library — read-only questions organized by category
+// User-added category questions (stored in localStorage)
+var userCatQuestions = {};
+
+function loadUserCat(){
+  try { var d = localStorage.getItem(SK+'_ucat'); if(d) userCatQuestions = JSON.parse(d); } catch(e){}
+}
+function saveUserCat(){
+  localStorage.setItem(SK+'_ucat', JSON.stringify(userCatQuestions));
+}
+
 var PBI_CATEGORIES = {
   "Customer Service": [
     "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
@@ -661,12 +671,17 @@ function loadQSets(){
   try {
     var d = localStorage.getItem(SK+'_qbk');
     if(d) qSets = JSON.parse(d);
+    // Clean out old PBI category defaults that are no longer in PBI_LIBRARY
+    var oldPBI = ['PBI - Customer Service','PBI - Interpersonal','PBI - Personal Mastery','PBI - Flexibility','PBI - Systems Thinking','PBI - Creative Thinking','Standard RN Interview'];
+    oldPBI.forEach(function(k){ if(qSets[k] && !PBI_LIBRARY[k]) delete qSets[k]; });
     var a = localStorage.getItem(SK+'_qba');
     if(a && (qSets[a] || PBI_LIBRARY[a])) activeQSet = a;
   } catch(e){}
   Object.keys(PBI_LIBRARY).forEach(function(k){
     if(!qSets[k]) qSets[k] = JSON.parse(JSON.stringify(PBI_LIBRARY[k]));
   });
+  // Ensure activeQSet is valid
+  if(!activeQSet || !qSets[activeQSet]) activeQSet = Object.keys(qSets)[0] || 'Standard Interview';
 }
 function saveQSets(){
   localStorage.setItem(SK+'_qbk', JSON.stringify(qSets));
@@ -771,23 +786,29 @@ function refreshQSetList(){
 }
 
 function openPbiLibrary(){
-  // Build a list of all questions from all sets
-  var names = Object.keys(qSets);
-  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions from the PBI Library:</label></div>';
-  var added = 0;
-  for(var ni=0;ni<names.length;ni++){
-    var bnk = qSets[names[ni]];
-    if(!bnk || !bnk.questions || bnk.questions.length===0) continue;
-    h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:6px 0 3px;padding:4px 0;border-bottom:1px dotted var(--border)">'+esc(names[ni])+'</div>';
-    for(var qi=0;qi<bnk.questions.length;qi++){
-      var q = bnk.questions[qi];
-      h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 4px;border-radius:4px;font-size:.82rem;line-height:1.4">';
-      h += '<input type="checkbox" id="plq-'+ni+'-'+qi+'" style="margin-top:2px">';
-      h += '<label for="plq-'+ni+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(q)+'</label>';
+  var h = '<div style="margin-bottom:8px"><label class="lb">Check questions to add, or type new ones below each category:</label></div>';
+  var catNames = Object.keys(PBI_CATEGORIES);
+  for(var ci=0;ci<catNames.length;ci++){
+    var catName = catNames[ci];
+    var cat = PBI_CATEGORIES[catName];
+    // Combine default + user-added for this category
+    var allQ = cat.slice();
+    var userAdd = (userCatQuestions[catName] || []);
+    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
+    h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:8px 0 4px;padding:6px 0 4px;border-bottom:1px solid var(--border);background:var(--soft);border-radius:6px 6px 0 0">'+esc(catName)+' <span class="muted" style="font-weight:400">('+allQ.length+' questions)</span></div>';
+    for(var qi=0;qi<allQ.length;qi++){
+      h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 8px;border-radius:4px;font-size:.82rem;line-height:1.4">';
+      h += '<input type="checkbox" id="plq-'+ci+'-'+qi+'" style="margin-top:2px">';
+      h += '<label for="plq-'+ci+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(allQ[qi])+'</label>';
       h += '</div>';
     }
+    // Add question input per category
+    h += '<div style="display:flex;gap:6px;padding:4px 8px 6px;background:#f9fafb;border-radius:0 0 6px 6px;border:1px solid var(--border);border-top:none">';
+    h += '<input type="text" id="new-cat-q-'+ci+'" class="ii" placeholder="Add a question to '+esc(catName)+'..." style="flex:1;padding:6px 8px;font-size:.82rem">';
+    h += '<button class="btn btn-suc btn-sm" onclick="addQToCategory('+ci+')" style="white-space:nowrap">Save</button>';
+    h += '</div>';
   }
-  if(h.indexOf('checkbox') < 0) h += '<p class="muted">No PBI questions available.</p>';
+  if(h.indexOf('checkbox') < 0) h += '<p class="muted">No question categories available.</p>';
   h += '<div class="ma" style="margin-top:8px">';
   h += '<button class="btn btn-pri" onclick="addSelectedFromLibrary()">Add Selected</button>';
   h += '<button class="btn btn-out" onclick="closePbiLibrary()">Cancel</button></div>';
@@ -799,7 +820,7 @@ function openPbiLibrary(){
     container.id = 'pbi-library-container';
     container.className = 'mo np';
     container.style.display = 'block';
-    container.innerHTML = '<div class="mb" style="max-width:600px"><h2>PBI Library</h2><div id="pbi-library-content"></div></div>';
+    container.innerHTML = '<div class="mb" style="max-width:650px"><h2>PBI Library</h2><div id="pbi-library-content"></div></div>';
     document.body.appendChild(container);
   }
   document.getElementById('pbi-library-content').innerHTML = h;
@@ -810,29 +831,32 @@ function addSelectedFromLibrary(){
   var count = 0;
   var catNames = Object.keys(PBI_CATEGORIES);
   for(var ci=0;ci<catNames.length;ci++){
-    var cat = PBI_CATEGORIES[catNames[ci]];
-    for(var qi=0;qi<cat.length;qi++){
+    var catName = catNames[ci];
+    var cat = PBI_CATEGORIES[catName];
+    var userAdd = (userCatQuestions[catName] || []);
+    var allQ = cat.slice();
+    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
+    for(var qi=0;qi<allQ.length;qi++){
       var cb = document.getElementById('plq-'+ci+'-'+qi);
-      if(cb && cb.checked){ questions.push(cat[qi]); count++; }
+      if(cb && cb.checked){ questions.push(allQ[qi]); count++; }
     }
-  }
-  for(var qi=0;qi<userLibQuestions.length;qi++){
-    var cb = document.getElementById('plq-u-'+qi);
-    if(cb && cb.checked){ questions.push(userLibQuestions[qi]); count++; }
   }
   if(count === 0){ alert('Select at least one question.'); return; }
   closePbiLibrary();
   renderQs(); autoSave();
   showToast('Added '+count+' question(s)');
 }
-function addToLibrary(){
-  var q = document.getElementById('new-lib-question').value.trim();
+function addQToCategory(ci){
+  var catNames = Object.keys(PBI_CATEGORIES);
+  var name = catNames[ci];
+  var q = document.getElementById('new-cat-q-'+ci).value.trim();
   if(!q){ alert('Enter a question.'); return; }
-  userLibQuestions.push(q);
-  saveUserLib();
-  document.getElementById('new-lib-question').value = '';
+  if(!userCatQuestions[name]) userCatQuestions[name] = [];
+  userCatQuestions[name].push(q);
+  saveUserCat();
+  document.getElementById('new-cat-q-'+ci).value = '';
   openPbiLibrary();
-  showToast('Question added to library');
+  showToast('Added to "'+name+'"');
 }
 
 function closePbiLibrary(){
