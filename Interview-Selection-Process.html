@@ -672,8 +672,13 @@ function loadQSets(){
     var d = localStorage.getItem(SK+'_qbk');
     if(d) qSets = JSON.parse(d);
     // Clean out old PBI category defaults that are no longer in PBI_LIBRARY
-    var oldPBI = ['PBI - Customer Service','PBI - Interpersonal','PBI - Personal Mastery','PBI - Flexibility','PBI - Systems Thinking','PBI - Creative Thinking','Standard RN Interview'];
+    var oldPBI = ['PBI - Customer Service','PBI - Interpersonal','PBI - Personal Mastery','PBI - Flexibility','PBI - Systems Thinking','PBI - Creative Thinking'];
     oldPBI.forEach(function(k){ if(qSets[k] && !PBI_LIBRARY[k]) delete qSets[k]; });
+    // Rename old "Standard RN Interview" to "Standard Interview" if present
+    if(qSets['Standard RN Interview'] && !qSets['Standard Interview']){
+      qSets['Standard Interview'] = qSets['Standard RN Interview'];
+      delete qSets['Standard RN Interview'];
+    }
     var a = localStorage.getItem(SK+'_qba');
     if(a && (qSets[a] || PBI_LIBRARY[a])) activeQSet = a;
   } catch(e){}
@@ -1169,6 +1174,7 @@ function printMat(){
   if(applicants.length===0){ alert('No applicants.'); return; }
   if(!activeProfileName){ alert('Select a position profile first.'); return; }
   var cols = profileColumns(); if(cols.length===0){ alert('Profile has no columns.'); return; }
+  var posApps = applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
   var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   var ivm=questions.length*5; var tm=profileColMax()+ivm;
   var h='<h1 class="h1">Scoring Matrix - '+esc(activeProfileName)+'</h1><table><thead><tr><th>#</th><th>Applicant</th><th>Date</th>';
