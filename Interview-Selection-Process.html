@@ -109,14 +109,16 @@ textarea.ii{resize:vertical;min-height:60px}
 <div id="tc-inst" class="tc act">
   <div class="steps" id="step-indicator"></div>
   <div class="cd">
-    <h2>Panel Instructions</h2>
-    <div style="line-height:1.7;font-size:.95rem">
-      <p><strong>1.</strong> The Interview Panel Leader will determine how the team will function.</p>
-      <p style="margin-top:.5rem"><strong>2.</strong> Write the applicant's name, rate responses 1-5, add brief comments.</p>
-      <p style="margin-top:.5rem"><strong>3.</strong> At the end of each interview, tally the scores, total, sign and date.</p>
-      <p style="margin-top:.5rem"><strong>4.</strong> The Panel Leader will complete the recommendations with signatures.</p>
-      <p style="margin-top:.5rem"><strong>5.</strong> Do not discuss candidates except with appropriate management.</p>
-    </div>
+    <h2>Panel Instructions <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
+    <textarea id="panel-instructions" class="ii" style="min-height:180px;line-height:1.6" oninput="autoSave()">1. The Interview Panel Leader will determine how the team will function. Panel will repeat or clarify as requested.
+
+2. Write the applicant's name, rate responses 1-5, and add brief comments to support each rating.
+
+3. At the end of each interview, tally the scores, total, sign and date.
+
+4. The Panel Leader will complete the recommendations with signatures and return to the selecting official.
+
+5. Do not discuss candidates except with appropriate management.</textarea>
   </div>
   <div class="cd">
     <h2>Scoring Scale</h2>
@@ -202,6 +204,7 @@ If you are a bargaining unit member, you have a right to have union representati
         <button class="btn btn-out btn-sm" onclick="saveQBank()">Save Bank</button>
         <button class="btn btn-out btn-sm" onclick="manageQBanks()">Banks</button>
         <button class="btn btn-suc btn-sm" onclick="addQ()">Add Q</button>
+        <button class="btn btn-out btn-sm" onclick="openPullFromBank()">+ Bank</button>
       </div>
     </div>
   </div>
@@ -224,6 +227,13 @@ If you are a bargaining unit member, you have a right to have union representati
       <div style="display:flex;gap:6px;margin-top:6px">
         <input type="text" id="new-qbank-name" class="ii" placeholder="New bank name..." style="flex:1">
         <button class="btn btn-suc btn-sm" onclick="addQBank()">Add</button>
+      </div>
+    </div>
+        <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem">
+      <label class="lb">Edit Questions for: <span id="qbank-edit-name" style="font-weight:700"></span></label>
+      <textarea id="qbank-edit-area" class="ii" style="min-height:150px;font-size:.85rem;line-height:1.5" placeholder="One question per line..."></textarea>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn btn-pri btn-sm" onclick="saveQBankEdit()">Save to Bank</button>
       </div>
     </div>
     <div class="ma">
@@ -529,17 +539,16 @@ function addQBank(){
 function manageQBanks(){
   var list = document.getElementById('qbank-list');
   if(!list) return;
+  refreshQBankList();
   var names = Object.keys(qBanks);
-  var h = '';
-  for(var i=0;i<names.length;i++){
-    var qc = qBanks[names[i]] ? (qBanks[names[i]].questions ? qBanks[names[i]].questions.length : 0) : 0;
-    h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;margin-bottom:4px">';
-    h += '<span style="flex:1;font-weight:'+(names[i]===activeQBank?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span></span>';
-    h += '<button class="btn btn-sm btn-out" onclick="loadQBank(\''+names[i]+'\')">Load</button>';
-    h += '<button class="btn btn-sm btn-dan" onclick="deleteQBank(\''+names[i]+'\')">Delete</button>';
-    h += '</div>';
+  // Load first bank into editor
+  if(names.length > 0){
+    var first = activeQBank || names[0];
+    if(qBanks[first]){
+      document.getElementById('qbank-edit-name').textContent = first;
+      document.getElementById('qbank-edit-area').value = qBanks[first].questions.join('\n');
+    }
   }
-  list.innerHTML = h;
   document.getElementById('qbank-modal').style.display = 'block';
 }
 
@@ -559,10 +568,99 @@ function deleteQBank(name){
   if(activeQBank === name){ var keys = Object.keys(qBanks); activeQBank = keys[0] || ''; }
   saveQBanks();
   renderQBankSelect();
-  manageQBanks();
   renderQs();
+  // Update the bank list in the modal if open
+  var list = document.getElementById('qbank-list');
+  if(list) refreshQBankList();
 }
 
+function refreshQBankList(){
+  var list = document.getElementById('qbank-list');
+  if(!list) return;
+  var names = Object.keys(qBanks);
+  if(names.length===0){ list.innerHTML='<p class="muted">No banks saved.</p>'; return; }
+  var h = '';
+  for(var i=0;i<names.length;i++){
+    var qc = qBanks[names[i]] ? (qBanks[names[i]].questions ? qBanks[names[i]].questions.length : 0) : 0;
+    h += '<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;margin-bottom:4px">';
+    h += '<span style="flex:1;font-weight:'+(names[i]===activeQBank?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span></span>';
+    h += '<button class="btn btn-sm btn-out" onclick="loadQBank(\''+names[i]+'\')">Load</button>';
+    h += '<button class="btn btn-sm btn-dan" onclick="deleteQBank(\''+names[i]+'\')">Delete</button>';
+    h += '</div>';
+  }
+  list.innerHTML = h;
+}
+
+function openPullFromBank(){
+  // Build a list of all questions from all banks
+  var names = Object.keys(qBanks);
+  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions to add to current list:</label></div>';
+  var added = 0;
+  for(var ni=0;ni<names.length;ni++){
+    var bank = qBanks[names[ni]];
+    if(!bank || !bank.questions || bank.questions.length===0) continue;
+    h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:6px 0 3px;padding:4px 0;border-bottom:1px dotted var(--border)">'+esc(names[ni])+'</div>';
+    for(var qi=0;qi<bank.questions.length;qi++){
+      var q = bank.questions[qi];
+      h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 4px;border-radius:4px;font-size:.82rem;line-height:1.4">';
+      h += '<input type="checkbox" id="pbq-'+ni+'-'+qi+'" style="margin-top:2px">';
+      h += '<label for="pbq-'+ni+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(q)+'</label>';
+      h += '</div>';
+    }
+  }
+  if(h.indexOf('checkbox') < 0) h += '<p class="muted">No bank questions available.</p>';
+  h += '<div class="ma" style="margin-top:8px">';
+  h += '<button class="btn btn-pri" onclick="addSelectedFromBank()">Add Selected</button>';
+  h += '<button class="btn btn-out" onclick="closePullFromBank()">Cancel</button></div>';
+
+  // Show in a floating container
+  var container = document.getElementById('pull-bank-container');
+  if(!container){
+    container = document.createElement('div');
+    container.id = 'pull-bank-container';
+    container.className = 'mo np';
+    container.style.display = 'block';
+    container.innerHTML = '<div class="mb" style="max-width:600px"><h2>Pull Questions from Bank</h2><div id="pull-bank-content"></div></div>';
+    document.body.appendChild(container);
+  }
+  document.getElementById('pull-bank-content').innerHTML = h;
+  container.style.display = 'block';
+}
+
+function addSelectedFromBank(){
+  var count = 0;
+  var names = Object.keys(qBanks);
+  for(var ni=0;ni<names.length;ni++){
+    var bank = qBanks[names[ni]];
+    if(!bank || !bank.questions) continue;
+    for(var qi=0;qi<bank.questions.length;qi++){
+      var cb = document.getElementById('pbq-'+ni+'-'+qi);
+      if(cb && cb.checked){
+        questions.push(bank.questions[qi]);
+        count++;
+      }
+    }
+  }
+  if(count === 0){ alert('Select at least one question.'); return; }
+  closePullFromBank();
+  renderQs(); autoSave();
+  showToast('Added '+count+' question(s)');
+}
+
+function closePullFromBank(){
+  var container = document.getElementById('pull-bank-container');
+  if(container) container.style.display = 'none';
+}
+function saveQBankEdit(){
+  var name = document.getElementById('qbank-edit-name').textContent;
+  if(!name || !qBanks[name]){ alert('Select a bank first.'); return; }
+  var text = document.getElementById('qbank-edit-area').value;
+  var lines = text.split('\n').filter(function(l){ return l.trim(); });
+  qBanks[name].questions = lines;
+  saveQBanks();
+  showToast('Saved '+lines.length+' questions to "'+name+'"');
+  manageQBanks(); // refresh the bank list display
+}
 function closeQBankManager(){ document.getElementById('qbank-modal').style.display='none'; }
 
 
@@ -764,7 +862,7 @@ function renderSteps(){
 function state(){
   var u = document.querySelector('input[name="union"]:checked');
   return {
-    qs:questions, aa:applicants, intro:gv('intro'),
+    qs:questions, aa:applicants, intro:gv('intro'), pi:gv('panel-instructions'),
     u:u?u.value:'', ur:gv('u-rep'),
     rd:gv('r-d'), rp:gv('r-p'), rpn:gv('r-pn'),
     rns:E('r-ns').checked,
@@ -799,6 +897,7 @@ function fromSt(s){
   if(s.qs&&s.qs.length) questions=s.qs.slice();
   if(s.aa) applicants=s.aa;
   sv('intro',s.intro);
+  sv('panel-instructions',s.pi);
   if(s.u){ var r=document.querySelector('input[name="union"][value="'+s.u+'"]'); if(r) r.checked=true; }
   sv('u-rep',s.ur);
   sv('r-d',s.rd); sv('r-p',s.rp); sv('r-pn',s.rpn);
@@ -897,10 +996,10 @@ function printRec(){
   h+='<div class="sec"><h3>Selected</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>';
   h+='<div class="sec"><h3>Recommended Candidate</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-rec-name')||'__________')+'</strong> &nbsp; Reason: <strong>'+esc(gv('r-rec-reason')||'__________')+'</strong></p></div>';
   h+='<div class="sec"><h3>Alternates</h3><p style="font-size:13px">'+esc(gv('r-a1n')||'__________')+' - '+esc(gv('r-a1s')||'__________')+'<br>'+esc(gv('r-a2n')||'__________')+' - '+esc(gv('r-a2s')||'__________')+'</p></div>';
-  h+='<div class="sig"><h3>Signatures</h3><div class="sig-line"><span>Chair:</span> '+esc(gv('r-cn')||'__________')+' &nbsp; Sig: '+esc(gv('r-cs')||'__________')+' &nbsp; Date: '+esc(gv('r-cd')||'__________')+'</div>';
-  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m1n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m1s')||'__________')+' &nbsp; Date: '+esc(gv('r-m1d')||'__________')+'</div>';
-  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m2n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m2s')||'__________')+' &nbsp; Date: '+esc(gv('r-m2d')||'__________')+'</div>';
-  h+='<div class="sig-line"><span>Member:</span> '+esc(gv('r-m3n')||'__________')+' &nbsp; Sig: '+esc(gv('r-m3s')||'__________')+' &nbsp; Date: '+esc(gv('r-m3d')||'__________')+'</div></div>';
+  h+='<div class="sig"><h3>Signatures</h3><div class="sig-line" style="display:flex;gap:30px;margin:10px 0;font-size:14px"><span style="min-width:120px">Chair:</span> <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-cn')||'')+'</span> &nbsp; Sig: <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-cs')||'')+'</span> &nbsp; Date: <span style="border-bottom:1px solid #333;min-width:140px;display:inline-block">'+esc(gv('r-cd')||'')+'</span></div>';
+  h+='<div class="sig-line" style="display:flex;gap:30px;margin:10px 0;font-size:14px"><span style="min-width:120px">Member:</span> <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m1n')||'')+'</span> &nbsp; Sig: <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m1s')||'')+'</span> &nbsp; Date: <span style="border-bottom:1px solid #333;min-width:140px;display:inline-block">'+esc(gv('r-m1d')||'')+'</span></div>';
+  h+='<div class="sig-line" style="display:flex;gap:30px;margin:10px 0;font-size:14px"><span style="min-width:120px">Member:</span> <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m2n')||'')+'</span> &nbsp; Sig: <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m2s')||'')+'</span> &nbsp; Date: <span style="border-bottom:1px solid #333;min-width:140px;display:inline-block">'+esc(gv('r-m2d')||'')+'</span></div>';
+  h+='<div class="sig-line" style="display:flex;gap:30px;margin:10px 0;font-size:14px"><span style="min-width:120px">Member:</span> <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m3n')||'')+'</span> &nbsp; Sig: <span style="border-bottom:1px solid #333;min-width:180px;display:inline-block">'+esc(gv('r-m3s')||'')+'</span> &nbsp; Date: <span style="border-bottom:1px solid #333;min-width:140px;display:inline-block">'+esc(gv('r-m3d')||'')+'</span></div></div>';
   printHTML('Recommendations', h);
 }
 
