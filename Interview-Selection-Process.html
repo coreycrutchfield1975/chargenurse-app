@@ -378,10 +378,11 @@ If you are a bargaining unit member, you have a right to have union representati
         <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
         <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
         <label style="margin-bottom:0;font-size:.8rem">Set:</label>
-        <select id="qs-set" style="width:180px" onchange="switchQSet(this.value)"></select>
-        <button class="btn btn-out btn-sm" onclick="saveQSet()">Save Set</button>
-        <button class="btn btn-out btn-sm" onclick="manageQSets()">Sets</button>
-        <button class="btn btn-suc btn-sm" onclick="addQ()">Add Q</button>
+        <select id="qs-set" style="width:200px" onchange="switchQSet(this.value)"></select>
+        <button class="btn btn-pri btn-sm" onclick="newQSetPrompt()">+ New Set</button>
+        <button class="btn btn-suc btn-sm" onclick="saveQSet()">Save Set</button>
+        <button class="btn btn-out btn-sm" onclick="manageQSets()">Manage Sets</button>
+        <button class="btn btn-out btn-sm" onclick="addQ()">+ Add Q</button>
         <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">PBI Library</button>
       </div>
     </div>
@@ -720,6 +721,18 @@ function saveQSet(){
   closeQSetManager();
 }
 
+function newQSetPrompt(){
+  var name = prompt('Enter a name for the new question set:');
+  if(!name || !name.trim()) return;
+  name = name.trim();
+  if(qSets[name]){ alert('A set named "'+name+'" already exists.'); return; }
+  qSets[name] = {questions: questions.slice()};
+  activeQSet = name;
+  saveQSets();
+  renderQSetSelect();
+  renderQs();
+  showToast('Set "'+name+'" created');
+}
 function addQSet(){
   var name = document.getElementById('new-qset-name').value.trim();
   if(!name){ alert('Enter a set name.'); return; }
