@@ -179,6 +179,7 @@ textarea.ii{resize:vertical;min-height:60px}
 </div>
 <div id="tools-bar" class="np" style="display:none;background:#17365d;color:#fff;padding:7px 10px;text-align:right;position:sticky;top:42px;z-index:19">
   <button onclick="exportData()" style="margin-left:4px">Export</button>
+  <button onclick="shareData()" style="margin-left:4px">Share</button>
   <button onclick="importData()" style="margin-left:4px">Import</button>
   <button onclick="doClear()" style="margin-left:4px;background:#7f1d1d;color:#fff">Clear All Data</button>
 </div>
@@ -1432,6 +1433,19 @@ function exportData(){
   var a=document.createElement('a'); a.href=url; a.download='interview-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a); a.click();
   setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+}
+
+function shareData(){
+  var d=state(); d._prof=positionProfiles; d._act=activeProfileName; d._qbk=qSets; d._qba=activeQSet;
+  var json=JSON.stringify(d,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='interview-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+  var fn='interview-'+new Date().toISOString().slice(0,10)+'.json';
+  window.open('mailto:?subject='+encodeURIComponent('Interview Selection Process Data')+'&body='+encodeURIComponent('Interview data file attached.\n\nOpen the app, click Tools > Import, and select this .json file.\n\nFile: '+fn),'_blank');
+  showToast('File downloaded. Email opened to share.');
 }
 
 function importData(){
