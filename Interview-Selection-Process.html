@@ -372,28 +372,62 @@ If you are a bargaining unit member, you have a right to have union representati
 
 <!-- TAB: Questions -->
 <div id="tc-qs" class="tc">
-  <div class="cd np">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Interview Questions</h2>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
-        <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
-        <label style="margin-bottom:0;font-size:.8rem">Set:</label>
-        <select id="qs-set" style="width:200px" onchange="switchQSet(this.value)"></select>
-        <button class="btn btn-pri btn-sm" onclick="newQSetPrompt()">+ New Set</button>
-        <button class="btn btn-suc btn-sm" onclick="saveQSet()">Save Set</button>
-        <button class="btn btn-out btn-sm" onclick="manageQSets()">Manage Sets</button>
-        <button class="btn btn-out btn-sm" onclick="addQ()">+ Add Q</button>
-        <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">PBI Library</button>
+  <div class="cd np" style="padding:.5rem .8rem">
+    <div style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="btn btn-sm btn-pri" id="qs-tab-start" onclick="showQsTab('start')">+ Start Here</button>
+      <button class="btn btn-sm btn-out" id="qs-tab-sets" onclick="showQsTab('sets')">Saved Sets</button>
+      <button class="btn btn-sm btn-out" id="qs-tab-pbi" onclick="showQsTab('pbi')">PBI Library</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
+      <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
+      <label style="margin-bottom:0;font-size:.8rem">Set:</label>
+      <select id="qs-set" style="width:200px" onchange="switchQSet(this.value)"></select>
+    </div>
+  </div>
+
+  <!-- SUB-TAB: Start Here -->
+  <div id="qs-start" class="cd" style="display:block">
+    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">Create a Question Set</h2>
+    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px">
+      <div style="flex:1;min-width:200px">
+        <label class="lb">Set Title</label>
+        <input type="text" id="qs-new-title" class="ii" placeholder="e.g. CLC RN Interview">
+      </div>
+      <div style="width:100px">
+        <label class="lb"># of Questions</label>
+        <input type="number" id="qs-new-count" class="ii" value="5" min="1" max="50">
+      </div>
+      <button class="btn btn-pri" onclick="qsGenerateFields()">Generate</button>
+      <button class="btn btn-out" onclick="qsOpenPbiForNew()">Use PBI Library</button>
+    </div>
+    <div id="qs-start-fields"></div>
+    <div class="ma" id="qs-start-save" style="display:none">
+      <button class="btn btn-pri" onclick="qsSaveNewSet()">Save Set</button>
+    </div>
+  </div>
+
+  <!-- SUB-TAB: Saved Sets -->
+  <div id="qs-sets" class="cd" style="display:none">
+    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">Saved Sets</h2>
+    <div id="qs-sets-list" style="margin-bottom:1rem"></div>
+    <div id="qs-sets-edit" style="display:none">
+      <h3 style="font-size:.95rem;color:var(--primary)" id="qs-sets-edit-title"></h3>
+      <div id="qs-sets-edit-fields"></div>
+      <div class="ma">
+        <button class="btn btn-pri" onclick="qsSaveEditedSet()">Save Changes</button>
+        <button class="btn btn-dan" id="qs-delete-set-btn" onclick="qsDeleteSet()">Delete Set</button>
+        <button class="btn btn-out" onclick="showQsTab('sets')">Back</button>
       </div>
     </div>
   </div>
-  <div class="section-note" style="margin-top:0">
-    <strong>How question sets work:</strong>
-    Use the <strong>Set</strong> dropdown to pick a saved set, or click <strong>+ New Set</strong> to create one.
-    Type questions directly in the boxes below, click <strong>+ Add Q</strong> for more, or open <strong>PBI Library</strong> to choose from VA questions.
-    When done, click <strong>Save Set</strong> to keep your changes. Switch sets anytime — each set stores its own questions.
+
+  <!-- SUB-TAB: PBI Library -->
+  <div id="qs-pbi" class="cd" style="display:none">
+    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">PBI Library</h2>
+    <div id="qs-pbi-content"></div>
   </div>
+
   <div id="qs-empty" class="cd np" style="text-align:center;padding:.75rem;color:var(--muted)">
     Add applicants in the <strong>Matrix</strong> tab first.
   </div>
@@ -1277,7 +1311,222 @@ function setQn(aid,qi,v){
   autoSave();
 }
 function updQ(i,v){ questions[i]=v; autoSave(); }
-function addQ(){ questions.push("New question - edit me."); renderQs(); autoSave(); }
+
+// QS sub-tab functions
+function showQsTab(tab){
+  ['start','sets','pbi'].forEach(function(t){
+    document.getElementById('qs-'+t).style.display = t===tab?'block':'none';
+    var btn = document.getElementById('qs-tab-'+t);
+    if(btn) btn.className = 'btn btn-sm '+(t===tab?'btn-pri':'btn-out');
+  });
+  if(tab==='sets') qsRenderSetsList();
+  if(tab==='pbi') qsRenderPbiInline();
+}
+function qsGenerateFields(){
+  var count = parseInt(document.getElementById('qs-new-count').value)||5;
+  var fields = document.getElementById('qs-start-fields');
+  var h = '';
+  for(var i=0;i<count;i++){
+    h+='<div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:8px">';
+    h+='<label class="lb" style="font-size:.8rem">Q'+(i+1)+'</label>';
+    h+='<textarea id="qsn-'+i+'" class="ii" style="min-height:50px" placeholder="Type question..."></textarea>';
+    h+='</div>';
+  }
+  fields.innerHTML = h;
+  document.getElementById('qs-start-save').style.display = 'flex';
+}
+function qsOpenPbiForNew(){
+  // Open the PBI Library modal, and after selecting, fill the generated fields
+  // First generate fields if not already done
+  var fields = document.getElementById('qs-start-fields');
+  if(!fields.innerHTML.trim()) qsGenerateFields();
+  openPbiLibrary();
+  // Override addSelectedFromLibrary temporarily to fill our fields
+  var orig = addSelectedFromLibrary;
+  addSelectedFromLibrary = function(){
+    var count = 0;
+    var catNames = Object.keys(PBI_CATEGORIES);
+    var selected = [];
+    for(var ci=0;ci<catNames.length;ci++){
+      var catName = catNames[ci];
+      var cat = PBI_CATEGORIES[catName];
+      var userAdd = (userCatQuestions[catName] || []);
+      var allQ = cat.slice();
+      for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
+      for(var qi=0;qi<allQ.length;qi++){
+        var cb = document.getElementById('plq-'+ci+'-'+qi);
+        if(cb && cb.checked){ selected.push(allQ[qi]); count++; }
+      }
+    }
+    if(count === 0){ alert('Select at least one question.'); return; }
+    closePbiLibrary();
+    // Fill fields
+    for(var si=0;si<selected.length;si++){
+      var ta = document.getElementById('qsn-'+si);
+      if(ta) ta.value = selected[si];
+    }
+    addSelectedFromLibrary = orig;
+    showToast('Added '+count+' question(s)');
+  };
+}
+function qsSaveNewSet(){
+  var title = document.getElementById('qs-new-title').value.trim();
+  if(!title){ alert('Enter a title for the set.'); return; }
+  var qs = [];
+  var count = parseInt(document.getElementById('qs-new-count').value)||5;
+  for(var i=0;i<count;i++){
+    var ta = document.getElementById('qsn-'+i);
+    qs.push(ta ? ta.value.trim() || '' : '');
+  }
+  qs = qs.filter(function(q){ return q; });
+  if(qs.length===0){ alert('Add at least one question.'); return; }
+  qSets[title] = {questions: qs};
+  activeQSet = title;
+  questions = qs;
+  saveQSets();
+  renderQSetSelect();
+  renderQs();
+  showQsTab('start');
+  showToast('Set "'+title+'" saved');
+}
+function qsRenderSetsList(){
+  var list = document.getElementById('qs-sets-list');
+  if(!list) return;
+  var names = Object.keys(qSets);
+  if(names.length===0){ list.innerHTML='<p class="muted">No saved question sets yet. Use <strong>+ Start Here</strong> to create one.</p>'; return; }
+  var h = '';
+  for(var i=0;i<names.length;i++){
+    var qc = qSets[names[i]] ? (qSets[names[i]].questions ? qSets[names[i]].questions.length : 0) : 0;
+    h += '<div style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--border);border-radius:8px;margin-bottom:4px">';
+    h += '<span style="flex:1;font-weight:'+(names[i]===activeQSet?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span> <span style="font-size:.75rem">'+esc(activeQSet===names[i]?'(active)':'')+'</span></span>';
+    h += '<button class="btn btn-sm btn-out" onclick="qsLoadSetForEdit(\''+names[i]+'\')">Edit</button>';
+    h += '</div>';
+  }
+  list.innerHTML = h;
+}
+function qsLoadSetForEdit(name){
+  if(!qSets[name]) return;
+  document.getElementById('qs-sets-list').style.display = 'none';
+  document.getElementById('qs-sets-edit').style.display = 'block';
+  document.getElementById('qs-sets-edit-title').textContent = name;
+  document.getElementById('qs-delete-set-btn').textContent = 'Delete "'+name+'"';
+  var fields = document.getElementById('qs-sets-edit-fields');
+  var qs = qSets[name].questions || [];
+  var h = '';
+  for(var i=0;i<qs.length;i++){
+    h+='<div style="margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);border-radius:8px">';
+    h+='<label class="lb" style="font-size:.8rem">Q'+(i+1)+'</label>';
+    h+='<textarea class="ii" id="qse-'+i+'" style="min-height:50px">'+esc(qs[i])+'</textarea>';
+    h+='<button class="btn btn-sm btn-dan" onclick="qsRemoveEditQ('+i+')" style="margin-top:3px;padding:2px 10px;font-size:.7rem">Remove</button>';
+    h+='</div>';
+  }
+  h+='<button class="btn btn-sm btn-suc" onclick="qsAddEditQ()" style="margin-top:4px">+ Add Question</button>';
+  fields.innerHTML = h;
+  document.getElementById('qs-sets-edit').dataset.setname = name;
+}
+var qsEditCount = 0;
+function qsAddEditQ(){
+  var fields = document.getElementById('qs-sets-edit-fields');
+  var idx = fields.querySelectorAll('textarea').length;
+  var h = '<div style="margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);border-radius:8px">';
+  h+='<label class="lb" style="font-size:.8rem">Q'+(idx+1)+'</label>';
+  h+='<textarea class="ii" id="qse-'+idx+'" style="min-height:50px"></textarea>';
+  h+='<button class="btn btn-sm btn-dan" onclick="qsRemoveEditQ('+idx+')" style="margin-top:3px;padding:2px 10px;font-size:.7rem">Remove</button>';
+  h+='</div>';
+  var addBtn = fields.querySelector('button:last-child');
+  if(addBtn) addBtn.insertAdjacentHTML('beforebegin', h);
+  else fields.innerHTML += h;
+}
+function qsRemoveEditQ(i){
+  var ta = document.getElementById('qse-'+i);
+  if(!ta) return;
+  var div = ta.closest('div[style*="margin-bottom"]') || ta.parentNode.parentNode;
+  if(div) div.parentNode.removeChild(div);
+}
+function qsSaveEditedSet(){
+  var name = document.getElementById('qs-sets-edit').dataset.setname;
+  if(!name || !qSets[name]) return;
+  var fields = document.getElementById('qs-sets-edit-fields');
+  var textareas = fields.querySelectorAll('textarea');
+  var qs = [];
+  textareas.forEach(function(ta){ if(ta.value.trim()) qs.push(ta.value.trim()); });
+  if(qs.length===0){ alert('Keep at least one question.'); return; }
+  qSets[name].questions = qs;
+  if(activeQSet === name) questions = qs.slice();
+  saveQSets();
+  if(activeQSet === name) renderQs();
+  showQsTab('sets');
+  showToast('Set "'+name+'" saved');
+}
+function qsDeleteSet(){
+  var name = document.getElementById('qs-sets-edit').dataset.setname;
+  if(!name || !qSets[name]) return;
+  if(!confirm('Delete set "'+name+'"?')) return;
+  delete qSets[name];
+  if(activeQSet === name){ var keys = Object.keys(qSets); activeQSet = keys[0] || ''; }
+  saveQSets();
+  renderQSetSelect();
+  renderQs();
+  showQsTab('sets');
+  showToast('Set deleted');
+}
+function qsRenderPbiInline(){
+  var w = document.getElementById('qs-pbi-content');
+  if(!w) return;
+  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions to add to current set:</label></div>';
+  var catNames = Object.keys(PBI_CATEGORIES);
+  for(var ci=0;ci<catNames.length;ci++){
+    var catName = catNames[ci];
+    var cat = PBI_CATEGORIES[catName];
+    var userAdd = (userCatQuestions[catName] || []);
+    var allQ = cat.slice();
+    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
+    h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:8px 0 4px;padding:6px 0 4px;border-bottom:1px solid var(--border);background:var(--soft);border-radius:6px 6px 0 0">'+esc(catName)+' <span class="muted" style="font-weight:400">('+allQ.length+' questions)</span></div>';
+    for(var qi=0;qi<allQ.length;qi++){
+      h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 8px;border-radius:4px;font-size:.82rem;line-height:1.4">';
+      h += '<input type="checkbox" id="pli-'+ci+'-'+qi+'" style="margin-top:2px">';
+      h += '<label for="pli-'+ci+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(allQ[qi])+'</label>';
+      h += '</div>';
+    }
+    h += '<div style="display:flex;gap:6px;padding:4px 8px 6px;background:#f9fafb;border-radius:0 0 6px 6px;border:1px solid var(--border);border-top:none">';
+    h += '<input type="text" id="pbi-cat-q-'+ci+'" class="ii" placeholder="Add a question to '+esc(catName)+'..." style="flex:1;padding:6px 8px;font-size:.82rem">';
+    h += '<button class="btn btn-suc btn-sm" onclick="qsAddToPbiCat('+ci+')" style="white-space:nowrap">Save</button>';
+    h += '</div>';
+  }
+  h += '<div class="ma"><button class="btn btn-pri" onclick="qsAddSelectedPbi()">Add Selected to Set</button></div>';
+  w.innerHTML = h;
+}
+function qsAddToPbiCat(ci){
+  var catNames = Object.keys(PBI_CATEGORIES);
+  var name = catNames[ci];
+  var q = document.getElementById('pbi-cat-q-'+ci).value.trim();
+  if(!q){ alert('Enter a question.'); return; }
+  if(!userCatQuestions[name]) userCatQuestions[name] = [];
+  userCatQuestions[name].push(q);
+  saveUserCat();
+  document.getElementById('pbi-cat-q-'+ci).value = '';
+  qsRenderPbiInline();
+  showToast('Added to "'+name+'"');
+}
+function qsAddSelectedPbi(){
+  var count = 0;
+  var catNames = Object.keys(PBI_CATEGORIES);
+  for(var ci=0;ci<catNames.length;ci++){
+    var catName = catNames[ci];
+    var cat = PBI_CATEGORIES[catName];
+    var userAdd = (userCatQuestions[catName] || []);
+    var allQ = cat.slice();
+    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
+    for(var qi=0;qi<allQ.length;qi++){
+      var cb = document.getElementById('pli-'+ci+'-'+qi);
+      if(cb && cb.checked){ questions.push(allQ[qi]); count++; }
+    }
+  }
+  if(count === 0){ alert('Select at least one question.'); return; }
+  renderQs(); autoSave();
+  showToast('Added '+count+' question(s)');
+}
+
 function delQ(i){
   if(questions.length<=1){ alert('Need at least one question.'); return; }
   if(!confirm('Delete Q'+(i+1)+'?')) return; questions.splice(i,1);
