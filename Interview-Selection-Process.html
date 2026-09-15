@@ -1228,7 +1228,7 @@ function printRec(){
   var h='<h1 class="h1">Interview Panel Recommendations</h1><p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(pos)+' &nbsp; #: '+esc(gv('r-pn')||'__________')+'</p>';
   h+='<p style="font-size:12px;font-style:italic;color:#555">With fair judgement based on the responses provided, the panel recommends:</p>';
   h+='<table><thead><tr><th>Candidate</th><th>Matrix Score</th><th>Interview</th><th>Resume</th><th>Total</th></tr></thead><tbody>';
-  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var rs=getResumeScore(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+rs+'</td><td class="tot">'+to+'</td></tr>'; }
   h+='</tbody></table>';
   if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">No selection should be made.</p>';
   h+='<div class="sec"><h3>Selected</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>';
@@ -1387,17 +1387,36 @@ function saveModal(){
 }
 function closeModal(){ E('app-modal').style.display='none'; }
 
+function getResumeColumn(){
+  var cols=profileColumns();
+  for(var i=0;i<cols.length;i++){
+    var label=String(cols[i].label||'').trim().toLowerCase();
+    if(cols[i].id==='rs' || label==='resume' || label==='résumé') return cols[i];
+  }
+  return null;
+}
+function getResumeScore(a){
+  var col=getResumeColumn();
+  if(!col) return 0;
+  var val=a[col.id];
+  return (val!==undefined&&val!==null) ? (parseInt(val)||0) : 0;
+}
 function getMatScore(a){
-  var cols=profileColumns(); var t=0;
-  for(var i=0;i<cols.length;i++){ if(cols[i].id==='rs') continue; var val=a[cols[i].id]; if(val!==undefined&&val!==null) t+=(cols[i].id==='acls'&&val===-1)?0:parseInt(val)||0; }
+  var cols=profileColumns(); var t=0; var resumeCol=getResumeColumn();
+  for(var i=0;i<cols.length;i++){
+    if(resumeCol && cols[i].id===resumeCol.id) continue;
+    var val=a[cols[i].id];
+    if(val!==undefined&&val!==null) t+=(cols[i].id==='acls'&&val===-1)?0:parseInt(val)||0;
+  }
   return t;
 }
 function renderRecs(){
   var tb=E('r-body'); if(!tb) return;
+  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
   var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   if(sorted.length===0){ tb.innerHTML='<tr><td style="color:var(--muted)" colspan="5">Auto-populates from Matrix</td></tr>'; return; }
   var h='';
-  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var rs=getResumeScore(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+rs+'</td><td class="tot">'+to+'</td></tr>'; }
   tb.innerHTML=h;
   if(sorted.length>0){ sv('r-sn',sorted[0].name); sv('r-ss',getTot(sorted[0])); }
   if(sorted.length>1){ sv('r-a1n',sorted[1].name); sv('r-a1s',getTot(sorted[1])); }
@@ -1739,7 +1758,8 @@ renderMat = function(){
     emp.innerHTML='<h3>No position rubric selected</h3><p style="margin-bottom:12px">Create a rubric for this position or choose one you previously saved.</p><button class="btn btn-pri np" onclick="openRubricBuilder()">Create Position Rubric</button>';
     tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
   }
-  if(applicants.length===0){
+  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
+  if(posApps.length===0){
     emp.style.display='block';
     emp.innerHTML='<h3>'+esc(activeProfileName)+' rubric is ready</h3><p style="margin-bottom:12px">Next, add the first applicant. You will score the position-specific rubric in the applicant window.</p><button class="btn btn-suc np" onclick="openModal()">+ Add First Applicant</button>';
     tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
@@ -1750,7 +1770,7 @@ renderMat = function(){
   for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
   hh+='<th class="intv">Interview<br><span class="mx">/'+ivm+'</span></th><th class="tcol">Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
   E('mt-header').innerHTML=hh;
-  var sorted=applicants.slice().sort(function(a,b){return getTot(b)-getTot(a)}), h='';
+  var sorted=posApps.slice().sort(function(a,b){return getTot(b)-getTot(a)}), h='';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i], iv=getIV(a), to=getTot(a);
     h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
