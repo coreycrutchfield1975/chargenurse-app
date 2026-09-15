@@ -403,6 +403,7 @@ If you are a bargaining unit member, you have a right to have union representati
     </div>
     <div id="qs-start-fields"></div>
     <div class="ma" id="qs-start-save" style="display:none">
+      <button class="btn btn-out" onclick="qsCancelNew()">Cancel</button>
       <button class="btn btn-pri" onclick="qsSaveNewSet()">Save Set</button>
     </div>
   </div>
@@ -1389,7 +1390,14 @@ function qsSaveNewSet(){
   showQsTab('start');
   showToast('Set "'+title+'" saved');
 }
+function qsCancelNew(){
+  document.getElementById('qs-new-title').value = '';
+  document.getElementById('qs-start-fields').innerHTML = '';
+  document.getElementById('qs-start-save').style.display = 'none';
+  showQsTab('start');
+}
 function qsRenderSetsList(){
+
   var list = document.getElementById('qs-sets-list');
   if(!list) return;
   var names = Object.keys(qSets);
@@ -1493,7 +1501,7 @@ function qsRenderPbiInline(){
     h += '<button class="btn btn-suc btn-sm" onclick="qsAddToPbiCat('+ci+')" style="white-space:nowrap">Save</button>';
     h += '</div>';
   }
-  h += '<div class="ma"><button class="btn btn-pri" onclick="qsAddSelectedPbi()">Add Selected to Set</button></div>';
+  h += '<div class="ma"><button class="btn btn-pri" onclick="qsAddSelectedPbi()">Add Selected to Set</button><button class="btn btn-out" onclick="showQsTab(\'start\')">Close</button></div>';
   w.innerHTML = h;
 }
 function qsAddToPbiCat(ci){
