@@ -872,8 +872,8 @@ function deleteVeteran(id){
  let appointments=db.appointments.filter(a=>a.vetId===id),appointmentIds=new Set(appointments.map(a=>a.id));
  let treatments=db.treatments.filter(t=>t.vetId===id),treatmentIds=new Set(treatments.map(t=>t.id));
  let answer=prompt(`PERMANENT DELETE\n\nThis will delete ${v.name} plus ${appointments.length} appointment(s), related travel/ticket records, ${treatments.length} treatment(s), and treatment completion history. This cannot be undone.\n\nType DELETE to continue:`);
- if(answer!=='DELETE')return;
- db.veterans=db.veterans.filter(x=>x.id!==id);
+ if(!answer || answer.trim().toUpperCase()!=='DELETE')return;
+   db.veterans=db.veterans.filter(x=>x.id!==id);
  db.appointments=db.appointments.filter(a=>a.vetId!==id);
  db.treatments=db.treatments.filter(t=>t.vetId!==id);
  appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
