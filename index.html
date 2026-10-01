@@ -58,6 +58,9 @@ fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;margin:0}le
 .event-out{background:#ffd9d9!important;border-left:4px solid #cf3f3f!important}.event-travel{background:#fff4cf!important;border-left:4px solid #f6c344!important}.event-in{background:#d8f3df!important;border-left:4px solid #2e9d50!important}.event-procedure{border-left:6px solid #7c4dff!important}
 tr.archived{opacity:.55} tr.archived td{text-decoration:none}
 tr.archived-sep td{font-family:'Segoe UI',Arial,sans-serif;letter-spacing:2px;text-transform:uppercase}
+/* Behavioral Flags */
+.beh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:4px 0}.beh-grid label{cursor:pointer;color:var(--text2)}.beh-grid input[type=checkbox]{accent-color:var(--red);margin:0 3px 0 0;vertical-align:middle}
+.beh-dash{max-height:180px;overflow-y:auto}.beh-item{display:flex;align-items:start;gap:3px;padding:2px 0;font-size:11px;line-height:1.3}.beh-item b{flex-shrink:0;color:var(--text);min-width:120px}.beh-tag{display:inline-block;background:rgba(220,38,38,.12);color:var(--red);border:1px solid rgba(220,38,38,.2);padding:0 5px;border-radius:8px;font-size:9px;font-weight:600;margin:1px 1px}
 /* USWDS + full color palette overrides */
 body{font-family:'Source Sans Pro','Segoe UI',Arial,sans-serif}
 /* Keep the rainbow header */
@@ -389,6 +392,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
 <div class="span2"><fieldset><legend>Labs (Dates per Month)</legend><textarea id="vLabs" style="min-height:60px" placeholder="Enter lab dates per month, one per line"></textarea></fieldset></div>
 <div class="span2"><fieldset><legend>VAEA NOTES (72‑Hour Chart)</legend><div class="formgrid"><div><label>Start Date</label><input type="date" id="vVaeaStart"></div><div><label>End Date</label><input type="date" id="vVaeaEnd"></div></div><div style="margin-top:6px"><label><input type="checkbox" id="vVaeaDone" style="width:auto;margin-right:6px"> Completed</label></div></fieldset></div>
+<div class="span2"><fieldset><legend>Behavioral Flags</legend><div class="beh-grid" id="behGrid"></div><div style="margin-top:4px;font-size:10px;color:#666">Check any behaviors this veteran is demonstrating. Flags appear on the dashboard for quick awareness.</div></fieldset></div>
 </div><div class="toolbar"><button class="primary purple" onclick="saveVeteran()">Save Veteran</button><button class="secondary" onclick="closeModal('vetModal')">Cancel</button></div>
 </div></div>
 
@@ -455,6 +459,7 @@ const roomBlockReference={north:{three:['B1: 59, 65, 109, 110','B2: 73, 76, 80, 
 function parseRooms(block){let r=[];block.forEach(s=>s.split(':')[1].split(',').forEach(x=>r.push(x.trim())));return r}
 const northRooms=parseRooms([...roomBlockReference.north.three,...roomBlockReference.north.two]);
 const southRooms=parseRooms([...roomBlockReference.south.three,...roomBlockReference.south.two]);
+const BEHAVIOR_TYPES=['Agitation','Aggression','Wandering','Hallucinations','Delusions','Paranoia','Sundowning','Rummaging','Sexually inappropriate','Inappropriate touching','Impulsive actions','Shouting','Repetition','Accusations','Refusals'];
 let db;
 try {
  db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
@@ -829,7 +834,8 @@ function renderHome(){
  document.getElementById('alerts').innerHTML=alerts.length?alerts.slice(0,10).map(a=>`<div class="card alert ${a.level==='critical'?'critical':''}"><b>${esc(a.title)}</b><div>${esc(a.message)}</div></div>`).join(''):'<div class="card"><b>All Clear</b><div>No new admissions or pending VAEA notes.</div></div>';
  document.getElementById('todayList').innerHTML=ta.length?ta.sort((a,b)=>a.time.localeCompare(b.time)).map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),tr=db.travel[a.id];return `<div class="card"><b>${esc(a.time)} — Room ${esc(v?.room||'')} ${esc(v?.name||'')}</b><div>${esc(a.clinic||a.destination||'')}</div><span class="muted">Pickup ${esc(a.pickup||'Not set')} · ${esc(a.transport||'Transport not set')} · Travel ${esc(tr?.status||'Not created')}</span></div>`}).join(''):'<div class="card">No appointments today.</div>';
  document.getElementById('dashboardTreatments').innerHTML=outstanding.length?outstanding.slice(0,10).map(t=>{let v=db.veterans.find(v=>v.id===t.vetId),dueSecs=planSectionsDue(t,today());return `<div class="card"><b>Room ${esc(v?.room||'')} — ${esc(v?.name||'')} · <span class="muted">${esc(t.category)} · ${esc(t.month||'')}</span></b><div>${dueSecs.map(s=>esc(s.instructions||s.frequency||'item')).join('<br>')}</div></div>`}).join(''):'<div class="card">No outstanding treatments due today.</div>';
- document.getElementById('unitStatus').innerHTML=`<div class="card"><b>Veterans off unit</b><div>${offUnit.length?offUnit.map(v=>`Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.status)})`).join('<br>'):'None'}</div></div><div class="card"><b>Admissions within 24 hours</b><div>${newAdmissions.length?newAdmissions.map(v=>`Room ${esc(v.room)} — ${esc(v.name)}`).join('<br>'):'None'}</div></div><div class="card"><b>Labs Schedule</b><div>${active.filter(v=>v.labsDate).sort((a,b)=>roomCompare(a.room,b.room)).map(v=>`Room ${esc(v.room)} — ${esc(v.name)}<br><span class="muted">${esc(v.labsDate).replace(/\n/g,'<br>')}</span>`).join('<br>')||'No labs scheduled'}</div></div><div class="card"><b>Shift assignments</b><div>${shiftAssignmentReadiness()}</div></div>`;
+ document.getElementById('unitStatus').innerHTML=`<div class="card"><b>Veterans off unit</b><div>${offUnit.length?offUnit.map(v=>`Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.status)})`).join('<br>'):'None'}</div></div><div class="card"><b>Admissions within 24 hours</b><div>${newAdmissions.length?newAdmissions.map(v=>`Room ${esc(v.room)} — ${esc(v.name)}`).join('<br>'):'None'}</div></div><div class="card"><b>Labs Schedule</b><div>${active.filter(v=>v.labsDate).sort((a,b)=>roomCompare(a.room,b.room)).map(v=>`Room ${esc(v.room)} — ${esc(v.name)}<br><span class="muted">${esc(v.labsDate).replace(/\\n/g,'<br>')}</span>`).join('<br>')||'No labs scheduled'}</div></div><div class="card"><b>Behavioral Flags</b><div class="beh-dash" id="behAlerts"></div></div><div class="card"><b>Shift assignments</b><div>${shiftAssignmentReadiness()}</div></div>`;
+ let behActive=active.filter(v=>v.behaviors&&v.behaviors.length);document.getElementById('behAlerts').innerHTML=behActive.length?behActive.sort((a,b)=>roomCompare(a.room,b.room)).map(v=>`<div class="beh-item"><b>Room ${esc(v.room)} — ${esc(v.name)}</b><span>${v.behaviors.map(b=>`<span class="beh-tag">${esc(b)}</span>`).join(' ')}</span></div>`).join(''):'<span class="muted" style="font-style:italic">No flagged behaviors.</span>';
 }
 function getDashboardAlerts(newAdmissions=[]){
  let out=getAlerts();
@@ -862,7 +868,9 @@ function openVeteran(id=''){
  ['Skin','Weight','Fsbs','Vitals','Shower'].forEach(k=>document.querySelectorAll('#days'+k+' input').forEach(i=>i.checked=(v?.schedules?.[k.toLowerCase()]||[]).includes(i.value)));
  vWeightFrequency.value=v?.weightFrequency||'Weekly';vWeightMethod.value=v?.weightMethod||'';
  vFsbsFrequency.value=v?.fsbsFrequency||'Selected Days';vFsbsTimes.value=v?.fsbsTimes||'';
- document.querySelector(`input[name=showerShift][value="${v?.showerShift||'Day'}"]`).checked=true;openModal('vetModal')
+ document.querySelector(`input[name=showerShift][value="${v?.showerShift||'Day'}"]`).checked=true;
+ let beh=v?.behaviors||[];document.getElementById('behGrid').innerHTML=BEHAVIOR_TYPES.map(b=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;padding:1px 0"><input type="checkbox" value="${esc(b)}" ${beh.includes(b)?'checked':''} style="width:16px;height:16px">${esc(b)}</label>`).join('');
+ openModal('vetModal')
 }
 function saveVeteran(){
  if(!vRoom.value||!vName.value||!/^\d{4}$/.test(vLast4.value)){alert('Room, name, and a four-digit Last 4 are required.');return}
@@ -870,7 +878,7 @@ function saveVeteran(){
  if(vWeightFrequency.value==='Weekly'&&!checkedDays('daysWeight').length){alert('Select at least one weekly weight day.');return}
  if(vFsbsFrequency.value==='Selected Days'&&vFsbsTimes.value.trim()&&!checkedDays('daysFsbs').length){alert('Select at least one FS/BS day, or choose Daily.');return}
  let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
- let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,dischargeDate:vDischargeDate.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value};
+ let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,dischargeDate:vDischargeDate.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value||'Day',behaviors:[...(document.getElementById('behGrid')?.querySelectorAll('input[type=checkbox]:checked')||[])].map(c=>c.value)};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
 function toggleVeteranArchive(id){
