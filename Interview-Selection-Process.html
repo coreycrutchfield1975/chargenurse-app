@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interview Selection Process</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 :root{--primary:#0d6efd;--primary-dark:#0a58ca;--teal:#0ea5e9;--green:#10b981;--gold:#f59e0b;--bg:#f0f7ff;--surface:#fff;--border:#d1d9e6;--text:#1e293b;--muted:#64748b;--toast-bg:#323232;--badge-gold:#f59e0b}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -179,7 +180,6 @@ textarea.ii{resize:vertical;min-height:60px}
 </div>
 <div id="tools-bar" class="np" style="display:none;background:#17365d;color:#fff;padding:7px 10px;text-align:right;position:sticky;top:42px;z-index:19">
   <button onclick="exportData()" style="margin-left:4px">Export</button>
-  <button onclick="shareData()" style="margin-left:4px">Share</button>
   <button onclick="importData()" style="margin-left:4px">Import</button>
   <button onclick="doClear()" style="margin-left:4px;background:#7f1d1d;color:#fff">Clear All Data</button>
 </div>
@@ -372,63 +372,28 @@ If you are a bargaining unit member, you have a right to have union representati
 
 <!-- TAB: Questions -->
 <div id="tc-qs" class="tc">
-  <div class="cd np" style="padding:.5rem .8rem">
-    <div style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="btn btn-sm btn-pri" id="qs-tab-start" onclick="showQsTab('start')">+ Start Here</button>
-      <button class="btn btn-sm btn-out" id="qs-tab-sets" onclick="showQsTab('sets')">Saved Sets</button>
-      <button class="btn btn-sm btn-out" id="qs-tab-pbi" onclick="showQsTab('pbi')">PBI Library</button>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
-      <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
-      <label style="margin-bottom:0;font-size:.8rem">Set:</label>
-      <select id="qs-set" style="width:200px" onchange="switchQSet(this.value)"></select>
-    </div>
-  </div>
-
-  <!-- SUB-TAB: Start Here -->
-  <div id="qs-start" class="cd" style="display:block">
-    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">Create a Question Set</h2>
-    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px">
-      <div style="flex:1;min-width:200px">
-        <label class="lb">Set Title</label>
-        <input type="text" id="qs-new-title" class="ii" placeholder="e.g. CLC RN Interview">
-      </div>
-      <div style="width:100px">
-        <label class="lb"># of Questions</label>
-        <input type="number" id="qs-new-count" class="ii" value="5" min="1" max="50">
-      </div>
-      <button class="btn btn-pri" onclick="qsGenerateFields()">Generate</button>
-      <button class="btn btn-out" onclick="qsOpenPbiForNew()">Use PBI Library</button>
-    </div>
-    <div id="qs-start-fields"></div>
-    <div class="ma" id="qs-start-save" style="display:none">
-      <button class="btn btn-out" onclick="qsCancelNew()">Cancel</button>
-      <button class="btn btn-pri" onclick="qsSaveNewSet()">Save Set</button>
-    </div>
-  </div>
-
-  <!-- SUB-TAB: Saved Sets -->
-  <div id="qs-sets" class="cd" style="display:none">
-    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">Saved Sets</h2>
-    <div id="qs-sets-list" style="margin-bottom:1rem"></div>
-    <div id="qs-sets-edit" style="display:none">
-      <h3 style="font-size:.95rem;color:var(--primary)" id="qs-sets-edit-title"></h3>
-      <div id="qs-sets-edit-fields"></div>
-      <div class="ma">
-        <button class="btn btn-pri" onclick="qsSaveEditedSet()">Save Changes</button>
-        <button class="btn btn-dan" id="qs-delete-set-btn" onclick="qsDeleteSet()">Delete Set</button>
-        <button class="btn btn-out" onclick="showQsTab('sets')">Back</button>
+  <div class="cd np">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <h2 style="border:none;padding-bottom:0;margin-bottom:0">Interview Questions</h2>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <label style="margin-bottom:0;font-size:.8rem">Applicant:</label>
+        <select id="qs-app" style="width:200px" onchange="onSwitchApp()"></select>
+        <label style="margin-bottom:0;font-size:.8rem">Set:</label>
+        <select id="qs-set" style="width:200px" onchange="switchQSet(this.value)"></select>
+        <button class="btn btn-pri btn-sm" onclick="newQSetPrompt()">+ New Set</button>
+        <button class="btn btn-suc btn-sm" onclick="saveQSet()">Save Set</button>
+        <button class="btn btn-out btn-sm" onclick="manageQSets()">Manage Sets</button>
+        <button class="btn btn-out btn-sm" onclick="addQ()">+ Add Q</button>
+        <button class="btn btn-out btn-sm" onclick="openPbiLibrary()">PBI Library</button>
       </div>
     </div>
   </div>
-
-  <!-- SUB-TAB: PBI Library -->
-  <div id="qs-pbi" class="cd" style="display:none">
-    <h2 style="border:none;padding-bottom:0;margin-bottom:.5rem">PBI Library</h2>
-    <div id="qs-pbi-content"></div>
+  <div class="section-note" style="margin-top:0">
+    <strong>How question sets work:</strong>
+    Use the <strong>Set</strong> dropdown to pick a saved set, or click <strong>+ New Set</strong> to create one.
+    Type questions directly in the boxes below, click <strong>+ Add Q</strong> for more, or open <strong>PBI Library</strong> to choose from VA questions.
+    When done, click <strong>Save Set</strong> to keep your changes. Switch sets anytime — each set stores its own questions.
   </div>
-
   <div id="qs-empty" class="cd np" style="text-align:center;padding:.75rem;color:var(--muted)">
     Add applicants in the <strong>Matrix</strong> tab first.
   </div>
@@ -649,6 +614,22 @@ function saveUserCat(){
 }
 
 var PBI_CATEGORIES = {
+  "Customer Service": [
+    "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
+    "Tell about a situation at work where you realized a person needed help. How did you realize and what did you do?",
+    "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?",
+    "Tell me specifically which co-workers are your customers. What have you done to improve service to them?",
+    "Give an example of how you improved the experience of your internal and external customers.",
+    "How have you obtained and incorporated customer feedback into your organization's planning?"
+  ],
+  "Interpersonal Skills": [
+    "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
+    "Give an example of a time you had to deal with an upset co-worker or patient. How did you handle it?",
+    "Describe a time when you effectively communicated a difficult idea to a superior. What made it work?",
+    "Tell me about a time when your team could not agree on a course of action. How did you approach it?",
+    "What is your typical way of dealing with conflict? Give an example.",
+    "Describe the most challenging negotiation you were involved in. What were the results?"
+  ],
   "Personal Mastery": [
     "Tell us about a job where great attention to detail was required. What steps were involved?",
     "Name three things you have done in the past two years to grow in your job.",
@@ -656,291 +637,29 @@ var PBI_CATEGORIES = {
     "How do you keep your job knowledge current with ongoing changes?",
     "Give an example of a time when you used good judgment and logic in solving a problem.",
     "Describe a time when you delegated a project effectively. What steps did you take?",
-    "Describe a time when you disagreed with feedback about your performance. How did you handle it?",
-    "Tell us about a job or setting where great attention to detail was required to complete a task. What steps were involved? How did you handle that situation?",
-    "What self development activities are you currently engaged in?",
-    "Describe a time when you anticipated potential problems and developed preventative measures.",
-    "Tell us how you keep your job knowledge current with ongoing changes.",
-    "Developing and using a detailed procedure is often very important in a job. Tell about a time when you needed to develop and use a detailed procedure to successfully complete a project.",
-    "Give me a specific example of a time when you used good judgment and logic in solving a problem.",
-    "Tell us about a time when you had to analyze information and make a recommendation. What kind of thought process did you go through? What was your reasoning behind your decision?",
-    "Describe a negative work experience you learned from. Describe the circumstances and give an example to show you applied the learning to a work situation.",
-    "Describe a situation where you can take credit for the growth and development of a staff member or co-worker. Be specific about your role in terms of interactions and the outcome.",
-    "Tell me specifically what self-development activities you have participated in during the last year.",
-    "Tell me about a time when you delegated a project effectively. What steps did you take to empower others to work on the project? How did you track progress of the project?",
-    "In a supervisory role, have you ever had to discipline or counsel an employee? What was the nature of the discipline? What steps did you take? How that make you feel? How did you prepare yourself?",
-    "Everyone has made some poor decisions or has done something that just did not turn out right. Give an example of when this happened to you. What did you learn? What would you do differently?",
-    "Describe a time when you disagreed with an evaluation or feedback you received about your performance. How did you handle the situation? What impact did it have on you? What did you learn?",
-    "Specifically, what are you doing to keep up with changing concepts in healthcare management? What attributes do you possess that make you able to keep up with the times? Give an example to convince me that you can keep up with these changing, chaotic times.",
-    "Tell me specifically about the professional activities in which you are currently engaged to enhance your professional capabilities.",
-    "Tell me about a specific time you sought specific feedback on your performance from subordinates. Specifically, how did you use the feedback? Cite specific changes resulting from the feedback?",
-    "Give me an example of an important goal which you had set in the past. What did you do to reach it? How did you measure your success in reaching that goal?",
-    "Tell me about a time you had to handle multiple responsibilities. How did you organize the work that you needed to do? Given that same situation, how would you organize the work differently to have achieved even greater success in handling the multiple responsibilities?",
-    "Tell me about a time when you accomplished something significant that wouldn’t have happened if you hadn’t been there to make it happen. What part did you play in making it happen? Were others involved and if so, how did you interact with them?",
-    "Tell us about a time when your supervisor was absent and you had to make an important decision. Specifically, what was the situation you were faced with and what was the outcome of your decision?",
-    "Give an example of a time you had to go above and beyond the call of duty to get a job done.",
-    "Tell me about a goal you set that took a long time to achieve or that you’re still working towards. Why did you continue to work toward the goal? Why did it take so long?",
-    "Describe a time where you set a demanding goal for yourself and reached it. Did you encounter any obstacles and if so, what were they? How did you overcome those obstacles? Why did you persevere in the face of these obstacles?",
-    "What is the hardest you ever had to work to achieve something? What made it the hardest? What motivated you to work that hard to achieve this end?",
-    "Give me an example of something you started that wasn’t there before you initiated it. What was your role in bringing it to completion?",
-    "Give an example of a major contribution that you have made to an ongoing effort. What motivated you? How was it received by those with whom you were working? What were the short term and long term outcomes?",
-    "What did you do in your last job to be effective in your organizing and planning? Be specific. What one thing could you have done to be even more effective?",
-    "Tell of a time when you did not live up to your work expectations. How did you become aware and what were your reactions?",
-    "Tell me about a time when you successfully balanced several tasks at one time. How did you decide what to do first? In hindsight, was there a better way to have approached these tasks?",
-    "Describe a project or task that didn’t go as well as you would have liked. What did you learn and how will you apply that as you go forward?",
-    "Identify three characteristics you feel you possess that make you an effective employee/leader/etc. Give an example of how each characteristic has been used effectively in your work setting.",
-    "Tell me about a time when it was very difficult to plan your work. What made it difficult? How did you approach those difficulties?",
-    "Tell me about a time that you had your work planned and then were confronted with a new priority. How did you react to having your plans disrupted? How did you adjust your plans to accommodate the new priority?",
-    "Tell me about a time you had more to do than you had time to get done. How did you decide what to do first? What process did you use to prioritize the rest of the things you had to do?",
-    "1)Tell me about the last time you had to “juggle” several different responsibilities when you held a job. 2) What were the responsibilities? 3) How did you decide what priority to give to each responsibility? 4) What strategies helped you cope with multiple responsibilities?",
-    "Give an example of how you maintain a balance between personal and work mastery? Tell of a time when the balance was lost. Explain how you became aware and how you reacted.",
-    "Give me an example of a complex problem that you helped resolve. How was it resolved? What was your role?",
-    "With examples, explain specifically how you have identified problems, developed strategies for addressing the problems, and measured the success or failure of each strategy.",
-    "Tell of a time when you had to make a decision in a hurry and you lacked information. What did you do? What was the outcome?",
-    "We can sometimes identify a small problem and fix it before it becomes a major problem. Give an example of a time when you resolved such a problem without direction from a supervisor. What was the problem, how did you resolve it, and why didn’t you wait for a supervisor to tell you to deal with it?",
-    "Give me an example of a time when you resolved a complicated problem at work without being told to do so by a supervisor, or coworker. What prompted you to take the action? What action did you take? What was the result of your actions?",
-    "Give me an example of a time when you had an important project with a short deadline. What steps did you take to ensure that you did meet the deadline? What was the biggest obstacle to meeting the deadline? How did you overcome that obstacle?",
-    "Tell me about a time when you had several competing deadlines. How did you decide which project you worked on first?",
-    "Tell me about a time that you were not able to complete several tasks with competing deadlines. How did you handle that situation? What would you do differently today?",
+    "Describe a time when you disagreed with feedback about your performance. How did you handle it?"
   ],
-  "Technical Skills": [
-    "Give me an example of a time when you used good judgment and decision-making in solving a problem.",
-    "What is the most pressure packed situation you have ever worked in? What did you do to cope with the pressures in that situation? How would you change what you did if confronted with that situation today?",
-    "Give me an example of a time when you used your fact-finding skills to gain information needed to solve a problem; then tell me how you analyzed the information, came to a decision, and produced a written report.",
-    "Tell me about the most difficult report you have had to research. What made it the most difficult? How did you approach obtaining the needed information?",
-    "Tell me about the most difficult information you have had to analyze before writing a report. What made it the most difficult? How did you analyze the information? Whose assistance did you seek to assist in the analysis? Were your conclusions accepted?",
-    "Tell us your experience and knowledge in developing a budget, monitoring fund control points and payment processing. Begin by telling us the size of the budget.",
-    "Tell about your experience in developing, implementing, and managing a program. What mechanism did you have for reporting the activity and cost expenditure of the program? What problems did you have with the program and how did you deal with them?",
-    "On a scale of 0 to 10 with 0 being not competent and 10 being expert, rate yourself in the following areas: (a list of technical skills). Give a brief example to back your rating.",
-    "Tell us about a specific time when you had to NEGOTIATE with a group of people to obtain their cooperation. Tell us specifically how you negotiated with them and what the outcome was. What did you learn from the situation?",
-    "Describe a situation where you were required to maintain records that were subject to review by an outside regulatory agency. How did you assure that standards were met? Give us an example of the outcome in the process of accreditation.",
-    "Tell us specifically what professional and personal activities you engaged in last year to enhance your knowledge and skills.",
-    "Outline how you have developed a strategic plan. Give examples of what you included in the plan and how you measured outcomes.",
-  ],
-  "Interpersonal Effectiveness": [
-    "Describe a situation where you felt you had not communicated well. How did you correct the situation?",
-    "Give an example of a time you had to deal with an upset co-worker or patient. How did you handle it?",
-    "Describe a time when you effectively communicated a difficult idea to a superior. What made it work?",
-    "Tell me about a time when your team could not agree on a course of action. How did you approach it?",
-    "What is your typical way of dealing with conflict? Give an example.",
-    "Describe the most challenging negotiation you were involved in. What were the results?",
-    "Give a specific example of a time you had to deal with an upset co-worker, patient, or other customer. What was the person upset about and how did you handle? What was the outcome?",
-    "A part of this job is documenting your work. Give a specific example of something you had to write for your supervisor in the past three months. What feedback did you get from your supervisor?",
-    "Describe a time when you were able to effectively communicate a difficult or unpleasant idea to a superior. What made your communication work?",
-    "How do you go about explaining a complex technical problem to a person who does not understand the technical jargon? What approach do you take in commuicating with people who do not know the technical jargon?",
-    "Describe a time when you took personal accountability for a conflict and initiated contact with the individual(s) involved to explain your actions. What steps did you take? What was the result?",
-    "Describe a time when you've had to work with strong-willed peers. What did you do? How did you handle them so you could influence their decisions?",
-    "Give a specific example of a situation where the group of people you work with on a regular basis had a serious conflict. What was the conflict about? How were you involved in the conflict and what was the outcome?",
-    "A part of this job is documenting your work. On a scale of 0 to 10 with 10 being excellent writing skills, how would you rate your writing ability? Give specific example of the types of documents you write routinely. What feedback do you get from your supervisor on your writing skills?",
-    "Tell me about a specific time when those with whom you were working could not agree upon the course of action. How did you approach the situation and what was the outcome?",
-    "It can be difficult to build good relationships at work but sometimes it doesn't always work. If you can, tell about a time when you were not able to build a successful relationship with a difficult person. How did you handle the situation? How did you accomplish the work?",
-    "What is the toughest group that you’ve had to get cooperation from? Describe how you handled it. What was the outcome?",
-    "What is your typical way of dealing with conflict? Give me an example. What have you learned from dealing with conflict?",
-    "Have you ever had to \"sell\" an idea to your co-workers or group? How did you do it? Did they \"buy\" it?",
-    "Describe the most challenging negotiation in which you were involved. What did you do? What were the results for you? What were the results for the other party?",
-    "Explain a specific situation where you met resistance from your staff or work group about a directive that was mandated. Explain your role by describing dialogue related to the situation. Specifically what measures did you incorporate? What did you learn about group resistance? What was the ultimate outcome?",
-    "Think about a specific time when you had to negotiate with several service chiefs to obtain their cooperation to implement a specific initiative. Tell me specifically how you negotiated with them to attain the desired cooperation and how the implementation of the initiative went.",
-    "Tell me about a meeting in which you had to tell others things they did not want to hear. How did you communicate those ideas to them? What was the result of that communication? If you could do it again, is there anything you would change in what you communicated, or the way in which you communicated it? Why would you make those changes?",
-    "Tell me about a time when you had to use your presentation skills to influence someone's opinion. How did you prepare for the presentation? What points did you emphasize? How was the information received?",
-    "Give specific examples of how you have created a work environment for staff which fosters continuous learning and staff development.",
-    "Describe a time you used verbal communication to relate a point which was important to you. What obstacles did you have to overcome in making this communication? Did the other party understand the point being made? How do you know they understood?",
-    "Tell me about a job experience in which you had to speak up and tell other people what you thought or felt? What did you do to prepare for this communication? What things did you consider in deciding upon the time and place for this communication? What could you have done to make this communication more effective?",
-    "Tell me about a time when you had to present a proposal to a person in authority and were able to do this successfully. What did you do to improve the effectiveness of this communication, to ensure it had a greater possibility of success?",
-    "Give an example of a time when you had to verbally present an idea for others’ approval or agreement. Describe the communications strategy you used. What was the result?",
-    "Tell me about a time you had to communicate something that you knew the other person did not want to hear. How did you go about communicating it? How successful was the communication?",
-    "Tell your experience in presenting to large and small groups as a representative of your organization.",
-    "Give an example where you did not communicate well. What was the outcome? What did you learn from the situation and what would you do differently?",
-    "Tell me about a time in which you had to use your written communication skills in order to get an important point across. What was the most effective element in that communication? Why was it the most effective?",
-    "Tell your experience in writing policies and procedures for program. How did you communicate the policies/procedures to others?",
-    "Describe the most significant written document or presentation that you’ve completed. What made it the most significant? What was the document intended to accomplish? Did it accomplish its intended purpose?",
-    "Tell me about a time when you used your written communication skills to convey an important message. What was the most difficult aspect in preparing that communication? What was the easiest aspect? How successful was the communication? What could you do to improve that communication?",
-    "Tell me about a time when you had to present a written proposal to a person in authority and were able to do this successfully. What made the proposal successful?",
-    "Many jobs involve a written element that is important to the job. Describe your previous experience in writing two important documents that effectively provided guidance or explanation to your team or manager. What made them effective?",
-    "Give me an example of a time when you had to present an idea in written format for others’ approval or agreement. What was the result?",
-    "Tell me about a time when you had to orally present a written proposal to a person in authority and were able to do this successfully. How did you present the information? What was the most effective portion of our presentation? What made it the most effective? How was the presentation received by the intended audience?",
-    "Describe the process you have used to develop and write a planning (or other type) document. Be specific. How was the plan communicated to different levels of your respective organization?",
-    "Give an example of a time when you had to present an idea for others’ approval or agreement. What was the result?",
-    "Tell me about a time in which you had to use your verbal and written communication skills in order to get an important point across. How did you decide what to present orally, and what to present in writing? Which portion was more effective? Why?",
-    "Describe a time in which you felt it was necessary to modify or change your actions in order to respond to the needs of another person.",
-    "What did you do in your last job to contribute to a team environment? Be specific.",
-    "Tell me about a situation in which you were able to read another person or a group effectively. How did your perception assist in directing your actions? What was the outcome?",
-    "Give me a specific example of something you did that helped others have more enthusiasm for the project or effort of the team.",
-    "Tell of the most difficult situation you ever faced in getting along with a supervisor and/or subordinate employee. How did you work through the situation and what was the outcome?",
-    "Tell me about a difficult situation on a team when it was desirable for you to keep a positive attitude. What did you do? What were the effects of your actions?",
-    "Tell us your experience in leading a multidisciplinary group of people. What was your goal with the team and how did you get others involved in meeting the goal? What was the outcome of the effort?",
-    "Describe your most recent group effort. What was your role in the group? What did you do to make the work of the group more effective?",
-    "Think about a time when you were involved in a group project or activity where the others involved were difficult to get along with. What did you do about it? Were your efforts effective? Would you do anything differently today?",
-    "Tell me about a time when you had to analyze a situation in order to be effective in guiding your action or decision. How did you do the analysis? What did your analysis tell you about the situation? How did modify your actions or decisions based on that analysis?",
-    "Give me an example of a specific situation that illustrates how you most frequently deal with conflict when working with a team.",
-    "Tell me about a time when you were not successfully able to deal with conflict within a group of which you were a part. What efforts did you make to resolve the conflicts? What more might have you done?",
-    "Tell me about the last team of which you were a member. What was your role? How did your membership affect the function of the team? Be specific.",
-    "Describe the worst coworker you have ever had. What made them the worst? How did you deal with him or her?",
-    "Let’s talk about a time when you had to overcome an uncomfortable situation with others. What did you do to affect the situation?",
-    "Give me an example to show you’ve been able to develop and maintain productive working relations with others, even though they have differing points of view?",
-    "Sometimes people disagree when working in teams. Give an example of a situation where you have been in a conflict situation and shown an ability to handle it effectively and still reach the team’s goal?",
-    "Describe a situation in which you were a member of a team with a specific goal. How did you reach your goal as a team? What was your individual role?",
-    "Tell me about a time when you were working with a diverse group of people to accomplish something. How did that diversity affect the team, positively or negatively?",
-    "In many situations you will need to work effectively with a wide variety of team members. Give an example of a situation where you have worked effectively with a team to reach a goal? What made your efforts with this team effective?",
-    "Give me an example of building a productive relationship and maintaining it even in a difficult situation.",
-    "1) Tell me about a time in which you were gathering information from a person who was being uncooperative. 2) What was the situation? 3) Why were they being uncooperative? 4) How did you feel? 5) How did you get the information you needed? 6) What was the result in this situation?",
-    "Describe a situation where you had to tell others things they did not want to hear. What was the result of the communication? If you had to do so again, what would you change in what you communicated or how you communicated? Why would you make the changes?",
-    "By providing examples, convince us you can work with a wide variety of people, situations and environments.",
-    "Tell me about a time when you were able to step into a situation, take charge, muster support, and bring about excellent results.",
-    "Tell me about a time when you had to make an unpopular decision and get others’ commitment to it.",
-    "Please give examples of how you have exercised leadership within your medical center, at the level of the VISN, and at the national level.",
-    "Give an example of when you had a conflict with the leader of another service of your organization. What was the conflict about? How did you manage it and what was the outcome?",
-    "Give me an example of how you have assisted a subordinate to increase their motivation to perform at a higher level. What specifically did you do? How effective was that effort?",
-    "Give an example of how individualizing the way in which you deal with people has enabled you to supervise a difficult employee more effectively. What specifically did you do?",
-    "Summarize a situation where you took the initiative to get others going on an important issue, and played a leading role to achieve the results wanted. Specifically what did you do?",
-    "Give me an example of a time when you were able to communicate successfully with another person even when that individual may not have personally liked you (or vice versa). What did you do to enhance the communications and make them successful?",
-    "As a manager, have you ever had to discipline anyone? If so, what were the circumstances, and how did you handle it? How effective was the action taken? What could you have done to make it more effective?",
-    "Tell me about a time you had to tell someone something you knew they did not want to hear. How did you approach the communication? What was the most successful part of the communication? What was the least effective? What could you do to have improved the least effective?",
-    "Tell me about a time when you had to coordinate the work of others. How did you approach the task? What specifically did you do?",
-    "Tell me about a time where two of your subordinates, or two team members were in conflict. How did you deal with that situation? How successful were you? What could you have done differently to make your intervention even more effective?",
-    "Describe a situation in which you were able to use persuasion to successfully convince someone to see things your way. What made your efforts successful?.",
-    "Give me an example of a time you had to persuade other people to take action. Were you successful? What could you have done to improve the effectiveness of the persuasive effort?",
-    "Tell me about a time where you had to make an unpopular decision and get others’ commitment to it. What did you do specifically to get that commitment?",
-    "Give me an example of a time you had to persuade other people to take action. What specifically did you do to persuade them? Were you successful?",
-    "Tell me about the most successful delegation you have ever made. What did you delegate? What made it successful?",
-    "Tell me about the least successful delegation you have ever made. What did you delegate? What could you have done to improve the success of the delegation?",
-    "Tell me about a time when you empowered staff to handle duties in specific areas. How did they know they had been empowered? How did they react to that empowerment? What did you do to empower them?",
-    "Describe a team project in which you took a leadership role. What specifically did you do?",
-    "Discuss a time when your integrity was challenged. How did you handle it?",
-    "Give an example of a time you had to go above or beyond the call of duty in order to get a job done. What did you do? Why did you do it?",
-    "Describe a situation in which you were able to positively influence the actions of others in a desired direction.",
-    "Describe a situation in which you had an opportunity to provide leadership to a team or group without having direct management authority.",
-  ],
-  "Customer Service": [
-    "Give a specific example of a time when you had to deal with an angry customer. What was the problem and the outcome?",
-    "Tell about a situation at work where you realized a person needed help. How did you realize and what did you do?",
-    "Tell me about a specific time when you resolved a difficult customer complaint. What did you do? What was the outcome?",
-    "Tell me specifically which co-workers are your customers. What have you done to improve service to them?",
-    "Give an example of how you improved the experience of your internal and external customers.",
-    "How have you obtained and incorporated customer feedback into your organization's planning?",
-    "Tell about a situation where you assisted a co-worker. What was the situation? What was your involvement and what was the outcome?",
-    "In your current job, who are your internal and external customers? Specifically, how do you get satisfaction feedback from your internal customers? Specifically, how do you get satisfaction feedback from your external customers? Give specific examples of how you have used both negative and positive feedback.",
-    "Tell me specifically which co-workers in your organization are your customers. What have you done specifically to improve the service you give these internal customers?",
-    "If you were to step back and look at the part of your organization you control, what components of a customer service program would you see? Describe each component individually and tell specifically, what your role has been in implementation and ongoing delivery.",
-    "Give an example to illustrate how you have improved the experience of 1) your internal customers, and 2) your external customers. How did you determine improvement was needed and how have you determined the effectiveness of the improvement.",
-    "Tell me specifically how you have communicated to line staff that they have permission to go around the “chain of command” to expedite resolution of a patient problem. What has been the result of such communication? Success stories?",
-    "In the past, how have you obtained and incorporated customer feedback into your organization’s planning and service standards? Give specific examples.",
-    "Give me an example of a time when you were leading and influencing the direction of a project. What was your role ? How many others worked with you on this project? What specifically did you contribute? Tell me about a situation where a team effort was heading for an unsuccessful conclusion and you were able to turn the impending failure into success. What did you do to change the direction of the group? What made your efforts successful?",
-    "Give me an example of when you had to work with a customer who was difficult to get along with. Why was this person difficult? How did you deal with that person?",
-    "Give me an example of a time when you were able to successfully communicate with another person even when that individual may not have personally liked you (or vice versa).",
-    "Tell me about a situation in the past year in which you had to deal with a very upset customer. What did you do? What was the outcome?",
-    "Describe the most difficult customer situation you have dealt with. Tell us specifically how you worked with the customer and what the outcome of the situation was.",
-    "Tell me about a situation in which you went the “extra mile” for a customer. What did you do? What prompted you to provide that level of service? What was the customers response to your efforts?",
-  ],
-  "Flexibility/Adaptability": [
+  "Flexibility & Adaptability": [
     "Describe a change in your work you have personally had to make. How did you feel about it?",
     "Tell me about the last new procedure you had to learn. What was the hardest aspect?",
     "Describe a situation where you were responsible for getting others to make a change. What happened?",
     "Describe a major change you made in the past two years. How did you accomplish it?",
     "Describe an instance when you had to think on your feet in a difficult situation.",
-    "Describe a time when you faced an obstacle on an important project. How did you overcome it?",
-    "Describe a change in your work you have personally had to make in the last couple years. At the time, how did you feel about making the change? What did you do to make the change? How do you feel about the change now?",
-    "Tell me about the last new procedure you had to learn in your job. Tell me what specifically was the hardest aspect of learning the new procedure. Tell me specifically what you liked best about learning the new procedure. How well is the new procedure working now?",
-    "Tell me about a time when you had to deal with two very different employees that could not be treated the same way. How did you deal with each? How did you decide what you were going to do? How well did your intervention with each employee work?",
-    "Describe a major change you have made in the past two years. How did you accomplish the change? What difficulties did you encounter and how did you work through the difficulties? What personal factors assisted you in making the change? Would you do anything differently if you had to do it again?",
-    "Tell me about a specific time when staff reductions required restructuring of the workload. How did you do the restructuring? Who specifically did you involve? How did you involve them? Why did you involve those whom you did?",
-    "Describe an instance when you had to think on your feet to extricate yourself from a difficult situation. What caused the situation? How did your solution work?",
-    "Describe a time when you were faced with an obstacle to an important project? What did you do? Were you able to overcome the obstacle? What step(s) did you take?",
-    "According to Peter Senge, the one single thing a learning organization does well is to help people embrace change. Convince me/us that you are an effective change agent by describing an experience or experiences from your past.",
-    "Tell about a situation in the past year in which you had to deal with a very upset customer or co- worker. What did you do? What was the outcome?",
-    "Tell me about a time when you had to adjust to changes on the job. What happened? How did it turn out?",
-    "Describe a time when you had to reinvent or redefine your job to meet the changing needs of your organization. What steps did you take to increase the output of your position?",
-    "Think of a situation (ex. in your role, job, or environment) that changed quickly. What did you do to adapt?",
-    "Tell me about a time when you had to adapt to an uncomfortable situation. How did you cope with the changes?",
-    "Provide us with a recent change in your organization which directly impacted areas you worked in or were responsible for. How did you personally manage the change. How did you work with others and what was the outcome?",
-    "Tell me about a specific occasion when you conformed to a policy even though you did not agree with it.",
-    "Tell me about a time when you did not conform to existing policy because you thought the situation demanded a different behavior or action? What did you do?",
-    "Tell me about a difficult situation when it was desirable for you to keep a positive attitude. What did you do?",
-    "Tell me about a time when you had to balance many competing priorities and did so successfully.",
-    "Give an example of a job situation in which you demonstrated an ability to tolerate ambiguity without becoming paralyzed by it.",
-    "Many assignments require flexibility and versatility. In what situation have you shown flexibility or versatility in working though a problem or an assignment? How did this benefit your team or organization?",
-    "Give an example of a time you had to make a quick decision. What was the basis for that decision? In hindsight, how could that decision have been modified to improve it?",
-    "Describe a time on any past job in which you were faced with problems or stressful situations that tested your coping skills. What did you do?",
-  ],
-  "Creative Thinking": [
-    "Tell me about two suggestions you made to your supervisor. How did you come up with them?",
-    "Tell me about a time a co-worker had a good idea but no one else would listen. How did you handle it?",
-    "What projects have you started on your own? Why? What did you learn?",
-    "Describe a creative endeavor you led that improved your organization's effectiveness.",
-    "Tell me about two suggestions you have made to your supervisor in the past year. How did you come up with the ideas? What happened? How do you feel about the way things went?",
-    "Tell me about a specific time when you made a suggestion to improve the quality of the work done in your unit. Tell me about a specific time when you made a suggestion to improve the efficiency of your unit.",
-    "Tell me about a time when a co-worker had a good idea and you agreed but no one else was willing to listen. How did you handle the situation and what was the outcome?",
-    "Give examples to illustrate how you have generated ideas that represent thinking “outside the box.” How were your ideas received by others? What became of the ideas?",
-    "What projects have you started on your own? Why did you start the projects? What did you learn from doing the projects? What were the results?",
-    "Explain the approach you use for performance improvement. Explain specifically how you identify problems, what strategies you incorporate to measure the impact of the problems, how you deal with the problems, and how you measure success or failure. Track one problem you have dealt with from identification to closure.",
-    "Tell me about a specific benchmark study that you assisted with and how that study was applied within your organization.",
-    "Describe a creative endeavor you can take ownership for that impacted on the efficiency or effectiveness of your organization.",
-    "Tell me about a time you were not able to work effectively under pressure. What have you done to improve your ability to work under pressure since that incident?",
-    "Demonstrated ability to problem-solve and function independently.",
-    "Give me an example of a problem that you have solved that illustrates what steps you follow to study a problem before making a decision?",
-    "Give me an example of a time you had to make an important decision. How did you make the decision? How does it affect you today?",
-    "Describe a creative endeavor you can take credit for that impacted on the efficiency or effectiveness of a department or organization that you have worked for.",
-    "Tell me about a recent problem that you faced in your job. What did you do to resolve it?",
-    "Tell me about a difficult problem you faced and how you solved it.",
-    "1) What is the toughest problem that you as an individual have solved in a work setting? 2) What was the problem? 3) What was the result of your solution?",
-    "What is the most creative idea you have ever conceived and implemented? What made it creative?",
-    "Give me an example of a situation where you had to overcome major obstacles to achieve your objectives. What did you do to overcome the obstacles?",
-    "Give me an example of a time you had a problem and you approached it in an unusual way to solve it.",
-    "What is an example of a situation where you made significant improvement in a work area for which you were responsible",
-    "Identify and analyze problems, find alternative solutions to complex problems, and distinguish between relevant and irrelevant information to make logical judgements.",
-    "1) Tell me about a time when you had to analyze facts quickly, define the key issues, and develop a plan which produced good results. 2) If you had to do that activity over again, how would you do it differently?",
-    "Tell me about a time when you had to gather data, analyze the facts, and develop an action plan based on the data.",
-    "Many assignments can involve deciphering complex instructions and taking appropriate action. Describe a previous work experience in which you had occasion to tackle a complex situation and analyze it, simplify it and come up with an action plan to move forward.",
-    "1) Tell me about the last time you recognized a problem in an organization in which you were involved. 2) How did you recognize the problem? 3) How did you study the problem? 4) How did you determine a solution to the problem?",
-    "Describe a creative/innovative idea that you produced which led to a significant contribution to the success of an activity or project.",
-    "Describe the most creative project at work that you've ever completed.",
-    "Tell me about a situation in which you were able to find a new and better way of doing something significant.",
-    "Think of a problem solving effort in which you were involved. What was your biggest contribution to the solution?",
-    "Tell me about a time when you saw something succeed and reapplied the idea in a different context to help improve something else",
-    "Tell me about a time when you came up with a new idea that was implemented. What was the result?",
-    "What is an example of a situation where you made significant improvement?",
-    "Describe a significant success you had in a previous work assignment and how it positively impacted your organization.",
+    "Describe a time when you faced an obstacle on an important project. How did you overcome it?"
   ],
   "Systems Thinking": [
     "How does your current work affect your organization's ability to meet its mission and goals?",
     "Describe a time when you went above and beyond your job expectations. What motivated you?",
     "What organizational change have you contributed to that you are proud of?",
     "Tell me about a time when others had difficulty understanding how their work connected to other units.",
-    "Describe a change you made that improved the performance of your work area or organization.",
-    "How does the work you are currently doing affect your organization’s ability to meet its mission and goals? Do you think your work is important? If yes, why? If no, why not?",
-    "Describe a time when you went over and above your job expectation. What motivated you to put forth the extra effort? How did you feel when the job was finished? Did others realize you had put forth the extra effort? What feedback did you get for your effort?",
-    "Tell me about a time when you had to take on extra duties or make some other sacrifice (such as changing your duty hours) in order for an overall improvement in the service of your unit to its customers to occur. How did you feel about making the change? What did you say to co-workers and supervisors about the change? How do you feel about the change now? Has it produced better service to your customers?",
-    "In your current job, what organizational change have you made or contributed to that you are proud of? How did you go about making the change? What has been the impact of the change?",
-    "Tell me about a specific time when others in your work group were having difficulty understanding how their work interfaced with the work of other units, and the impact changes they made had on those other work groups. What specific things did you do to assist your co-workers to better understand the relationship of your work to that of others in the organization? What specific things did you do to ensure that changes within your group were not detrimental to other work groups?",
-    "Describe a change you are responsible for that improved the performance of your work area or organization. How did: 1) you come up with the idea for the change, 2) you go about implementing the change, 3) staff respond to the change, and 4) you measure the outcome of the change? In looking back, what things would you do differently?",
-    "Tell me about a specific time when you had to assist your staff in understanding the relevance to the organization of an aspect of their work. What mechanisms did you use to communicate with them? How effective was the communication? How did you evaluate that effectiveness?",
-    "Tell me about a specific decision that you made within your organization that had unexpected consequences outside your organization. How did you deal with those consequences?",
-    "Describe a previous work experience in which you met with an initial failure and found a way to overcome it and reach success. What steps did you take in order to reach success?",
-    "Give me an example of how you have studied an operational problem in your organization that illustrates the steps you follow to study a problem before making a decision?",
-    "Describe a problem situation where you had to seek out information on the impact of a change in one area upon the entire organization, define key issues, and decide on which steps to take to get desired results.",
-    "Tell me about a time when you implemented a change in one portion of the organization that negatively impacted another part of the organization. How did you deal with the resulting problems? What would you do differently in implementing that change now?.",
-    "Tell me about a time when you had to pick out the key elements in some activity and take steps to improve the success of those elements.",
+    "Describe a change you made that improved the performance of your work area or organization."
   ],
-  "Organizational Stewardship": [
-    "Give two examples of things you've done in previous jobs that demonstrate your willingness to work hard.",
-    "There are times we work without close supervision or support to get the job done. Tell us about a time when you found yourself in such a situation and how things turned out.",
-    "Give an example of a time you defended your organization. How did you feel about doing it? How did you go about doing it? What was the response of the other party/parties?",
-    "Tell me about a specific time when people outside your organization were criticizing it unfairly. What did you do or say? How successful were you in changing minds or attitudes? What evidence suggests that level of success?",
-    "List two characteristics that you feel you possess that make you a sensitive, effective leader. Give a specific example for each to show how you applied them to your work setting",
-    "Describe a time when you worked as a member of a team to accomplish a goal of your organization. What role did you play? Describe how the team worked together. What was the outcome?",
-    "Describe a time when you were working with a group and there was conflict in getting a job done. What was your role? Were the conflicts resolved? If yes, how were they resolved? If no, what were they not resolved?",
-    "Tell me about a specific time when a co-worker was experiencing significant personal problems that were affecting their work. What did you do to assist the co-worker and help them with their situation? Were your efforts successful? How did you know they were or were not successful?",
-    "Describe a time when one of your staff or your work team was working above work expectations. What was your response? How did the other party/parties respond?",
-    "Describe a time when one of your staff or your work team was working below work expectations. What was your response? How did the other party/parties respond? What was the ultimate outcome?",
-    "List three characteristics you feel you possess that make you a sensitive, effective leader. Give a specific example to illustrate the application of each to your work setting.",
-    "Tell me about a specific time when a subordinate had a personal need that conflicted with the needs of your organization. How did you address the conflicting needs? What was the result of the way you handled the situation?",
-    "What experience have you had implementing reorganizations or change in an organization? How did you do this? What were the challenges and regrets?",
-    "Tell me specifically what you have done to create an atmosphere of trust and empowerment within your sphere of influence. What tangible results have you seen from your efforts?",
-    "Explain the work of a committee you can take ownership for in terms of successes or outcomes.",
-    "Works to accomplish the organization’s business plan.",
-    "Give me an example of a time when you had to go above and beyond the call of duty in order to get a job done. What did you do? Why did you put forth that extra effort?",
-    "Tell me about a time when others in your organization depended on you and you did not deliver. What impact did that have on the organization? What would you do differently today?",
-    "If you retired today, what contribution would you be best remembered for by your organization? How did it help further the goals of the organization?",
-  ],
+  "Creative Thinking": [
+    "Tell me about two suggestions you made to your supervisor. How did you come up with them?",
+    "Tell me about a time a co-worker had a good idea but no one else would listen. How did you handle it?",
+    "What projects have you started on your own? Why? What did you learn?",
+    "Describe a creative endeavor you led that improved your organization's effectiveness."
+  ]
 };
 
 // User-added library questions (stored in localStorage)
@@ -1510,7 +1229,7 @@ function printRec(){
   var h='<h1 class="h1">Interview Panel Recommendations</h1><p style="font-size:13px"><strong>Date:</strong> '+esc(gv('r-d')||'__________')+' &nbsp; <strong>Position:</strong> '+esc(pos)+' &nbsp; #: '+esc(gv('r-pn')||'__________')+'</p>';
   h+='<p style="font-size:12px;font-style:italic;color:#555">With fair judgement based on the responses provided, the panel recommends:</p>';
   h+='<table><thead><tr><th>Candidate</th><th>Matrix Score</th><th>Interview</th><th>Resume</th><th>Total</th></tr></thead><tbody>';
-  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var rs=getResumeScore(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+rs+'</td><td class="tot">'+to+'</td></tr>'; }
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
   h+='</tbody></table>';
   if(E('r-ns').checked) h+='<p style="font-size:13px;font-weight:600">No selection should be made.</p>';
   h+='<div class="sec"><h3>Selected</h3><p style="font-size:13px">Candidate: <strong>'+esc(gv('r-sn')||'__________')+'</strong> &nbsp; Score: <strong>'+esc(gv('r-ss')||'__________')+'</strong></p></div>';
@@ -1558,229 +1277,7 @@ function setQn(aid,qi,v){
   autoSave();
 }
 function updQ(i,v){ questions[i]=v; autoSave(); }
-
-// QS sub-tab functions
-function showQsTab(tab){
-  ['start','sets','pbi'].forEach(function(t){
-    document.getElementById('qs-'+t).style.display = t===tab?'block':'none';
-    var btn = document.getElementById('qs-tab-'+t);
-    if(btn) btn.className = 'btn btn-sm '+(t===tab?'btn-pri':'btn-out');
-  });
-  if(tab==='sets') qsRenderSetsList();
-  if(tab==='pbi') qsRenderPbiInline();
-}
-function qsGenerateFields(){
-  var count = parseInt(document.getElementById('qs-new-count').value)||5;
-  var fields = document.getElementById('qs-start-fields');
-  var h = '';
-  for(var i=0;i<count;i++){
-    h+='<div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:8px">';
-    h+='<label class="lb" style="font-size:.8rem">Q'+(i+1)+'</label>';
-    h+='<textarea id="qsn-'+i+'" class="ii" style="min-height:50px" placeholder="Type question..."></textarea>';
-    h+='</div>';
-  }
-  fields.innerHTML = h;
-  document.getElementById('qs-start-save').style.display = 'flex';
-}
-function qsOpenPbiForNew(){
-  // Open the PBI Library modal, and after selecting, fill the generated fields
-  // First generate fields if not already done
-  var fields = document.getElementById('qs-start-fields');
-  if(!fields.innerHTML.trim()) qsGenerateFields();
-  openPbiLibrary();
-  // Override addSelectedFromLibrary temporarily to fill our fields
-  var orig = addSelectedFromLibrary;
-  addSelectedFromLibrary = function(){
-    var count = 0;
-    var catNames = Object.keys(PBI_CATEGORIES);
-    var selected = [];
-    for(var ci=0;ci<catNames.length;ci++){
-      var catName = catNames[ci];
-      var cat = PBI_CATEGORIES[catName];
-      var userAdd = (userCatQuestions[catName] || []);
-      var allQ = cat.slice();
-      for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
-      for(var qi=0;qi<allQ.length;qi++){
-        var cb = document.getElementById('plq-'+ci+'-'+qi);
-        if(cb && cb.checked){ selected.push(allQ[qi]); count++; }
-      }
-    }
-    if(count === 0){ alert('Select at least one question.'); return; }
-    closePbiLibrary();
-    // Fill fields
-    for(var si=0;si<selected.length;si++){
-      var ta = document.getElementById('qsn-'+si);
-      if(ta) ta.value = selected[si];
-    }
-    addSelectedFromLibrary = orig;
-    showToast('Added '+count+' question(s)');
-  };
-}
-function qsSaveNewSet(){
-  var title = document.getElementById('qs-new-title').value.trim();
-  if(!title){ alert('Enter a title for the set.'); return; }
-  var qs = [];
-  var count = parseInt(document.getElementById('qs-new-count').value)||5;
-  for(var i=0;i<count;i++){
-    var ta = document.getElementById('qsn-'+i);
-    qs.push(ta ? ta.value.trim() || '' : '');
-  }
-  qs = qs.filter(function(q){ return q; });
-  if(qs.length===0){ alert('Add at least one question.'); return; }
-  qSets[title] = {questions: qs};
-  activeQSet = title;
-  questions = qs;
-  saveQSets();
-  renderQSetSelect();
-  renderQs();
-  showQsTab('start');
-  showToast('Set "'+title+'" saved');
-}
-function qsCancelNew(){
-  document.getElementById('qs-new-title').value = '';
-  document.getElementById('qs-start-fields').innerHTML = '';
-  document.getElementById('qs-start-save').style.display = 'none';
-  showQsTab('start');
-}
-function qsRenderSetsList(){
-
-  var list = document.getElementById('qs-sets-list');
-  if(!list) return;
-  var names = Object.keys(qSets);
-  if(names.length===0){ list.innerHTML='<p class="muted">No saved question sets yet. Use <strong>+ Start Here</strong> to create one.</p>'; return; }
-  var h = '';
-  for(var i=0;i<names.length;i++){
-    var qc = qSets[names[i]] ? (qSets[names[i]].questions ? qSets[names[i]].questions.length : 0) : 0;
-    h += '<div style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--border);border-radius:8px;margin-bottom:4px">';
-    h += '<span style="flex:1;font-weight:'+(names[i]===activeQSet?'700':'400')+'">'+esc(names[i])+' <span class="muted">('+qc+' questions)</span> <span style="font-size:.75rem">'+esc(activeQSet===names[i]?'(active)':'')+'</span></span>';
-    h += '<button class="btn btn-sm btn-out" onclick="qsLoadSetForEdit(\''+names[i]+'\')">Edit</button>';
-    h += '</div>';
-  }
-  list.innerHTML = h;
-}
-function qsLoadSetForEdit(name){
-  if(!qSets[name]) return;
-  document.getElementById('qs-sets-list').style.display = 'none';
-  document.getElementById('qs-sets-edit').style.display = 'block';
-  document.getElementById('qs-sets-edit-title').textContent = name;
-  document.getElementById('qs-delete-set-btn').textContent = 'Delete "'+name+'"';
-  var fields = document.getElementById('qs-sets-edit-fields');
-  var qs = qSets[name].questions || [];
-  var h = '';
-  for(var i=0;i<qs.length;i++){
-    h+='<div style="margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);border-radius:8px">';
-    h+='<label class="lb" style="font-size:.8rem">Q'+(i+1)+'</label>';
-    h+='<textarea class="ii" id="qse-'+i+'" style="min-height:50px">'+esc(qs[i])+'</textarea>';
-    h+='<button class="btn btn-sm btn-dan" onclick="qsRemoveEditQ('+i+')" style="margin-top:3px;padding:2px 10px;font-size:.7rem">Remove</button>';
-    h+='</div>';
-  }
-  h+='<button class="btn btn-sm btn-suc" onclick="qsAddEditQ()" style="margin-top:4px">+ Add Question</button>';
-  fields.innerHTML = h;
-  document.getElementById('qs-sets-edit').dataset.setname = name;
-}
-var qsEditCount = 0;
-function qsAddEditQ(){
-  var fields = document.getElementById('qs-sets-edit-fields');
-  var idx = fields.querySelectorAll('textarea').length;
-  var h = '<div style="margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);border-radius:8px">';
-  h+='<label class="lb" style="font-size:.8rem">Q'+(idx+1)+'</label>';
-  h+='<textarea class="ii" id="qse-'+idx+'" style="min-height:50px"></textarea>';
-  h+='<button class="btn btn-sm btn-dan" onclick="qsRemoveEditQ('+idx+')" style="margin-top:3px;padding:2px 10px;font-size:.7rem">Remove</button>';
-  h+='</div>';
-  var addBtn = fields.querySelector('button:last-child');
-  if(addBtn) addBtn.insertAdjacentHTML('beforebegin', h);
-  else fields.innerHTML += h;
-}
-function qsRemoveEditQ(i){
-  var ta = document.getElementById('qse-'+i);
-  if(!ta) return;
-  var div = ta.closest('div[style*="margin-bottom"]') || ta.parentNode.parentNode;
-  if(div) div.parentNode.removeChild(div);
-}
-function qsSaveEditedSet(){
-  var name = document.getElementById('qs-sets-edit').dataset.setname;
-  if(!name || !qSets[name]) return;
-  var fields = document.getElementById('qs-sets-edit-fields');
-  var textareas = fields.querySelectorAll('textarea');
-  var qs = [];
-  textareas.forEach(function(ta){ if(ta.value.trim()) qs.push(ta.value.trim()); });
-  if(qs.length===0){ alert('Keep at least one question.'); return; }
-  qSets[name].questions = qs;
-  if(activeQSet === name) questions = qs.slice();
-  saveQSets();
-  if(activeQSet === name) renderQs();
-  showQsTab('sets');
-  showToast('Set "'+name+'" saved');
-}
-function qsDeleteSet(){
-  var name = document.getElementById('qs-sets-edit').dataset.setname;
-  if(!name || !qSets[name]) return;
-  if(!confirm('Delete set "'+name+'"?')) return;
-  delete qSets[name];
-  if(activeQSet === name){ var keys = Object.keys(qSets); activeQSet = keys[0] || ''; }
-  saveQSets();
-  renderQSetSelect();
-  renderQs();
-  showQsTab('sets');
-  showToast('Set deleted');
-}
-function qsRenderPbiInline(){
-  var w = document.getElementById('qs-pbi-content');
-  if(!w) return;
-  var h = '<div style="margin-bottom:8px"><label class="lb">Select questions to add to current set:</label></div>';
-  var catNames = Object.keys(PBI_CATEGORIES);
-  for(var ci=0;ci<catNames.length;ci++){
-    var catName = catNames[ci];
-    var cat = PBI_CATEGORIES[catName];
-    var userAdd = (userCatQuestions[catName] || []);
-    var allQ = cat.slice();
-    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
-    h += '<div style="font-weight:600;font-size:.85rem;color:var(--primary);margin:8px 0 4px;padding:6px 0 4px;border-bottom:1px solid var(--border);background:var(--soft);border-radius:6px 6px 0 0">'+esc(catName)+' <span class="muted" style="font-weight:400">('+allQ.length+' questions)</span></div>';
-    for(var qi=0;qi<allQ.length;qi++){
-      h += '<div style="display:flex;gap:6px;align-items:flex-start;padding:3px 8px;border-radius:4px;font-size:.82rem;line-height:1.4">';
-      h += '<input type="checkbox" id="pli-'+ci+'-'+qi+'" style="margin-top:2px">';
-      h += '<label for="pli-'+ci+'-'+qi+'" style="font-weight:400;cursor:pointer">'+esc(allQ[qi])+'</label>';
-      h += '</div>';
-    }
-    h += '<div style="display:flex;gap:6px;padding:4px 8px 6px;background:#f9fafb;border-radius:0 0 6px 6px;border:1px solid var(--border);border-top:none">';
-    h += '<input type="text" id="pbi-cat-q-'+ci+'" class="ii" placeholder="Add a question to '+esc(catName)+'..." style="flex:1;padding:6px 8px;font-size:.82rem">';
-    h += '<button class="btn btn-suc btn-sm" onclick="qsAddToPbiCat('+ci+')" style="white-space:nowrap">Save</button>';
-    h += '</div>';
-  }
-  h += '<div class="ma"><button class="btn btn-pri" onclick="qsAddSelectedPbi()">Add Selected to Set</button><button class="btn btn-out" onclick="showQsTab(\'start\')">Close</button></div>';
-  w.innerHTML = h;
-}
-function qsAddToPbiCat(ci){
-  var catNames = Object.keys(PBI_CATEGORIES);
-  var name = catNames[ci];
-  var q = document.getElementById('pbi-cat-q-'+ci).value.trim();
-  if(!q){ alert('Enter a question.'); return; }
-  if(!userCatQuestions[name]) userCatQuestions[name] = [];
-  userCatQuestions[name].push(q);
-  saveUserCat();
-  document.getElementById('pbi-cat-q-'+ci).value = '';
-  qsRenderPbiInline();
-  showToast('Added to "'+name+'"');
-}
-function qsAddSelectedPbi(){
-  var count = 0;
-  var catNames = Object.keys(PBI_CATEGORIES);
-  for(var ci=0;ci<catNames.length;ci++){
-    var catName = catNames[ci];
-    var cat = PBI_CATEGORIES[catName];
-    var userAdd = (userCatQuestions[catName] || []);
-    var allQ = cat.slice();
-    for(var ui=0;ui<userAdd.length;ui++) allQ.push(userAdd[ui]);
-    for(var qi=0;qi<allQ.length;qi++){
-      var cb = document.getElementById('pli-'+ci+'-'+qi);
-      if(cb && cb.checked){ questions.push(allQ[qi]); count++; }
-    }
-  }
-  if(count === 0){ alert('Select at least one question.'); return; }
-  renderQs(); autoSave();
-  showToast('Added '+count+' question(s)');
-}
-
+function addQ(){ questions.push("New question - edit me."); renderQs(); autoSave(); }
 function delQ(i){
   if(questions.length<=1){ alert('Need at least one question.'); return; }
   if(!confirm('Delete Q'+(i+1)+'?')) return; questions.splice(i,1);
@@ -1891,36 +1388,17 @@ function saveModal(){
 }
 function closeModal(){ E('app-modal').style.display='none'; }
 
-function getResumeColumn(){
-  var cols=profileColumns();
-  for(var i=0;i<cols.length;i++){
-    var label=String(cols[i].label||'').trim().toLowerCase();
-    if(cols[i].id==='rs' || label==='resume' || label==='résumé') return cols[i];
-  }
-  return null;
-}
-function getResumeScore(a){
-  var col=getResumeColumn();
-  if(!col) return 0;
-  var val=a[col.id];
-  return (val!==undefined&&val!==null) ? (parseInt(val)||0) : 0;
-}
 function getMatScore(a){
-  var cols=profileColumns(); var t=0; var resumeCol=getResumeColumn();
-  for(var i=0;i<cols.length;i++){
-    if(resumeCol && cols[i].id===resumeCol.id) continue;
-    var val=a[cols[i].id];
-    if(val!==undefined&&val!==null) t+=(cols[i].id==='acls'&&val===-1)?0:parseInt(val)||0;
-  }
+  var cols=profileColumns(); var t=0;
+  for(var i=0;i<cols.length;i++){ if(cols[i].id==='rs') continue; var val=a[cols[i].id]; if(val!==undefined&&val!==null) t+=(cols[i].id==='acls'&&val===-1)?0:parseInt(val)||0; }
   return t;
 }
 function renderRecs(){
   var tb=E('r-body'); if(!tb) return;
-  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
   var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   if(sorted.length===0){ tb.innerHTML='<tr><td style="color:var(--muted)" colspan="5">Auto-populates from Matrix</td></tr>'; return; }
   var h='';
-  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var rs=getResumeScore(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+rs+'</td><td class="tot">'+to+'</td></tr>'; }
+  for(var i=0;i<sorted.length;i++){ var ms=getMatScore(sorted[i]); var iv=getIV(sorted[i]); var to=getTot(sorted[i]); h+='<tr><td><strong>'+esc(sorted[i].name)+'</strong></td><td>'+ms+'</td><td>'+iv+'</td><td>'+(sorted[i].rs||0)+'</td><td class="tot">'+to+'</td></tr>'; }
   tb.innerHTML=h;
   if(sorted.length>0){ sv('r-sn',sorted[0].name); sv('r-ss',getTot(sorted[0])); }
   if(sorted.length>1){ sv('r-a1n',sorted[1].name); sv('r-a1s',getTot(sorted[1])); }
@@ -1936,19 +1414,6 @@ function exportData(){
   var a=document.createElement('a'); a.href=url; a.download='interview-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a); a.click();
   setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
-}
-
-function shareData(){
-  var d=state(); d._prof=positionProfiles; d._act=activeProfileName; d._qbk=qSets; d._qba=activeQSet;
-  var json=JSON.stringify(d,null,2);
-  var blob=new Blob([json],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a'); a.href=url; a.download='interview-'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.appendChild(a); a.click();
-  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
-  var fn='interview-'+new Date().toISOString().slice(0,10)+'.json';
-  window.open('mailto:?subject='+encodeURIComponent('Interview Selection Process Data')+'&body='+encodeURIComponent('Interview data file attached.\n\nOpen the app, click Tools > Import, and select this .json file.\n\nFile: '+fn),'_blank');
-  showToast('File downloaded. Email opened to share.');
 }
 
 function importData(){
@@ -2275,8 +1740,7 @@ renderMat = function(){
     emp.innerHTML='<h3>No position rubric selected</h3><p style="margin-bottom:12px">Create a rubric for this position or choose one you previously saved.</p><button class="btn btn-pri np" onclick="openRubricBuilder()">Create Position Rubric</button>';
     tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
   }
-  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
-  if(posApps.length===0){
+  if(applicants.length===0){
     emp.style.display='block';
     emp.innerHTML='<h3>'+esc(activeProfileName)+' rubric is ready</h3><p style="margin-bottom:12px">Next, add the first applicant. You will score the position-specific rubric in the applicant window.</p><button class="btn btn-suc np" onclick="openModal()">+ Add First Applicant</button>';
     tbl.style.display='none'; if(mh)mh.style.display='none'; updateHome(); return;
@@ -2287,7 +1751,7 @@ renderMat = function(){
   for(var i=0;i<cols.length;i++) hh+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span class="mx">/'+cols[i].max+'</span>':'')+'</th>';
   hh+='<th class="intv">Interview<br><span class="mx">/'+ivm+'</span></th><th class="tcol">Total<br><span class="mx">/'+tm+'</span></th><th>Notes</th><th class="np"></th>';
   E('mt-header').innerHTML=hh;
-  var sorted=posApps.slice().sort(function(a,b){return getTot(b)-getTot(a)}), h='';
+  var sorted=applicants.slice().sort(function(a,b){return getTot(b)-getTot(a)}), h='';
   for(var i=0;i<sorted.length;i++){
     var a=sorted[i], iv=getIV(a), to=getTot(a);
     h+='<tr><td>'+(i===0?'<span class="r1">1</span>':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
