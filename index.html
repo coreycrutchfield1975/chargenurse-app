@@ -1913,7 +1913,7 @@ function permFields(section){
  return map[section]||[];
 }
 function closeQmModal(){
- var modal=document.querySelector('div[style*="z-index:"]');
+ var modal=document.querySelector('div[style*="z-index:9999"][style*="position:fixed"]');
  if(modal&&modal.parentNode)document.body.removeChild(modal);
 }
 function saveQmModalAndNext(section,editId,weekId){
