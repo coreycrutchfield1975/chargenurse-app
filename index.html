@@ -1745,6 +1745,7 @@ function openQmModal(section,editId,weekId){
  }
  var modal=document.createElement('div');
  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+ modal.dataset.qmModal='true';
  var fields=qmSectionFields(section);
  var content='<div style="background:#ffffff;padding:18px 20px;border-radius:8px;max-width:600px;width:92%;max-height:85vh;overflow-y:auto"><h3 style="margin:0 0 8px;font-size:16px;color:#1a0f00">'+(editId?'Edit':'Add')+' Entry</h3>';
  content+='<div style="padding:10px 12px;border:1px solid var(--yellow);border-radius:6px;background:#fffbe6"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
@@ -1821,6 +1822,7 @@ function openPermTracker(section){
  var fields=permFields(section);
  var modal=document.createElement('div');
  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+ modal.dataset.qmModal='true';
  var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:800px;width:95%;max-height:85vh;overflow-y:auto"><h3 style="margin:0 0 6px;font-size:16px">'+(titleMap[section]||section)+'</h3>';
  content+='<div style="margin-bottom:8px;padding:10px 12px;border:1px solid var(--yellow);border-radius:6px;background:#fffbe6"><b style="font-size:13px">Add New Entry</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">';
  fields.forEach(function(f){
@@ -1913,7 +1915,7 @@ function permFields(section){
  return map[section]||[];
 }
 function closeQmModal(){
- var modal=document.querySelector('div[style*="z-index:9999"][style*="position:fixed"]');
+ var modal=document.querySelector('[data-qm-modal]');
  if(modal&&modal.parentNode)document.body.removeChild(modal);
 }
 function saveQmModalAndNext(section,editId,weekId){
