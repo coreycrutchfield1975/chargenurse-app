@@ -7,3 +7,14 @@ bravoshift-backup-*.json
 backup-*.json
 *.backup.json
 data-export*.json
+
+# HTML backup files
+*.backup*.html
+index.html.backup*
+chargenurse-*.html
+
+# Generated archives and temp files
+*.zip
+*.tar.gz
+email-instructions.txt
+*.temp*
