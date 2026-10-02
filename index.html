@@ -33,7 +33,7 @@ button.danger{background:#fff;border:1px solid var(--red);color:#9b1c1c}
 table{width:100%;border-collapse:collapse;background:white}th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left;font-size:13px}th{background:#edf4fa}
 .scroll{overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800}
 .draft{background:#fff1bf;color:#6f5500}.confirmed{background:#d8f3df;color:#17652a}.cancelled{background:#e8ebef;color:#4e5964}.failed{background:#ffd9d9;color:#8a1717}.notneeded{background:#e8f4ff;color:#1a56db}
-.alert{border-left:7px solid var(--orange)}.alert.critical{border-color:var(--red)}.muted{color:var(--muted)}
+.alert{border-left:7px solid var(--orange)}.alert.critical{border-color:var(--red)}.alert.ppd{border-left:7px solid #f6c344;background:#fff8e1}.muted{color:var(--muted)}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:24px;overflow:auto;z-index:20;align-items:flex-start;justify-content:center}
 .modal.open{display:flex}.modalbox{width:min(1150px,100%);background:white;border-radius:14px;padding:18px;border-top:10px solid var(--purple)}
 .modalbox.small{width:min(760px,100%)}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.span2{grid-column:span 2}.span4{grid-column:span 4}
@@ -394,6 +394,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
 <div class="span2"><fieldset><legend>Labs (Dates per Month)</legend><textarea id="vLabs" style="min-height:60px" placeholder="Enter lab dates per month, one per line"></textarea></fieldset></div>
 <div class="span2"><fieldset><legend>VAEA NOTES (72‑Hour Chart)</legend><div class="formgrid"><div><label>Start Date</label><input type="date" id="vVaeaStart"></div><div><label>End Date</label><input type="date" id="vVaeaEnd"></div></div><div style="margin-top:6px"><label><input type="checkbox" id="vVaeaDone" style="width:auto;margin-right:6px"> Completed</label></div></fieldset></div>
+<div class="span2" onchange="calculatePpdReadingDate()"><fieldset onchange="calculatePpdReadingDate()"><legend>PPD (TB Skin Test)</legend onchange="calculatePpdReadingDate()"><div class="formgrid" onchange="calculatePpdReadingDate()"><div onchange="calculatePpdReadingDate()"><label>Placement Date</label onchange="calculatePpdReadingDate()"><input type="date" id="vPpdPlacement" onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"><div onchange="calculatePpdReadingDate()"><label>Reading Date</label onchange="calculatePpdReadingDate()"><input type="date" id="vPpdReading" onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"><div style="margin-top:6px" onchange="calculatePpdReadingDate()"><label onchange="calculatePpdReadingDate()"><input type="checkbox" id="vPpdRead" style="width:auto;margin-right:6px"> Read Completed</label onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"></fieldset onchange="calculatePpdReadingDate()"></div>
 <div class="span2"><fieldset><legend>Behavioral Flags</legend><div class="beh-grid" id="behGrid"></div><div style="margin-top:4px;font-size:10px;color:#666">Check any behaviors this veteran is demonstrating. Flags appear on the dashboard for quick awareness.</div></fieldset></div>
 </div><div class="toolbar"><button class="primary purple" onclick="saveVeteran()">Save Veteran</button><button class="secondary" onclick="closeModal('vetModal')">Cancel</button></div>
 </div></div>
@@ -464,12 +465,22 @@ const southRooms=parseRooms([...roomBlockReference.south.three,...roomBlockRefer
 const BEHAVIOR_TYPES=['Agitation','Aggression','Wandering','Hallucinations','Delusions','Paranoia','Sundowning','Rummaging','Sexually inappropriate','Inappropriate touching','Impulsive actions','Shouting','Repetition','Accusations','Refusals'];
 let db;
 try {
- db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
-  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{}
+db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
+  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[]}
  };
 } catch (e) {
  console.error('Failed to load database from localStorage:', e.message);
- db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{}};
+ db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[]}};
+// Migrate SOPs from localStorage to db.sops
+if (!db.sops || db.sops.length === 0) {
+    var legacy = JSON.parse(localStorage.getItem("bravoshift_sops") || "[]");
+    if (legacy.length > 0) {
+        db.sops = legacy;
+        localStorage.removeItem("bravoshift_sops");
+        persist();
+        console.log('Migrated ' + legacy.length + ' SOPs from localStorage to db.sops');
+    }
+}
 }
 const managedListDefaults={
  floorProviders:['McCain','Cook'],
@@ -649,7 +660,56 @@ function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.str
 function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});return String(max)}
 async function autoSave(){try{lastSyncKey=currentKey();let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
 async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
-function mergeRecords(local,remote){var changed=false;['veterans','appointments','treatments','providers'].forEach(function(k){var lmap={},rmap={};(local[k]||[]).forEach(function(r){lmap[r.id]=r});(remote[k]||[]).forEach(function(r){rmap[r.id]=r});var merged=[];Object.keys(rmap).forEach(function(id){var lr=lmap[id],rr=rmap[id];if(!lr){merged.push(rr);changed=true;return}var lt=new Date(lr._updatedAt||0).getTime(),rt=new Date(rr._updatedAt||0).getTime();if(rt>lt){merged.push(rr);changed=true}else{merged.push(lr)}});Object.keys(lmap).forEach(function(id){if(!rmap[id]){merged.push(lmap[id])}});local[k]=merged});return changed}
+function mergeRecords(local,remote){
+ var changed=false;
+ // Merge arrays with IDs (veterans, appointments, treatments, providers, sops)
+ ['veterans','appointments','treatments','providers','sops'].forEach(function(k){
+  if(!Array.isArray(local[k]))return;
+  var lmap={},rmap={};
+  (local[k]||[]).forEach(function(r){lmap[r.id]=r});
+  (remote[k]||[]).forEach(function(r){rmap[r.id]=r});
+  var merged=[];
+  Object.keys(rmap).forEach(function(id){
+   var lr=lmap[id],rr=rmap[id];
+   // For veterans, check if ID is in deleted list
+   if(k==='veterans' && local.metadata && local.metadata.deletedVeterans && local.metadata.deletedVeterans.includes(id)){
+    // Skip this veteran - it was deleted locally
+    return;
+   }
+   if(!lr){
+    merged.push(rr);
+    changed=true;
+    return;
+   }
+   var lt=new Date(lr._updatedAt||0).getTime(),rt=new Date(rr._updatedAt||0).getTime();
+   if(rt>lt){
+    merged.push(rr);
+    changed=true;
+   }else{
+    merged.push(lr);
+   }
+  });
+  Object.keys(lmap).forEach(function(id){
+   if(!rmap[id]){
+    merged.push(lmap[id]);
+   }
+  });
+  local[k]=merged;
+ });
+ // Merge objects (staff, travel, tickets, treatmentCompletions, managedLists, dailyLogs, metadata)
+ ['staff','travel','tickets','treatmentCompletions','managedLists','dailyLogs','metadata'].forEach(function(k){
+  if(typeof local[k]!=='object'||local[k]===null)return;
+  if(typeof remote[k]!=='object'||remote[k]===null)return;
+  var l=local[k],r=remote[k];
+  var keys=Object.keys(r);
+  keys.forEach(function(key){
+   if(!l[key]||JSON.stringify(l[key])!==JSON.stringify(r[key])){
+    l[key]=r[key];
+    changed=true;
+   }
+  });
+ });
+ return changed}
 function startSyncPolling(){if(syncTimer)clearInterval(syncTimer);syncTimer=setInterval(autoImport,5000);lastSyncKey=currentKey()}
 function stopSyncPolling(){if(syncTimer){clearInterval(syncTimer);syncTimer=null}}
 async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';document.getElementById('autoSaveBanner').style.display='none';persist();startSyncPolling()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
@@ -810,6 +870,14 @@ document.getElementById('vAdmission').onchange=()=>{
   let d=new Date(vAd+'T12:00:00');d.setDate(d.getDate()+3);
   document.getElementById('vVaeaEnd').value=d.toISOString().slice(0,10);
  }
+function calculatePpdReadingDate(){
+ let placement = document.getElementById('vPpdPlacement').value;
+ if (!placement) return;
+ let d = new Date(placement);
+ d.setDate(d.getDate() + 3); // 72 hours later
+ let reading = d.toISOString().split('T')[0];
+ document.getElementById('vPpdReading').value = reading;
+}
 }
 function providerClinic(p){return p?.clinic||p?.specialty||''}
 function providerOptions(sel,blank=true){let current=sel.value;sel.innerHTML=(blank?'<option value="">Select…</option>':'')+db.providers.filter(p=>p.active).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(providerClinic(p))}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
@@ -875,7 +943,7 @@ function getAlerts(){
 function vetLabel(id){let v=db.veterans.find(x=>x.id===id);return v?`Room ${esc(v.room)} — ${esc(v.name)}`:'Unknown Veteran'}
 function openVeteran(id=''){
  let v=db.veterans.find(x=>x.id===id),legacyProvider=db.providers.find(p=>p.id===v?.providerId);vId.value=v?.id||'';vRoom.value=v?.room||'';vName.value=v?.name||'';vLast4.value=v?.last4||'';vSpecialty.value=veteranLevelOfCare(v)||'LTC — Long-Term Care';vProvider.value=v?.floorProvider||legacyProvider?.name||'';vAdmission.value=v?.admission||'';vDays.value=daysOnUnit(v?.admission);vStatus.value=v?.status||'Active';vCode.value=v?.codeStatus||'';vMeds.value=v?.meds||'Whole';vDiet.value=v?.diet||'Regular';vIsolation.value=v?.isolation||'N/A';vAssist.value=v?.assist||'Independent';vMobility.value=v?.mobility||'Ambulatory';vFallRisk.value=v?.fallRisk||'Standard';vToileting.value=v?.toileting||'Cont';vSideRails.value=String(v?.sideRails??0);vLabs.value=v?.labsDate||''; // Auto-clean past dates
-(function(){let today=new Date(),lines=(vLabs.value||'').split('\n').filter(Boolean);let clean=lines.filter(line=>{let m=line.match(/^(\d{1,2})\s*\/\s*(\d{1,4})$/);if(!m)return true;let mon=parseInt(m[1]),day=parseInt(m[2]),yr=m[2].length>2?parseInt(m[2]):today.getFullYear();let d=new Date(yr,mon-1,day);return d>=new Date(today.getFullYear(),today.getMonth(),today.getDate())});if(clean.length!==lines.length)vLabs.value=clean.join('\n');})();vVaeaStart.value=v?.vaeaStart||'';vVaeaEnd.value=v?.vaeaEnd||'';vVaeaDone.checked=v?.vaeaDone||false;vNotes.value=v?.notes||'';
+(function(){let today=new Date(),lines=(vLabs.value||'').split('\n').filter(Boolean);let clean=lines.filter(line=>{let m=line.match(/^(\d{1,2})\s*\/\s*(\d{1,4})$/);if(!m)return true;let mon=parseInt(m[1]),day=parseInt(m[2]),yr=m[2].length>2?parseInt(m[2]):today.getFullYear();let d=new Date(yr,mon-1,day);return d>=new Date(today.getFullYear(),today.getMonth(),today.getDate())});if(clean.length!==lines.length)vLabs.value=clean.join('\n');})();vVaeaStart.value=v?.vaeaStart||'';vVaeaEnd.value=v?.vaeaEnd||'';vVaeaDone.checked=v?.vaeaDone||false;vPpdPlacement.value=v?.ppdPlacement||'';vPpdReading.value=v?.ppdReading||'';vPpdRead.checked=v?.ppdRead||false;vNotes.value=v?.notes||'';
  ['Skin','Weight','Fsbs','Vitals','Shower'].forEach(k=>document.querySelectorAll('#days'+k+' input').forEach(i=>i.checked=(v?.schedules?.[k.toLowerCase()]||[]).includes(i.value)));
  vWeightFrequency.value=v?.weightFrequency||'Weekly';vWeightMethod.value=v?.weightMethod||'';
  vFsbsFrequency.value=v?.fsbsFrequency||'Selected Days';vFsbsTimes.value=v?.fsbsTimes||'';
@@ -889,7 +957,7 @@ function saveVeteran(){
  if(vWeightFrequency.value==='Weekly'&&!checkedDays('daysWeight').length){alert('Select at least one weekly weight day.');return}
  if(vFsbsFrequency.value==='Selected Days'&&vFsbsTimes.value.trim()&&!checkedDays('daysFsbs').length){alert('Select at least one FS/BS day, or choose Daily.');return}
  let duplicateRoom=db.veterans.find(x=>x.id!==vId.value&&x.status!=='Discharged / Archived'&&String(x.room)===String(vRoom.value));if(duplicateRoom){alert('That room is already assigned to an active Veteran.');return}
- let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,dischargeDate:vDischargeDate.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value||'Day',behaviors:[...(document.getElementById('behGrid')?.querySelectorAll('input[type=checkbox]:checked')||[])].map(c=>c.value)};
+ let obj={id:vId.value||'v'+Date.now(),_updatedAt:new Date().toISOString(),room:vRoom.value.trim(),name:vName.value.trim(),last4:vLast4.value,status:vStatus.value,codeStatus:vCode.value,levelOfCare:vSpecialty.value,specialty:vSpecialty.value,floorProvider:vProvider.value,admission:vAdmission.value,dischargeDate:vDischargeDate.value,meds:vMeds.value,diet:vDiet.value,isolation:vIsolation.value,assist:vAssist.value,mobility:vMobility.value,fallRisk:vFallRisk.value,toileting:vToileting.value,sideRails:Number(vSideRails.value),labsDate:vLabs.value||'',vaeaStart:vVaeaStart.value||'',vaeaEnd:vVaeaEnd.value||'',vaeaDone:vVaeaDone.checked||false,ppdPlacement:vPpdPlacement.value||'',ppdReading:vPpdReading.value||'',ppdRead:vPpdRead.checked||false,notes:vNotes.value,weightFrequency:vWeightFrequency.value,weightMethod:vWeightMethod.value,fsbsFrequency:vFsbsFrequency.value,fsbsTimes:vFsbsTimes.value.trim(),schedules:{skin:checkedDays('daysSkin'),weight:checkedDays('daysWeight'),fsbs:checkedDays('daysFsbs'),vitals:checkedDays('daysVitals'),shower:checkedDays('daysShower')},showerShift:document.querySelector('input[name=showerShift]:checked').value||'Day',behaviors:[...(document.getElementById('behGrid')?.querySelectorAll('input[type=checkbox]:checked')||[])].map(c=>c.value)};
  let i=db.veterans.findIndex(x=>x.id===obj.id);if(i>=0)db.veterans[i]=obj;else db.veterans.push(obj);persist();closeModal('vetModal');renderAll()
 }
 function toggleVeteranArchive(id){
@@ -919,6 +987,7 @@ function deleteVeteran(id){
  treatments.forEach(t => t._updatedAt = now);
  
  db.veterans=db.veterans.filter(x=>x.id!==id);
+ db.metadata.deletedVeterans.push(id);
  db.appointments=db.appointments.filter(a=>a.vetId!==id);
  db.treatments=db.treatments.filter(t=>t.vetId!==id);
  appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
@@ -1070,7 +1139,7 @@ function dutySelect(id){return `<select id="${id}" aria-label="Duty assignment">
 function staffFields(prefix){return roles.map((r,i)=>{let duties=blockRoles.includes(r)?`<div class="formgrid" style="margin:3px 0 10px"><div>${dutySelect(prefix+'d'+i+'0')}</div><div>${dutySelect(prefix+'d'+i+'1')}</div><div>${dutySelect(prefix+'d'+i+'2')}</div></div>`:'';return `<label>${r}</label><input id="${prefix}${i}" placeholder="Staff name">${duties}`}).join('')}
 function buildStaffFields(){dayStaffFields.innerHTML=staffFields('sd');nightStaffFields.innerHTML=staffFields('sn')}
 function loadStaffForm(){let x=db.staff[sDate.value]||{day:{},night:{}};roles.forEach((r,i)=>{document.getElementById('sd'+i).value=x.day?.[r]||'';document.getElementById('sn'+i).value=x.night?.[r]||'';if(blockRoles.includes(r))for(let n=0;n<3;n++){document.getElementById('sdd'+i+n).value=x.dayDuties?.[r]?.[n]||'';document.getElementById('snd'+i+n).value=x.nightDuties?.[r]?.[n]||''}})}
-function saveStaff(){let x={day:{},night:{},dayDuties:{},nightDuties:{}};for(const [shift,prefix,dutyKey] of [['day','sd','dayDuties'],['night','sn','nightDuties']])for(const [i,r] of roles.entries()){x[shift][r]=document.getElementById(prefix+i).value.trim();if(blockRoles.includes(r)){let duties=[0,1,2].map(n=>document.getElementById(prefix+'d'+i+n).value).filter(Boolean);if(new Set(duties).size!==duties.length){alert(`${r} has the same ${shift} duty selected more than once.`);return}x[dutyKey][r]=duties}}db.staff[sDate.value]=x;persist();closeModal('staffModal');renderAll()}
+function saveStaff(){let x={day:{},night:{},dayDuties:{},nightDuties:{}};for(const [shift,prefix,dutyKey] of [['day','sd','dayDuties'],['night','sn','nightDuties']])for(const [i,r] of roles.entries()){x[shift][r]=document.getElementById(prefix+i).value.trim();if(blockRoles.includes(r)){let duties=[0,1,2].map(n=>document.getElementById(prefix+'d'+i+n).value).filter(Boolean);if(new Set(duties).size!==duties.length){alert(`${r} has the same ${shift} duty selected more than once.`);return}x[dutyKey][r]=duties}}x._updatedAt=new Date().toISOString();db.staff[sDate.value]=x;persist();closeModal('staffModal');renderAll()}
 function renderStaffSummary(){let x=db.staff[today()]||{day:{},night:{}};staffSummary.innerHTML=`<div class="grid"><div class="panel"><h3>Day Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.day?.[r]||'')}</p>`).join('')}</div><div class="panel"><h3>Night Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.night?.[r]||'')}</p>`).join('')}</div></div>`}
 function openDocPicker(t){docType=t;docAppt.innerHTML='<option value="">Select…</option>'+db.appointments.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(a=>`<option value="${a.id}">${esc(a.date)} ${esc(a.time)} — ${vetLabel(a.vetId)}</option>`).join('');openModal('docPicker')}
 function openSelectedDoc(){if(!docAppt.value)return;closeModal('docPicker');directDoc(docType,docAppt.value)}
@@ -1634,7 +1703,7 @@ ${dutyList(dayOnly)}
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
 function renderSops(){
- var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
+ var items=db.sops||[];
  var el=document.getElementById("sopList");
  if(!el)return;
  if(!items.length){
@@ -1676,18 +1745,18 @@ function renderSops(){
 function addSop(){
  var name=prompt("Enter a name for this SOP (e.g., Fall Prevention Policy):");
  if(!name)return;
- var url=prompt("Enter the file path or URL (e.g. S:\\\\Shared\\\\SOPs\\\\fall-prevention.pdf):");
+ var url=prompt("Enter the file path or URL (e.g. S:\\Shared\\SOPs\\fall-prevention.pdf):");
  if(!url)return;
- var entry={id:"sop_"+Date.now(),name:name,url:url};
- var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
- items.push(entry);
- localStorage.setItem("bravoshift_sops",JSON.stringify(items));
+ var entry={id:"sop_"+Date.now(),name:name,url:url,_updatedAt:new Date().toISOString()};
+ db.sops=db.sops||[];
+ db.sops.push(entry);
+ persist();
  renderSops();
 }
 function deleteSop(id){
- var items=JSON.parse(localStorage.getItem("bravoshift_sops")||"[]");
- items=items.filter(function(e){return e.id!==id});
- localStorage.setItem("bravoshift_sops",JSON.stringify(items));
+ db.sops=db.sops||[];
+ db.sops=db.sops.filter(function(e){return e.id!==id});
+ persist();
  renderSops();
 }
 (function(){
