@@ -394,7 +394,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div class="span2"><fieldset><legend>Shower Days & Shift</legend><div class="days" id="daysShower"></div><div class="inline"><label><input type="radio" name="showerShift" value="Day" checked> Day</label><label><input type="radio" name="showerShift" value="Night"> Night</label></div></fieldset></div>
 <div class="span2"><fieldset><legend>Labs (Dates per Month)</legend><textarea id="vLabs" style="min-height:60px" placeholder="Enter lab dates per month, one per line"></textarea></fieldset></div>
 <div class="span2"><fieldset><legend>VAEA NOTES (72‑Hour Chart)</legend><div class="formgrid"><div><label>Start Date</label><input type="date" id="vVaeaStart"></div><div><label>End Date</label><input type="date" id="vVaeaEnd"></div></div><div style="margin-top:6px"><label><input type="checkbox" id="vVaeaDone" style="width:auto;margin-right:6px"> Completed</label></div></fieldset></div>
-<div class="span2" onchange="calculatePpdReadingDate()"><fieldset onchange="calculatePpdReadingDate()"><legend>PPD (TB Skin Test)</legend onchange="calculatePpdReadingDate()"><div class="formgrid" onchange="calculatePpdReadingDate()"><div onchange="calculatePpdReadingDate()"><label>Placement Date</label onchange="calculatePpdReadingDate()"><input type="date" id="vPpdPlacement" onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"><div onchange="calculatePpdReadingDate()"><label>Reading Date</label onchange="calculatePpdReadingDate()"><input type="date" id="vPpdReading" onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"><div style="margin-top:6px" onchange="calculatePpdReadingDate()"><label onchange="calculatePpdReadingDate()"><input type="checkbox" id="vPpdRead" style="width:auto;margin-right:6px"> Read Completed</label onchange="calculatePpdReadingDate()"></div onchange="calculatePpdReadingDate()"></fieldset onchange="calculatePpdReadingDate()"></div>
+<div class="span2"><fieldset><legend>PPD (TB Skin Test)</legend><div class="formgrid"><div><label>Placement Date</label><input type="date" id="vPpdPlacement" onchange="calculatePpdReadingDate()"></div><div><label>Reading Date</label><input type="date" id="vPpdReading"></div></div><div style="margin-top:6px"><label><input type="checkbox" id="vPpdRead" style="width:auto;margin-right:6px"> Read Completed</label></div></fieldset></div>
 <div class="span2"><fieldset><legend>Behavioral Flags</legend><div class="beh-grid" id="behGrid"></div><div style="margin-top:4px;font-size:10px;color:#666">Check any behaviors this veteran is demonstrating. Flags appear on the dashboard for quick awareness.</div></fieldset></div>
 </div><div class="toolbar"><button class="primary purple" onclick="saveVeteran()">Save Veteran</button><button class="secondary" onclick="closeModal('vetModal')">Cancel</button></div>
 </div></div>
@@ -938,6 +938,16 @@ function getAlerts(){
    }
   }
  });
+
+  // PPD (TB Skin Test) alerts — gold/warning if reading due and not completed
+  db.veterans.forEach(v=>{
+   if(v.status==='Discharged / Archived')return;
+   if(v.ppdPlacement&&v.ppdReading&&!v.ppdRead){
+    if(todayStr>=v.ppdReading){
+     out.push({title:'PPD Reading Due',message:`Room ${esc(v.room)} — ${esc(v.name)}: Reading due ${esc(v.ppdReading)}`,level:'warning'});
+    }
+   }
+  });
  db.appointments.forEach(a=>{let tr=db.travel[a.id];if(tr&&tr.status==='In Progress')out.push({title:'Transportation Request Not Confirmed',message:`${vetLabel(a.vetId)} — ${a.date} ${a.time}`,level:'warning'});if(tr&&tr.status==='Failed')out.push({title:'Transportation Email Failed',message:`${vetLabel(a.vetId)} — action required`,level:'critical'})});return out
 }
 function vetLabel(id){let v=db.veterans.find(x=>x.id===id);return v?`Room ${esc(v.room)} — ${esc(v.name)}`:'Unknown Veteran'}
