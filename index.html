@@ -32,7 +32,7 @@ button.danger{background:#fff;border:1px solid var(--red);color:#9b1c1c}
 .green{background:var(--green)!important}.purple{background:var(--purple)!important}.teal{background:var(--teal)!important}.pink{background:var(--pink)!important}.orange{background:var(--orange)!important}.red{background:var(--red)!important}
 table{width:100%;border-collapse:collapse;background:white}th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left;font-size:13px}th{background:#edf4fa}
 .scroll{overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800}
-.draft{background:#fff1bf;color:#6f5500}.confirmed{background:#d8f3df;color:#17652a}.cancelled{background:#e8ebef;color:#4e5964}.failed{background:#ffd9d9;color:#8a1717}
+.draft{background:#fff1bf;color:#6f5500}.confirmed{background:#d8f3df;color:#17652a}.cancelled{background:#e8ebef;color:#4e5964}.failed{background:#ffd9d9;color:#8a1717}.notneeded{background:#e8f4ff;color:#1a56db}
 .alert{border-left:7px solid var(--orange)}.alert.critical{border-color:var(--red)}.muted{color:var(--muted)}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:24px;overflow:auto;z-index:20;align-items:flex-start;justify-content:center}
 .modal.open{display:flex}.modalbox{width:min(1150px,100%);background:white;border-radius:14px;padding:18px;border-top:10px solid var(--purple)}
@@ -205,7 +205,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </section>
 
 <section id="dailylog" class="tab">
-<div class="toolbar"><h2>Daily Progress Log</h2><div><button class="secondary" onclick="logWeekShift(-1)">◀ Prev</button><span id="logWeekLabel" style="font-weight:700;margin:0 12px;font-size:14px;display:inline-block;min-width:200px;text-align:center"></span><button class="secondary" onclick="logWeekShift(1)">Next ▶</button><select id="logVetFilter" onchange="renderDailyLogWeek()" style="margin-left:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;max-width:260px"></select></div></div>
+<div class="toolbar"><h2>Daily Progress Log</h2><div><button class="secondary" onclick="logWeekShift(-1)">◀ Prev</button><span id="logWeekLabel" style="font-weight:700;margin:0 12px;font-size:14px;display:inline-block;min-width:200px;text-align:center"></span><button class="secondary" onclick="logWeekShift(1)">Next ▶</button><select id="logVetFilter" onchange="renderDailyLogWeek()" style="margin-left:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;max-width:260px"></select><button class="secondary right" onclick="printDailyLogCurrentVeteran()" style="margin-left:12px">Print Current Veteran</button><button class="secondary right" onclick="printDailyLogAllVeterans()">Print All Veterans</button></div></div>
 <div class="panel"><div id="dailyLogGrid" style="min-height:60px"><p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p></div></div>
 </section>
 
@@ -217,7 +217,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div><label>Provider</label><select id="searchProvider" onchange="renderAppointments()"><option value="">All Providers</option></select></div>
 <div><label>Clinic</label><select id="searchClinic" onchange="renderAppointments()"><option value="">All Clinics</option></select></div>
 <div><label>Transportation</label><select id="searchTransport" onchange="renderAppointments()"><option value="">All Modes</option></select></div>
-<div><label>Travel Request</label><select id="searchTravel" onchange="renderAppointments()"><option value="">All</option><option>Not Created</option><option>In Progress</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
+<div><label>Travel Request</label><select id="searchTravel" onchange="renderAppointments()"><option value="">All</option><option>Not Created</option><option>Not Needed</option><option>In Progress</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
 <div><label>From</label><input id="searchFrom" type="date" onchange="renderAppointments()"></div>
 <div><label>To</label><input id="searchTo" type="date" onchange="renderAppointments()"></div>
 <div><label>Quick Range</label><select id="searchRange" onchange="applyAppointmentRange()"><option value="">Custom / All</option><option value="today">Today</option><option value="7">Next 7 Days</option><option value="30">Next 30 Days</option><option value="past">Past Appointments</option></select></div>
@@ -245,7 +245,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </div>
 <div class="panel"><div class="formgrid">
 <div><label>Search</label><input id="travelSearch" placeholder="Veteran, room, destination, escort..." oninput="renderTravel()"></div>
-<div><label>Request Status</label><select id="travelFilterStatus" onchange="renderTravel()"><option value="">All Statuses</option><option>Needs Request</option><option>In Progress</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
+<div><label>Request Status</label><select id="travelFilterStatus" onchange="renderTravel()"><option value="">All Statuses</option><option>Needs Request</option><option>Not Needed</option><option>In Progress</option><option>Confirmed</option><option>Failed</option><option>Cancelled</option></select></div>
 <div><label>Transportation</label><select id="travelFilterMode" onchange="renderTravel()"><option value="">All Modes</option></select></div>
 <div><label>Date</label><input id="travelFilterDate" type="date" onchange="renderTravel()"></div>
 </div></div>
@@ -405,7 +405,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div><label>Provider Clinic</label><input id="aProviderClinic" readonly></div><div><label>Facility</label><input id="aFacility" readonly></div><div><label>City</label><input id="aCity" readonly></div><div><label>Phone</label><input id="aPhone" readonly></div>
 <div><label>Date *</label><input id="aDate" type="date"></div><div><label>Time *</label><input id="aTime" type="time"></div><div><label>Clinic</label><input id="aClinic" list="clinicData"></div><div><label>Reason</label><select id="aReason"></select></div>
 <div><label>Destination</label><input id="aDestination" list="facilityData"></div><div><label>Pickup Time</label><input id="aPickup" type="time"></div><div><label>Transportation</label><select id="aTransport"></select></div><div><label>Escort</label><input id="aEscort" list="escortData"></div>
-<div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Needs Entered</option><option>In Progress</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
+<div><label>Appointment Status</label><select id="aStatus"><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div><div><label>Travel Request Status</label><select id="aTravelStatus"><option value=""></option><option>Needs Entered</option><option>Not Needed</option><option>In Progress</option><option>Confirmed</option><option>Cancelled</option><option>Failed</option></select></div>
 <div class="span2"><label>Notes</label><textarea id="aNotes"></textarea></div>
 </div><div class="toolbar"><button class="primary" onclick="saveAppointment()">Save Appointment</button><button class="secondary" onclick="closeModal('apptModal')">Cancel</button></div>
 </div></div>
@@ -902,16 +902,40 @@ function deleteVeteran(id){
  let v=db.veterans.find(x=>x.id===id);if(!v)return;
  let appointments=db.appointments.filter(a=>a.vetId===id),appointmentIds=new Set(appointments.map(a=>a.id));
  let treatments=db.treatments.filter(t=>t.vetId===id),treatmentIds=new Set(treatments.map(t=>t.id));
- let answer=prompt(`PERMANENT DELETE\n\nThis will delete ${v.name} plus ${appointments.length} appointment(s), related travel/ticket records, ${treatments.length} treatment(s), and treatment completion history. This cannot be undone.\n\nType DELETE to continue:`);
+ 
+ // Check if auto-save is enabled and warn user
+ let autoSaveWarning = "";
+ if (autoSaveDir) {
+   autoSaveWarning = "\\n\\n⚠️ WARNING: Auto-save to S: Drive is ENABLED.\\nTo prevent deleted veterans from being restored:\\n1. Click 'Set Auto-Save Folder' on the Import/Export tab\\n2. Choose a NEW empty folder\\n3. Or disable auto-save completely";
+ }
+ 
+ let answer=prompt(`PERMANENT DELETE\\n\\nThis will delete ${v.name} plus ${appointments.length} appointment(s), related travel/ticket records, ${treatments.length} treatment(s), and treatment completion history. This cannot be undone.${autoSaveWarning}\\n\\nType DELETE to continue:`);
  if(!answer || answer.trim().toUpperCase()!=='DELETE')return;
-   db.veterans=db.veterans.filter(x=>x.id!==id);
+   
+ // Force update timestamps on all related records before deletion
+ // This helps prevent sync from restoring them
+ let now = new Date().toISOString();
+ appointments.forEach(a => a._updatedAt = now);
+ treatments.forEach(t => t._updatedAt = now);
+ 
+ db.veterans=db.veterans.filter(x=>x.id!==id);
  db.appointments=db.appointments.filter(a=>a.vetId!==id);
  db.treatments=db.treatments.filter(t=>t.vetId!==id);
  appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
  Object.keys(db.treatmentCompletions).forEach(key=>{if(treatmentIds.has(key.split('|')[0]))delete db.treatmentCompletions[key]});
-persist();
-  renderAll();
-  alert(`${v.name} and all linked records were permanently deleted.`);
+ 
+ // Extra save to ensure sync picks up the deletion immediately
+ persist();
+ 
+ // If auto-save is enabled, force an immediate save to S: drive
+ if (autoSaveDir) {
+   setTimeout(() => {
+     if (typeof autoSave === 'function') autoSave();
+   }, interactionDebounceMs || IDBTransaction);
+ }
+ 
+ renderAll();
+ alert(`${v.name} and all linked records were permanently deleted.${autoSaveDir ? '\\n\\n⚠️ Remember: With auto-save enabled, veterans may be restored from S: Drive backups.' : ''}`);
 }
 let logWeekStart=weekStart(today());
 function weekStart(ds){let d=new Date(ds+'T12:00:00');let day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}
@@ -920,6 +944,82 @@ function saveDailyLog(){let vet=document.getElementById('logVet'),date=document.
 function logWeekShift(dir){let d=new Date(logWeekStart+'T12:00:00');d.setDate(d.getDate()+dir*7);logWeekStart=d.toISOString().slice(0,10);renderDailyLogWeek()}
 function renderDailyLogWeek(){let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived');let cur=document.getElementById('logVetFilter').value;document.getElementById('logVetFilter').innerHTML='<option value="">Select Veteran…</option>'+vets.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>'<option value="'+v.id+'">Room '+esc(v.room)+' \u2014 '+esc(v.name)+' ('+esc(v.last4)+')</option>').join('');if(cur&&[...document.getElementById('logVetFilter').options].some(o=>o.value===cur))document.getElementById('logVetFilter').value=cur;let start=new Date(logWeekStart+'T12:00:00');let end=new Date(start);end.setDate(end.getDate()+6);document.getElementById('logWeekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' \u2013 '+end.toLocaleDateString(undefined,{month:'short',day:'numeric'});let grid=document.getElementById('dailyLogGrid');let vid=document.getElementById('logVetFilter').value;if(!vid){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p>';return}let v=db.veterans.find(x=>x.id===vid);if(!v){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Veteran not found.</p>';return}let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];let cells=days.map((dn,i)=>{let d=new Date(start);d.setDate(d.getDate()+i);let ds=d.toISOString().slice(0,10);let e=db.dailyLogs[vid]?.[ds];let content=e? (e.noChanges?'<span style="color:var(--teal);font-style:italic">No changes</span>':esc(e.text)) : '<span class="muted">\u2014</span>';return '<div class="log-day"><div class="log-day-head">'+dn+' '+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="log-day-body">'+content+'</div><button class="secondary" style="margin-top:6px;font-size:10px;padding:3px 6px" onclick="openDailyLogFor(&quot;'+vid+'&quot;,&quot;'+ds+'&quot;)">'+(e?'Edit':'Add')+'</button></div>'});grid.innerHTML='<div class="log-grid">'+cells.join('')+'</div>'}
 function openDailyLogFor(vid,ds){openDailyLog(vid);document.getElementById('logDate').value=ds;let e=db.dailyLogs[vid]?.[ds];if(e){document.getElementById('logNoChanges').checked=!!e.noChanges;document.getElementById('logText').value=e.text||''}}
+function printDailyLogCurrentVeteran(){
+ let vid=document.getElementById('logVetFilter').value;
+ if(!vid){alert('Select a Veteran first.');return}
+ let v=db.veterans.find(x=>x.id===vid);
+ if(!v)return;
+ let start=new Date(logWeekStart+'T12:00:00');
+ let end=new Date(start);end.setDate(end.getDate()+6);
+ let win=window.open('','_blank');
+ if(!win){alert('Pop-up blocked.');return}
+ let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+ let rows=days.map((dn,i)=>{
+  let d=new Date(start);d.setDate(d.getDate()+i);
+  let ds=d.toISOString().slice(0,10);
+  let e=db.dailyLogs[vid]?.[ds];
+  let content=e? (e.noChanges?'No changes':esc(e.text)) : '—';
+  return `<tr><td style="padding:4px 8px;border:1px solid #999;font-size:12px">${dn}<br><small>${(d.getMonth()+1)}/${d.getDate()}</small></td><td style="padding:4px 8px;border:1px solid #999;font-size:12px;vertical-align:top">${content}</td></tr>`;
+ }).join('');
+ let html=`<html><head><title>Daily Progress Log - ${esc(v.name)}</title><style>
+  @page{size:landscape;margin:.3in}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in}
+  h1{font-size:18px;margin:0 0 4px;color:#1a0f00}
+  .meta{font-size:11px;color:#555;margin:0 0 8px}
+  table{width:100%;border-collapse:collapse;margin:8px 0}
+  th,td{padding:3px 8px;border:1px solid #999;font-size:12px;text-align:left;vertical-align:top}
+  th{background:#f0e6d6;font-weight:700}
+  .footer{font-size:8px;color:#888;margin-top:12px;text-align:center}
+  @media print{th{background:#f0e6d6!important}}
+ </style></head><body>
+  <h1>Daily Progress Log - Week of ${start.toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${end.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</h1>
+  <div class="meta"><b>Veteran:</b> ${esc(v.name)} &nbsp; <b>Room:</b> ${esc(v.room)} &nbsp; <b>Last 4:</b> ${esc(v.last4)} &nbsp; <b>Unit:</b> CLC</div>
+  <table><thead><tr><th>Day</th><th>Progress Notes</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">Generated by BravoShift — ${new Date().toLocaleDateString()}</div>
+ </body></html>`;
+ win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),350);
+}
+function printDailyLogAllVeterans(){
+ let start=new Date(logWeekStart+'T12:00:00');
+ let end=new Date(start);end.setDate(end.getDate()+6);
+ let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').sort((a,b)=>roomCompare(a.room,b.room));
+ if(!vets.length){alert('No active veterans to print.');return}
+ let win=window.open('','_blank');
+ if(!win){alert('Pop-up blocked.');return}
+ let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+ let sections=vets.map(v=>{
+  let rows=days.map((dn,i)=>{
+   let d=new Date(start);d.setDate(d.getDate()+i);
+   let ds=d.toISOString().slice(0,10);
+   let e=db.dailyLogs[v.id]?.[ds];
+   let content=e? (e.noChanges?'No changes':esc(e.text)) : '—';
+   return `<tr><td style="padding:4px 8px;border:1px solid #999;font-size:11px;width:120px">${dn}<br><small>${(d.getMonth()+1)}/${d.getDate()}</small></td><td style="padding:4px 8px;border:1px solid #999;font-size:11px;vertical-align:top">${content}</td></tr>`;
+  }).join('');
+  return `<div style="page-break-inside:avoid;margin-bottom:20px">
+   <h3 style="font-size:14px;margin:0 0 4px;border-bottom:1px solid #999;padding-bottom:2px">
+    ${esc(v.name)} — Room ${esc(v.room)} — Last 4: ${esc(v.last4)}
+   </h3>
+   <table style="width:100%;border-collapse:collapse"><thead><tr><th>Day</th><th>Progress Notes</th></tr></thead><tbody>${rows}</tbody></table>
+  </div>`;
+ }).join('');
+ let html=`<html><head><title>Daily Progress Log - All Veterans</title><style>
+  @page{size:landscape;margin:.3in}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in}
+  h1{font-size:18px;margin:0 0 4px;color:#1a0f00}
+  .meta{font-size:11px;color:#555;margin:0 0 8px}
+  .footer{font-size:8px;color:#888;margin-top:12px;text-align:center}
+  @media print{th{background:#f0e6d6!important}}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:3px 8px;border:1px solid #999;font-size:11px;text-align:left;vertical-align:top}
+  th{background:#f0e6d6;font-weight:700}
+ </style></head><body>
+  <h1>Daily Progress Log - Week of ${start.toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${end.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</h1>
+  <div class="meta"><b>Total Active Veterans:</b> ${vets.length} &nbsp; <b>Unit:</b> CLC &nbsp; <b>Print Date:</b> ${new Date().toLocaleDateString()}</div>
+  ${sections}
+  <div class="footer">Generated by BravoShift — ${new Date().toLocaleDateString()}</div>
+ </body></html>`;
+ win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),350);
+}
 function renderVeterans(){
  let active=db.veterans.filter(v=>v.status!=='Discharged / Archived').sort((a,b)=>roomCompare(a.room,b.room));
  let archived=db.veterans.filter(v=>v.status==='Discharged / Archived').sort((a,b)=>a.name.localeCompare(b.name));
@@ -949,7 +1049,7 @@ function resetAppointmentFilters(){searchText.value='';searchStatus.value='';sea
 function renderAppointments(){
  let q=(searchText.value||'').toLowerCase(),from=searchFrom.value,to=searchTo.value,st=searchStatus.value,provider=searchProvider.value,clinic=searchClinic.value,transport=searchTransport.value,travel=searchTravel.value;
  let rows=db.appointments.filter(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id],hay=[v?.name,v?.last4,v?.room,p?.name,providerClinic(p),p?.facility,p?.city,a.clinic,a.destination,a.reason,a.escort,a.transport].join(' ').toLowerCase();let travelMatch=!travel||(travel==='Not Created'?!tr:tr?.status===travel);return(!q||hay.includes(q))&&(!from||a.date>=from)&&(!to||a.date<=to)&&(!st||a.status===st)&&(!provider||a.providerId===provider)&&(!clinic||providerClinic(p)===clinic)&&(!transport||a.transport===transport)&&travelMatch}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
- apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase()}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
+ apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase().replaceAll(' ','')}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
 }
 function setCalView(v){calView=v;renderCalendar()}function changeCal(n){if(calView==='year')currentCal.setFullYear(currentCal.getFullYear()+n);else if(calView==='month')currentCal.setMonth(currentCal.getMonth()+n);else currentCal.setDate(currentCal.getDate()+n*(calView==='week'?7:1));renderCalendar()}function goToday(){currentCal=new Date();renderCalendar()}
 function localDateString(d){let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
