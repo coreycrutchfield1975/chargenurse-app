@@ -2140,7 +2140,10 @@ function openPermTracker(section){
   }
   content+='</div>';
  });
- content+='</div><div style="display:flex;gap:6px;margin-top:6px"><button class="primary" onclick="savePermEntryInline(\''+section+'\')" style="padding:6px 16px;font-size:12px">Save Entry</button><button class="secondary" onclick="clearPermForm()" style="padding:6px 16px;font-size:12px">Clear Form</button></div></div>';
+ content+='</div><input type="hidden" id="pf__editId" value="">
+ <input type="hidden" id="pf__editId" value="">
+ <input type="hidden" id="pf__editId" value="">
+ <input type="hidden" id="pf__editId" value=""><div style="display:flex;gap:6px;margin-top:6px"><button class="primary" onclick="savePermEntryInline(\''+section+'\')" style="padding:6px 16px;font-size:12px">Save Entry</button><button class="secondary" onclick="clearPermForm()" style="padding:6px 16px;font-size:12px">Clear Form</button></div></div>';
  content+='<div id="permTableArea" style="margin-top:6px">';
  if(!items.length){content+='<p class="muted" style="font-style:italic;font-size:12px;padding:8px 0">No entries yet. Add one above.</p>'}
  else{
@@ -2151,7 +2154,7 @@ function openPermTracker(section){
   items.forEach(function(item,i){
    content+='<tr>';
    cols.forEach(function(c){content+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px">'+esc(item[c]||'')+'</td>'});
-   content+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="deletePermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
+   content+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="editPermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--blue);color:white;border:none;border-radius:3px" style="margin-right:2px">Edit</button><button onclick="deletePermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
   });
   content+='</table>';
  }
@@ -2167,36 +2170,22 @@ function savePermEntryInline(section){
   if(el)entry[f.key]=el.value;
  });
  if(!entry.name&&!entry.lastName&&!entry.firstName){alert('Please enter at least a name.');return}
- entry._id='perm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
- if(!db.qmLog[section])db.qmLog[section]=[];
- db.qmLog[section].push(entry);
+ var editIdEl=document.getElementById('pf__editId');
+ var editIdVal=editIdEl?editIdEl.value:'';
+ if(editIdVal){
+  var idx=db.qmLog[section].findIndex(function(x){return (x._id||'').toString()===editIdVal.toString()});
+  if(idx>=0){entry._id=editIdVal;db.qmLog[section][idx]=entry}
+  else{entry._id='perm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);if(!db.qmLog[section])db.qmLog[section]=[];db.qmLog[section].push(entry)}
+ }else{
+  entry._id='perm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  if(!db.qmLog[section])db.qmLog[section]=[];
+  db.qmLog[section].push(entry);
+ }
  persist();
- // Clear form and refresh the table in-place
  clearPermForm();
  refreshPermTable(section);
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
-}
-function clearPermForm(){
- var inputs=document.querySelectorAll('[id^="pf_"]');
- inputs.forEach(function(el){if(el.type==='text'||el.type==='date')el.value='';else if(el.tagName==='SELECT')el.value='';else if(el.tagName==='TEXTAREA')el.value=''});
-}
-function refreshPermTable(section){
- var items=db.qmLog[section]||[];
- var el=document.getElementById('permTableArea');
- if(!el)return;
- if(!items.length){el.innerHTML='<p class="muted" style="font-style:italic;font-size:12px;padding:8px 0">No entries yet. Add one above.</p>';return}
- var html='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:#f0e6d6">';
- var cols=Object.keys(items[0]||{}).filter(function(k){return k!=='_id'});
- cols.forEach(function(c){html+='<th style="padding:3px 6px;border:1px solid #999;text-align:left;font-size:10px">'+esc(c)+'</th>'});
- html+='<th style="padding:3px 6px;border:1px solid #999;width:50px">Actions</th></tr>';
- items.forEach(function(item,i){
-  html+='<tr>';
-  cols.forEach(function(c){html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px">'+esc(item[c]||'')+'</td>'});
-  html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="deletePermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
- });
- html+='</table>';
- el.innerHTML=html;
 }
 function deletePermEntryInline(section,id){
  if(!confirm('Delete this entry?'))return;
@@ -2207,6 +2196,26 @@ function deletePermEntryInline(section,id){
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
 }
+function clearPermForm(){
+ var editIdEl=document.getElementById("pf__editId");if(editIdEl)editIdEl.value="";
+ var inputs=document.querySelectorAll('[id^="pf_"]');
+ inputs.forEach(function(el){if(el.type==="text"||el.type==="date")el.value="";else if(el.tagName==="SELECT")el.value="";else if(el.tagName==="TEXTAREA")el.value=""});
+}
+function editPermEntryInline(section,id){
+ var items=db.qmLog[section]||[];
+ var entry=items.find(function(x){return (x._id||"").toString()===id.toString()});
+ if(!entry)return;
+ var fields=permFields(section);
+ fields.forEach(function(f){
+  var el=document.getElementById("pf_"+f.key);
+  if(el)el.value=entry[f.key]||"";
+ });
+ var editId=document.getElementById("pf__editId");
+ if(editId)editId.value=id;
+}
+
+
+
 function permFields(section){
  var map={ssrDischarges:[{key:'lastName',label:'Last Name',type:'text'},{key:'firstName',label:'First Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'dischargeDate',label:'PPS Discharge Date',type:'date'},{key:'planned',label:'Planned/Unplanned',type:'text'},{key:'followUpDate',label:'Follow-up End Date',type:'date'},{key:'disposition',label:'Disposition',type:'text'},{key:'remainedInCommunity',label:'Remained in Community?',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
   infections:[{key:'name',label:'Name',type:'text'},{key:'date',label:'Date',type:'date'},{key:'infectionType',label:'Infection Type',type:'text'},{key:'room',label:'Room Number',type:'text'},{key:'notes',label:'Notes',type:'textarea'}],
