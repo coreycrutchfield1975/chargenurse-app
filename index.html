@@ -254,7 +254,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 
 
 <section id="treatments" class="tab">
-<div class="toolbar"><h2>Treatments</h2><button class="secondary" onclick="resetTreatmentFilters()">Clear Filters</button><button class="primary green right" onclick="openTreatment()">Assign Treatment</button></div>
+<div class="toolbar"><h2>Treatments</h2><button class="secondary" onclick="resetTreatmentFilters()">Clear Filters</button><button class="secondary" onclick="printSelectedTreatments()">🖨️ Print Selected</button><button class="primary green right" onclick="openTreatment()">Assign Treatment</button><span style="margin-left:auto;font-size:12px;color:#555"><label style="margin-right:4px"><input type="checkbox" id="txSelectLicensed" checked onchange="toggleSelectCategory('Licensed',this.checked)" style="width:auto"> Select Licensed</label><label><input type="checkbox" id="txSelectNonLicensed" checked onchange="toggleSelectCategory('Non-Licensed',this.checked)" style="width:auto"> Select Non-Licensed</label></span></div>
 <div class="stats">
 <div class="card stat"><span>Licensed</span><b id="txLicensedCount">0</b></div>
 <div class="card stat"><span>Non-Licensed</span><b id="txNonLicensedCount">0</b></div>
@@ -1384,7 +1384,39 @@ function renderTreatments(){
  let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v})})});
  rows=rows.filter(x=>{let hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
  txLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Licensed').length;txNonLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Non-Licensed').length;
- treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>`<tr class="${x.t.active?'':'archived'}"><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th style="width:32px"><input type="checkbox" id="txSelectAll" onchange="toggleSelectAll(this.checked)" style="width:auto"></th><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>{let uid='txsel_'+x.t.id+'_'+x.si;return `<tr class="${x.t.active?'':'archived'}"><td style="width:32px;text-align:center"><input type="checkbox" id="${uid}" class="tx-check-row" data-vet="${x.v?.id||''}" data-cat="${esc(x.t.category)}" data-id="${x.t.id}" data-idx="${x.si}" style="width:auto"></td><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+}
+
+function toggleSelectAll(checked){
+ document.querySelectorAll('.tx-check-row').forEach(cb=>cb.checked=checked);
+}
+function toggleSelectCategory(cat,checked){
+ document.querySelectorAll('.tx-check-row[data-cat="'+cat+'"]').forEach(cb=>cb.checked=checked);
+}
+function printSelectedTreatments(){
+ let checked=document.querySelectorAll('.tx-check-row:checked');
+ if(!checked.length){alert('Select at least one treatment section to print.');return}
+ let byVet={};checked.forEach(cb=>{let vetId=cb.dataset.vet,tId=cb.dataset.id,idx=parseInt(cb.dataset.idx);if(!byVet[vetId])byVet[vetId]={};if(!byVet[vetId][tId])byVet[vetId][tId]=[];byVet[vetId][tId].push(idx)});
+ let w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
+ let html='<html><head><title>BravoShift — Selected Treatment Instructions</title><style>@page{size:letter;margin:.3in}body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in}h1{font-size:18px;margin:0 0 4px;color:#1a0f00}h2{font-size:14px;margin:14px 0 6px;color:#1a0f00;border-bottom:2px solid #1a0f00;padding-bottom:3px}.muted{color:#665}.section{border:1px solid #ccc;border-left:6px solid;border-radius:6px;padding:10px;margin:8px 0;page-break-inside:avoid}.cat-licensed{border-left-color:#7c4dff}.cat-non-licensed{border-left-color:#2e9d50}.instr{padding:6px;background:#fff;border:1px solid #ddd;border-radius:4px;font-size:12px}.meta{font-size:11px;color:#555;margin:2px 0}@media print{th{background:#f8f1e5!important}}</style></head><body>';
+ html+='<h1>BRAVOSHIFT — CLC TREATMENT INSTRUCTIONS</h1><p class="muted">Printed: '+new Date().toLocaleString()+' &nbsp; | &nbsp; Selected: '+checked.length+' section(s)</p>';
+ Object.keys(byVet).forEach(function(vetId){
+  let v=db.veterans.find(x=>x.id===vetId);if(!v)return;
+  let totIds=Object.keys(byVet[vetId]);
+  html+='<h2>'+esc(v.name)+' &nbsp; Room '+esc(v.room)+' &nbsp; <span class="muted">'+esc(v.last4||'')+'</span></h2>';
+  totIds.forEach(function(tId){
+   let t=db.treatments.find(x=>x.id===tId);if(!t||!t.sections)return;
+   let idxs=byVet[vetId][tId];
+   let catClass=t.category==='Licensed'?'cat-licensed':'cat-non-licensed';
+   idxs.forEach(function(si){
+    let s=t.sections[si];if(!s)return;
+    html+='<div class="section '+catClass+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>'+esc(t.category)+' — '+esc(s.frequency||'Daily')+'</b><span class="muted">'+esc(t.month||'')+'</span></div><div class="instr">'+esc(s.instructions||'')+'</div></div>';
+   });
+  });
+ });
+ html+='<p class="muted" style="margin-top:30px">Keep this sheet at the nurse\'s station.</p></body></html>';
+ w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
 }
 
 function generateReport(){
