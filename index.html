@@ -200,7 +200,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </section>
 
 <section id="veterans" class="tab">
-<div class="toolbar"><h2>Veteran Roster</h2><button class="primary teal right" onclick="showTab('dailylog')" style="margin-right:8px">Daily Progress Log</button><button class="primary purple right" onclick="openVeteran()">Add Veteran</button></div>
+<div class="toolbar"><h2>Veteran Roster</h2><button class="secondary" onclick="printVeteranRoster()">🖨️ Print Roster</button><button class="primary teal right" onclick="showTab('dailylog')" style="margin-right:8px">Daily Progress Log</button><button class="primary purple right" onclick="openVeteran()">Add Veteran</button></div>
 <div class="scroll"><table><thead><tr><th>Room</th><th>Name</th><th>Last 4</th><th>Status</th><th>Level of Care</th><th>Floor Provider</th><th>Days on Unit</th><th>Code Status</th><th>Meds</th><th>Diet</th><th>Isolation</th><th>Assist</th><th>Mobility</th><th>Fall Risk</th><th>Toileting</th><th>Side Rails</th><th>Notes</th><th></th></tr></thead><tbody id="vetRows"></tbody></table></div>
 </section>
 
@@ -1107,6 +1107,71 @@ function renderVeterans(){
   rows+=`<tr class="archived-sep"><td colspan="18" style="background:rgba(0,0,0,.05);text-align:center;padding:10px;font-weight:700;font-size:12px;color:#666;border-top:2px solid #bbb">── ARCHIVED / DISCHARGED VETERANS ──</td></tr>`;
   rows+=archived.map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'';return `<tr class="archived"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button> <button class="secondary" onclick="toggleVeteranArchive('${v.id}')">Restore</button> <button class="danger" onclick="deleteVeteran('${v.id}')">Delete</button></td></tr>`}).join('');
  }
+function printVeteranRoster(){
+ let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').sort((a,b)=>roomCompare(a.room,b.room));
+ if(!vets.length){alert('No active veterans to print.');return}
+ let w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked — enable pop-ups on this site to print.');return}
+ let group='<table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Room</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Name</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Last 4</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Status</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Level of Care</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Provider</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Days</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Code</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Meds</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Diet</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Isol</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Assist</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Mobility</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Fall Risk</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Toilet</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Rails</th>'
+  +'<th style="background:#f0e6d6;padding:6px;border:1px solid #999;font-size:10px;text-align:left">Notes</th>'
+  +'</tr></thead><tbody>';
+ vets.forEach(function(v){
+  let p=db.providers.find(p=>p.id===v.providerId),fp=v.floorProvider||p?.name||'';
+  group+='<tr style="page-break-inside:avoid"><td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.room)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px;font-weight:600">'+esc(v.name)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px;text-align:center">'+esc(v.last4)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.status||'Active')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(veteranLevelOfCare(v))+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(fp)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px;text-align:center">'+daysOnUnit(v.admission)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.codeStatus||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.meds||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.diet||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.isolation||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.assist||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.mobility||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.fallRisk||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.toileting||'')+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px;text-align:center">'+esc(v.sideRails??0)+'</td>'
+   +'<td style="padding:4px 6px;border:1px solid #999;font-size:10px">'+esc(v.notes)+'</td></tr>';
+ });
+ group+='</tbody></table>';
+ 
+ let html='<html><head><title>BravoShift — Veteran Roster</title>'
+  +'<style>'
+  +'@page{size:landscape;margin:.2in}'
+  +'body{font-family:Segoe UI,Arial,sans-serif;font-size:11px;color:#1a0f00;padding:.15in}'
+  +'h1{font-size:16px;margin:0 0 4px;color:#1a0f00}'
+  +'.meta{font-size:10px;color:#555;margin:0 0 8px}'
+  +'table{width:100%;border-collapse:collapse}'
+  +'td,th{padding:3px 5px;border:1px solid #999;font-size:10px;text-align:left}'
+  +'th{background:#f0e6d6;font-weight:700;font-size:9px}'
+  +'tr{break-inside:avoid}'
+  +'@media print{th{background:#f0e6d6!important}}'
+  +'</style></head><body>'
+  +'<h1>BRAVOSHIFT — CLC VETERAN ROSTER</h1>'
+  +'<p class="meta">Active Veterans: '+vets.length+' | Unit: CLC | Printed: '+new Date().toLocaleDateString()+'</p>'
+  +group
+  +'<p class="meta" style="margin-top:20px">PHI per VA policy. For staff use only.</p>'
+  +'</body></html>';
+ w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
+}
  vetRows.innerHTML=rows;
 }
 function openAppointment(id=''){
