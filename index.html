@@ -1107,6 +1107,9 @@ function renderVeterans(){
   rows+=`<tr class="archived-sep"><td colspan="18" style="background:rgba(0,0,0,.05);text-align:center;padding:10px;font-weight:700;font-size:12px;color:#666;border-top:2px solid #bbb">── ARCHIVED / DISCHARGED VETERANS ──</td></tr>`;
   rows+=archived.map(v=>{let p=db.providers.find(p=>p.id===v.providerId),floorProvider=v.floorProvider||p?.name||'';return `<tr class="archived"><td>${esc(v.room)}</td><td>${esc(v.name)}</td><td>${esc(v.last4)}</td><td>${esc(v.status||'Active')}</td><td>${esc(veteranLevelOfCare(v))}</td><td>${esc(floorProvider)}</td><td>${daysOnUnit(v.admission)}</td><td>${esc(v.codeStatus||'')}</td><td>${esc(v.meds)}</td><td>${esc(v.diet)}</td><td>${esc(v.isolation)}</td><td>${esc(v.assist)}</td><td>${esc(v.mobility||'')}</td><td>${esc(v.fallRisk||'')}</td><td>${esc(v.toileting)}</td><td>${esc(v.sideRails??0)}</td><td>${esc(v.notes)}</td><td><button class="secondary" onclick="openVeteran('${v.id}')">Edit</button> <button class="secondary" onclick="toggleVeteranArchive('${v.id}')">Restore</button> <button class="danger" onclick="deleteVeteran('${v.id}')">Delete</button></td></tr>`}).join('');
  }
+
+ vetRows.innerHTML=rows;
+}
 function printVeteranRoster(){
  let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived').sort((a,b)=>roomCompare(a.room,b.room));
  if(!vets.length){alert('No active veterans to print.');return}
@@ -1172,8 +1175,7 @@ function printVeteranRoster(){
   +'</body></html>';
  w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
 }
- vetRows.innerHTML=rows;
-}
+
 function openAppointment(id=''){
  let a=db.appointments.find(x=>x.id===id);aId.value=a?.id||'';vetOptions(aVet);providerOptions(aProvider);aVet.value=a?.vetId||'';aProvider.value=a?.providerId||'';fillProvider();aDate.value=a?.date||today();aTime.value=a?.time||'';aClinic.value=a?.clinic||'';aReason.value=a?.reason||'Consult';aDestination.value=a?.destination||'';aPickup.value=a?.pickup||'';aTransport.value=a?.transport||'';aEscort.value=a?.escort||'';aStatus.value=a?.status||'Upcoming';aTravelStatus.value=db.travel[a?.id]?.status||'';aNotes.value=a?.notes||'';openModal('apptModal')
 }
