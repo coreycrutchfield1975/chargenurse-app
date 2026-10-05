@@ -471,7 +471,8 @@ db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
 } catch (e) {
  console.error('Failed to load database from localStorage:', e.message);
  db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[]}};
-// Migrate SOPs from localStorage to db.sops
+}
+// Migrate SOPs from localStorage to db.sops (runs on every page load)
 if (!db.sops || db.sops.length === 0) {
     var legacy = JSON.parse(localStorage.getItem("bravoshift_sops") || "[]");
     if (legacy.length > 0) {
@@ -481,7 +482,7 @@ if (!db.sops || db.sops.length === 0) {
         console.log('Migrated ' + legacy.length + ' SOPs from localStorage to db.sops');
     }
 }
-}
+
 const managedListDefaults={
  floorProviders:['McCain','Cook'],
  levelsOfCare:['LTC','EOL','SSR','RESP'],
@@ -885,7 +886,7 @@ function roomCompare(a,b){return String(a??'').localeCompare(String(b??''),undef
 function vetOptions(sel){let current=sel.value;sel.innerHTML='<option value="">Select Veteran…</option>'+db.veterans.filter(v=>v.status!=='Discharged / Archived').slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>`<option value="${v.id}">Room ${esc(v.room)} — ${esc(v.name)} (${esc(v.last4)})</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function activeList(key){return (db.managedLists[key]||[]).filter(x=>x.active).map(x=>x.value)}
 function managedOptions(sel,key,blank=false){let current=sel.value;sel.innerHTML=(blank?'<option value=""></option>':'')+activeList(key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(current&&!activeList(key).includes(current))sel.insertAdjacentHTML('beforeend',`<option value="${esc(current)}">${esc(current)} (archived)</option>`);if(current)sel.value=current}
-function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderTreatments();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor()}
+function renderAll(){renderHome();renderVeterans();renderAppointments();renderCalendar();renderTravel();renderTreatments();renderStaffSummary();renderProviders();populateSelects();renderManagedListEditor();renderSops();initQmLog()}
 function filterOptions(sel,items,label,valueOf=x=>x,labelOf=x=>x){let current=sel.value;sel.innerHTML=`<option value="">${label}</option>`+items.map(x=>`<option value="${esc(valueOf(x))}">${esc(labelOf(x))}</option>`).join('');if([...sel.options].some(o=>o.value===current))sel.value=current}
 function populateSelects(){managedOptions(vProvider,'floorProviders',true);providerOptions(document.getElementById('aProvider'));vetOptions(document.getElementById('aVet'));managedOptions(vSpecialty,'levelsOfCare');managedOptions(vMeds,'medicationMethods');managedOptions(vDiet,'diets');managedOptions(vIsolation,'isolationTypes');managedOptions(vAssist,'assistLevels');managedOptions(vMobility,'mobilityOptions');managedOptions(vFallRisk,'fallRiskLevels');managedOptions(vToileting,'toiletingOptions');managedOptions(aReason,'appointmentReasons');managedOptions(aTransport,'transportationModes',true);vetOptions(txVet);managedOptions(txMonth,'months',true);filterOptions(searchProvider,db.providers.filter(p=>p.active),'All Providers',p=>p.id,p=>`${esc(p.name)} — ${providerClinic(p)}`);filterOptions(searchClinic,[...new Set(db.providers.filter(p=>p.active).map(providerClinic).filter(Boolean))].sort(),'All Clinics');filterOptions(searchTransport,activeList('transportationModes'),'All Modes');facilityData.innerHTML=activeList('facilities').map(v=>`<option value="${esc(v)}"></option>`).join('');clinicData.innerHTML=activeList('clinics').map(v=>`<option value="${esc(v)}"></option>`).join('');escortData.innerHTML=activeList('escorts').map(v=>`<option value="${esc(v)}"></option>`).join('');if(!mlCategory.options.length)mlCategory.innerHTML=Object.entries(managedListLabels).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}
 function renderHome(){
