@@ -2196,6 +2196,23 @@ function deletePermEntryInline(section,id){
  var sel=document.getElementById('qmWeekSelect');
  if(sel&&sel.value)renderQmWeekContent(sel.value);
 }
+function refreshPermTable(section){
+ var items=db.qmLog[section]||[];
+ var el=document.getElementById('permTableArea');
+ if(!el)return;
+ if(!items.length){el.innerHTML='<p class="muted" style="font-style:italic;font-size:12px;padding:8px 0">No entries yet. Add one above.</p>';return}
+ var html='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:#f0e6d6">';
+ var cols=Object.keys(items[0]||{}).filter(function(k){return k!=='_id'});
+ cols.forEach(function(c){html+='<th style="padding:3px 6px;border:1px solid #999;text-align:left;font-size:10px">'+esc(c)+'</th>'});
+ html+='<th style="padding:3px 6px;border:1px solid #999;width:50px">Actions</th></tr>';
+ items.forEach(function(item,i){
+  html+='<tr>';
+  cols.forEach(function(c){html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px">'+esc(item[c]||'')+'</td>'});
+  html+='<td style="padding:2px 6px;border:1px solid #eee;font-size:10px"><button onclick="editPermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--blue);color:white;border:none;border-radius:3px;margin-right:2px">Edit</button><button onclick="deletePermEntryInline(\''+section+'\',\''+esc(item._id||i)+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
+ });
+ html+='</table>';
+ el.innerHTML=html;
+}
 function clearPermForm(){
  var editIdEl=document.getElementById("pf__editId");if(editIdEl)editIdEl.value="";
  var inputs=document.querySelectorAll('[id^="pf_"]');
