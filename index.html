@@ -2601,7 +2601,7 @@ function printPtCareShiftNotes(cfgIdx){
  for(var i=0;i<12;i++){
   var v=vets[i]||{room:'',name:'',id4:''};
   var rowName=v.name?(v.room+' — '+v.name+(v.id4?' ('+v.id4+')':'')):'___________________________';
-  tblRows+='<tr><td colspan="8" class="section-label">'+(i+1)+'</td></tr><tr>';
+  tblRows+='<tr><td colspan="8" class="section-label" style="height:2px;padding:0"></td></tr><tr>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:center">'+(i+1)+'</td>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;color:#1a0f00">'+rowName+'</td>';
   tblRows+=mkCell('Bfast %<br>Lunch %')+mkCell('Dinner %<br>&nbsp;');
