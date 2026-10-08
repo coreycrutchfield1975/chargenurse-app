@@ -2604,12 +2604,12 @@ function printPtCareShiftNotes(cfgIdx){
   tblRows+='<tr><td colspan="8" class="section-label">'+(i+1)+'</td></tr><tr>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:center">'+(i+1)+'</td>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;color:#1a0f00">'+rowName+'</td>';
-  tblRows+=mkCell('Bfast % ☐<br>Lunch % ☐')+mkCell('Dinner % ☐<br>&nbsp;');
+  tblRows+=mkCell('Bfast %<br>Lunch %')+mkCell('Dinner %<br>&nbsp;');
   tblRows+=mkCell('Fluids CC<br>Supp %')+mkCell('Fluids CC<br>Supp %');
   tblRows+=mkCell('Snack %<br>Urinary _________')+mkCell('Snack %<br>Urinary _________');
-  tblRows+=mkCell('BM ☐Inc ☐Cont')+mkCell('BM ☐Inc ☐Cont');
+  tblRows+=mkCell('0600-1830<br>BM Inc Cont')+mkCell('1800-0630<br>BM Inc Cont');
   tblRows+='</tr><tr>';
-  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> ☐Glucerna ☐Milkshake ☐Ensure ☐Thrive</td>';
+  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> Glucerna Milkshake Ensure Thrive</td>';
   tblRows+='<td colspan="6" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Notes:</b> </td></tr>';
  }
  var html='<html><head><meta charset="utf-8"><title>CLC Patient Care Shift Notes</title>';
@@ -2617,7 +2617,7 @@ function printPtCareShiftNotes(cfgIdx){
  html+='<h1>CLC Patient Care Shift Notes</h1>';
  html+='<p class="sub">Keep 7 Days on Clipboard &nbsp;|&nbsp; <b>Date:</b> '+esc(date)+' &nbsp;|&nbsp; <b>Wing:</b> '+esc(wing)+' &nbsp;|&nbsp; <b>Day Shift</b> 0600-1830 '+dayCheck+' &nbsp; <b>Night Shift</b> 1800-0630 '+nightCheck+'</p>';
  html+='<table><thead><tr><th style="width:28px">#</th><th style="width:140px">Veteran</th><th style="width:115px">0600-1830</th><th style="width:115px">1800-0630</th><th style="width:105px">0600-1830</th><th style="width:105px">1800-0630</th><th style="width:108px">0600-1830</th><th style="width:108px">1800-0630</th></tr></thead><tbody>'+tblRows+'</tbody></table>';
- html+='<div style="margin-top:4px;font-size:10px"><b>Prepared by:</b> _____________________ &nbsp;&nbsp; <b>Charge Nurse Review:</b> _______________ &nbsp;&nbsp; <b>Date:</b> '+esc(new Date().toLocaleDateString())+'</div>';
+ html+='<div style="margin-top:4px;font-size:10px"><b>Date:</b> '+esc(new Date().toLocaleDateString())+'</div>';
  html+='<div style="margin-top:4px;border-top:1px solid #ccc;padding-top:2px;font-size:8px;color:#888;text-align:center">BravoShift — CLC Patient Care Shift Notes &nbsp;|&nbsp; Bfast+Lunch tracked Day (0600-1830) &nbsp; Dinner tracked Night (1800-0630)</div>';
  html+='</body></html>';
  w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
