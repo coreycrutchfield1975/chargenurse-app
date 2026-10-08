@@ -2462,13 +2462,33 @@ function importQmData(){
    try{
     var data=JSON.parse(ev.target.result);
     if(!data.weeks&&!data.ssrDischarges){alert("Invalid QM log file.");return}
-    if(!confirm("This will REPLACE all current QM data with the imported data. Continue?"))return;
-    db.qmLog=data;
+    if(!confirm("Import QM data?\n\nExisting weeks will be kept. Imported weeks will be added if they don't already exist. Permanent trackers (SSR Discharges, Infections, etc.) will be merged — new entries appended.\n\nContinue?"))return;
+    if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+    var added=0,skipped=0;
+    if(data.weeks){
+     Object.keys(data.weeks).forEach(function(k){
+      if(db.qmLog.weeks[k]){skipped++;return}
+      db.qmLog.weeks[k]=data.weeks[k];
+      added++;
+     });
+    }
+    ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(k){
+     var arr=data[k]||[];
+     if(arr.length){
+      db.qmLog[k]=db.qmLog[k]||[];
+      arr.forEach(function(entry){
+       var eid=entry._id||entry.id||JSON.stringify(entry);
+       if((db.qmLog[k]||[]).every(function(x){return (x._id||x.id||JSON.stringify(x))!==eid})){
+        db.qmLog[k].push(entry);
+       }
+      });
+     }
+    });
     persist();
     populateQmWeekSelect();
     var el=document.getElementById("qmContent");
-    if(el)el.innerHTML='<p class="muted" style="font-style:italic;text-align:center;padding:40px">QM data imported. Select a week to view.</p>';
-    alert("QM data imported successfully!");
+    if(el)el.innerHTML='<p class="muted" style="font-style:italic;text-align:center;padding:40px">QM data imported. '+added+' week(s) added, '+skipped+' duplicate week(s) skipped. Permanent trackers merged.</p>';
+    alert("QM data imported!\n\nNew weeks added: "+added+"\nDuplicates skipped: "+skipped+"\nPermanent trackers merged.");
    }catch(err){alert("Error reading file: "+err.message)}
   };
   reader.readAsText(file);
