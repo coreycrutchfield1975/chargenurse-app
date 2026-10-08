@@ -210,7 +210,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </section>
 
 <section id="appointments" class="tab">
-<div class="toolbar"><h2>Appointments & Search</h2><button class="secondary" onclick="resetAppointmentFilters()">Clear Filters</button><button class="primary right" onclick="openAppointment()">Add Appointment</button></div>
+<div class="toolbar"><h2>Appointments & Search</h2><button class="secondary" onclick="resetAppointmentFilters()">Clear Filters</button><button class="secondary" onclick="printAppointments()">🖨️ Print List</button><button class="primary right" onclick="openAppointment()">Add Appointment</button></div>
 <div class="panel"><div class="formgrid">
 <div><label>Search</label><input id="searchText" placeholder="Veteran, last 4, room, provider, clinic..." oninput="renderAppointments()"></div>
 <div><label>Status</label><select id="searchStatus" onchange="renderAppointments()"><option value="">All</option><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option><option>No Show</option></select></div>
@@ -236,7 +236,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </section>
 
 <section id="transport" class="tab">
-<div class="toolbar"><h2>Transportation & Travel Requests</h2><button class="secondary" onclick="resetTravelFilters()">Clear Filters</button><button class="primary orange right" onclick="openDocPicker('travel')">Create Travel Request</button></div>
+<div class="toolbar"><h2>Transportation & Travel Requests</h2><button class="secondary" onclick="resetTravelFilters()">Clear Filters</button><button class="secondary" onclick="printTravelBoard()">🖨️ Print Board</button><button class="primary orange right" onclick="openDocPicker('travel')">Create Travel Request</button></div>
 <div class="stats">
 <div class="card stat"><span>Needs Request</span><b id="travelNeedCount">0</b></div>
 <div class="card stat"><span>In Progress / Failed</span><b id="travelActionCount">0</b></div>
@@ -266,7 +266,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div id="treatmentList"></div>
 </section>
 
-<section id="staff" class="tab"><div class="toolbar"><h2>Staff Assignments</h2><button class="primary teal right" onclick="openStaff()">Enter / Edit Assignments</button></div><div id="staffSummary"></div></section>
+<section id="staff" class="tab"><div class="toolbar"><h2>Staff Assignments</h2><button class="secondary" onclick="printStaffSheet()">🖨️ Print Sheet</button><button class="primary teal right" onclick="openStaff()">Enter / Edit Assignments</button></div><div id="staffSummary"></div></section>
 
 <section id="reports" class="tab">
 <div class="toolbar no-print"><h2>Morning Report</h2><input id="reportDate" type="date"><button class="primary pink" onclick="generateReport()">Generate</button><button class="secondary" onclick="printReport()">Print</button></div>
@@ -415,7 +415,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div class="toolbar"><h2>Shift Assignments</h2><button class="secondary right" onclick="closeModal('staffModal')">Close</button></div>
 <div><label>Date</label><input id="sDate" type="date" onchange="loadStaffForm()"></div><div class="grid">
 <div class="panel"><h3>Day Shift</h3><div id="dayStaffFields"></div></div><div class="panel"><h3>Night Shift</h3><div id="nightStaffFields"></div></div></div>
-<div class="toolbar"><button class="primary teal" onclick="saveStaff()">Save Assignments</button><button class="secondary" onclick="closeModal('staffModal')">Cancel</button></div>
+<div class="toolbar"><button class="primary teal" onclick="saveStaff()">Save Assignments</button><button class="danger" onclick="clearStaff()">Clear Shift</button><button class="secondary" onclick="closeModal('staffModal')">Cancel</button></div>
 </div></div>
 
 <div id="docPicker" class="modal"><div class="modalbox small"><div class="toolbar"><h2>Select Appointment</h2><button class="secondary right" onclick="closeModal('docPicker')">Close</button></div><label>Appointment</label><select id="docAppt"></select><div class="toolbar"><button class="primary" onclick="openSelectedDoc()">Continue</button></div></div></div>
@@ -439,7 +439,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <div class="toolbar no-print"><h2>Ticket to Ride</h2><button class="secondary right" onclick="closeModal('ticketModal')">Close</button></div>
 <div id="ticketEditor" class="panel no-print"></div>
 <div id="ticketSheet" class="printsheet"></div>
-<div class="toolbar no-print"><button class="primary" onclick="saveTicket()">Save Ticket</button><button class="primary teal" onclick="saveTicket(true)">Save & Print</button></div>
+<div class="toolbar no-print"><button class="primary" onclick="saveTicket()">Save Ticket</button><button class="primary teal" onclick="saveTicket(true)">Save & Print</button><button class="danger" onclick="deleteTicket()">Delete Ticket</button></div>
 </div></div>
 
 <div id="travelModal" class="modal"><div class="modalbox">
@@ -1021,8 +1021,16 @@ let logWeekStart=weekStart(today());
 function weekStart(ds){let d=new Date(ds+'T12:00:00');let day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}
 function openDailyLog(vetId=''){vetOptions(document.getElementById('logVet'));document.getElementById('logVet').value=vetId||'';document.getElementById('logDate').value=today();document.getElementById('logNoChanges').checked=false;document.getElementById('logText').value='';let v=db.veterans.find(x=>x.id===document.getElementById('logVet').value);if(v){let e=db.dailyLogs[v.id]?.[today()];if(e){document.getElementById('logNoChanges').checked=!!e.noChanges;document.getElementById('logText').value=e.text||''}}openModal('logModal')}
 function saveDailyLog(){let vet=document.getElementById('logVet'),date=document.getElementById('logDate'),noChg=document.getElementById('logNoChanges'),text=document.getElementById('logText');if(!vet.value){alert('Select a Veteran.');return}if(!noChg.checked&&!text.value.trim()){alert('Enter notes or check No Changes.');return}let v=db.veterans.find(x=>x.id===vet.value);if(!v)return;db.dailyLogs[v.id]=db.dailyLogs[v.id]||{};db.dailyLogs[v.id][date.value]={text:text.value.trim(),noChanges:noChg.checked};let cutoff=new Date();cutoff.setDate(cutoff.getDate()-35);let c=cutoff.toISOString().slice(0,10);Object.keys(db.dailyLogs[v.id]).forEach(d=>{if(d<c)delete db.dailyLogs[v.id][d]});persist();closeModal('logModal');setTimeout(function(){document.getElementById('logVetFilter').value=v.id;renderDailyLogWeek();},100)}
+function clearDailyLogEntry(vid,ds){
+ let v=db.veterans.find(x=>x.id===vid);if(!v)return;
+ if(!db.dailyLogs[vid]||!db.dailyLogs[vid][ds])return;
+ if(!confirm('Clear the daily log entry for '+v.name+' on '+ds+'? This cannot be undone.'))return;
+ delete db.dailyLogs[vid][ds];
+ if(Object.keys(db.dailyLogs[vid]).length===0)delete db.dailyLogs[vid];
+ persist();renderDailyLogWeek()
+}
 function logWeekShift(dir){let d=new Date(logWeekStart+'T12:00:00');d.setDate(d.getDate()+dir*7);logWeekStart=d.toISOString().slice(0,10);renderDailyLogWeek()}
-function renderDailyLogWeek(){let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived');let cur=document.getElementById('logVetFilter').value;document.getElementById('logVetFilter').innerHTML='<option value="">Select Veteran…</option>'+vets.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>'<option value="'+v.id+'">Room '+esc(v.room)+' \u2014 '+esc(v.name)+' ('+esc(v.last4)+')</option>').join('');if(cur&&[...document.getElementById('logVetFilter').options].some(o=>o.value===cur))document.getElementById('logVetFilter').value=cur;let start=new Date(logWeekStart+'T12:00:00');let end=new Date(start);end.setDate(end.getDate()+6);document.getElementById('logWeekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' \u2013 '+end.toLocaleDateString(undefined,{month:'short',day:'numeric'});let grid=document.getElementById('dailyLogGrid');let vid=document.getElementById('logVetFilter').value;if(!vid){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p>';return}let v=db.veterans.find(x=>x.id===vid);if(!v){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Veteran not found.</p>';return}let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];let cells=days.map((dn,i)=>{let d=new Date(start);d.setDate(d.getDate()+i);let ds=d.toISOString().slice(0,10);let e=db.dailyLogs[vid]?.[ds];let content=e? (e.noChanges?'<span style="color:var(--teal);font-style:italic">No changes</span>':esc(e.text)) : '<span class="muted">\u2014</span>';return '<div class="log-day"><div class="log-day-head">'+dn+' '+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="log-day-body">'+content+'</div><button class="secondary" style="margin-top:6px;font-size:10px;padding:3px 6px" onclick="openDailyLogFor(&quot;'+vid+'&quot;,&quot;'+ds+'&quot;)">'+(e?'Edit':'Add')+'</button></div>'});grid.innerHTML='<div class="log-grid">'+cells.join('')+'</div>'}
+function renderDailyLogWeek(){let vets=db.veterans.filter(v=>v.status!=='Discharged / Archived');let cur=document.getElementById('logVetFilter').value;document.getElementById('logVetFilter').innerHTML='<option value="">Select Veteran…</option>'+vets.slice().sort((a,b)=>roomCompare(a.room,b.room)).map(v=>'<option value="'+v.id+'">Room '+esc(v.room)+' \u2014 '+esc(v.name)+' ('+esc(v.last4)+')</option>').join('');if(cur&&[...document.getElementById('logVetFilter').options].some(o=>o.value===cur))document.getElementById('logVetFilter').value=cur;let start=new Date(logWeekStart+'T12:00:00');let end=new Date(start);end.setDate(end.getDate()+6);document.getElementById('logWeekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' \u2013 '+end.toLocaleDateString(undefined,{month:'short',day:'numeric'});let grid=document.getElementById('dailyLogGrid');let vid=document.getElementById('logVetFilter').value;if(!vid){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Select a Veteran to view their weekly progress log.</p>';return}let v=db.veterans.find(x=>x.id===vid);if(!v){grid.innerHTML='<p class="muted" style="text-align:center;padding:20px">Veteran not found.</p>';return}let days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];let cells=days.map((dn,i)=>{let d=new Date(start);d.setDate(d.getDate()+i);let ds=d.toISOString().slice(0,10);let e=db.dailyLogs[vid]?.[ds];let content=e? (e.noChanges?'<span style="color:var(--teal);font-style:italic">No changes</span>':esc(e.text)) : '<span class="muted">\u2014</span>';return '<div class="log-day"><div class="log-day-head">'+dn+' '+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="log-day-body">'+content+'</div><button class="secondary" style="margin-top:6px;font-size:10px;padding:3px 6px" onclick="openDailyLogFor(&quot;'+vid+'&quot;,&quot;'+ds+'&quot;)">'+(e?'Edit':'Add')+'</button>'+(e?' <button class="secondary" style="margin-top:6px;font-size:10px;padding:3px 6px;background:var(--red);color:white;border:none" onclick="clearDailyLogEntry(&quot;'+vid+'&quot;,&quot;'+ds+'&quot;)">Clear</button>':'')+'</div>'});grid.innerHTML='<div class="log-grid">'+cells.join('')+'</div>'}
 function openDailyLogFor(vid,ds){openDailyLog(vid);document.getElementById('logDate').value=ds;let e=db.dailyLogs[vid]?.[ds];if(e){document.getElementById('logNoChanges').checked=!!e.noChanges;document.getElementById('logText').value=e.text||''}}
 function printDailyLogCurrentVeteran(){
  let vid=document.getElementById('logVetFilter').value;
@@ -1191,12 +1199,30 @@ function saveAppointment(){
  if(aTravelStatus.value){db.travel[obj.id]=db.travel[obj.id]||{};db.travel[obj.id].status=aTravelStatus.value}else if(db.travel[obj.id]&&Object.keys(db.travel[obj.id]).length===1)delete db.travel[obj.id];
  persist();closeModal('apptModal');renderAll()
 }
+function deleteAppointment(id){
+ let a=db.appointments.find(x=>x.id===id);if(!a)return;
+ let v=db.veterans.find(v=>v.id===a.vetId);
+ let hasTravel=!!db.travel[id],hasTicket=!!db.tickets[id];
+ let label=(v? v.room+' — '+v.name+' ('+v.last4+')':'Appointment')+' on '+a.date+' at '+(a.time||'')+' ('+(a.clinic||a.destination||'')+')';
+ let extra=[];if(hasTravel)extra.push('its Travel request');if(hasTicket)extra.push('its Ticket to Ride');
+ let cascade=extra.length?'\n\nThis will also delete '+extra.join(' and ')+'.':'';
+ let answer=prompt('CANCEL / DELETE APPOINTMENT?\n\n'+label+cascade+'\n\nType DELETE to cancel & remove this appointment permanently:');
+ if(!answer||answer.trim().toUpperCase()!=='DELETE')return;
+ delete db.travel[id];delete db.tickets[id];
+ db.appointments=db.appointments.filter(x=>x.id!==id);
+ persist();renderAll();
+ alert('Appointment cancelled and removed.'+(hasTravel?' Travel request deleted.':'')+(hasTicket?' Ticket deleted.':''))
+}
+function cancelAppointmentFromModal(){
+ if(!aId.value){alert('Save the appointment first, then you can delete it from the list.');return}
+ deleteAppointment(aId.value)
+}
 function applyAppointmentRange(){let v=searchRange.value,t=today();if(!v){searchFrom.value='';searchTo.value=''}else if(v==='today'){searchFrom.value=t;searchTo.value=t}else if(v==='past'){searchFrom.value='';searchTo.value=t}else{searchFrom.value=t;let d=new Date(t+'T12:00:00');d.setDate(d.getDate()+(+v-1));searchTo.value=d.toISOString().slice(0,10)}renderAppointments()}
 function resetAppointmentFilters(){searchText.value='';searchStatus.value='';searchProvider.value='';searchClinic.value='';searchTransport.value='';searchTravel.value='';searchFrom.value='';searchTo.value='';searchRange.value='';renderAppointments()}
 function renderAppointments(){
  let q=(searchText.value||'').toLowerCase(),from=searchFrom.value,to=searchTo.value,st=searchStatus.value,provider=searchProvider.value,clinic=searchClinic.value,transport=searchTransport.value,travel=searchTravel.value;
  let rows=db.appointments.filter(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id],hay=[v?.name,v?.last4,v?.room,p?.name,providerClinic(p),p?.facility,p?.city,a.clinic,a.destination,a.reason,a.escort,a.transport].join(' ').toLowerCase();let travelMatch=!travel||(travel==='Not Created'?!tr:tr?.status===travel);return(!q||hay.includes(q))&&(!from||a.date>=from)&&(!to||a.date<=to)&&(!st||a.status===st)&&(!provider||a.providerId===provider)&&(!clinic||providerClinic(p)===clinic)&&(!transport||a.transport===transport)&&travelMatch}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
- apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase().replaceAll(' ','')}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
+ apptRows.innerHTML=rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];return `<tr class="${a.status==='Cancelled'?'archived':''}"><td>${a.date}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${v?.room||''}</td><td>${esc(v?.name||'')}<br><span class="muted">${esc(v?.last4||'')}</span></td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${tr?`<span class="badge ${tr.status.toLowerCase().replaceAll(' ','')}">${tr.status}</span>`:'<span class="muted">Not created</span>'}</td><td><span class="badge ${String(a.status).toLowerCase().replaceAll(' ','')}">${esc(a.status)}</span></td><td><button class="secondary" onclick="openAppointment('${a.id}')">Edit</button> <button class="secondary" onclick="directDoc('ticket','${a.id}')">Ticket</button> <button class="secondary" onclick="directDoc('travel','${a.id}')">Travel</button> <button class="danger" onclick="deleteAppointment('${a.id}')">Delete</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No appointments match the selected filters.</td></tr>'
 }
 function setCalView(v){calView=v;renderCalendar()}function changeCal(n){if(calView==='year')currentCal.setFullYear(currentCal.getFullYear()+n);else if(calView==='month')currentCal.setMonth(currentCal.getMonth()+n);else currentCal.setDate(currentCal.getDate()+n*(calView==='week'?7:1));renderCalendar()}function goToday(){currentCal=new Date();renderCalendar()}
 function localDateString(d){let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
@@ -1218,6 +1244,13 @@ function staffFields(prefix){return roles.map((r,i)=>{let duties=blockRoles.incl
 function buildStaffFields(){dayStaffFields.innerHTML=staffFields('sd');nightStaffFields.innerHTML=staffFields('sn')}
 function loadStaffForm(){let x=db.staff[sDate.value]||{day:{},night:{}};roles.forEach((r,i)=>{document.getElementById('sd'+i).value=x.day?.[r]||'';document.getElementById('sn'+i).value=x.night?.[r]||'';if(blockRoles.includes(r))for(let n=0;n<3;n++){document.getElementById('sdd'+i+n).value=x.dayDuties?.[r]?.[n]||'';document.getElementById('snd'+i+n).value=x.nightDuties?.[r]?.[n]||''}})}
 function saveStaff(){let x={day:{},night:{},dayDuties:{},nightDuties:{}};for(const [shift,prefix,dutyKey] of [['day','sd','dayDuties'],['night','sn','nightDuties']])for(const [i,r] of roles.entries()){x[shift][r]=document.getElementById(prefix+i).value.trim();if(blockRoles.includes(r)){let duties=[0,1,2].map(n=>document.getElementById(prefix+'d'+i+n).value).filter(Boolean);if(new Set(duties).size!==duties.length){alert(`${r} has the same ${shift} duty selected more than once.`);return}x[dutyKey][r]=duties}}x._updatedAt=new Date().toISOString();db.staff[sDate.value]=x;persist();closeModal('staffModal');renderAll()}
+function clearStaff(){
+ let d=sDate.value||today();
+ if(!db.staff[d]){alert('No assignments saved for this date yet.');return}
+ if(!confirm('Clear ALL staff assignments for '+d+'? This cannot be undone.'))return;
+ delete db.staff[d];
+ persist();closeModal('staffModal');renderAll()
+}
 function renderStaffSummary(){let x=db.staff[today()]||{day:{},night:{}};staffSummary.innerHTML=`<div class="grid"><div class="panel"><h3>Day Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.day?.[r]||'')}</p>`).join('')}</div><div class="panel"><h3>Night Shift</h3>${roles.map(r=>`<p><b>${r}:</b> ${esc(x.night?.[r]||'')}</p>`).join('')}</div></div>`}
 function openDocPicker(t){docType=t;docAppt.innerHTML='<option value="">Select…</option>'+db.appointments.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(a=>`<option value="${a.id}">${esc(a.date)} ${esc(a.time)} — ${vetLabel(a.vetId)}</option>`).join('');openModal('docPicker')}
 function openSelectedDoc(){if(!docAppt.value)return;closeModal('docPicker');directDoc(docType,docAppt.value)}
@@ -1270,6 +1303,14 @@ function buildTicket(){
  document.getElementById('tkReturnStatus').value=data.returnStatus||'Pending return';
  renderTicketSheet(data);openModal('ticketModal')
 }function saveTicket(printAfter=false){if(!currentDocAppt)return;let data=collectTicket();db.tickets[currentDocAppt.id]=data;persist();renderTicketSheet(data);if(printAfter)printElement('ticketSheet');else alert('Ticket to Ride saved.')}
+function deleteTicket(){
+ if(!currentDocAppt||!db.tickets[currentDocAppt.id]){alert('No ticket to delete — save it first.');return}
+ let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId);
+ let label=(v? v.room+' — '+v.name+' ('+v.last4+')':'this appointment');
+ if(!confirm('Delete the Ticket to Ride for '+label+'?'))return;
+ delete db.tickets[currentDocAppt.id];
+ persist();closeModal('ticketModal');renderAll()
+}
 function buildTravel(){
  let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id]||{};
  travelForm.innerHTML=`<div id="travelSheet" class="printsheet"><h2 style="text-align:center">TRAVEL REQUEST FOR TRANSPORTATION SERVICES</h2>
@@ -1285,6 +1326,14 @@ function saveTravel(status){
 }
 function emailTravel(){saveTravel('Confirmed');let a=currentDocAppt,v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId),tr=db.travel[a.id];let subject=encodeURIComponent(`Transportation Request - ${v?.name||''} - ${tr.date} ${tr.time}`),body=encodeURIComponent(`Transportation Request\n\nPatient: ${v?.name||''}\nLast 4: ${v?.last4||''}\nCurrent Location: ${tr.currentLocation}\nDestination: ${tr.destination}\nAddress: ${tr.address||p?.address||''}\nReason: ${tr.reason}\nDate: ${tr.date}\nAppointment Time: ${tr.time}\nPickup Time: ${tr.pickup||''}\nClinic: ${tr.clinic}\nMode: ${tr.mode}\nEscort: ${tr.escort}\nRequested By: ${tr.requestedBy||''}\nContact: ${tr.contact||''}\nComments: ${tr.comments}`);location.href=`mailto:?subject=${subject}&body=${body}`;closeModal('travelModal')}
 function attemptCloseTravel(){let tr=db.travel[currentDocAppt?.id];if(!tr||tr.status==='In Progress'){alert('This transportation request has not been confirmed. Email it, cancel it, or continue editing.');return}closeModal('travelModal')}
+function cancelTravel(apptId){
+ let tr=db.travel[apptId];if(!tr)return;
+ let a=db.appointments.find(x=>x.id===apptId),v=db.veterans.find(v=>v.id===a?.vetId);
+ let label=(v?v.room+' — '+v.name+' ('+v.last4+')':'this appointment');
+ if(!confirm('Cancel the travel request for '+label+'?'))return;
+ delete db.travel[apptId];
+ persist();renderAll()
+}
 function resetTravelFilters(){travelSearch.value='';travelFilterStatus.value='';travelFilterMode.value='';travelFilterDate.value='';renderTravel()}
 function renderTravel(){
  let q=(travelSearch?.value||'').toLowerCase(),status=travelFilterStatus?.value||'',mode=travelFilterMode?.value||'',date=travelFilterDate?.value||'';
@@ -1293,7 +1342,7 @@ function renderTravel(){
  let needs=relevant.filter(x=>x.a.transport&&!x.tr),action=relevant.filter(x=>['In Progress','Failed'].includes(x.tr?.status)),confirmed=relevant.filter(x=>x.tr?.status==='Confirmed'),todayItems=relevant.filter(x=>x.a.date===today()&&(x.tr?.status==='Confirmed'||x.a.transport));
  travelNeedCount.textContent=needs.length;travelActionCount.textContent=action.length;travelConfirmedCount.textContent=confirmed.length;travelTodayCount.textContent=todayItems.length;
  let rows=relevant.filter(x=>{let effective=x.tr?.status||'Needs Request',hay=[x.v?.name,x.v?.last4,x.v?.room,x.a.destination,x.p?.facility,x.a.escort,x.tr?.escort,x.a.transport,x.tr?.mode,x.tr?.reference].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!status||effective===status)&&(!mode||(x.tr?.mode||x.a.transport)===mode)&&(!date||x.a.date===date)}).sort((x,y)=>(x.a.date+(x.tr?.pickup||x.a.pickup||x.a.time)).localeCompare(y.a.date+(y.tr?.pickup||y.a.pickup||y.a.time)));
- travelList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Pickup</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th><th>Action</th></tr></thead><tbody>${rows.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')} — ${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td><span class="badge ${st.toLowerCase().replaceAll(' ','')}">${esc(st)}</span></td><td>${esc(x.tr?.reference||'')}</td><td><button class="secondary" onclick="directDoc('travel','${x.a.id}')">${x.tr?'Open':'Create'}</button> <button class="secondary" onclick="directDoc('ticket','${x.a.id}')">Ticket</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No transportation items match the selected filters.</div>'
+ travelList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Pickup</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th><th>Action</th></tr></thead><tbody>${rows.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')} — ${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td><span class="badge ${st.toLowerCase().replaceAll(' ','')}">${esc(st)}</span></td><td>${esc(x.tr?.reference||'')}</td><td><button class="secondary" onclick="directDoc('travel','${x.a.id}')">${x.tr?'Open':'Create'}</button> <button class="secondary" onclick="directDoc('ticket','${x.a.id}')">Ticket</button>${x.tr?' <button class="danger" onclick="cancelTravel(\''+x.a.id+'\')">Cancel</button>':''}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No transportation items match the selected filters.</div>'
 }
 
 function sectionDueOn(sec,date){
@@ -1446,13 +1495,27 @@ function saveTreatment(){
  let i=db.treatments.findIndex(x=>x.id===rec.id);if(i>=0)db.treatments[i]={...db.treatments[i],...rec};else db.treatments.push(rec);persist();closeModal('treatmentModal');renderAll()
 }
 function archiveTreatment(){let t=db.treatments.find(x=>x.id===txId.value);if(t){t.active=false;persist();closeModal('treatmentModal');renderAll()}}
+function toggleTreatmentArchive(id){let t=db.treatments.find(x=>x.id===id);if(!t)return;t.active=!t.active;persist();renderAll()}
+function deleteTreatment(id){
+ let t=db.treatments.find(x=>x.id===id);if(!t)return;
+ let v=db.veterans.find(v=>v.id===t.vetId);
+ let completionCount=Object.keys(db.treatmentCompletions||{}).filter(k=>k.startsWith('s'+t.id+'|')).length;
+ let label=(v? v.room+' — '+v.name+' ('+v.last4+')':'Treatment plan');
+ let warning=(completionCount>0)?'\n\nThis will also erase '+completionCount+' completed section record(s).':'';
+ let answer=prompt('PERMANENT DELETE\n\nDelete the treatment plan for '+label+'? This cannot be undone.'+warning+'\n\nType DELETE to continue:');
+ if(!answer||answer.trim().toUpperCase()!=='DELETE')return;
+ Object.keys(db.treatmentCompletions||{}).forEach(k=>{if(k.startsWith('s'+t.id+'|'))delete db.treatmentCompletions[k]});
+ db.treatments=db.treatments.filter(x=>x.id!==id);
+ persist();renderAll();
+ alert('Treatment plan deleted.'+(db.treatmentCompletions?'':''))
+}
 function resetTreatmentFilters(){txSearch.value='';txFilterCategory.value='';renderTreatments()}
 function renderTreatments(){
  if(!document.getElementById('treatmentList'))return;let q=(txSearch?.value||'').toLowerCase(),cat=txFilterCategory?.value||'';
  let rows=[];db.treatments.forEach(t=>{let v=db.veterans.find(v=>v.id===t.vetId);(t.sections||[]).forEach((s,si)=>{rows.push({t,s,si,v})})});
  rows=rows.filter(x=>{let hay=[x.v?.name,x.v?.room,x.v?.last4,x.t.month,x.s.instructions].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!cat||x.t.category===cat)}).sort((a,b)=>roomCompare(a.v?.room,b.v?.room));
  txLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Licensed').length;txNonLicensedCount.textContent=db.treatments.filter(t=>t.active!==false&&t.category==='Non-Licensed').length;
- treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th style="width:32px"><input type="checkbox" id="txSelectAll" onchange="toggleSelectAll(this.checked)" style="width:auto"></th><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>{let uid='txsel_'+x.t.id+'_'+x.si;return `<tr class="${x.t.active?'':'archived'}"><td style="width:32px;text-align:center"><input type="checkbox" id="${uid}" class="tx-check-row" data-vet="${x.v?.id||''}" data-cat="${esc(x.t.category)}" data-id="${x.t.id}" data-idx="${x.si}" style="width:auto"></td><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
+ treatmentList.innerHTML=rows.length?`<div class="scroll"><table><thead><tr><th style="width:32px"><input type="checkbox" id="txSelectAll" onchange="toggleSelectAll(this.checked)" style="width:auto"></th><th>Room</th><th>Veteran</th><th>Month</th><th>Category</th><th>Freq</th><th>Instructions</th><th>Actions</th></tr></thead><tbody>${rows.map(x=>{let uid='txsel_'+x.t.id+'_'+x.si;return `<tr class="${x.t.active?'':'archived'}"><td style="width:32px;text-align:center"><input type="checkbox" id="${uid}" class="tx-check-row" data-vet="${x.v?.id||''}" data-cat="${esc(x.t.category)}" data-id="${x.t.id}" data-idx="${x.si}" style="width:auto"></td><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')}<br><span class="muted">${esc(x.v?.last4||'')}</span></td><td>${esc(x.t.month||'')}</td><td><span class="badge ${x.t.category==='Licensed'?'failed':'confirmed'}">${esc(x.t.category)}</span></td><td>${esc(x.s.frequency)}${x.s.days?.length?'<br><span class="muted">'+esc(x.s.days.join(', '))+'</span>':''}</td><td>${esc(x.s.instructions||'')}</td><td><button class="secondary" onclick="openTreatment('${x.t.id}')">Edit</button> <button class="secondary" onclick="printVetTreatments('${x.t.id}')">🖨️ Print</button> <button class="secondary" onclick="toggleTreatmentArchive('${x.t.id}')">${x.t.active?'Archive':'Restore'}</button> <button class="danger" onclick="deleteTreatment('${x.t.id}')">Delete</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="card">No treatment plans match the selected filters.</div>'
 }
 
 function toggleSelectAll(checked){
@@ -1649,6 +1712,63 @@ ${active.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(providerClinic(p))}</td><t
 </body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
+function printAppointments(){
+ const rows=db.appointments.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ if(!rows.length){alert('No appointments to print.');return}
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
+ w.document.write(`<html><head><title>Appointment List</title>
+<style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;padding:.2in}h1{font-size:18px;color:#1a0f00;margin:0 0 4px}.sub{color:#665;margin:0 0 12px}table{width:100%;border-collapse:collapse}th{background:#f8f1e5;padding:6px;text-align:left;font-size:11px;border:1px solid #bba}td{padding:5px 6px;border:1px solid #bba;font-size:11px}.cancelled{opacity:.55}.muted{color:#888}</style></head><body>
+<h1>BravoShift — Appointment List</h1>
+<p class="sub">All appointments as of ${new Date().toLocaleDateString()}</p>
+<table><thead><tr><th>Date</th><th>Time</th><th>Pickup</th><th>Room</th><th>Veteran</th><th>Provider / Clinic</th><th>Reason</th><th>Location</th><th>Transport</th><th>Status</th></tr></thead><tbody>
+${rows.map(a=>{let v=db.veterans.find(v=>v.id===a.vetId),p=db.providers.find(p=>p.id===a.providerId);return `<tr class="${a.status==='Cancelled'?'cancelled':''}"><td>${esc(a.date)}</td><td>${esc(a.time)}</td><td>${esc(a.pickup||'')}</td><td>${esc(v?.room||'')}</td><td>${esc(v?.name||'')} ${esc(v?.last4||'')}</td><td>${esc(p?.name||'')}<br><span class="muted">${esc(a.clinic||p?.specialty||'')}</span></td><td>${esc(a.reason||'')}</td><td>${esc(a.destination||p?.facility||'')}</td><td>${esc(a.transport||'')}</td><td>${esc(a.status)}</td></tr>`}).join('')}
+</tbody></table>
+<p class="muted" style="margin-top:16px;font-size:10px;text-align:center">Generated by BravoShift — ${new Date().toLocaleString()}</p>
+</body></html>`);
+ w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
+function printTravelBoard(){
+ const items=db.appointments.filter(a=>a.status!=='Cancelled'&&a.status!=='Completed').map(a=>({a,tr:db.travel[a.id],v:db.veterans.find(v=>v.id===a.vetId),p:db.providers.find(p=>p.id===a.providerId)})).filter(x=>x.a.transport||x.tr).sort((x,y)=>(x.a.date+x.tr?.pickup||x.a.pickup||x.a.time).localeCompare(y.a.date+y.tr?.pickup||y.a.pickup||y.a.time));
+ if(!items.length){alert('No travel items to print.');return}
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
+ w.document.write(`<html><head><title>Transportation Board</title>
+<style>@page{size:landscape;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;padding:.2in}h1{font-size:18px;color:#1a0f00;margin:0 0 4px}.sub{color:#665;margin:0 0 12px}table{width:100%;border-collapse:collapse}th{background:#f8f1e5;padding:6px;text-align:left;font-size:11px;border:1px solid #bba}td{padding:5px 6px;border:1px solid #bba;font-size:11px}.muted{color:#888}</style></head><body>
+<h1>BravoShift — Transportation Board</h1>
+<p class="sub">Transportation &amp; travel requests as of ${new Date().toLocaleString()}</p>
+<table><thead><tr><th>Date</th><th>Pickup</th><th>Room</th><th>Veteran</th><th>Destination</th><th>Mode</th><th>Escort</th><th>Status</th><th>Reference</th></tr></thead><tbody>
+${items.map(x=>{let st=x.tr?.status||'Needs Request';return `<tr><td>${esc(x.a.date)}<br><span class="muted">Appt ${esc(x.a.time)}</span></td><td>${esc(x.tr?.pickup||x.a.pickup||'')}</td><td>${esc(x.v?.room||'')}</td><td>${esc(x.v?.name||'')} ${esc(x.v?.last4||'')}</td><td>${esc(x.tr?.destination||x.a.destination||x.p?.facility||'')}</td><td>${esc(x.tr?.mode||x.a.transport||'')}</td><td>${esc(x.tr?.escort||x.a.escort||'')}</td><td>${esc(st)}</td><td>${esc(x.tr?.reference||'')}</td></tr>`}).join('')}
+</tbody></table>
+<p class="muted" style="margin-top:16px;font-size:10px;text-align:center">Generated by BravoShift — ${new Date().toLocaleString()}</p>
+</body></html>`);
+ w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
+function printStaffSheet(){
+ const d=document.getElementById('sDate')?.value||today();
+ const x=db.staff[d]||{};
+ const has=roles.some(r=>(x.day?.[r]||x.night?.[r]))||roles.some(r=>((x.dayDuties?.[r]||[]).join('')||(x.nightDuties?.[r]||[]).join('')));
+ if(!has){alert('No staff assignments saved for this date.');return}
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
+ function renderShift(shiftData,duties,label){
+  const rows=roles.map(r=>{
+   const name=esc(shiftData[r]||'—');
+   const duty=(duties?.[r]||[]).filter(Boolean).map(esc).join(', ');
+   return `<tr><td><b>${esc(r)}</b></td><td>${name}</td><td>${duty||''}</td></tr>`;
+  }).join('');
+  return `<h2 style="font-size:14px;margin:14px 0 4px;color:#1a0f00">${label}</h2><table><thead><tr><th style="width:160px">Role</th><th>Staff Name</th><th>Duty / Unit</th></tr></thead><tbody>${rows}</tbody></table>`;
+ }
+ w.document.write(`<html><head><title>Staff Assignments</title>
+<style>@page{size:letter;margin:.3in}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;padding:.2in}h1{font-size:18px;color:#1a0f00;margin:0 0 4px}.sub{color:#665;margin:0 0 12px}table{width:100%;border-collapse:collapse;margin-bottom:6px}th{background:#f8f1e5;padding:6px;text-align:left;font-size:11px;border:1px solid #bba}td{padding:5px 6px;border:1px solid #bba;font-size:11px}.muted{color:#888}</style></head><body>
+<h1>BravoShift — Staff Assignments</h1>
+<p class="sub">${d}</p>
+${renderShift(x.day||{},x.dayDuties||{},'Day Shift')}
+${renderShift(x.night||{},x.nightDuties||{},'Night Shift')}
+<p class="muted" style="margin-top:16px;font-size:10px;text-align:center">Generated by BravoShift — ${new Date().toLocaleString()}</p>
+</body></html>`);
+ w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
 function printHourlyRoundingSheet(){
  const w=window.open('','_blank');
  if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
@@ -1840,8 +1960,14 @@ function renderSops(){
   urlSpan.className="muted"; urlSpan.style.fontSize="11px";
   urlSpan.textContent=e.url;
   span.appendChild(urlSpan);
-  div.appendChild(span);
-  var delBtn=document.createElement("button");
+   div.appendChild(span);
+   var editBtn=document.createElement("button");
+   editBtn.className="secondary"; editBtn.textContent="Edit";
+   editBtn.style.fontSize="12px"; editBtn.style.padding="4px 10px";
+   editBtn.style.cursor="pointer";
+   editBtn.onclick=(function(id){return function(){editSop(id)}})(e.id);
+   div.appendChild(editBtn);
+   var delBtn=document.createElement("button");
   delBtn.className="danger"; delBtn.textContent="Delete";
   delBtn.style.fontSize="12px"; delBtn.style.padding="4px 10px";
   delBtn.style.background="var(--red)"; delBtn.style.color="white";
@@ -1866,6 +1992,21 @@ function addSop(){
 function deleteSop(id){
  db.sops=db.sops||[];
  db.sops=db.sops.filter(function(e){return e.id!==id});
+ persist();
+ renderSops();
+}
+function editSop(id){
+ var e=(db.sops||[]).find(function(x){return x.id===id});
+ if(!e)return;
+ var name=prompt("Edit SOP name:",e.name);
+ if(name===null)return;
+ name=name.trim();
+ if(!name){alert("SOP name cannot be blank.");return}
+ var url=prompt("Edit file path or URL:",e.url);
+ if(url===null)return;
+ url=url.trim();
+ if(!url){alert("SOP path cannot be blank.");return}
+ e.name=name;e.url=url;e._updatedAt=new Date().toISOString();
  persist();
  renderSops();
 }
