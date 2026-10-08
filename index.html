@@ -2604,12 +2604,13 @@ function printPtCareShiftNotes(cfgIdx){
   tblRows+='<tr><td colspan="8" class="section-label">'+(i+1)+'</td></tr><tr>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:center">'+(i+1)+'</td>';
   tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;color:#1a0f00">'+rowName+'</td>';
-  tblRows+=mkCell('Bfast ___% ☐<br>Lunch ___% ☐')+mkCell('Dinner ___% ☐<br>&nbsp;');
-  tblRows+=mkCell('Fluids ___ CC<br>Supp ___%')+mkCell('Fluids ___ CC<br>Supp ___%');
-  tblRows+=mkCell('Snack ___%<br>Urinary: _________')+mkCell('Snack ___%<br>Urinary: _________');
+  tblRows+=mkCell('Bfast % ☐<br>Lunch % ☐')+mkCell('Dinner % ☐<br>&nbsp;');
+  tblRows+=mkCell('Fluids CC<br>Supp %')+mkCell('Fluids CC<br>Supp %');
+  tblRows+=mkCell('Snack %<br>Urinary _________')+mkCell('Snack %<br>Urinary _________');
+  tblRows+=mkCell('BM ☐Inc ☐Cont')+mkCell('BM ☐Inc ☐Cont');
   tblRows+='</tr><tr>';
-  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> ☐Glucerna ☐Milkshake ☐Ensure ☐Thrive &nbsp; <b>BM:</b> ☐Inc ☐Cont <span style="color:#888">&nbsp;D/N ____</span></td>';
-  tblRows+='<td colspan="6" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Notes:</b> ___________________________________________________________________</td></tr>';
+  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> ☐Glucerna ☐Milkshake ☐Ensure ☐Thrive</td>';
+  tblRows+='<td colspan="6" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Notes:</b> </td></tr>';
  }
  var html='<html><head><meta charset="utf-8"><title>CLC Patient Care Shift Notes</title>';
  html+='<style>@page{size:landscape;margin:.3in}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;padding:.15in}h1{font-size:15px;margin:0 0 2px}.sub{font-size:10px;color:#555;margin:3px 0}table{width:100%;border-collapse:collapse;margin:4px 0}th{background:#f0e6d6;padding:3px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:left}td{padding:2px 4px;border:1px solid #888;font-size:10px;vertical-align:top}.section-label{background:#eee;padding:1px 4px;font-size:9px;font-weight:700;color:#555;border:1px solid #888;text-transform:uppercase;letter-spacing:.3px}@media print{th{background:#f0e6d6!important}}</style></head><body>';
