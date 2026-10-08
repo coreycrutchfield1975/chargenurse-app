@@ -326,8 +326,26 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
       <button class="secondary" onclick="printShiftChangeCheckList()" style="padding:14px 20px;font-size:14px;text-align:left;display:flex;align-items:center;gap:10px">🖨️ <span><b>Pt Care Staff Shift Change Check List</b><br><span class="muted" style="font-size:11px;font-weight:400">Nightshift and Dayshift end-of-shift checklist with 11 items</span></span></button>
       <button class="secondary" onclick="printChargeNurseDutiesCheckoff()" style="padding:14px 20px;font-size:14px;text-align:left;display:flex;align-items:center;gap:10px">🖨️ <span><b>Charge Nurse Duties Checkoff</b><br><span class="muted" style="font-size:11px;font-weight:400">Night/Day shift duty checklist with census, stats, and signatures</span></span></button>
       <button class="secondary" onclick="printMedicationCartChecklist()" style="padding:14px 20px;font-size:14px;text-align:left;display:flex;align-items:center;gap:10px">🖨️ <span><b>Medication Cart Checklist</b><br><span class="muted" style="font-size:11px;font-weight:400">Per-shift checklist for medication room, cart cleaning, expired meds, and more</span></span></button>
+      <button class="secondary" onclick="openPtCareForm()" style="padding:14px 20px;font-size:14px;text-align:left;display:flex;align-items:center;gap:10px">🖨️ <span><b>PT Care Shift Notes</b><br><span class="muted" style="font-size:11px;font-weight:400">Patient Care shift tracking sheet — select wing, veterans, generate printable shift notes</span></span></button>
     </div>
-    <p style="margin-top:16px;font-size:12px;color:var(--muted)">More forms coming soon.</p>
+  </div>
+  <div id="ptCareConfig" style="display:none;margin:10px auto;max-width:800px">
+    <div class="panel" style="padding:14px">
+      <h3>PT Care Shift Notes — Setup</h3>
+      <div class="formgrid" style="margin-top:6px">
+        <div><label>Date</label><input id="ptCareDate" type="date"></div>
+        <div><label>Wing</label><select id="ptCareWing"><option>North</option><option>South</option></select></div>
+        <div><label>Shift</label><div style="display:flex;gap:6px"><label><input type="checkbox" id="ptCareDay" checked> 0600-1830</label><label><input type="checkbox" id="ptCareNight" checked> 1800-0630</label></div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:4px 0">Select up to 12 Veterans for this sheet:</p>
+      <div id="ptCareVeteransList" style="display:flex;flex-wrap:wrap;gap:3px;max-height:240px;overflow-y:auto;margin:4px 0"></div>
+      <div class="toolbar" style="margin-top:6px">
+        <button class="primary teal" onclick="printPtCareShiftNotes()">🖨️ Generate & Print</button>
+        <button class="secondary" onclick="savePtCareSheet()">Save Config</button>
+        <button class="secondary" onclick="document.getElementById('ptCareConfig').style.display='none'">Close</button>
+      </div>
+    </div>
+    <div id="ptCareSavedList"></div>
   </div>
 </div>
 </section>
@@ -2528,6 +2546,111 @@ function saveReportSnapshot(date, vets, s){
  db.snapshots[date] = {veterans: copy, staff: JSON.parse(JSON.stringify(s||{}))};
  persist();
 }
+function openPtCareForm(){
+ var panel=document.getElementById('ptCareConfig');panel.style.display=panel.style.display==='none'?'block':'block';
+ document.getElementById('ptCareDate').value=today();
+ var list=document.getElementById('ptCareVeteransList');var html='';
+ var active=db.veterans.filter(v=>v.status!=='Discharged / Archived').sort((a,b)=>roomCompare(a.room,b.room));
+ active.slice(0,24).forEach(v=>{html+='<label style="display:flex;align-items:center;gap:2px;font-size:12px;white-space:nowrap;margin:1px 0"><input type="checkbox" class="ptCareVet" value="'+v.id+'" style="width:auto;margin:0"> '+esc(v.room)+' '+esc(v.name)+'</label>'});
+ list.innerHTML=html;
+ renderPtCareSheetList();
+}
+function renderPtCareSheetList(){
+ var el=document.getElementById('ptCareSavedList');if(!el)return;
+ var sheets=db.ptCareSheets||[];
+ if(!sheets.length){el.innerHTML='<p class="muted" style="font-style:italic;margin-top:6px">No saved configurations.</p>';return}
+ el.innerHTML='<h4 style="margin:6px 0 0">Saved PT Care Sheet Configurations</h4><div class="scroll" style="max-height:200px"><table style="font-size:12px"><thead><tr><th>Date</th><th>Wing</th><th>Shift</th><th>Veterans</th><th>Actions</th></tr></thead><tbody>'+sheets.map(function(s,i){
+  return '<tr><td>'+esc(s.date)+'</td><td>'+esc(s.wing)+'</td><td>'+(s.day?'0600-1830 ':'')+(s.night?'1800-0630':'')+'</td><td>'+(s.vetNames||'')+'</td><td><button class="secondary" onclick="editPtCareSheet('+i+')">Edit</button> <button class="secondary" onclick="printPtCareShiftNotes('+i+')">Print</button> <button class="danger" onclick="deletePtCareSheet('+i+')">Delete</button></td></tr>';
+ }).join('')+'</tbody></table></div>';
+}
+function collectPtCareConfig(id){
+ var sheets=db.ptCareSheets||[];
+ if(id!==undefined&&id!==null&&id>=0&&id<sheets.length)return sheets[id];
+ var date=document.getElementById('ptCareDate').value;
+ var wing=document.getElementById('ptCareWing').value;
+ var day=document.getElementById('ptCareDay').checked;
+ var night=document.getElementById('ptCareNight').checked;
+ var vetIds=[...document.querySelectorAll('.ptCareVet:checked')].map(function(cb){return cb.value});
+ var names=vetIds.map(function(id){var v=db.veterans.find(x=>x.id===id);return v?v.room+' '+v.name:''}).filter(Boolean).slice(0,12).join('; ');
+ return {id:undefined,date:date,wing:wing,day:day,night:night,vetIds:vetIds.slice(0,12),vetNames:names};
+}
+function printPtCareShiftNotes(cfgIdx){
+ var cfg=collectPtCareConfig(cfgIdx);
+ if(!cfg.vetIds||!cfg.vetIds.length){alert('Select at least one Veteran.');return}
+ var w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
+ var date=cfg.date,wing=cfg.wing;
+ var vets=cfg.vetIds.map(function(id){var v=db.veterans.find(x=>x.id===id);return v?{room:v.room,name:v.name,id4:v.last4||''}:{room:'',name:'',id4:''}}).filter(Boolean);
+ var dayCheck=cfg.day?'☐':'',nightCheck=cfg.night?'☐':'';
+ var tblRows='';var mkCell=function(c){return '<td style="padding:2px 4px;border:1px solid #888;font-size:10px;vertical-align:top">'+c+'</td>'};
+ for(var i=0;i<12;i++){
+  var v=vets[i]||{room:'',name:'',id4:''};
+  var rowName=v.name?(v.room+' — '+v.name+(v.id4?' ('+v.id4+')':'')):'___________________________';
+  tblRows+='<tr><td colspan="8" class="section-label">'+(i+1)+'</td></tr><tr>';
+  tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:center">'+(i+1)+'</td>';
+  tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;color:#1a0f00">'+rowName+'</td>';
+  tblRows+=mkCell('Bfast ___% ☐<br>Lunch ___% ☐')+mkCell('Dinner ___% ☐<br>&nbsp;');
+  tblRows+=mkCell('Fluids ___ CC<br>Supp ___%')+mkCell('Fluids ___ CC<br>Supp ___%');
+  tblRows+=mkCell('Snack ___%<br>Urinary: _________')+mkCell('Snack ___%<br>Urinary: _________');
+  tblRows+='</tr><tr>';
+  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> ☐Glucerna ☐Milkshake ☐Ensure ☐Thrive &nbsp; <b>BM:</b> ☐Inc ☐Cont <span style="color:#888">&nbsp;D/N ____</span></td>';
+  tblRows+='<td colspan="6" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Notes:</b> ___________________________________________________________________</td></tr>';
+ }
+ var html='<html><head><meta charset="utf-8"><title>CLC Patient Care Shift Notes</title>';
+ html+='<style>@page{size:landscape;margin:.3in}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;padding:.15in}h1{font-size:15px;margin:0 0 2px}.sub{font-size:10px;color:#555;margin:3px 0}table{width:100%;border-collapse:collapse;margin:4px 0}th{background:#f0e6d6;padding:3px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:left}td{padding:2px 4px;border:1px solid #888;font-size:10px;vertical-align:top}.section-label{background:#eee;padding:1px 4px;font-size:9px;font-weight:700;color:#555;border:1px solid #888;text-transform:uppercase;letter-spacing:.3px}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ html+='<h1>CLC Patient Care Shift Notes</h1>';
+ html+='<p class="sub">Keep 7 Days on Clipboard &nbsp;|&nbsp; <b>Date:</b> '+esc(date)+' &nbsp;|&nbsp; <b>Wing:</b> '+esc(wing)+' &nbsp;|&nbsp; <b>Day Shift</b> 0600-1830 '+dayCheck+' &nbsp; <b>Night Shift</b> 1800-0630 '+nightCheck+'</p>';
+ html+='<table><thead><tr><th style="width:28px">#</th><th style="width:140px">Veteran</th><th style="width:115px">0600-1830</th><th style="width:115px">1800-0630</th><th style="width:105px">0600-1830</th><th style="width:105px">1800-0630</th><th style="width:108px">0600-1830</th><th style="width:108px">1800-0630</th></tr></thead><tbody>'+tblRows+'</tbody></table>';
+ html+='<div style="margin-top:4px;font-size:10px"><b>Prepared by:</b> _____________________ &nbsp;&nbsp; <b>Charge Nurse Review:</b> _______________ &nbsp;&nbsp; <b>Date:</b> '+esc(new Date().toLocaleDateString())+'</div>';
+ html+='<div style="margin-top:4px;border-top:1px solid #ccc;padding-top:2px;font-size:8px;color:#888;text-align:center">BravoShift — CLC Patient Care Shift Notes &nbsp;|&nbsp; Bfast+Lunch tracked Day (0600-1830) &nbsp; Dinner tracked Night (1800-0630)</div>';
+ html+='</body></html>';
+ w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
+}
+function savePtCareSheet(){
+ var cfg=collectPtCareConfig();
+ if(!cfg.vetIds||!cfg.vetIds.length){alert('Select at least one Veteran.');return}
+ if(!cfg.date){alert('Date is required.');return}
+ db.ptCareSheets=db.ptCareSheets||[];
+ var existingIndex=-1;
+ if(cfg.id!==undefined&&cfg.id!==null){existingIndex=cfg.id}
+ if(existingIndex>=0){db.ptCareSheets[existingIndex]={date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames};alert('Configuration updated.');}
+ else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames});alert('Configuration saved.');}
+ persist();renderPtCareSheetList();
+}
+function editPtCareSheet(idx){
+ var sheets=db.ptCareSheets||[];
+ if(idx<0||idx>=sheets.length)return;
+ var s=sheets[idx];
+ document.getElementById('ptCareConfig').style.display='block';
+ document.getElementById('ptCareDate').value=s.date;
+ document.getElementById('ptCareWing').value=s.wing;
+ document.getElementById('ptCareDay').checked=s.day;
+ document.getElementById('ptCareNight').checked=s.night;
+ var cbs=[...document.querySelectorAll('.ptCareVet')];cbs.forEach(function(cb){cb.checked=s.vetIds.includes(cb.value)});
+ // Store edit index in a hidden way for savePtCareSheet to use
+ window.__ptCareEditIdx=idx;
+ // Revert save to use this index
+ var origSave=savePtCareSheet;savePtCareSheet=function(){
+  var cfg=collectPtCareConfig();
+  if(!cfg.vetIds||!cfg.vetIds.length){alert('Select at least one Veteran.');return}
+  if(!cfg.date){alert('Date is required.');return}
+  var idx=window.__ptCareEditIdx;
+  var sheets=db.ptCareSheets||[];
+  if(idx>=0&&idx<sheets.length){sheets[idx]={date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames};alert('Configuration updated.');}
+  else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames});alert('Configuration saved.');}
+  persist();renderPtCareSheetList();savePtCareSheet=origSave;
+ };
+}
+function deletePtCareSheet(idx){
+ var sheets=db.ptCareSheets||[];
+ if(idx<0||idx>=sheets.length)return;
+ var s=sheets[idx];
+ if(!confirm('Delete PT Care configuration for '+s.date+' — '+s.wing+'?'))return;
+ db.ptCareSheets.splice(idx,1);
+ persist();renderPtCareSheetList();
+}
+
+
 </script>
 <div class="no-print" style="text-align:center;font-size:10px;color:#999;padding:10px 20px;border-top:1px solid #ddd;margin-top:10px">PHI per VA policy. PHI is on S: Drive.</div>
 </body></html>
