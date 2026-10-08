@@ -2616,29 +2616,51 @@ function printPtCareShiftNotes(cfgIdx){
  if(!w){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
  var date=cfg.date,wing=cfg.wing;
  var vets=cfg.vetIds.map(function(id){var v=db.veterans.find(x=>x.id===id);return v?{room:v.room,name:v.name,id4:v.last4||''}:{room:'',name:'',id4:''}}).filter(Boolean);
- var dayCheck=cfg.day?'☐':'',nightCheck=cfg.night?'☐':'';
- var tblRows='';var mkCell=function(c){return '<td style="padding:2px 4px;border:1px solid #888;font-size:10px;vertical-align:top">'+c+'</td>'};
+ var tblRows='';
+ var mkC=function(c){return '<td style="padding:2px 3px;border:1px solid #777;font-size:9px;vertical-align:top">'+c+'</td>'};
  for(var i=0;i<12;i++){
   var v=vets[i]||{room:'',name:'',id4:''};
-  var rowName=v.name?(v.room+' — '+v.name+(v.id4?' ('+v.id4+')':'')):'___________________________';
-  tblRows+='<tr><td colspan="10" class="section-label" style="height:2px;padding:0"></td></tr><tr>';
-  tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:center">'+(i+1)+'</td>';
-  tblRows+='<td style="padding:2px 4px;border:1px solid #888;font-size:10px;font-weight:700;color:#1a0f00">'+rowName+'</td>';
-  tblRows+=mkCell('Bfast %<br>Lunch %')+mkCell('Dinner %<br>&nbsp;');
-  tblRows+=mkCell('Fluids CC<br>Supp %')+mkCell('Fluids CC<br>Supp %');
-  tblRows+=mkCell('Snack %<br>Urinary _________')+mkCell('Snack %<br>Urinary _________');
-  tblRows+=mkCell('BM<br>Inc / Cont')+mkCell('BM<br>Inc / Cont');
+  var rn=v.name?(v.room+' — '+v.name+(v.id4?' ('+v.id4+')':'')):'___________________________';
+  tblRows+='<tr><td colspan="16" class="sl" style="background:#ede4d0;padding:1px 2px;font-size:7px;font-weight:700;color:#555;border:1px solid #777;text-align:center;letter-spacing:.5px">'+(i+1)+'</td></tr><tr>';
+  tblRows+='<td style="padding:2px 3px;border:1px solid #777;font-size:9px;font-weight:700;text-align:center">'+(i+1)+'</td>';
+  tblRows+='<td style="padding:2px 3px;border:1px solid #777;font-size:9px;font-weight:700;color:#1a0f00">'+rn+'</td>';
+  // Breakfast: % | Fluids | Supp
+  tblRows+=mkC('___')+mkC('___ CC')+mkC('___ %');
+  // Lunch: % | Fluids | Supp
+  tblRows+=mkC('___')+mkC('___ CC')+mkC('___ %');
+  // Dinner: % | Fluids | Supp
+  tblRows+=mkC('___')+mkC('___ CC')+mkC('___ %');
+  // Snack Day %, Night %
+  tblRows+=mkC('___%')+mkC('___%');
+  // Urinary Day, Night
+  tblRows+=mkC('_________')+mkC('_________');
+  // BM Day, Night
+  tblRows+=mkC(' \u2610Inc \u2610Cont')+mkC(' \u2610Inc \u2610Cont');
   tblRows+='</tr><tr>';
-  tblRows+='<td colspan="2" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Supp:</b> ☐Glucerna ☐Milkshake ☐Ensure ☐Thrive</td>';
-  tblRows+='<td colspan="8" style="padding:2px 4px;border:1px solid #888;font-size:9px;color:#555"><b>Notes:</b> </td></tr>';
+  tblRows+='<td colspan="2" style="padding:2px 3px;border:1px solid #777;font-size:8px;color:#555"><b>Suppl:</b> \u2610Glucerna \u2610Milkshake \u2610Ensure \u2610Magic Cup</td>';
+  tblRows+='<td colspan="14" style="padding:2px 3px;border:1px solid #777;font-size:8px;color:#555"><b>Notes:</b> </td></tr>';
  }
  var html='<html><head><meta charset="utf-8"><title>CLC Patient Care Shift Notes</title>';
- html+='<style>@page{size:landscape;margin:.3in}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;padding:.15in}h1{font-size:15px;margin:0 0 2px}.sub{font-size:10px;color:#555;margin:3px 0}table{width:100%;border-collapse:collapse;margin:4px 0}th{background:#f0e6d6;padding:3px 4px;border:1px solid #888;font-size:10px;font-weight:700;text-align:left}td{padding:2px 4px;border:1px solid #888;font-size:10px;vertical-align:top}.section-label{background:#eee;padding:1px 4px;font-size:9px;font-weight:700;color:#555;border:1px solid #888;text-transform:uppercase;letter-spacing:.3px}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ html+='<style>@page{size:landscape;margin:.2in}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;font-size:9px;padding:.1in}h1{font-size:13px;margin:0 0 1px}.sub{font-size:9px;color:#555;margin:2px 0}table{width:100%;border-collapse:collapse;margin:2px 0}th{background:#ede4d0;padding:2px 3px;border:1px solid #777;font-size:8px;font-weight:700;text-align:center;vertical-align:top}td{padding:2px 3px;border:1px solid #777;font-size:9px;vertical-align:top}@media print{th{background:#ede4d0!important}}</style></head><body>';
  html+='<h1>CLC Patient Care Shift Notes</h1>';
  html+='<p class="sub">Keep 7 Days on Clipboard &nbsp;|&nbsp; <b>Date:</b> '+esc(date)+' &nbsp;|&nbsp; <b>Wing:</b> '+esc(wing)+'</p>';
- html+='<table><thead><tr><th style="width:26px">#</th><th style="width:130px">Veteran</th><th style="width:110px">0600-1830</th><th style="width:110px">1800-0630</th><th style="width:100px">0600-1830</th><th style="width:100px">1800-0630</th><th style="width:100px">0600-1830</th><th style="width:100px">1800-0630</th><th style="width:70px">0600-1830</th><th style="width:70px">1800-0630</th></tr></thead><tbody>'+tblRows+'</tbody></table>';
- html+='<div style="margin-top:4px;font-size:10px"><b>Date:</b> '+esc(new Date().toLocaleDateString())+'</div>';
- html+='<div style="margin-top:4px;border-top:1px solid #ccc;padding-top:2px;font-size:8px;color:#888;text-align:center">BravoShift — CLC Patient Care Shift Notes &nbsp;|&nbsp; Bfast+Lunch tracked Day (0600-1830) &nbsp; Dinner tracked Night (1800-0630)</div>';
+ html+='<table><thead><tr>';
+ html+='<th rowspan="2" style="width:16px">#</th><th rowspan="2" style="width:110px">Veteran</th>';
+ html+='<th colspan="3" style="width:78px">Breakfast<br>0600-1830</th>';
+ html+='<th colspan="3" style="width:78px">Lunch<br>0600-1830</th>';
+ html+='<th colspan="3" style="width:78px">Dinner<br>1800-0630</th>';
+ html+='<th style="width:34px">Snack<br>Day %</th><th style="width:34px">Snack<br>Night %</th>';
+ html+='<th style="width:44px">Urinary<br>Day</th><th style="width:44px">Urinary<br>Night</th>';
+ html+='<th style="width:40px">BM<br>Day</th><th style="width:40px">BM<br>Night</th></tr><tr>';
+ html+='<th style="border-top:0">%</th><th style="border-top:0">Fluids</th><th style="border-top:0">Supp</th>';
+ html+='<th style="border-top:0">%</th><th style="border-top:0">Fluids</th><th style="border-top:0">Supp</th>';
+ html+='<th style="border-top:0">%</th><th style="border-top:0">Fluids</th><th style="border-top:0">Supp</th>';
+ html+='<th style="border-top:0;font-size:7px"> \u2610</th><th style="border-top:0;font-size:7px"> \u2610</th>';
+ html+='<th style="border-top:0;font-size:7px"> \u2610</th><th style="border-top:0;font-size:7px"> \u2610</th>';
+ html+='<th style="border-top:0;font-size:7px"> \u2610Inc<br> \u2610Cont</th><th style="border-top:0;font-size:7px"> \u2610Inc<br> \u2610Cont</th>';
+ html+='</tr></thead><tbody>'+tblRows+'</tbody></table>';
+ html+='<div style="margin-top:4px;font-size:8px;text-align:right"><b>Date:</b> '+esc(new Date().toLocaleDateString())+'</div>';
+ html+='<div style="margin-top:2px;border-top:1px solid #ccc;padding-top:2px;font-size:7px;color:#888;text-align:center">BravoShift — CLC Patient Care Shift Notes &nbsp;|&nbsp; Bfast+Lunch tracked Day (0600-1830) &nbsp; Dinner tracked Night (1800-0630)</div>';
  html+='</body></html>';
  w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},350);
 }
