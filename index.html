@@ -493,61 +493,43 @@ let db;
 function exportQmCsv(){
  var escCsv=function(s){return '"'+(s||'').replace(/"/g,'""')+'"'};
  var rows=[];
- if(!db.qmLog||!db.qmLog.weeks){alert('No QM data to export.');return}
- var currentWeek=document.getElementById('qmWeekSelect')?.[value]||'';
- rows.push('"BravoShift QM Export - '+new Date().toLocaleDateString()+'"');
- rows.push('');
- // ── Weekly sections: one wide table ──
- var secMap={falls:{l:'Falls',f:['vet','date','cpUpdated','notes'],fh:['Veteran','Date','CP Updated','Notes']},
-  pressureUlcers:{l:'Pressure Ulcers',f:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],fh:['Veteran','Present on Admission','Date Acquired','CP Updated','Facility Acquired','Notes']},
-  weightChanges:{l:'Weight Changes',f:['vet','lossGain','cpUpdated','notes'],fh:['Veteran','Loss/Gain','CP Updated','Notes']},
-  catheters:{l:'Catheters',f:['vet','type','providerOrder','reason','notes'],fh:['Veteran','Type','Provider Order','Reason','Notes']},
-  behaviors:{l:'Behaviors',f:['vet','behaviors','notes'],fh:['Veteran','Behaviors','Notes']},
-  antipsychotics:{l:'Antipsychotics',f:['vet','medication','lastGdr','cpUpdated','dose','notes'],fh:['Veteran','Medication','Last GDR','CP Updated','Dose','Notes']},
-  wanderguards:{l:'Wanderguards',f:['vet','placed','carePlanned','riskNote'],fh:['Veteran','Placed','Care Planned','Risk Note']},
-  bedAlarms:{l:'Bed Alarms',f:['vet','cpUpdated','notes'],fh:['Veteran','CP Updated','Notes']},
-  hospice:{l:'Hospice',f:['vet','orderCpUpdated','maa','concerns'],fh:['Veteran','Order/CP Updated','MAA','Concerns']}};
- Object.keys(db.qmLog.weeks).sort().forEach(function(wk){
-  var w=db.qmLog.weeks[wk];
-  Object.keys(secMap).forEach(function(sk){
-   var items=w[sk]||[];if(!items.length&&wk!==currentWeek)return;
-   if(!items.length)return;
-   rows.push('"** "+secMap[sk].l+" — "+wk+" **"');
-   // Header row with display labels
-   rows.push('"Section"'+secMap[sk].fh.map(function(h){return ','+escCsv(h)}).join(''));
-   items.forEach(function(item){
-    var vn='';if(item.vet){var v=db.veterans.find(function(x){return x.id===item.vet});vn=v?escCsv(v.name):item.vetName?escCsv(item.vetName):escCsv(item.vet)}
-    rows.push(escCsv(secMap[sk].l)+','+vn+secMap[sk].f.map(function(fk){
-     if(fk==='vet')return '';
-     var val=item[fk]||'';
-     if(fk==='cpUpdated'||fk==='presentOnAdmission'||fk==='carePlanned'||fk==='maa')val=val?'Yes':'No';
-     return ','+escCsv(val);
-    }).join(''));
+ if(!db.qmLog||!db.qmLog.weeks)return;
+ var weeks=Object.keys(db.qmLog.weeks).sort();
+ var weeklySecs={falls:{label:'Falls',fields:['vet','date','cpUpdated','notes']},pressureUlcers:{label:'Pressure Ulcers',fields:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes']},weightChanges:{label:'Weight Changes',fields:['vet','lossGain','cpUpdated','notes']},catheters:{label:'Catheters',fields:['vet','type','providerOrder','reason','notes']},behaviors:{label:'Behaviors',fields:['vet','behaviors','notes']},antipsychotics:{label:'Antipsychotics',fields:['vet','medication','lastGdr','cpUpdated','dose','notes']},wanderguards:{label:'Wanderguards',fields:['vet','placed','carePlanned','riskNote']},bedAlarms:{label:'Bed Alarms',fields:['vet','cpUpdated','notes']},hospice:{label:'Hospice',fields:['vet','orderCpUpdated','maa','concerns']}};
+ Object.keys(weeklySecs).forEach(function(sk){
+  var cols=['Week','Category'].concat(weeklySecs[sk].fields);
+  rows.push(cols.map(escCsv).join(','));
+  weeks.forEach(function(wk){
+   (db.qmLog.weeks[wk][sk]||[]).forEach(function(item){
+    var vals=[wk,weeklySecs[sk].label].concat(weeklySecs[sk].fields.map(function(f){
+     if(f==='vet'){var v=db.veterans.find(function(x){return x.id===item[f]});return v?escCsv(v.name):item.vetName?escCsv(item.vetName):escCsv(item[f]||'')}
+     if(item[f]==='Yes'||item[f]==='No')return item[f];
+     return escCsv(item[f]||'');
+    }));
+    rows.push(vals.join(','));
    });
-   rows.push('');
-  });
- });
- // ── Permanent trackers ──
- var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
- var permLabel={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
- permSecs.forEach(function(sk){
-  var items=db.qmLog[sk]||[];if(!items.length)return;
-  var fields=permFields(sk);
-  rows.push('"** "+permLabel[sk]+" **"');
-  rows.push('"Section"'+fields.map(function(f){return ','+escCsv(f.label)}).join(''));
-  items.forEach(function(item){
-   rows.push(escCsv(permLabel[sk])+fields.map(function(f){
-    var val=item[f.key]||'';
-    if(f.type==='yesno')val=val?'Yes':'No';
-    return ','+escCsv(val);
-   }).join(''));
   });
   rows.push('');
  });
- var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
+ var permKeys=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
+ permKeys.forEach(function(sk){
+  var pFields=permFields(sk);
+  var pCols=['Type'].concat(pFields.map(function(f){return f.label}));
+  rows.push(pCols.map(escCsv).join(','));
+  (db.qmLog[sk]||[]).forEach(function(item){
+   var pVals=['PERMANENT: '+sk].concat(pFields.map(function(f){
+    var val=item[f.key]||'';if(f.type==='yesno')val=val?'Yes':'No';
+    return escCsv(val);
+   }));
+   rows.push(pVals.join(','));
+  });
+  rows.push('');
+ });
+ var blob=new Blob([rows.join('\n')],{type:'text/csv'});
  var url=URL.createObjectURL(blob);
  var a=document.createElement('a');a.href=url;a.download='bravoshift-qm-'+new Date().toISOString().slice(0,10)+'.csv';
  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+ alert('CSV exported: '+(rows.length-(Object.keys(weeklySecs).length+permKeys.length+1))+' entries across '+(Object.keys(weeklySecs).length+permKeys.length)+' tables.');
 }
 function showQmTrends(){
  var wks=db.qmLog?Object.keys(db.qmLog.weeks).sort():[];if(!wks.length){alert('No weeks to report on.');return}
@@ -605,7 +587,7 @@ function showVeteranDetail(){
  h+='<div style="margin:4px 0;padding:6px;border:1px solid #999;border-radius:4px"><b>Select Veteran:</b><br>';
  var vet_list=db.veterans.filter(function(x){return x.status!=='Discharged / Archived'}).sort(function(a,b){return roomCompare(a.room,b.room)});
  vet_list.forEach(function(v){
-  h+='<button onclick="printVetDetail(\''+v.id+'\')" style="font-size:11px;padding:3px 8px;margin:2px;border:1px solid #999;border-radius:4px;cursor:pointer">'+esc(v.room)+' — '+esc(v.name)+'</button> ';
+  h+='<button onclick="window.opener.printVetDetail(\''+v.id+'\')" style="font-size:11px;padding:3px 8px;margin:2px;border:1px solid #999;border-radius:4px;cursor:pointer">'+esc(v.room)+' — '+esc(v.name)+'</button> ';
  });
  h+='</div>';
  // Also include any veterans referenced in QM data that might be deleted
