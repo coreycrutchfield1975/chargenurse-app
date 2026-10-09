@@ -510,8 +510,12 @@ function exportQmCsv(){
   });
  });
  ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(sk){
+  var csvFields=permFields(sk);
   (db.qmLog[sk]||[]).forEach(function(item){
-   rows.push(escCsv('PERMANENT')+','+escCsv(sk)+','+escCsv(item.vet||item.lastName||'')+','+escCsv('')+','+escCsv(''));
+   csvFields.forEach(function(f){
+    var val=item[f.key]||'';if(f.type==='yesno')val=val?'Yes':'No';
+    rows.push(escCsv('PERMANENT')+','+escCsv(sk)+','+escCsv('')+','+escCsv(f.label)+','+escCsv(val));
+   });
   });
  });
  var blob=new Blob([rows.join('\n')],{type:'text/csv'});
@@ -544,17 +548,20 @@ function showQmTrends(){
  win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
 }
 function viewAllTrackers(){
- var perm={ssrDischarges:{l:'SSR Discharges',f:['vet','lastName','last4','treatingSpecialty','dateSent','sentTo','datePrevEntry','admissionReentry','daysSinceEntry','enteredFrom','reasonSent','admitted','admittingDx','attendingProvider','sendingProvider','chargeNurse','dayOfWeek','timeSent','chartReview']},infections:{l:'Infections',f:['vet','type','date','notes']},sideRails:{l:'Side Rails',f:['room','patient','railsCount','date','shift','notes']},fallsLog:{l:'Falls Log',f:['vet','lastName','last4','fallDate','fallTime','location','circumstances','interventions','notified','reportedTo','notes']},erVisits:{l:'ER Visits/Rehospitalizations',f:['lastName','last4','treatingSpecialty','dateSent','sentTo','datePrevEntry','admissionReentry','daysSinceEntry','enteredFrom','reasonSent','admitted','admittingDx','attendingProvider','sendingProvider','chargeNurse','dayOfWeek','timeSent','chartReview']}};
+ var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
+ var permLabel={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
  var win=window.open('','_blank');if(!win){alert('Pop-up blocked.');return}
  var h='<html><head><title>All Permanent Trackers</title><style>@page{size:landscape;margin:.25in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:14px;margin:0}.sub{font-size:9px;color:#555;margin:2px 0}.st{background:#ede4d0;padding:3px 4px;font-size:11px;font-weight:700;margin:5px 0 0;border:1px solid #999}table{width:100%;border-collapse:collapse;margin:3px 0}th{background:#f0e6d6;padding:2px 3px;border:1px solid #999;font-size:9px;text-align:left}td{padding:2px 3px;border:1px solid #999;font-size:9px}@media print{th{background:#f0e6d6!important}}</style></head><body>';
  h+='<h1>Permanent Tracker Data</h1><p class="sub">All entries — '+new Date().toLocaleDateString()+'</p>';
- var any=false;Object.keys(perm).forEach(function(sk){
+ var any=false;permSecs.forEach(function(sk){
   var items=db.qmLog[sk]||[];if(!items.length)return;any=true;
-  h+='<div class="st">'+esc(perm[sk].l)+' ('+items.length+')</div><table><thead><tr>'+perm[sk].f.map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody>';
+  var fields=permFields(sk);
+  h+='<div class="st">'+esc(permLabel[sk])+' ('+items.length+')</div><table><thead><tr>'+fields.map(function(f){return '<th>'+esc(f.label)+'</th>'}).join('')+'</tr></thead><tbody>';
   items.forEach(function(item){
-   h+='<tr>'+perm[sk].f.map(function(f){
-    var val=item[f]||'';
-    if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+   h+='<tr>'+fields.map(function(f){
+    var val=item[f.key]||'';
+    if(f.type==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+    if(f.type==='yesno'){val=val?'Yes':'No'}
     return '<td>'+esc(val)+'</td>';
    }).join('')+'</tr>';
   });h+='</tbody></table>';
@@ -606,13 +613,16 @@ function printVetDetail(vetId){
   });
  });
  // Check permanent trackers
- var permItems={ssrDischarges:{l:'SSR Discharges',f:['vet','lastName','last4','dateSent','sentTo','reasonSent','admitted']},infections:{l:'Infections',f:['vet','type','date','notes']},sideRails:{l:'Side Rails',f:['room','patient','railsCount','date','shift','notes']},fallsLog:{l:'Falls Log',f:['vet','fallDate','fallTime','location','circumstances','notes']},erVisits:{l:'ER Visits',f:['vet','dateSent','sentTo','reasonSent','admitted','admittingDx']}};
- Object.keys(permItems).forEach(function(pk){
+ var permSecs2=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
+ var permLabel2={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
+ permSecs2.forEach(function(pk){
+  var pFields=permFields(pk);
   (db.qmLog[pk]||[]).forEach(function(item){
    if(item.vet!==vetId)return;
    found=true;
-   h+='<h2>'+esc(permItems[pk].l)+'</h2><table><thead><tr>'+permItems[pk].f.map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+permItems[pk].f.map(function(f){
-    var val=item[f]||'';
+   h+='<h2>'+esc(permLabel2[pk])+'</h2><table><thead><tr>'+pFields.map(function(f){return '<th>'+esc(f.label)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+pFields.map(function(f){
+    var val=item[f.key]||'';
+    if(f.type==='yesno'){val=val?'Yes':'No'}
     return '<td>'+esc(val)+'</td>';
    }).join('')+'</tr></tbody></table>';
   });
