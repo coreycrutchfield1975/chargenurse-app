@@ -492,37 +492,62 @@ let db;
 
 function exportQmCsv(){
  var escCsv=function(s){return '"'+(s||'').replace(/"/g,'""')+'"'};
- var rows=[];rows.push('Week,Section,Veteran,Field,Value');
- if(!db.qmLog||!db.qmLog.weeks)return;
- var secs={falls:['vet','date','cpUpdated','notes'],pressureUlcers:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],weightChanges:['vet','lossGain','cpUpdated','notes'],catheters:['vet','type','providerOrder','reason','notes'],behaviors:['vet','behaviors','notes'],antipsychotics:['vet','medication','lastGdr','cpUpdated','dose','notes'],wanderguards:['vet','placed','carePlanned','riskNote'],bedAlarms:['vet','cpUpdated','notes'],hospice:['vet','orderCpUpdated','maa','concerns']};
- var lab={falls:'Falls',pressureUlcers:'Pressure Ulcers',weightChanges:'Weight Changes',catheters:'Catheters',behaviors:'Behaviors',antipsychotics:'Antipsychotics',wanderguards:'Wanderguards',bedAlarms:'Bed Alarms',hospice:'Hospice'};
+ var rows=[];
+ if(!db.qmLog||!db.qmLog.weeks){alert('No QM data to export.');return}
+ var currentWeek=document.getElementById('qmWeekSelect')?.[value]||'';
+ rows.push('"BravoShift QM Export - '+new Date().toLocaleDateString()+'"');
+ rows.push('');
+ // ── Weekly sections: one wide table ──
+ var secMap={falls:{l:'Falls',f:['vet','date','cpUpdated','notes'],fh:['Veteran','Date','CP Updated','Notes']},
+  pressureUlcers:{l:'Pressure Ulcers',f:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],fh:['Veteran','Present on Admission','Date Acquired','CP Updated','Facility Acquired','Notes']},
+  weightChanges:{l:'Weight Changes',f:['vet','lossGain','cpUpdated','notes'],fh:['Veteran','Loss/Gain','CP Updated','Notes']},
+  catheters:{l:'Catheters',f:['vet','type','providerOrder','reason','notes'],fh:['Veteran','Type','Provider Order','Reason','Notes']},
+  behaviors:{l:'Behaviors',f:['vet','behaviors','notes'],fh:['Veteran','Behaviors','Notes']},
+  antipsychotics:{l:'Antipsychotics',f:['vet','medication','lastGdr','cpUpdated','dose','notes'],fh:['Veteran','Medication','Last GDR','CP Updated','Dose','Notes']},
+  wanderguards:{l:'Wanderguards',f:['vet','placed','carePlanned','riskNote'],fh:['Veteran','Placed','Care Planned','Risk Note']},
+  bedAlarms:{l:'Bed Alarms',f:['vet','cpUpdated','notes'],fh:['Veteran','CP Updated','Notes']},
+  hospice:{l:'Hospice',f:['vet','orderCpUpdated','maa','concerns'],fh:['Veteran','Order/CP Updated','MAA','Concerns']}};
  Object.keys(db.qmLog.weeks).sort().forEach(function(wk){
   var w=db.qmLog.weeks[wk];
-  Object.keys(secs).forEach(function(sk){
-   (w[sk]||[]).forEach(function(item){
+  Object.keys(secMap).forEach(function(sk){
+   var items=w[sk]||[];if(!items.length&&wk!==currentWeek)return;
+   if(!items.length)return;
+   rows.push('"** "+secMap[sk].l+" — "+wk+" **"');
+   // Header row with display labels
+   rows.push('"Section"'+secMap[sk].fh.map(function(h){return ','+escCsv(h)}).join(''));
+   items.forEach(function(item){
     var vn='';if(item.vet){var v=db.veterans.find(function(x){return x.id===item.vet});vn=v?escCsv(v.name):item.vetName?escCsv(item.vetName):escCsv(item.vet)}
-    rows.push(escCsv(wk)+','+escCsv(lab[sk])+','+vn+','+escCsv('')+','+escCsv(''));
-    secs[sk].forEach(function(fk){
-     var val=item[fk]||'';if(fk==='vet')return;
-     rows.push(escCsv('')+','+escCsv('')+','+escCsv('')+','+escCsv(fk)+','+escCsv(val));
-    });
+    rows.push(escCsv(secMap[sk].l)+','+vn+secMap[sk].f.map(function(fk){
+     if(fk==='vet')return '';
+     var val=item[fk]||'';
+     if(fk==='cpUpdated'||fk==='presentOnAdmission'||fk==='carePlanned'||fk==='maa')val=val?'Yes':'No';
+     return ','+escCsv(val);
+    }).join(''));
    });
+   rows.push('');
   });
  });
- ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(sk){
-  var csvFields=permFields(sk);
-  (db.qmLog[sk]||[]).forEach(function(item){
-   csvFields.forEach(function(f){
-    var val=item[f.key]||'';if(f.type==='yesno')val=val?'Yes':'No';
-    rows.push(escCsv('PERMANENT')+','+escCsv(sk)+','+escCsv('')+','+escCsv(f.label)+','+escCsv(val));
-   });
+ // ── Permanent trackers ──
+ var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
+ var permLabel={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
+ permSecs.forEach(function(sk){
+  var items=db.qmLog[sk]||[];if(!items.length)return;
+  var fields=permFields(sk);
+  rows.push('"** "+permLabel[sk]+" **"');
+  rows.push('"Section"'+fields.map(function(f){return ','+escCsv(f.label)}).join(''));
+  items.forEach(function(item){
+   rows.push(escCsv(permLabel[sk])+fields.map(function(f){
+    var val=item[f.key]||'';
+    if(f.type==='yesno')val=val?'Yes':'No';
+    return ','+escCsv(val);
+   }).join(''));
   });
+  rows.push('');
  });
- var blob=new Blob([rows.join('\n')],{type:'text/csv'});
+ var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
  var url=URL.createObjectURL(blob);
  var a=document.createElement('a');a.href=url;a.download='bravoshift-qm-'+new Date().toISOString().slice(0,10)+'.csv';
  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
- alert('CSV exported with '+rows.length+' rows.');
 }
 function showQmTrends(){
  var wks=db.qmLog?Object.keys(db.qmLog.weeks).sort():[];if(!wks.length){alert('No weeks to report on.');return}
