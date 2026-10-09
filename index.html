@@ -348,6 +348,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
       <button class="secondary" onclick="importQmData()" style="font-size:12px;padding:5px 12px">📥 Import QM</button>
       <button class="secondary" onclick="printQmWeek()" style="font-size:12px;padding:5px 12px">🖨️ Print</button>
       <button class="secondary" onclick="showQmTrends()" style="font-size:12px;padding:5px 12px">Trends</button>
+      <button class="secondary" onclick="showVeteranDetail()" style="font-size:12px;padding:5px 12px">Veteran View</button>
     </div>
   </div>
   <div id="qmContent" style="max-height:calc(100vh - 260px);overflow-y:auto">
@@ -528,7 +529,7 @@ function showQmTrends(){
  var prev={};wks.forEach(function(wk){
   var w=db.qmLog.weeks[wk];h+='<tr><td style="font-weight:700">'+esc(wk)+'</td>';
   sk.forEach(function(s){
-   var c=(w[s]||[]).length,p=prev[s]||0,d=c-p;h+='<td>'+c+'</td>';
+   var c=(w[s]||[]).length,p=prev[s]||0,d=c-p;h+='<td><a href="#" onclick="showCategoryDetail(\'"+wk+"\',\'"+s+"\',\'"+secs[s]+"\');return false">'+c+'</a></td>';
    if(wk===wks[0]){h+='<td class="muted">--</td>'}
    else if(d>0){h+='<td class="pos">+'+d+'</td>'}
    else if(d<0){h+='<td class="neg">'+d+'</td>'}
@@ -559,6 +560,87 @@ function viewAllTrackers(){
   });h+='</tbody></table>';
  });if(!any){h+='<p class="muted" style="font-style:italic">No permanent tracker data.</p>'}
  h+='<p class="footer" style="font-size:7px;color:#888;margin-top:6px;text-align:center">BravoShift — Permanent Tracker Report</p></body></html>';
+ win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+}
+
+
+// ── Veteran Detail View ──
+function showVeteranDetail(){
+ var win=window.open('','_blank');if(!win){alert('Pop-up blocked.');return}
+ var h='<html><head><title>Veteran QM Detail</title><style>@page{size:landscape;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:15px;margin:0 0 2px}.sub{font-size:10px;color:#555;margin:2px 0}table{width:100%;border-collapse:collapse;margin:3px 0}th{background:#f0e6d6;padding:2px 4px;border:1px solid #999;font-size:9px;font-weight:700;text-align:left}td{padding:2px 4px;border:1px solid #999;font-size:9px}.sec-hdr{background:#ede4d0;padding:2px 4px;font-size:11px;font-weight:700;border:1px solid #999}.footer{font-size:7px;color:#888;margin-top:6px;text-align:center}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ h+='<h1>Veteran QM Detail Report</h1><p class="sub">Select a veteran to view all QM entries across all weeks and permanent trackers.</p>';
+ // Veteran selector as links for each active veteran
+ h+='<div style="margin:4px 0;padding:6px;border:1px solid #999;border-radius:4px"><b>Select Veteran:</b><br>';
+ var vet_list=db.veterans.filter(function(x){return x.status!=='Discharged / Archived'}).sort(function(a,b){return roomCompare(a.room,b.room)});
+ vet_list.forEach(function(v){
+  h+='<button onclick="printVetDetail(\''+v.id+'\')" style="font-size:11px;padding:3px 8px;margin:2px;border:1px solid #999;border-radius:4px;cursor:pointer">'+esc(v.room)+' — '+esc(v.name)+'</button> ';
+ });
+ h+='</div>';
+ // Also include any veterans referenced in QM data that might be deleted
+ h+='<p class="muted" style="font-size:9px;margin-top:4px">Veterans deleted from the census may still have QM data. Use the Permanent Trackers or Trends report to find their entries.</p>';
+ h+='<div id="vetDetailResults"></div><p class="footer">BravoShift — Veteran Detail Report</p></body></html>';
+ win.document.write(h);win.document.close();win.focus();
+}
+function printVetDetail(vetId){
+ var win=window.open('','_blank');if(!win){alert('Pop-up blocked.');return}
+ var v=db.veterans.find(function(x){return x.id===vetId});
+ var vname=v?esc(v.name)+' ('+esc(v.room)+')':esc(vetId);
+ var h='<html><head><title>QM Detail - '+vname+'</title><style>@page{size:landscape;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:14px;margin:0}h2{font-size:12px;margin:8px 0 2px;background:#ede4d0;padding:2px 4px;border:1px solid #999}table{width:100%;border-collapse:collapse;margin:2px 0}th{background:#f0e6d6;padding:2px 4px;border:1px solid #999;font-size:9px;text-align:left}td{padding:2px 4px;border:1px solid #999;font-size:9px}.footer{font-size:7px;color:#888;margin-top:6px;text-align:center}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ h+='<h1>QM Detail: '+vname+'</h1><p class="sub">Generated '+new Date().toLocaleDateString()+'</p>';
+ var found=false;
+ var wkSections={falls:['vet','date','cpUpdated','notes'],pressureUlcers:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],weightChanges:['vet','lossGain','cpUpdated','notes'],catheters:['vet','type','providerOrder','reason','notes'],behaviors:['vet','behaviors','notes'],antipsychotics:['vet','medication','lastGdr','cpUpdated','dose','notes'],wanderguards:['vet','placed','carePlanned','riskNote'],bedAlarms:['vet','cpUpdated','notes'],hospice:['vet','orderCpUpdated','maa','concerns']};
+ var labels={falls:'Falls',pressureUlcers:'Pressure Ulcers',weightChanges:'Weight Changes',catheters:'Catheters',behaviors:'Behaviors',antipsychotics:'Antipsychotics',wanderguards:'Wanderguards',bedAlarms:'Bed Alarms',hospice:'Hospice'};
+ // Scan all weeks for this veteran
+ Object.keys(db.qmLog.weeks||{}).sort().forEach(function(wk){
+  var w=db.qmLog.weeks[wk];
+  Object.keys(wkSections).forEach(function(sk){
+   (w[sk]||[]).forEach(function(item){
+    if(item.vet!==vetId)return;
+    found=true;
+    h+='<h2>'+esc(labels[sk])+' — '+esc(wk)+'</h2><table><thead><tr>'+wkSections[sk].map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+wkSections[sk].map(function(f){
+     var val=item[f]||'';
+     if(f==='vet'){var vv=db.veterans.find(function(x){return x.id===val});val=vv?esc(vv.name):item.vetName?esc(item.vetName):esc(val)}
+     return '<td>'+esc(val)+'</td>';
+    }).join('')+'</tr></tbody></table>';
+   });
+  });
+ });
+ // Check permanent trackers
+ var permItems={ssrDischarges:{l:'SSR Discharges',f:['vet','lastName','last4','dateSent','sentTo','reasonSent','admitted']},infections:{l:'Infections',f:['vet','type','date','notes']},sideRails:{l:'Side Rails',f:['room','patient','railsCount','date','shift','notes']},fallsLog:{l:'Falls Log',f:['vet','fallDate','fallTime','location','circumstances','notes']},erVisits:{l:'ER Visits',f:['vet','dateSent','sentTo','reasonSent','admitted','admittingDx']}};
+ Object.keys(permItems).forEach(function(pk){
+  (db.qmLog[pk]||[]).forEach(function(item){
+   if(item.vet!==vetId)return;
+   found=true;
+   h+='<h2>'+esc(permItems[pk].l)+'</h2><table><thead><tr>'+permItems[pk].f.map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+permItems[pk].f.map(function(f){
+    var val=item[f]||'';
+    return '<td>'+esc(val)+'</td>';
+   }).join('')+'</tr></tbody></table>';
+  });
+ });
+ if(!found){h+='<p class="muted" style="font-style:italic;padding:20px;text-align:center">No QM entries found for this veteran.</p>'}
+ h+='<p class="footer">BravoShift — Veteran QM Detail</p></body></html>';
+ win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+}
+// ── Category Drill-Down (linked from Trends counts) ──
+// The Trends report already generates count tables. To view detail, clickable links are added.
+// This function opens a detail window for a specific section/week
+function showCategoryDetail(weekId, sectionKey, sectionLabel){
+ var win=window.open('','_blank');if(!win){alert('Pop-up blocked.');return}
+ var w=db.qmLog.weeks[weekId];if(!w){alert('Week not found.');return}
+ var items=w[sectionKey]||[];
+ if(!items.length){alert('No entries.');return}
+ var fields=Object.keys(items[0]).filter(function(k){return k!=='_id'});
+ var h='<html><head><title>'+esc(sectionLabel)+' Detail</title><style>@page{size:landscape;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;padding:.15in}h1{font-size:14px;margin:0}table{width:100%;border-collapse:collapse;margin:4px 0}th{background:#f0e6d6;padding:3px 5px;border:1px solid #999;font-size:9px;text-align:left}td{padding:2px 5px;border:1px solid #999;font-size:9px}.footer{font-size:7px;color:#888;text-align:center}@media print{th{background:#f0e6d6!important}}</style></head><body>';
+ h+='<h1>'+esc(sectionLabel)+' — Week '+esc(weekId)+' ('+items.length+' entries)</h1><table><thead><tr>'+fields.map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody>';
+ items.forEach(function(item){
+  h+='<tr>'+fields.map(function(f){
+   var val=item[f]||'';
+   if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+   if(f==='cpUpdated'||f==='facilityAcquired'||f==='presentOnAdmission'||f==='carePlanned'||f==='maa'){val=val?'Yes':'No'}
+   return '<td>'+esc(val)+'</td>';
+  }).join('')+'</tr>';
+ });
+ h+='</tbody></table><p class="footer">BravoShift — Category Detail</p></body></html>';
  win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
 }
 
@@ -2224,6 +2306,21 @@ function renderQmWeekContent(weekId){
    }
    html+='</div>';
    html+='';
+ 
+ // Week-at-a-Glance summary
+ html+='<div style="margin-top:4px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg)"><b style="font-size:13px">Week at a Glance</b><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">';
+ var glance_sections={falls:'Falls',pressureUlcers:'Pressure Ulcers',weightChanges:'Weight Changes',catheters:'Catheters',behaviors:'Behaviors',antipsychotics:'Antipsychotics',wanderguards:'Wanderguards',bedAlarms:'Bed Alarms',hospice:'Hospice'};
+ var any_glance=false;
+ Object.keys(glance_sections).forEach(function(gk){
+  var gitems=w[gk]||[];
+  if(!gitems.length)return;
+  any_glance=true;
+  var gnames=gitems.map(function(gi){var gv=db.veterans.find(function(x){return x.id===gi.vet});return gv?esc(gv.name):gi.vetName?esc(gi.vetName):esc(gi.vet||'')}).filter(Boolean).join(', ');
+  html+='<span style="font-size:11px;padding:2px 6px;border-radius:4px"><b>'+esc(glance_sections[gk])+':</b> '+esc(gitems.length)+' ('+esc(gnames)+')</span>';
+ });
+ if(!any_glance)html+='<span class="muted" style="font-size:11px;font-style:italic">No entries this week.</span>';
+ html+='</div></div>';
+
  html+=qmPermanentTrackers();
  el.innerHTML=html;
 }
