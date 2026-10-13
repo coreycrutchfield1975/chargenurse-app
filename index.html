@@ -1822,10 +1822,12 @@ function generateReport(){
 function printReport(){if(!document.getElementById('morningPrint'))generateReport();printElement('morningPrint')}
 
 function printVetTreatments(id){
+ const w=window.open('','_blank');
+ if(!w){alert('Pop-up blocked - enable pop-ups to print.');return}
  let t=db.treatments.find(x=>x.id===id);
- if(!t)return;
+ if(!t){w.close();return}
  let v=db.veterans.find(x=>x.id===t.vetId);
- if(!v)return;
+ if(!v){w.close();return}
  // Get all treatments for this veteran, grouped by category
  let licensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Licensed');
  let nonLicensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Non-Licensed');
@@ -1877,8 +1879,6 @@ function printVetTreatments(id){
   });
   return html;
  }
- const w=window.open('','_blank');
- if(!w){alert('Pop-up blocked \u2014 enable pop-ups on this site to print.');return}
  w.document.write('<html><head><title>BravoShift Treatment Plan \u2014 '+esc(v.name)+'</title>'
   +'<style> @page{size:landscape;margin:.3in}'
   +'body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#1a0f00;padding:.2in;background:#fefcf7}'
