@@ -552,7 +552,7 @@ function showQmTrends(){
  var perm={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits'};
  Object.keys(perm).forEach(function(k){h+='<tr><td>'+esc(perm[k])+'</td><td style="text-align:center">'+((db.qmLog[k]||[]).length)+'</td></tr>'});
  h+='</tbody></table><p class="footer">BravoShift — QM Trends</p></body></html>';
- win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+ win.document.write(h);win.document.close();win.focus();
 }
 function viewAllTrackers(){
  var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
@@ -574,7 +574,7 @@ function viewAllTrackers(){
   });h+='</tbody></table>';
  });if(!any){h+='<p class="muted" style="font-style:italic">No permanent tracker data.</p>'}
  h+='<p class="footer" style="font-size:7px;color:#888;margin-top:6px;text-align:center">BravoShift — Permanent Tracker Report</p></body></html>';
- win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+ win.document.write(h);win.document.close();win.focus();
 }
 
 
@@ -636,7 +636,7 @@ function printVetDetail(vetId){
  });
  if(!found){h+='<p class="muted" style="font-style:italic;padding:20px;text-align:center">No QM entries found for this veteran.</p>'}
  h+='<p class="footer">BravoShift — Veteran QM Detail</p></body></html>';
- win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+ win.document.write(h);win.document.close();win.focus();
 }
 // ── Category Drill-Down (linked from Trends counts) ──
 // The Trends report already generates count tables. To view detail, clickable links are added.
@@ -658,7 +658,7 @@ function showCategoryDetail(weekId, sectionKey, sectionLabel){
   }).join('')+'</tr>';
  });
  h+='</tbody></table><p class="footer">BravoShift — Category Detail</p></body></html>';
- win.document.write(h);win.document.close();win.focus();setTimeout(function(){win.print()},350);
+ win.document.write(h);win.document.close();win.focus();
 }
 
 try {
