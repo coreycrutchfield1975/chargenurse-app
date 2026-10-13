@@ -1827,7 +1827,7 @@ function printVetTreatments(id){
  let t=db.treatments.find(x=>x.id===id);
  if(!t){alert('Print error: Treatment '+id+' not found in database.');w.close();return}
  let v=db.veterans.find(x=>x.id===t.vetId);
- if(!v){alert('Print error: Veteran '+t.vetId+' (treatment '+id+') not found in census.');w.close();return}
+ if(!v){v={name:'Unknown',room:'--',last4:''}}
  // Get all treatments for this veteran, grouped by category
  let licensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Licensed');
  let nonLicensed=db.treatments.filter(x=>x.vetId===t.vetId&&x.active!==false&&x.category==='Non-Licensed');
