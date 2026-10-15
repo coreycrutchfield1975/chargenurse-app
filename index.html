@@ -567,7 +567,7 @@ function viewAllTrackers(){
   items.forEach(function(item){
    h+='<tr>'+fields.map(function(f){
     var val=item[f.key]||'';
-    if(f.type==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+    if(f.type==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(cleanVetName(item.vetName)):esc(val)}
     if(f.type==='yesno'){val=val?'Yes':'No'}
     return '<td>'+esc(val)+'</td>';
    }).join('')+'</tr>';
@@ -613,7 +613,7 @@ function printVetDetail(vetId){
     found=true;
     h+='<h2>'+esc(labels[sk])+' — '+esc(wk)+'</h2><table><thead><tr>'+wkSections[sk].map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+wkSections[sk].map(function(f){
      var val=item[f]||'';
-     if(f==='vet'){var vv=db.veterans.find(function(x){return x.id===val});val=vv?esc(vv.name):item.vetName?esc(item.vetName):esc(val)}
+     if(f==='vet'){var vv=db.veterans.find(function(x){return x.id===val});val=vv?esc(vv.name):item.vetName?esc(cleanVetName(item.vetName)):esc(val)}
      return '<td>'+esc(val)+'</td>';
     }).join('')+'</tr></tbody></table>';
    });
@@ -652,7 +652,7 @@ function showCategoryDetail(weekId, sectionKey, sectionLabel){
  items.forEach(function(item){
   h+='<tr>'+fields.map(function(f){
    var val=item[f]||'';
-   if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+   if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(cleanVetName(item.vetName)):esc(val)}
    if(f==='cpUpdated'||f==='facilityAcquired'||f==='presentOnAdmission'||f==='carePlanned'||f==='maa'){val=val?'Yes':'No'}
    return '<td>'+esc(val)+'</td>';
   }).join('')+'</tr>';
@@ -863,6 +863,8 @@ function markDeleted(collection,id){
  if(!Array.isArray(db.metadata.deletedIds[collection]))db.metadata.deletedIds[collection]=[];
  if(!db.metadata.deletedIds[collection].includes(id))db.metadata.deletedIds[collection].push(id);
 }
+// Strip a trailing " (Room)" suffix from legacy vetName values so display is consistent (plain name only)
+function cleanVetName(n){return (n||'').replace(/\s*\([^)]*\)\s*$/,'')}
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
 function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
 function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
@@ -2405,7 +2407,7 @@ function renderQmWeekContent(weekId){
      ['vet','orderCpUpdated','maa','concerns'].forEach(function(f){
       var val=item[f]||'';
       if(f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
-      if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+      if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(cleanVetName(item.vetName)):esc(val)}
       html+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
      });
      html+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px;white-space:nowrap"><button onclick="openQmModal(\'hospice\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;margin-right:2px">Edit</button><button onclick="deleteQmEntry(\'hospice\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Del</button></td></tr>';
@@ -2423,7 +2425,7 @@ function renderQmWeekContent(weekId){
   var gitems=w[gk]||[];
   if(!gitems.length)return;
   any_glance=true;
-  var gnames=gitems.map(function(gi){var gv=db.veterans.find(function(x){return x.id===gi.vet});return gv?esc(gv.name):gi.vetName?esc(gi.vetName):esc(gi.vet||'')}).filter(Boolean).join(', ');
+  var gnames=gitems.map(function(gi){var gv=db.veterans.find(function(x){return x.id===gi.vet});return gv?esc(gv.name):gi.vetName?esc(cleanVetName(gi.vetName)):esc(gi.vet||'')}).filter(Boolean).join(', ');
   html+='<span style="font-size:11px;padding:2px 6px;border-radius:4px"><b>'+esc(glance_sections[gk])+':</b> '+esc(gitems.length)+' ('+esc(gnames)+')</span>';
  });
  if(!any_glance)html+='<span class="muted" style="font-size:11px;font-style:italic">No entries this week.</span>';
@@ -2445,7 +2447,7 @@ function qmSectionCard(section,label,w,fields){
    fields.forEach(function(f){
     var val=item[f]||'';
     if(f==='cpUpdated'||f==='facilityAcquired'||f==='presentOnAdmission'||f==='carePlanned'||f==='riskNote'||f==='orderCpUpdated'||f==='maa'){val=val?'Yes':'No'}
-    if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});val=v?esc(v.name):item.vetName?esc(item.vetName):esc(val)}
+    if(f==='vet'){var v=db.veterans.find(function(x){return x.id===val});var vname=v?v.name:(item.vetName?item.vetName.replace(/\s*\([^)]*\)\s*$/,''):val);val=esc(vname)}
     h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px">'+esc(val)+'</td>';
    });
    h+='<td style="padding:2px 4px;border:1px solid #eee;font-size:10px;white-space:nowrap"><button onclick="openQmModal(\''+section+'\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;margin-right:2px">Edit</button><button onclick="deleteQmEntry(\''+section+'\',\''+esc(item._id||i)+'\',\''+esc(w.meetingDate||'')+'\')" style="font-size:10px;padding:1px 6px;background:var(--red);color:white;border:none;border-radius:3px">Del</button></td>'
@@ -2511,9 +2513,14 @@ function openQmModal(section,editId,weekId){
  fields.forEach(function(f){
   content+='<div style="margin:2px 0"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>';
   if(f.type==='vet'){
-   content+='<div style="display:flex;gap:4px;align-items:center"><input type="text" id="qmF_'+f.key+'" list="qmF_'+f.key+'_list" value="'+esc(entry[f.key]||'')+'" style="flex:1;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00" placeholder="Type veteran name or ID"><datalist id="qmF_'+f.key+'_list">';
+   var vetDisplayVal=entry[f.key]||'';
+   if(vetDisplayVal){
+    var vetMatch=db.veterans.find(function(x){return x.id===vetDisplayVal});
+    vetDisplayVal=vetMatch?vetMatch.name:(entry.vetName?cleanVetName(entry.vetName):vetDisplayVal);
+   }
+   content+='<div style="display:flex;gap:4px;align-items:center"><input type="text" id="qmF_'+f.key+'" list="qmF_'+f.key+'_list" value="'+esc(vetDisplayVal)+'" style="flex:1;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00" placeholder="Type veteran name or ID"><datalist id="qmF_'+f.key+'_list">';
    var qmVets={};
-   if(db.qmLog&&db.qmLog.weeks){var wkarr=Object.keys(db.qmLog.weeks);for(var wi=0;wi<wkarr.length;wi++){var w=db.qmLog.weeks[wkarr[wi]];var sks=Object.keys(w);for(var si=0;si<sks.length;si++){if(Array.isArray(w[sks[si]])){for(var ei=0;ei<w[sks[si]].length;ei++){var e=w[sks[si]][ei];if(e&&e[f.key]){var evm=db.veterans.find(function(x){return x.id===e[f.key]});var fallbackName=evm?evm.name+' ('+evm.room+')':(e.vetName||e[f.key]);qmVets[e[f.key]]=fallbackName}}}}}}db.veterans.forEach(function(v){qmVets[v.id]=v.name+' ('+v.room+')'});
+   if(db.qmLog&&db.qmLog.weeks){var wkarr=Object.keys(db.qmLog.weeks);for(var wi=0;wi<wkarr.length;wi++){var w=db.qmLog.weeks[wkarr[wi]];var sks=Object.keys(w);for(var si=0;si<sks.length;si++){if(Array.isArray(w[sks[si]])){for(var ei=0;ei<w[sks[si]].length;ei++){var e=w[sks[si]][ei];if(e&&e[f.key]){var evm=db.veterans.find(function(x){return x.id===e[f.key]});var fallbackName=evm?evm.name+' ('+evm.room+')':(e.vetName?cleanVetName(e.vetName):e[f.key]);qmVets[e[f.key]]=fallbackName}}}}}}db.veterans.forEach(function(v){qmVets[v.id]=v.name+' ('+v.room+')'});
    Object.keys(qmVets).sort().forEach(function(id){content+='<option value="'+esc(id)+'">'+esc(qmVets[id])+'</option>'});
    content+='</datalist></div>';
   }else if(f.type==='yesno'){
@@ -2556,7 +2563,7 @@ function saveQmModal(section,editId,weekId){
   if(el)entry[f.key]=el.value;
   if(f.type==='vet'&&el.value){
    var vm=db.veterans.find(function(x){return x.id===el.value});
-   entry.vetName=vm?vm.name+' ('+vm.room+')':el.value;
+   entry.vetName=vm?vm.name:el.value;
   }
  });
  if(editId&&editId!==''){
@@ -2724,7 +2731,7 @@ function saveQmModalAndNext(section,editId,weekId){
   if(el)entry[f.key]=el.value;
   if(f.type==='vet'&&el.value){
    var vm=db.veterans.find(function(x){return x.id===el.value});
-   entry.vetName=vm?vm.name+' ('+vm.room+')':el.value;
+   entry.vetName=vm?vm.name:el.value;
   }
  });
  if(editId&&editId!==''){
@@ -2834,7 +2841,7 @@ function printQmWeek(){
   var its=db.qmLog[ps.k]||[];if(!its.length)return;
   html+='<div class="section" style="page-break-inside:avoid"><h2>'+esc(ps.l)+'</h2><table><tr>';
   var ks=Object.keys(its[0]).filter(function(k){return k!=='_id'});ks.forEach(function(k){html+='<th>'+esc(k)+'</th>'});html+='</tr>';
-  its.forEach(function(it){html+='<tr>';ks.forEach(function(k){var vl=it[k]||'';if(k==='vet'){var v=db.veterans.find(function(x){return x.id===vl});vl=v?esc(v.name):it.vetName?esc(it.vetName):esc(vl)}html+='<td>'+esc(vl)+'</td>'});html+='</tr>'});
+  its.forEach(function(it){html+='<tr>';ks.forEach(function(k){var vl=it[k]||'';if(k==='vet'){var v=db.veterans.find(function(x){return x.id===vl});vl=v?esc(v.name):it.vetName?esc(cleanVetName(it.vetName)):esc(vl)}html+='<td>'+esc(vl)+'</td>'});html+='</tr>'});
   html+='</table></div>';
  });
  html+='<div class="footer">Generated by BravoShift — '+new Date().toLocaleDateString()+'</div></body></html>';
