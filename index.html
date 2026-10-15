@@ -855,13 +855,13 @@ let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 let autoSaveDir=null,lastSyncKey='',syncTimer=null;
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
 function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
-function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});return String(max)}
+function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
 async function autoSave(){try{lastSyncKey=currentKey();let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
 async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
 function mergeRecords(local,remote){
  var changed=false;
  // Merge arrays with IDs (veterans, appointments, treatments, providers, sops)
- ['veterans','appointments','treatments','providers','sops'].forEach(function(k){
+ ['veterans','appointments','treatments','providers','sops','ptCareSheets'].forEach(function(k){
   if(!Array.isArray(local[k]))return;
   var lmap={},rmap={};
   (local[k]||[]).forEach(function(r){lmap[r.id]=r});
@@ -894,8 +894,42 @@ function mergeRecords(local,remote){
   });
   local[k]=merged;
  });
+ // Merge QM Log: weeks merge by date-key (newer _updatedAt wins per week), permanent trackers merge by _id
+ if(remote.qmLog){
+  if(!local.qmLog){local.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+  // Merge weeks: union of both, newer _updatedAt wins on conflict
+  if(remote.qmLog.weeks){
+   Object.keys(remote.qmLog.weeks).forEach(function(wk){
+    var lw=local.qmLog.weeks[wk],rw=remote.qmLog.weeks[wk];
+    if(!lw){
+     local.qmLog.weeks[wk]=rw;
+     changed=true;
+    }else{
+     var lt=new Date(lw._updatedAt||0).getTime(),rt=new Date(rw._updatedAt||0).getTime();
+     if(rt>lt){
+      local.qmLog.weeks[wk]=rw;
+      changed=true;
+     }
+    }
+   });
+  }
+  // Merge permanent trackers by _id/id, dedupe
+  ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){
+   var rArr=remote.qmLog[pk]||[];
+   if(!rArr.length)return;
+   if(!local.qmLog[pk])local.qmLog[pk]=[];
+   rArr.forEach(function(rItem){
+    var rId=rItem._id||rItem.id;
+    var exists=local.qmLog[pk].some(function(lItem){return (lItem._id||lItem.id)===rId});
+    if(!exists){
+     local.qmLog[pk].push(rItem);
+     changed=true;
+    }
+   });
+  });
+ }
  // Merge objects (staff, travel, tickets, treatmentCompletions, managedLists, dailyLogs, metadata)
- ['staff','travel','tickets','treatmentCompletions','managedLists','dailyLogs','metadata'].forEach(function(k){
+ ['staff','travel','tickets','treatmentCompletions','managedLists','dailyLogs','snapshots','metadata'].forEach(function(k){
   if(typeof local[k]!=='object'||local[k]===null)return;
   if(typeof remote[k]!=='object'||remote[k]===null)return;
   var l=local[k],r=remote[k];
@@ -1902,7 +1936,7 @@ function printVetTreatments(id){
   +'</body></html>');
  w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
-function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');w.document.write(`<html><head><title>Print</title>
+function printElement(id){let el=document.getElementById(id);let w=window.open('','_blank');if(!w){alert('Pop-up blocked \u2014 enable pop-ups on this site to print.');return}w.document.write(`<html><head><title>Print</title>
 <style>${document.querySelector('style').innerHTML}@page{size:landscape;margin:.3in}body{background:white;padding:0}.printsheet{border:0}</style></head><body>${el.outerHTML}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250)}
 function addProvider(){if(!pName.value.trim())return;let clinic=pClinic.value.trim();db.providers.push({id:'p'+Date.now(),_updatedAt:new Date().toISOString(),name:pName.value.trim(),clinic,specialty:clinic,facility:pFacility.value.trim(),address:pAddress.value.trim(),city:pCity.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pClinic','pFacility','pAddress','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
 function editProvider(id){let p=db.providers.find(x=>x.id===id);if(!p)return;let name=prompt('Provider name:',p.name);if(name===null)return;name=name.trim();if(!name){alert('Provider name cannot be blank.');return}let clinic=prompt('Clinic / specialty:',providerClinic(p));if(clinic===null)return;let facility=prompt('Facility:',p.facility||'');if(facility===null)return;let address=prompt('Address:',p.address||'');if(address===null)return;let city=prompt('City:',p.city||'');if(city===null)return;let phone=prompt('Phone:',p.phone||'');if(phone===null)return;Object.assign(p,{name,clinic:clinic.trim(),specialty:clinic.trim(),facility:facility.trim(),address:address.trim(),city:city.trim(),phone:phone.trim(),_updatedAt:new Date().toISOString()});persist();renderAll()}
@@ -2257,6 +2291,7 @@ function addQmWeek(){
  var prev=Object.keys(db.qmLog.weeks||{}).sort().reverse()[0];
  var newWeek=prev?JSON.parse(JSON.stringify(db.qmLog.weeks[prev])):{meetingDate:d,reviewPeriod:'',attendance:[],falls:[],pressureUlcers:[],weightChanges:[],catheters:[],behaviors:[],antipsychotics:[],wanderguards:[],bedAlarms:[],hospice:[],otherIssues:''};
  newWeek.meetingDate=d;
+ newWeek._updatedAt=new Date().toISOString();
  db.qmLog.weeks[d]=newWeek;
  persist();
  populateQmWeekSelect();
@@ -2487,6 +2522,7 @@ function deleteQmEntry(section,id,weekId){
  var w=db.qmLog.weeks[sel.value];
  if(!w||!w[section])return;
  w[section]=w[section].filter(function(x){return x._id!==id});
+ w._updatedAt=new Date().toISOString();
  persist();
  renderQmWeekContent(sel.value);
 }
@@ -2641,6 +2677,7 @@ function saveQmModalAndNext(section,editId,weekId){
   entry._id='qm_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   w[section].push(entry);
  }
+ w._updatedAt=new Date().toISOString();
  closeQmModal();
  persist();
  renderQmWeekContent(sel.value);
@@ -2886,8 +2923,9 @@ function savePtCareSheet(){
  db.ptCareSheets=db.ptCareSheets||[];
  var existingIndex=-1;
  if(cfg.id!==undefined&&cfg.id!==null){existingIndex=cfg.id}
- if(existingIndex>=0){db.ptCareSheets[existingIndex]={date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames};alert('Configuration updated.');}
- else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames});alert('Configuration saved.');}
+ var now=new Date().toISOString();
+ if(existingIndex>=0){var existingId=db.ptCareSheets[existingIndex].id;db.ptCareSheets[existingIndex]={id:existingId,date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames,_updatedAt:now};alert('Configuration updated.');}
+ else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames,_updatedAt:now});alert('Configuration saved.');}
  persist();renderPtCareSheetList();
 }
 function editPtCareSheet(idx){
@@ -2909,8 +2947,9 @@ function editPtCareSheet(idx){
   if(!cfg.date){alert('Date is required.');return}
   var idx=window.__ptCareEditIdx;
   var sheets=db.ptCareSheets||[];
-  if(idx>=0&&idx<sheets.length){sheets[idx]={date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames};alert('Configuration updated.');}
-  else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames});alert('Configuration saved.');}
+  var now=new Date().toISOString();
+  if(idx>=0&&idx<sheets.length){var existingId=sheets[idx].id;sheets[idx]={id:existingId,date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames,_updatedAt:now};alert('Configuration updated.');}
+  else{db.ptCareSheets.push({id:'pcs_'+Date.now(),date:cfg.date,wing:cfg.wing,day:cfg.day,night:cfg.night,vetIds:cfg.vetIds,vetNames:cfg.vetNames,_updatedAt:now});alert('Configuration saved.');}
   persist();renderPtCareSheetList();savePtCareSheet=origSave;
  };
 }
