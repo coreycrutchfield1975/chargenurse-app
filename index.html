@@ -2518,10 +2518,11 @@ function openQmModal(section,editId,weekId){
     var vetMatch=db.veterans.find(function(x){return x.id===vetDisplayVal});
     vetDisplayVal=vetMatch?vetMatch.name:(entry.vetName?cleanVetName(entry.vetName):vetDisplayVal);
    }
-   content+='<div style="display:flex;gap:4px;align-items:center"><input type="text" id="qmF_'+f.key+'" list="qmF_'+f.key+'_list" value="'+esc(vetDisplayVal)+'" style="flex:1;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00" placeholder="Type veteran name or ID"><datalist id="qmF_'+f.key+'_list">';
-   var qmVets={};
-   if(db.qmLog&&db.qmLog.weeks){var wkarr=Object.keys(db.qmLog.weeks);for(var wi=0;wi<wkarr.length;wi++){var w=db.qmLog.weeks[wkarr[wi]];var sks=Object.keys(w);for(var si=0;si<sks.length;si++){if(Array.isArray(w[sks[si]])){for(var ei=0;ei<w[sks[si]].length;ei++){var e=w[sks[si]][ei];if(e&&e[f.key]){var evm=db.veterans.find(function(x){return x.id===e[f.key]});var fallbackName=evm?evm.name+' ('+evm.room+')':(e.vetName?cleanVetName(e.vetName):e[f.key]);qmVets[e[f.key]]=fallbackName}}}}}}db.veterans.forEach(function(v){qmVets[v.id]=v.name+' ('+v.room+')'});
-   Object.keys(qmVets).sort().forEach(function(id){content+='<option value="'+esc(id)+'">'+esc(qmVets[id])+'</option>'});
+   // Visible input shows/takes the veteran's NAME only (datalist option value = name, so browser autofill shows the name, not an ID)
+   content+='<div style="display:flex;gap:4px;align-items:center"><input type="text" id="qmF_'+f.key+'" list="qmF_'+f.key+'_list" value="'+esc(vetDisplayVal)+'" style="flex:1;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff;color:#1a0f00" placeholder="Type veteran name" autocomplete="off"><datalist id="qmF_'+f.key+'_list">';
+   var qmVetNames={};
+   if(db.qmLog&&db.qmLog.weeks){var wkarr=Object.keys(db.qmLog.weeks);for(var wi=0;wi<wkarr.length;wi++){var w=db.qmLog.weeks[wkarr[wi]];var sks=Object.keys(w);for(var si=0;si<sks.length;si++){if(Array.isArray(w[sks[si]])){for(var ei=0;ei<w[sks[si]].length;ei++){var e=w[sks[si]][ei];if(e&&e[f.key]){var evm=db.veterans.find(function(x){return x.id===e[f.key]});var fallbackName=evm?evm.name:(e.vetName?cleanVetName(e.vetName):'');if(fallbackName)qmVetNames[fallbackName]=true}}}}}}db.veterans.forEach(function(v){qmVetNames[v.name]=true});
+   Object.keys(qmVetNames).sort().forEach(function(nm){content+='<option value="'+esc(nm)+'"></option>'});
    content+='</datalist></div>';
   }else if(f.type==='yesno'){
    content+='<select id="qmF_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;background:#fff"><option value="">--</option><option value="Yes"'+(entry[f.key]==='Yes'?' selected':'')+'>Yes</option><option value="No"'+(entry[f.key]==='No'?' selected':'')+'>No</option></select>';
@@ -2562,8 +2563,11 @@ function saveQmModal(section,editId,weekId){
   var el=document.getElementById('qmF_'+f.key);
   if(el)entry[f.key]=el.value;
   if(f.type==='vet'&&el.value){
-   var vm=db.veterans.find(function(x){return x.id===el.value});
-   entry.vetName=vm?vm.name:el.value;
+   // el.value is now a typed/selected veteran NAME (not an ID) - resolve it to the real veteran record
+   var typed=el.value.trim();
+   var vm=db.veterans.find(function(x){return x.name.toLowerCase()===typed.toLowerCase()});
+   if(vm){entry[f.key]=vm.id;entry.vetName=vm.name}
+   else{entry[f.key]=typed;entry.vetName=typed}
   }
  });
  if(editId&&editId!==''){
@@ -2730,8 +2734,11 @@ function saveQmModalAndNext(section,editId,weekId){
   var el=document.getElementById('qmF_'+f.key);
   if(el)entry[f.key]=el.value;
   if(f.type==='vet'&&el.value){
-   var vm=db.veterans.find(function(x){return x.id===el.value});
-   entry.vetName=vm?vm.name:el.value;
+   // el.value is now a typed/selected veteran NAME (not an ID) - resolve it to the real veteran record
+   var typed=el.value.trim();
+   var vm=db.veterans.find(function(x){return x.name.toLowerCase()===typed.toLowerCase()});
+   if(vm){entry[f.key]=vm.id;entry.vetName=vm.name}
+   else{entry[f.key]=typed;entry.vetName=typed}
   }
  });
  if(editId&&editId!==''){
