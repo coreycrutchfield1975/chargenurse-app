@@ -663,11 +663,11 @@ function showCategoryDetail(weekId, sectionKey, sectionLabel){
 
 try {
 db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
-  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[]}
+  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[]}}
  };
 } catch (e) {
  console.error('Failed to load database from localStorage:', e.message);
- db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[]}};
+ db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[]}}};
 }
 // Migrate SOPs from localStorage to db.sops (runs on every page load)
 if (!db.sops || db.sops.length === 0) {
@@ -853,6 +853,16 @@ if (typeof migrateData === 'function') {
 }
 let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 let autoSaveDir=null,lastSyncKey='',syncTimer=null;
+// Migration guard: ensure older saved databases get the deletedIds tombstone structure
+if(!db.metadata)db.metadata={deletedVeterans:[]};
+if(!db.metadata.deletedIds)db.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[]};
+['appointments','treatments','providers','sops','ptCareSheets','tickets','qmWeeks','qmPerm'].forEach(function(k){if(!Array.isArray(db.metadata.deletedIds[k]))db.metadata.deletedIds[k]=[]});
+// Helper: record a tombstone so other computers know this ID was intentionally deleted
+function markDeleted(collection,id){
+ if(!db.metadata.deletedIds)db.metadata.deletedIds={};
+ if(!Array.isArray(db.metadata.deletedIds[collection]))db.metadata.deletedIds[collection]=[];
+ if(!db.metadata.deletedIds[collection].includes(id))db.metadata.deletedIds[collection].push(id);
+}
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
 function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
 function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
@@ -860,7 +870,24 @@ async function autoSave(){try{lastSyncKey=currentKey();let f=await autoSaveDir.g
 async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
 function mergeRecords(local,remote){
  var changed=false;
- // Merge arrays with IDs (veterans, appointments, treatments, providers, sops)
+ if(!local.metadata)local.metadata={deletedVeterans:[]};
+ if(!local.metadata.deletedIds)local.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[]};
+ // Union tombstone lists FIRST so deletions from either computer are honored during this merge pass
+ if(remote.metadata&&remote.metadata.deletedVeterans){
+  var mergedVet=(local.metadata.deletedVeterans||[]).concat((remote.metadata.deletedVeterans||[]).filter(function(id){return (local.metadata.deletedVeterans||[]).indexOf(id)===-1}));
+  if(JSON.stringify(mergedVet)!==JSON.stringify(local.metadata.deletedVeterans)){local.metadata.deletedVeterans=mergedVet;changed=true}
+ }
+ if(remote.metadata&&remote.metadata.deletedIds){
+  Object.keys(remote.metadata.deletedIds).forEach(function(coll){
+   if(!Array.isArray(local.metadata.deletedIds[coll]))local.metadata.deletedIds[coll]=[];
+   var rIds=remote.metadata.deletedIds[coll]||[];
+   var merged=(local.metadata.deletedIds[coll]||[]).concat(rIds.filter(function(id){return (local.metadata.deletedIds[coll]||[]).indexOf(id)===-1}));
+   if(JSON.stringify(merged)!==JSON.stringify(local.metadata.deletedIds[coll])){local.metadata.deletedIds[coll]=merged;changed=true}
+  });
+ }
+ var dIds=local.metadata.deletedIds;
+ // Merge arrays with IDs (veterans, appointments, treatments, providers, sops, ptCareSheets)
+ var arrDeletedKeyMap={appointments:'appointments',treatments:'treatments',providers:'providers',sops:'sops',ptCareSheets:'ptCareSheets'};
  ['veterans','appointments','treatments','providers','sops','ptCareSheets'].forEach(function(k){
   if(!Array.isArray(local[k]))return;
   var lmap={},rmap={};
@@ -870,9 +897,13 @@ function mergeRecords(local,remote){
   Object.keys(rmap).forEach(function(id){
    var lr=lmap[id],rr=rmap[id];
    // For veterans, check if ID is in deleted list
-   if(k==='veterans' && local.metadata && local.metadata.deletedVeterans && local.metadata.deletedVeterans.includes(id)){
-    // Skip this veteran - it was deleted locally
-    return;
+   if(k==='veterans' && local.metadata.deletedVeterans && local.metadata.deletedVeterans.includes(id)){
+    return; // deleted locally (or remotely, now unioned) - don't resurrect
+   }
+   // For all other collections, check the generalized tombstone list
+   var dKey=arrDeletedKeyMap[k];
+   if(dKey && dIds[dKey] && dIds[dKey].includes(id)){
+    return; // deleted - don't resurrect
    }
    if(!lr){
     merged.push(rr);
@@ -897,9 +928,10 @@ function mergeRecords(local,remote){
  // Merge QM Log: weeks merge by date-key (newer _updatedAt wins per week), permanent trackers merge by _id
  if(remote.qmLog){
   if(!local.qmLog){local.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
-  // Merge weeks: union of both, newer _updatedAt wins on conflict
+  // Merge weeks: union of both, newer _updatedAt wins on conflict, skip tombstoned weeks
   if(remote.qmLog.weeks){
    Object.keys(remote.qmLog.weeks).forEach(function(wk){
+    if(dIds.qmWeeks && dIds.qmWeeks.includes(wk))return; // week was deleted - don't resurrect
     var lw=local.qmLog.weeks[wk],rw=remote.qmLog.weeks[wk];
     if(!lw){
      local.qmLog.weeks[wk]=rw;
@@ -913,19 +945,30 @@ function mergeRecords(local,remote){
     }
    });
   }
-  // Merge permanent trackers by _id/id, dedupe
+  // Remove any locally-deleted weeks that might still be sitting in local (defensive re-filter)
+  if(dIds.qmWeeks&&dIds.qmWeeks.length){
+   dIds.qmWeeks.forEach(function(wk){if(local.qmLog.weeks[wk]){delete local.qmLog.weeks[wk];changed=true}});
+  }
+  // Merge permanent trackers by _id/id, dedupe, skip tombstoned entries
   ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){
    var rArr=remote.qmLog[pk]||[];
    if(!rArr.length)return;
    if(!local.qmLog[pk])local.qmLog[pk]=[];
    rArr.forEach(function(rItem){
     var rId=rItem._id||rItem.id;
+    if(dIds.qmPerm && dIds.qmPerm.includes(rId))return; // deleted - don't resurrect
     var exists=local.qmLog[pk].some(function(lItem){return (lItem._id||lItem.id)===rId});
     if(!exists){
      local.qmLog[pk].push(rItem);
      changed=true;
     }
    });
+   // Defensive re-filter of local perm tracker entries against tombstones
+   if(dIds.qmPerm&&dIds.qmPerm.length){
+    var before=local.qmLog[pk].length;
+    local.qmLog[pk]=local.qmLog[pk].filter(function(item){return !dIds.qmPerm.includes(item._id||item.id)});
+    if(local.qmLog[pk].length!==before)changed=true;
+   }
   });
  }
  // Merge objects (staff, travel, tickets, treatmentCompletions, managedLists, dailyLogs, metadata)
@@ -935,14 +978,8 @@ function mergeRecords(local,remote){
   var l=local[k],r=remote[k];
   var keys=Object.keys(r);
   keys.forEach(function(key){
-   // Special handling for deletedVeterans: union both lists so deletions from any computer are preserved
-   if(key==='deletedVeterans'){
-    var mergedVet = (l[key]||[]).concat((r[key]||[]).filter(function(id){return (l[key]||[]).indexOf(id)===-1}));
-    if(JSON.stringify(mergedVet)!==JSON.stringify(l[key])){
-     l[key]=mergedVet;changed=true;
-    }
-    return;
-   }
+   // deletedVeterans and deletedIds are already unioned above - skip them here to avoid overwrite
+   if(key==='deletedVeterans'||key==='deletedIds')return;
    if(!l[key]||JSON.stringify(l[key])!==JSON.stringify(r[key])){
     l[key]=r[key];
     changed=true;
@@ -955,6 +992,17 @@ function mergeRecords(local,remote){
   var before=local.veterans.length;
   local.veterans=local.veterans.filter(function(v){return !dv.includes(v.id)});
   if(local.veterans.length!==before)changed=true;
+ }
+ // Re-apply generalized tombstone filters for array collections (defensive, in case of stale local data)
+ ['appointments','treatments','providers','sops','ptCareSheets'].forEach(function(k){
+  if(!Array.isArray(local[k])||!dIds[k]||!dIds[k].length)return;
+  var before=local[k].length;
+  local[k]=local[k].filter(function(r){return !dIds[k].includes(r.id)});
+  if(local[k].length!==before)changed=true;
+ });
+ // Clean up tombstoned tickets objects too (tickets is keyed-object, not array)
+ if(dIds.tickets&&dIds.tickets.length&&local.tickets){
+  dIds.tickets.forEach(function(tid){if(local.tickets[tid]){delete local.tickets[tid];changed=true}});
  }
  return changed}
 function startSyncPolling(){if(syncTimer)clearInterval(syncTimer);syncTimer=setInterval(autoImport,5000);lastSyncKey=currentKey()}
@@ -1247,7 +1295,9 @@ function deleteVeteran(id){
  db.metadata.deletedVeterans.push(id);
  db.appointments=db.appointments.filter(a=>a.vetId!==id);
  db.treatments=db.treatments.filter(t=>t.vetId!==id);
- appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];delete db.tickets[appointmentId]});
+ appointmentIds.forEach(appointmentId=>{delete db.travel[appointmentId];if(db.tickets[appointmentId])markDeleted('tickets',appointmentId);delete db.tickets[appointmentId]});
+ appointmentIds.forEach(aid=>markDeleted('appointments',aid));
+ treatmentIds.forEach(tid=>markDeleted('treatments',tid));
  Object.keys(db.treatmentCompletions).forEach(key=>{if(treatmentIds.has(key.split('|')[0]))delete db.treatmentCompletions[key]});
  
  // Extra save to ensure sync picks up the deletion immediately
@@ -1456,6 +1506,8 @@ function deleteAppointment(id){
  if(!answer||answer.trim().toUpperCase()!=='DELETE')return;
  delete db.travel[id];delete db.tickets[id];
  db.appointments=db.appointments.filter(x=>x.id!==id);
+ markDeleted('appointments',id);
+ if(hasTicket)markDeleted('tickets',id);
  persist();renderAll();
  alert('Appointment cancelled and removed.'+(hasTravel?' Travel request deleted.':'')+(hasTicket?' Ticket deleted.':''))
 }
@@ -1555,6 +1607,7 @@ function deleteTicket(){
  let label=(v? v.room+' — '+v.name+' ('+v.last4+')':'this appointment');
  if(!confirm('Delete the Ticket to Ride for '+label+'?'))return;
  delete db.tickets[currentDocAppt.id];
+ markDeleted('tickets',currentDocAppt.id);
  persist();closeModal('ticketModal');renderAll()
 }
 function buildTravel(){
@@ -1752,6 +1805,7 @@ function deleteTreatment(id){
  if(!answer||answer.trim().toUpperCase()!=='DELETE')return;
  Object.keys(db.treatmentCompletions||{}).forEach(k=>{if(k.startsWith('s'+t.id+'|'))delete db.treatmentCompletions[k]});
  db.treatments=db.treatments.filter(x=>x.id!==id);
+ markDeleted('treatments',id);
  persist();renderAll();
  alert('Treatment plan deleted.'+(db.treatmentCompletions?'':''))
 }
@@ -1941,7 +1995,7 @@ function printElement(id){let el=document.getElementById(id);let w=window.open('
 function addProvider(){if(!pName.value.trim())return;let clinic=pClinic.value.trim();db.providers.push({id:'p'+Date.now(),_updatedAt:new Date().toISOString(),name:pName.value.trim(),clinic,specialty:clinic,facility:pFacility.value.trim(),address:pAddress.value.trim(),city:pCity.value.trim(),phone:pPhone.value.trim(),active:true});['pName','pClinic','pFacility','pAddress','pCity','pPhone'].forEach(id=>document.getElementById(id).value='');persist();renderAll()}
 function editProvider(id){let p=db.providers.find(x=>x.id===id);if(!p)return;let name=prompt('Provider name:',p.name);if(name===null)return;name=name.trim();if(!name){alert('Provider name cannot be blank.');return}let clinic=prompt('Clinic / specialty:',providerClinic(p));if(clinic===null)return;let facility=prompt('Facility:',p.facility||'');if(facility===null)return;let address=prompt('Address:',p.address||'');if(address===null)return;let city=prompt('City:',p.city||'');if(city===null)return;let phone=prompt('Phone:',p.phone||'');if(phone===null)return;Object.assign(p,{name,clinic:clinic.trim(),specialty:clinic.trim(),facility:facility.trim(),address:address.trim(),city:city.trim(),phone:phone.trim(),_updatedAt:new Date().toISOString()});persist();renderAll()}
 function archiveProvider(id){let p=db.providers.find(x=>x.id===id);if(p){p.active=!p.active;persist();renderAll()}}
-function deleteProvider(id){let p=db.providers.find(x=>x.id===id);if(!p)return;let used=db.appointments.filter(a=>a.providerId===id).length;if(used){alert(`This provider is used by ${used} appointment(s) and cannot be deleted. Archive it to preserve history.`);return}if(confirm(`Delete ${esc(p.name)}? This cannot be undone.`)){db.providers=db.providers.filter(x=>x.id!==id);persist();renderAll()}}
+function deleteProvider(id){let p=db.providers.find(x=>x.id===id);if(!p)return;let used=db.appointments.filter(a=>a.providerId===id).length;if(used){alert(`This provider is used by ${used} appointment(s) and cannot be deleted. Archive it to preserve history.`);return}if(confirm(`Delete ${esc(p.name)}? This cannot be undone.`)){db.providers=db.providers.filter(x=>x.id!==id);markDeleted('providers',id);persist();renderAll()}}
 function printProviders(){
  const active=db.providers.filter(p=>p.active).sort((a,b)=>a.name.localeCompare(b.name));
  if(!active.length){alert('No active providers to print.');return}
@@ -2238,6 +2292,7 @@ function addSop(){
 function deleteSop(id){
  db.sops=db.sops||[];
  db.sops=db.sops.filter(function(e){return e.id!==id});
+ markDeleted('sops',id);
  persist();
  renderSops();
 }
@@ -2304,6 +2359,7 @@ function deleteQmWeek(){
  if(!sel||!sel.value)return;
  if(!confirm('Delete week '+sel.value+' and all its data? This cannot be undone.'))return;
  delete db.qmLog.weeks[sel.value];
+ markDeleted('qmWeeks',sel.value);
  persist();
  populateQmWeekSelect();
  var el=document.getElementById('qmContent');
@@ -2624,6 +2680,7 @@ function deletePermEntryInline(section,id){
  if(!confirm('Delete this entry?'))return;
  if(!db.qmLog[section])return;
  db.qmLog[section]=db.qmLog[section].filter(function(x){return x._id!==id});
+ markDeleted('qmPerm',id);
  persist();
  refreshPermTable(section);
  var sel=document.getElementById('qmWeekSelect');
@@ -2958,6 +3015,7 @@ function deletePtCareSheet(idx){
  if(idx<0||idx>=sheets.length)return;
  var s=sheets[idx];
  if(!confirm('Delete PT Care configuration for '+s.date+' — '+s.wing+'?'))return;
+ if(s.id)markDeleted('ptCareSheets',s.id);
  db.ptCareSheets.splice(idx,1);
  persist();renderPtCareSheetList();
 }
