@@ -601,39 +601,55 @@ function printVetDetail(vetId){
  var v=db.veterans.find(function(x){return x.id===vetId});
  var vname=v?esc(v.name)+' ('+esc(v.room)+')':esc(vetId);
  var h='<html><head><title>QM Detail - '+vname+'</title><style>@page{size:landscape;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:14px;margin:0}h2{font-size:12px;margin:8px 0 2px;background:#ede4d0;padding:2px 4px;border:1px solid #999}table{width:100%;border-collapse:collapse;margin:2px 0}th{background:#f0e6d6;padding:2px 4px;border:1px solid #999;font-size:9px;text-align:left}td{padding:2px 4px;border:1px solid #999;font-size:9px}.footer{font-size:7px;color:#888;margin-top:6px;text-align:center}@media print{th{background:#f0e6d6!important}}</style></head><body>';
- h+='<h1>QM Detail: '+vname+'</h1><p class="sub">Generated '+new Date().toLocaleDateString()+'</p>';
+ h+='<h1>QM Detail: '+vname+'</h1><p class="sub">Generated '+new Date().toLocaleDateString()+' — grouped by category, all weeks combined</p>';
  var found=false;
- var wkSections={falls:['vet','date','cpUpdated','notes'],pressureUlcers:['vet','presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],weightChanges:['vet','lossGain','cpUpdated','notes'],catheters:['vet','type','providerOrder','reason','notes'],behaviors:['vet','behaviors','notes'],antipsychotics:['vet','medication','lastGdr','cpUpdated','dose','notes'],wanderguards:['vet','placed','carePlanned','riskNote'],bedAlarms:['vet','cpUpdated','notes'],hospice:['vet','orderCpUpdated','maa','concerns']};
+ var wkSections={falls:['date','cpUpdated','notes'],pressureUlcers:['presentOnAdmission','dateAcquired','cpUpdated','facilityAcquired','notes'],weightChanges:['lossGain','cpUpdated','notes'],catheters:['type','providerOrder','reason','notes'],behaviors:['behaviors','notes'],antipsychotics:['medication','lastGdr','cpUpdated','dose','notes'],wanderguards:['placed','carePlanned','riskNote'],bedAlarms:['cpUpdated','notes'],hospice:['orderCpUpdated','maa','concerns']};
  var labels={falls:'Falls',pressureUlcers:'Pressure Ulcers',weightChanges:'Weight Changes',catheters:'Catheters',behaviors:'Behaviors',antipsychotics:'Antipsychotics',wanderguards:'Wanderguards',bedAlarms:'Bed Alarms',hospice:'Hospice'};
- // Scan all weeks for this veteran
+ // Collect ALL weekly entries for this veteran, grouped by category (section), across all weeks
+ var byCategory={};
+ Object.keys(wkSections).forEach(function(sk){byCategory[sk]=[]});
  Object.keys(db.qmLog.weeks||{}).sort().forEach(function(wk){
   var w=db.qmLog.weeks[wk];
   Object.keys(wkSections).forEach(function(sk){
    (w[sk]||[]).forEach(function(item){
     if(item.vet!==vetId)return;
-    found=true;
-    h+='<h2>'+esc(labels[sk])+' — '+esc(wk)+'</h2><table><thead><tr>'+wkSections[sk].map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+wkSections[sk].map(function(f){
-     var val=item[f]||'';
-     if(f==='vet'){var vv=db.veterans.find(function(x){return x.id===val});val=vv?esc(vv.name):item.vetName?esc(cleanVetName(item.vetName)):esc(val)}
-     return '<td>'+esc(val)+'</td>';
-    }).join('')+'</tr></tbody></table>';
+    byCategory[sk].push({weekId:wk,item:item});
    });
   });
  });
- // Check permanent trackers
+ // Render one table per category, with all weeks' entries for that category together, dated/sorted by week
+ Object.keys(wkSections).forEach(function(sk){
+  var entries=byCategory[sk];
+  if(!entries.length)return;
+  found=true;
+  var cols=['Week'].concat(wkSections[sk]);
+  h+='<h2>'+esc(labels[sk])+' ('+entries.length+' entr'+(entries.length===1?'y':'ies')+')</h2><table><thead><tr>'+cols.map(function(f){return '<th>'+esc(f)+'</th>'}).join('')+'</tr></thead><tbody>';
+  entries.forEach(function(e){
+   h+='<tr><td>'+esc(e.weekId)+'</td>'+wkSections[sk].map(function(f){
+    var val=e.item[f]||'';
+    if(f==='cpUpdated'||f==='facilityAcquired'||f==='presentOnAdmission'||f==='carePlanned'||f==='maa'){val=val?'Yes':'No'}
+    return '<td>'+esc(val)+'</td>';
+   }).join('')+'</tr>';
+  });
+  h+='</tbody></table>';
+ });
+ // Check permanent trackers (already one category each, no change needed there)
  var permSecs2=['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'];
  var permLabel2={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations',vaccines:'Vaccines'};
  permSecs2.forEach(function(pk){
   var pFields=permFields(pk);
-  (db.qmLog[pk]||[]).forEach(function(item){
-   if(item.vet!==vetId)return;
-   found=true;
-   h+='<h2>'+esc(permLabel2[pk])+'</h2><table><thead><tr>'+pFields.map(function(f){return '<th>'+esc(f.label)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+pFields.map(function(f){
+  var items=(db.qmLog[pk]||[]).filter(function(item){return item.vet===vetId});
+  if(!items.length)return;
+  found=true;
+  h+='<h2>'+esc(permLabel2[pk])+' ('+items.length+' entr'+(items.length===1?'y':'ies')+')</h2><table><thead><tr>'+pFields.map(function(f){return '<th>'+esc(f.label)+'</th>'}).join('')+'</tr></thead><tbody>';
+  items.forEach(function(item){
+   h+='<tr>'+pFields.map(function(f){
     var val=item[f.key]||'';
     if(f.type==='yesno'){val=val?'Yes':'No'}
     return '<td>'+esc(val)+'</td>';
-   }).join('')+'</tr></tbody></table>';
+   }).join('')+'</tr>';
   });
+  h+='</tbody></table>';
  });
  if(!found){h+='<p class="muted" style="font-style:italic;padding:20px;text-align:center">No QM entries found for this veteran.</p>'}
  h+='<p class="footer">BravoShift — Veteran QM Detail</p></body></html>';
