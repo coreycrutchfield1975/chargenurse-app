@@ -512,7 +512,7 @@ function exportQmCsv(){
   });
   rows.push('');
  });
- var permKeys=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
+ var permKeys=['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'];
  permKeys.forEach(function(sk){
   var pFields=permFields(sk);
   var pCols=['Type'].concat(pFields.map(function(f){return f.label}));
@@ -550,14 +550,14 @@ function showQmTrends(){
   });h+='</tr>';
  });h+='</tbody></table>';
  h+='<h2 style="font-size:12px;margin:8px 0 2px">Permanent Tracker Totals</h2><table><thead><tr><th>Tracker</th><th>Total</th></tr></thead><tbody>';
- var perm={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits'};
+ var perm={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits',vaccines:'Vaccines'};
  Object.keys(perm).forEach(function(k){h+='<tr><td>'+esc(perm[k])+'</td><td style="text-align:center">'+((db.qmLog[k]||[]).length)+'</td></tr>'});
  h+='</tbody></table><p class="footer">BravoShift — QM Trends</p></body></html>';
  win.document.write(h);win.document.close();win.focus();
 }
 function viewAllTrackers(){
- var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
- var permLabel={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
+ var permSecs=['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'];
+ var permLabel={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations',vaccines:'Vaccines'};
  var win=window.open('','_blank');if(!win){alert('Pop-up blocked.');return}
  var h='<html><head><title>All Permanent Trackers</title><style>@page{size:landscape;margin:.25in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:10px;color:#1a0f00;padding:.15in}h1{font-size:14px;margin:0}.sub{font-size:9px;color:#555;margin:2px 0}.st{background:#ede4d0;padding:3px 4px;font-size:11px;font-weight:700;margin:5px 0 0;border:1px solid #999}table{width:100%;border-collapse:collapse;margin:3px 0}th{background:#f0e6d6;padding:2px 3px;border:1px solid #999;font-size:9px;text-align:left}td{padding:2px 3px;border:1px solid #999;font-size:9px}@media print{th{background:#f0e6d6!important}}</style></head><body>';
  h+='<h1>Permanent Tracker Data</h1><p class="sub">All entries — '+new Date().toLocaleDateString()+'</p>';
@@ -621,8 +621,8 @@ function printVetDetail(vetId){
   });
  });
  // Check permanent trackers
- var permSecs2=['ssrDischarges','infections','sideRails','fallsLog','erVisits'];
- var permLabel2={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations'};
+ var permSecs2=['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'];
+ var permLabel2={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits/Rehospitalizations',vaccines:'Vaccines'};
  permSecs2.forEach(function(pk){
   var pFields=permFields(pk);
   (db.qmLog[pk]||[]).forEach(function(item){
@@ -868,7 +868,7 @@ function markDeleted(collection,id){
 function cleanVetName(n){return (n||'').replace(/\s*\([^)]*\)\s*$/,'')}
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
 function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
-function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
+function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
 async function autoSave(){try{lastSyncKey=currentKey();let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
 async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
 function mergeRecords(local,remote){
@@ -930,7 +930,7 @@ function mergeRecords(local,remote){
  });
  // Merge QM Log: weeks merge by date-key (newer _updatedAt wins per week), permanent trackers merge by _id
  if(remote.qmLog){
-  if(!local.qmLog){local.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+  if(!local.qmLog){local.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[],vaccines:[]}}
   // Merge weeks: union of both, newer _updatedAt wins on conflict, skip tombstoned weeks
   if(remote.qmLog.weeks){
    Object.keys(remote.qmLog.weeks).forEach(function(wk){
@@ -953,7 +953,7 @@ function mergeRecords(local,remote){
    dIds.qmWeeks.forEach(function(wk){if(local.qmLog.weeks[wk]){delete local.qmLog.weeks[wk];changed=true}});
   }
   // Merge permanent trackers by _id/id, dedupe, skip tombstoned entries
-  ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(pk){
+  ['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(pk){
    var rArr=remote.qmLog[pk]||[];
    if(!rArr.length)return;
    if(!local.qmLog[pk])local.qmLog[pk]=[];
@@ -2322,7 +2322,7 @@ function editSop(id){
  };
 })();
 function initQmLog(){
- if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+ if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[],vaccines:[]}}
  populateQmWeekSelect();
  var sel=document.getElementById('qmWeekSelect');
  if(!sel)return;
@@ -2467,6 +2467,7 @@ function qmPermanentTrackers(){
  h+='<button class="secondary" onclick="openPermTracker(\'sideRails\')" style="font-size:11px;padding:4px 10px">Side Rails ('+((db.qmLog.sideRails||[]).length)+')</button>';
  h+='<button class="secondary" onclick="openPermTracker(\'fallsLog\')" style="font-size:11px;padding:4px 10px">Falls Log ('+((db.qmLog.fallsLog||[]).length)+')</button>';
  h+='<button class="secondary" onclick="openPermTracker(\'erVisits\')" style="font-size:11px;padding:4px 10px">ER Visits & Rehospitalizations ('+((db.qmLog.erVisits||[]).length)+')</button>';
+ h+='<button class="secondary" onclick="openPermTracker(\'vaccines\')" style="font-size:11px;padding:4px 10px">Vaccines ('+((db.qmLog.vaccines||[]).length)+')</button>';
  h+='<div style="margin-top:4px"><button class="secondary" onclick="viewAllTrackers()" style="font-size:11px;padding:4px 10px">View All Tracker Data</button></div>';
  h+='</div></div>';
  return h;
@@ -2596,7 +2597,7 @@ function deleteQmEntry(section,id,weekId){
 }
 function openPermTracker(section){
  var items=db.qmLog[section]||[];
- var titleMap={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits & Rehospitalizations'};
+ var titleMap={ssrDischarges:'SSR Discharges',infections:'Infections',sideRails:'Side Rails',fallsLog:'Falls Log',erVisits:'ER Visits & Rehospitalizations',vaccines:'Vaccines'};
  var fields=permFields(section);
  var modal=document.createElement('div');
  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -2716,6 +2717,7 @@ function permFields(section){
   sideRails:[{key:'name',label:'Name',type:'text'},{key:'assessmentComplete',label:'Assessment/Consent Complete',type:'yesno'},{key:'order',label:'Order',type:'yesno'},{key:'carePlanned',label:'Care Planned',type:'yesno'},{key:'railsCount',label:'Rails Count',type:'select',options:'0,1,2'}],
   fallsLog:[{key:'lastName',label:'Last Name',type:'text'},{key:'firstName',label:'First Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'dateOfFall',label:'Date of Fall',type:'date'},{key:'time',label:'Time',type:'text'},{key:'lastRoundingCprs',label:'Last Time Rounding CPRS',type:'text'},{key:'txSpecialty',label:'TX Specialty',type:'text'},{key:'witnessed',label:'Witnessed/Unwitnessed',type:'text'},{key:'injury',label:'Injury',type:'text'},{key:'injuryType',label:'Type of Injury',type:'text'},{key:'staffMember',label:'Staff Member',type:'text'},{key:'transferHospital',label:'Transfer to Hospital',type:'text'},{key:'dayOfWeek',label:'Day of Week',type:'text'},{key:'censusAtFall',label:'Census at time of Fall',type:'text'},{key:'numStaff',label:'Number of Staff',type:'text'},{key:'residentsPerStaff',label:'Number Residents per 1 Staff Member',type:'text'},{key:'fellFrom',label:'Fell From Bed/WC/Walking/Etc.',type:'text'},{key:'whereOccur',label:'Where did Fall Occur',type:'text'},{key:'activityAtFall',label:'What were they doing at time of fall',type:'textarea'},{key:'medChangesWeek',label:'Medication changes in last week',type:'text'},{key:'highRiskMeds',label:'High Risk Medication received prior to fall',type:'text'},{key:'probableCause',label:'Probable cause of fall/relevant info',type:'textarea'},{key:'newIntervention',label:'New Intervention implemented',type:'textarea'}],
   erVisits:[{key:'lastName',label:'Last Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'treatingSpecialty',label:'Treating Specialty (SSR, Respite, LTC, EOL, SS CC, SSR/SN, SN)',type:'text'},{key:'dateSent',label:'Date Sent out',type:'date'},{key:'sentTo',label:'Sent To',type:'text'},{key:'datePrevEntry',label:'Date of Previous Entry',type:'date'},{key:'admissionReentry',label:'Admission/Re-Entry',type:'text'},{key:'daysSinceEntry',label:'Days since entry',type:'text'},{key:'enteredFrom',label:'Entered From',type:'text'},{key:'reasonSent',label:'Reason Sent Out',type:'textarea'},{key:'admitted',label:'Admitted (Y/N)',type:'text'},{key:'admittingDx',label:'Admitting DX',type:'text'},{key:'attendingProvider',label:'Attending Provider',type:'text'},{key:'sendingProvider',label:'Sending Provider',type:'text'},{key:'chargeNurse',label:'Charge Nurse',type:'text'},{key:'dayOfWeek',label:'Day of Week',type:'text'},{key:'timeSent',label:'Time Sent',type:'text'},{key:'chartReview',label:'72 Hr Chart Review/Notes',type:'textarea'}],
+  vaccines:[{key:'name',label:'Veteran Name',type:'text'},{key:'last4',label:'Last 4',type:'text'},{key:'vaccineName',label:'Name of Vaccine',type:'text'},{key:'dateGiven',label:'Date Given',type:'date'},{key:'reaction',label:'Reaction',type:'textarea'},{key:'cspCompleted',label:'CSP Completed',type:'yesno'},{key:'orderGiven',label:'Order Given',type:'yesno'}],
  };
  return map[section]||[];
 }
@@ -2778,7 +2780,7 @@ function importQmData(){
     var data=JSON.parse(ev.target.result);
     if(!data.weeks&&!data.ssrDischarges){alert("Invalid QM log file.");return}
     if(!confirm("Import QM data?\n\nExisting weeks will be kept. Imported weeks will be added if they don't already exist. Permanent trackers (SSR Discharges, Infections, etc.) will be merged — new entries appended.\n\nContinue?"))return;
-    if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[]}}
+    if(!db.qmLog){db.qmLog={weeks:{},ssrDischarges:[],infections:[],sideRails:[],fallsLog:[],erVisits:[],vaccines:[]}}
     var added=0,skipped=0;
     if(data.weeks){
      Object.keys(data.weeks).forEach(function(k){
@@ -2787,7 +2789,7 @@ function importQmData(){
       added++;
      });
     }
-    ['ssrDischarges','infections','sideRails','fallsLog','erVisits'].forEach(function(k){
+    ['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(k){
      var arr=data[k]||[];
      if(arr.length){
       db.qmLog[k]=db.qmLog[k]||[];
@@ -2844,7 +2846,7 @@ function printQmWeek(){
  });
  if(w.otherIssues){html+='<div class="section"><b>Other Issues / Notes:</b><br>'+esc(w.otherIssues)+'</div>'}
  // Permanent trackers in print
- var pSecs=[{k:'ssrDischarges',l:'SSR Discharges'},{k:'infections',l:'Infections'},{k:'sideRails',l:'Side Rails'},{k:'fallsLog',l:'Falls Log'},{k:'erVisits',l:'ER Visits/Rehospitalizations'}];
+ var pSecs=[{k:'ssrDischarges',l:'SSR Discharges'},{k:'infections',l:'Infections'},{k:'sideRails',l:'Side Rails'},{k:'fallsLog',l:'Falls Log'},{k:'erVisits',l:'ER Visits/Rehospitalizations'},{k:'vaccines',l:'Vaccines'}];
  pSecs.forEach(function(ps){
   var its=db.qmLog[ps.k]||[];if(!its.length)return;
   html+='<div class="section" style="page-break-inside:avoid"><h2>'+esc(ps.l)+'</h2><table><tr>';
