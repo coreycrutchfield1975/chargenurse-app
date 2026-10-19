@@ -389,7 +389,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
     <p style="font-size:14px;margin-bottom:16px;color:var(--muted)">Set a folder on your S: drive and all changes save automatically.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center">
       <button class="primary green" id="autoSaveBtn" onclick="setAutoSaveFolder()" style="padding:14px 28px;font-size:16px">📁 Set Auto-Save Folder</button>
-      <button class="primary" id="autoSaveReconnect" onclick="setAutoSaveFolder()" style="padding:14px 28px;font-size:16px;display:none;background:var(--orange)">🔄 Reconnect to S: Drive</button>
+      <button class="primary" id="autoSaveReconnect" onclick="reconnectAutoSaveFolder()" style="padding:14px 28px;font-size:16px;display:none;background:var(--orange)">🔄 Reconnect to S: Drive</button>
       <button class="secondary" id="autoSaveDisable" onclick="disableAutoSave()" style="padding:14px 28px;font-size:16px;display:none">Disable Auto-Save</button>
     </div>
     <p id="autoSaveStatus" style="margin-top:12px;font-size:14px;font-weight:700;color:#999">Auto-save: OFF</p>
@@ -1416,10 +1416,69 @@ function mergeRecords(local,remote){
  return changed}
 function startSyncPolling(){if(syncTimer)clearInterval(syncTimer);syncTimer=setInterval(autoImport,5000);lastSyncKey=currentKey()}
 function stopSyncPolling(){if(syncTimer){clearInterval(syncTimer);syncTimer=null}}
-async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';document.getElementById('autoSaveBanner').style.display='none';persist();startSyncPolling()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
-function disableAutoSave(){autoSaveDir=null;stopSyncPolling();localStorage.removeItem('autoSaveEnabled');document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999';document.getElementById('autoSaveBanner').style.display='none'}
-// On page load, show reconnect button if auto-save was previously enabled
-function checkAutoSavePref(){if(localStorage.getItem('autoSaveEnabled')==='true'){document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Reconnect to continue auto-saving to S: drive';document.getElementById('autoSaveStatus').style.color='#f6c344';document.getElementById('autoSaveBanner').style.display='block'}else{document.getElementById('autoSaveBanner').style.display='none'}}
+// IndexedDB helpers to remember the chosen S: drive folder handle across browser restarts
+function idbOpen(){return new Promise(function(resolve,reject){var req=indexedDB.open('bravoshift-fs',1);req.onupgradeneeded=function(){req.result.createObjectStore('handles')};req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error)}})}
+async function idbSaveHandle(handle){try{var db=await idbOpen();return new Promise(function(resolve,reject){var tx=db.transaction('handles','readwrite');tx.objectStore('handles').put(handle,'autoSaveDir');tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}catch(e){console.error('idbSaveHandle failed:',e)}}
+async function idbLoadHandle(){try{var db=await idbOpen();return new Promise(function(resolve){var tx=db.transaction('handles','readonly');var req=tx.objectStore('handles').get('autoSaveDir');req.onsuccess=function(){resolve(req.result||null)};req.onerror=function(){resolve(null)}})}catch(e){return null}}
+async function idbClearHandle(){try{var db=await idbOpen();var tx=db.transaction('handles','readwrite');tx.objectStore('handles').delete('autoSaveDir')}catch(e){}}
+async function setAutoSaveFolder(){try{autoSaveDir=await window.showDirectoryPicker();await idbSaveHandle(autoSaveDir);localStorage.setItem('autoSaveEnabled','true');document.getElementById('autoSaveBtn').style.display='none';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='inline-block';document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50';document.getElementById('autoSaveBanner').style.display='none';persist();startSyncPolling()}catch(e){if(e.name!=='AbortError')alert('Could not access folder: '+e.message)}}
+function disableAutoSave(){autoSaveDir=null;stopSyncPolling();localStorage.removeItem('autoSaveEnabled');idbClearHandle();document.getElementById('autoSaveBtn').style.display='inline-block';document.getElementById('autoSaveReconnect').style.display='none';document.getElementById('autoSaveDisable').style.display='none';document.getElementById('autoSaveStatus').textContent='Auto-save: OFF';document.getElementById('autoSaveStatus').style.color='#999';document.getElementById('autoSaveBanner').style.display='none'}
+// On page load: try to silently restore the remembered folder handle. If the browser already
+// granted persistent permission, this reconnects with ZERO clicks. If permission needs
+// re-confirming (browser security requirement), show a ONE-CLICK reconnect banner instead of
+// forcing the user to re-pick the folder from scratch.
+async function checkAutoSavePref(){
+ if(localStorage.getItem('autoSaveEnabled')!=='true'){document.getElementById('autoSaveBanner').style.display='none';return}
+ var handle=await idbLoadHandle();
+ if(handle){
+  try{
+   var perm=await handle.queryPermission({mode:'readwrite'});
+   if(perm==='granted'){
+    autoSaveDir=handle;
+    document.getElementById('autoSaveBtn').style.display='none';
+    document.getElementById('autoSaveReconnect').style.display='none';
+    document.getElementById('autoSaveDisable').style.display='inline-block';
+    document.getElementById('autoSaveStatus').textContent='Auto-save: ON (reconnected automatically)';
+    document.getElementById('autoSaveStatus').style.color='#2e9d50';
+    document.getElementById('autoSaveBanner').style.display='none';
+    startSyncPolling();
+    autoImport();
+    return;
+   }
+   // Permission needs re-confirming - store handle for one-click reconnect (no folder re-pick needed)
+   window.__rememberedDirHandle=handle;
+  }catch(e){console.error('checkAutoSavePref permission check failed:',e)}
+ }
+ document.getElementById('autoSaveBtn').style.display='none';
+ document.getElementById('autoSaveReconnect').style.display='inline-block';
+ document.getElementById('autoSaveStatus').textContent=handle?'Click Reconnect to resume auto-save (one click, same folder remembered)':'Reconnect to continue auto-saving to S: drive';
+ document.getElementById('autoSaveStatus').style.color='#f6c344';
+ document.getElementById('autoSaveBanner').style.display='block';
+}
+// One-click reconnect using the remembered handle, falling back to a full folder picker if needed
+async function reconnectAutoSaveFolder(){
+ if(window.__rememberedDirHandle){
+  try{
+   var perm=await window.__rememberedDirHandle.requestPermission({mode:'readwrite'});
+   if(perm==='granted'){
+    autoSaveDir=window.__rememberedDirHandle;
+    localStorage.setItem('autoSaveEnabled','true');
+    document.getElementById('autoSaveBtn').style.display='none';
+    document.getElementById('autoSaveReconnect').style.display='none';
+    document.getElementById('autoSaveDisable').style.display='inline-block';
+    document.getElementById('autoSaveStatus').textContent='Auto-save: ON';
+    document.getElementById('autoSaveStatus').style.color='#2e9d50';
+    document.getElementById('autoSaveBanner').style.display='none';
+    persist();
+    startSyncPolling();
+    autoImport();
+    return;
+   }
+  }catch(e){console.error('reconnect via remembered handle failed:',e)}
+ }
+ // Fallback: full folder picker (first-time setup or remembered handle unavailable/revoked)
+ setAutoSaveFolder();
+}
 
 /* === Export / Import (SharePoint-ready, PHI-free in repo) === */
 function exportData(){
