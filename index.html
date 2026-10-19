@@ -367,6 +367,11 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
     <button class="primary" onclick="openScreeningModal()">+ Add Screening</button>
   </div>
   <div id="screeningsList"></div>
+  <h2 style="margin:20px 0 12px;font-size:16px;border-top:1px solid var(--border);padding-top:16px">Referral Database</h2>
+  <div class="toolbar" style="margin:10px 0;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="primary" onclick="openReferralModal()">+ Add Referral</button>
+  </div>
+  <div id="referralsList"></div>
 </div>
 </section>
 
@@ -693,11 +698,11 @@ function showCategoryDetail(weekId, sectionKey, sectionLabel){
 
 try {
 db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
-  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],screenings:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[]}}
+  veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],screenings:[],referrals:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[],referrals:[]}}
  };
 } catch (e) {
  console.error('Failed to load database from localStorage:', e.message);
- db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],screenings:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[]}}};
+ db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],screenings:[],referrals:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[],referrals:[]}}};
 }
 // Migrate SOPs from localStorage to db.sops (runs on every page load)
 if (!db.sops || db.sops.length === 0) {
@@ -885,9 +890,10 @@ let currentCal=new Date(),calView='month',docType='',currentDocAppt=null;
 let autoSaveDir=null,lastSyncKey='',syncTimer=null;
 // Migration guard: ensure older saved databases get the deletedIds tombstone structure
 if(!db.metadata)db.metadata={deletedVeterans:[]};
-if(!db.metadata.deletedIds)db.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[]};
-['appointments','treatments','providers','sops','ptCareSheets','tickets','qmWeeks','qmPerm','screenings'].forEach(function(k){if(!Array.isArray(db.metadata.deletedIds[k]))db.metadata.deletedIds[k]=[]});
+if(!db.metadata.deletedIds)db.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[],referrals:[]};
+['appointments','treatments','providers','sops','ptCareSheets','tickets','qmWeeks','qmPerm','screenings','referrals'].forEach(function(k){if(!Array.isArray(db.metadata.deletedIds[k]))db.metadata.deletedIds[k]=[]});
 if(!Array.isArray(db.screenings))db.screenings=[];
+if(!Array.isArray(db.referrals))db.referrals=[];
 // Helper: record a tombstone so other computers know this ID was intentionally deleted
 function markDeleted(collection,id){
  if(!db.metadata.deletedIds)db.metadata.deletedIds={};
@@ -901,6 +907,8 @@ function cleanVetName(n){return (n||'').replace(/\s*\([^)]*\)\s*$/,'')}
 function screeningGroups(){
  return [
   {header:'Demographics',fields:[
+    {key:'dateScreened',label:'Date Screened',type:'date'},
+    {key:'dateOfReferral',label:'Date of Referral',type:'date'},
     {key:'name',label:'Name',type:'text'},
     {key:'last4',label:'Last 4',type:'text'},
     {key:'branch',label:'Branch of Service',type:'select',options:['Army','Navy','Air Force','Marine','Coast Guard','Space Force']},
@@ -1105,15 +1113,174 @@ function renderScreeningsList(){
  el.innerHTML=h;
 }
 
+// ========== REFERRAL DATABASE ==========
+function referralAutofillFields(){
+ // Fields that get pulled in from the Screening record when a name is selected
+ return ['name','last4','serviceConnection','dateOfReferral','dateScreened','diagnosis','levelOfCare'];
+}
+function referralFields(){
+ return [
+  {key:'dateScreened',label:'Date Screened',type:'date'},
+  {key:'name',label:'Name',type:'text'},
+  {key:'last4',label:'Last 4',type:'text'},
+  {key:'serviceConnection',label:'Service Connection',type:'select',options:['NSC','10%','20%','30%','40%','50%','60%','70%','80%','90%','100%']},
+  {key:'dateOfReferral',label:'Date of Referral',type:'date'},
+  {key:'diagnosis',label:'Diagnosis',type:'text'},
+  {key:'levelOfCare',label:'Level of Care',type:'select',options:['SSR','SSCC','Skilled','Hospice','LTC','Respite']},
+  {key:'disposition',label:'Disposition',type:'disposition',options:['Admitted','Declined','N/A']},
+  {key:'admitDate',label:'Admit Date',type:'date'},
+  {key:'reasonForDecline',label:'Reason for Decline',type:'textarea'},
+  {key:'cnhCnn',label:'CNH, CNN or N/A',type:'select',options:['CNH','CNN','N/A']},
+  {key:'notes',label:'Notes',type:'textarea'}
+ ];
+}
+// Recent screenings (last 30 days) for the name dropdown/typeahead
+function recentScreeningsForReferral(){
+ var cutoff=Date.now()-30*24*60*60*1000;
+ return (db.screenings||[]).filter(function(s){
+  var t=new Date(s._updatedAt||0).getTime();
+  return t>=cutoff;
+ }).sort(function(a,b){return (b._updatedAt||'').localeCompare(a._updatedAt||'')});
+}
+function referralFieldInputHtml(f,val){
+ val=val||'';
+ if(f.type==='select'){
+  var h='<select id="rf_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px"><option value="">--</option>';
+  f.options.forEach(function(o){h+='<option value="'+esc(o)+'"'+(val===o?' selected':'')+'>'+esc(o)+'</option>'});
+  h+='</select>';
+  return h;
+ }
+ if(f.type==='disposition'){
+  var h='<div style="display:flex;gap:12px">';
+  f.options.forEach(function(o){
+   h+='<label style="font-size:12px;font-weight:400"><input type="checkbox" class="rf_disposition" value="'+esc(o)+'"'+(val===o?' checked':'')+' onclick="referralDispositionClick(this)"> '+esc(o)+'</label>';
+  });
+  h+='</div>';
+  return h;
+ }
+ if(f.type==='textarea'){
+  return '<textarea id="rf_'+f.key+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px;min-height:44px">'+esc(val)+'</textarea>';
+ }
+ if(f.type==='date'){
+  return '<input type="date" id="rf_'+f.key+'" value="'+esc(val)+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+ }
+ return '<input type="text" id="rf_'+f.key+'" value="'+esc(val)+'" style="width:100%;padding:5px 6px;border:1px solid #999;border-radius:4px;font-size:12px">';
+}
+// Disposition checkboxes act like a single-select (mutually exclusive) since a referral has one outcome
+function referralDispositionClick(cb){
+ if(cb.checked){
+  document.querySelectorAll('.rf_disposition').forEach(function(other){if(other!==cb)other.checked=false});
+ }
+}
+function openReferralModal(id){
+ var entry=id?(db.referrals||[]).find(function(x){return x.id===id}):{};
+ if(!entry)entry={};
+ var modal=document.createElement('div');
+ modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+ modal.dataset.referralModal='true';
+ var content='<div style="background:var(--card-bg);padding:20px;border-radius:8px;max-width:700px;width:95%;max-height:88vh;overflow-y:auto"><h3 style="margin:0 0 10px;font-size:16px">'+(id?'Edit':'Add')+' Referral</h3>';
+ if(!id){
+  // Name picker with datalist of recent screenings (last 30 days) - selecting one auto-fills the form
+  content+='<div style="margin-bottom:10px;padding:10px 12px;border:1px solid var(--yellow);border-radius:6px;background:#fffbe6"><label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Select Recent Screening (last 30 days) or type a name</label><input type="text" id="rf_namePicker" list="rf_namePicker_list" placeholder="Type or select a veteran name" style="width:100%;padding:6px 8px;border:1px solid #999;border-radius:4px;font-size:13px" onchange="referralAutofillFromScreening(this.value)" autocomplete="off"><datalist id="rf_namePicker_list">';
+  recentScreeningsForReferral().forEach(function(s){content+='<option value="'+esc(s.name)+'"></option>'});
+  content+='</datalist></div>';
+ }
+ content+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+ referralFields().forEach(function(f){
+  var span=(f.type==='textarea'||f.type==='disposition')?'grid-column:1/3':'';
+  content+='<div style="margin:2px 0;'+span+'"><label style="display:block;font-size:11px;font-weight:600;margin-bottom:2px;color:#1a0f00">'+esc(f.label)+'</label>'+referralFieldInputHtml(f,entry[f.key])+'</div>';
+ });
+ content+='</div>';
+ content+='<div style="display:flex;gap:8px;margin-top:10px"><button class="primary" onclick="saveReferralModal(\''+esc(id||'')+'\')" style="flex:1;padding:8px;font-size:13px">Save</button><button class="secondary" onclick="closeReferralModal()" style="padding:8px;font-size:13px">Cancel</button></div></div>';
+ modal.innerHTML=content;
+ document.body.appendChild(modal);
+}
+// Populate referral fields from a matching recent screening when a name is picked/typed
+function referralAutofillFromScreening(name){
+ if(!name)return;
+ var match=(db.screenings||[]).find(function(s){return (s.name||'').toLowerCase()===name.toLowerCase()});
+ if(!match)return;
+ referralAutofillFields().forEach(function(k){
+  var el=document.getElementById('rf_'+k);
+  if(el&&match[k])el.value=match[k];
+ });
+}
+function closeReferralModal(){
+ var modal=document.querySelector('[data-referral-modal]');
+ if(modal&&modal.parentNode)document.body.removeChild(modal);
+}
+function saveReferralModal(id){
+ var entry={};
+ referralFields().forEach(function(f){
+  if(f.type==='disposition'){
+   var checked=document.querySelector('.rf_disposition:checked');
+   entry[f.key]=checked?checked.value:'';
+  }else{
+   var el=document.getElementById('rf_'+f.key);
+   if(el)entry[f.key]=el.value;
+  }
+ });
+ if(!entry.name){alert('Please enter at least a name.');return}
+ entry._updatedAt=new Date().toISOString();
+ if(!db.referrals)db.referrals=[];
+ if(id){
+  var idx=db.referrals.findIndex(function(x){return x.id===id});
+  if(idx>=0){entry.id=id;db.referrals[idx]=entry}
+  else{entry.id='ref_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);db.referrals.push(entry)}
+ }else{
+  entry.id='ref_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  db.referrals.push(entry);
+ }
+ persist();
+ closeReferralModal();
+ renderReferralsList();
+}
+function deleteReferral(id){
+ var entry=(db.referrals||[]).find(function(x){return x.id===id});
+ if(!entry)return;
+ if(!confirm('Delete referral record for '+(entry.name||'this veteran')+'? This cannot be undone.'))return;
+ db.referrals=db.referrals.filter(function(x){return x.id!==id});
+ markDeleted('referrals',id);
+ persist();
+ renderReferralsList();
+}
+function printReferral(id){
+ var entry=(db.referrals||[]).find(function(x){return x.id===id});
+ if(!entry){alert('Referral not found.');return}
+ var win=window.open('','_blank');
+ if(!win){alert('Pop-up blocked -- enable pop-ups on this site to print.');return}
+ var h='<html><head><title>Referral - '+esc(entry.name||'')+'</title><style>@page{size:letter;margin:.3in}body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;color:#1a0f00;padding:.2in}h1{font-size:16px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td{padding:4px 7px;border:1px solid #999;font-size:10px}td.lbl{font-weight:600;background:#f8f4ea;width:38%}.footer{font-size:8px;color:#888;margin-top:10px;text-align:center}</style></head><body>';
+ h+='<h1>Referral Record: '+esc(entry.name||'')+'</h1><p style="font-size:10px;color:#555">Generated '+new Date().toLocaleDateString()+'</p><table>';
+ referralFields().forEach(function(f){
+  var val=entry[f.key]||'';
+  h+='<tr><td class="lbl">'+esc(f.label)+'</td><td>'+esc(val)+'</td></tr>';
+ });
+ h+='</table><p class="footer">BravoShift — Referral Record</p></body></html>';
+ win.document.write(h);win.document.close();win.focus();
+}
+function renderReferralsList(){
+ var el=document.getElementById('referralsList');
+ if(!el)return;
+ var items=(db.referrals||[]).slice().sort(function(a,b){return (b._updatedAt||'').localeCompare(a._updatedAt||'')});
+ if(!items.length){el.innerHTML='<p class="muted" style="font-style:italic;padding:20px;text-align:center">No referrals tracked yet.</p>';return}
+ var h='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f0e6d6"><th style="padding:4px 6px;border:1px solid #999;text-align:left">Name</th><th style="padding:4px 6px;border:1px solid #999;text-align:left">Date of Referral</th><th style="padding:4px 6px;border:1px solid #999;text-align:left">Level of Care</th><th style="padding:4px 6px;border:1px solid #999;text-align:left">Disposition</th><th style="padding:4px 6px;border:1px solid #999;width:170px">Actions</th></tr></thead><tbody>';
+ items.forEach(function(item){
+  h+='<tr><td style="padding:4px 6px;border:1px solid #eee">'+esc(item.name||'')+'</td><td style="padding:4px 6px;border:1px solid #eee">'+esc(item.dateOfReferral||'')+'</td><td style="padding:4px 6px;border:1px solid #eee">'+esc(item.levelOfCare||'')+'</td><td style="padding:4px 6px;border:1px solid #eee">'+esc(item.disposition||'')+'</td><td style="padding:4px 6px;border:1px solid #eee;white-space:nowrap"><button onclick="openReferralModal(\''+esc(item.id)+'\')" style="font-size:11px;padding:2px 8px;margin-right:2px">Edit</button><button onclick="printReferral(\''+esc(item.id)+'\')" style="font-size:11px;padding:2px 8px;margin-right:2px">Print</button><button onclick="deleteReferral(\''+esc(item.id)+'\')" style="font-size:11px;padding:2px 8px;background:var(--red);color:white;border:none;border-radius:3px">Delete</button></td></tr>';
+ });
+ h+='</tbody></table>';
+ el.innerHTML=h;
+}
+
+
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
 function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
-function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.screenings||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
+function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.screenings||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.referrals||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
 async function autoSave(){try{lastSyncKey=currentKey();let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(JSON.stringify(db,null,2));await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
 async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
 function mergeRecords(local,remote){
  var changed=false;
  if(!local.metadata)local.metadata={deletedVeterans:[]};
- if(!local.metadata.deletedIds)local.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[]};
+ if(!local.metadata.deletedIds)local.metadata.deletedIds={appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[],referrals:[]};
  // Union tombstone lists FIRST so deletions from either computer are honored during this merge pass
  if(remote.metadata&&remote.metadata.deletedVeterans){
   var mergedVet=(local.metadata.deletedVeterans||[]).concat((remote.metadata.deletedVeterans||[]).filter(function(id){return (local.metadata.deletedVeterans||[]).indexOf(id)===-1}));
@@ -1129,8 +1296,8 @@ function mergeRecords(local,remote){
  }
  var dIds=local.metadata.deletedIds;
  // Merge arrays with IDs (veterans, appointments, treatments, providers, sops, ptCareSheets)
- var arrDeletedKeyMap={appointments:'appointments',treatments:'treatments',providers:'providers',sops:'sops',ptCareSheets:'ptCareSheets',screenings:'screenings'};
- ['veterans','appointments','treatments','providers','sops','ptCareSheets','screenings'].forEach(function(k){
+ var arrDeletedKeyMap={appointments:'appointments',treatments:'treatments',providers:'providers',sops:'sops',ptCareSheets:'ptCareSheets',screenings:'screenings',referrals:'referrals'};
+ ['veterans','appointments','treatments','providers','sops','ptCareSheets','screenings','referrals'].forEach(function(k){
   if(!Array.isArray(local[k]))return;
   var lmap={},rmap={};
   (local[k]||[]).forEach(function(r){lmap[r.id]=r});
@@ -1236,7 +1403,7 @@ function mergeRecords(local,remote){
   if(local.veterans.length!==before)changed=true;
  }
  // Re-apply generalized tombstone filters for array collections (defensive, in case of stale local data)
- ['appointments','treatments','providers','sops','ptCareSheets','screenings'].forEach(function(k){
+ ['appointments','treatments','providers','sops','ptCareSheets','screenings','referrals'].forEach(function(k){
   if(!Array.isArray(local[k])||!dIds[k]||!dIds[k].length)return;
   var before=local[k].length;
   local[k]=local[k].filter(function(r){return !dIds[k].includes(r.id)});
@@ -1392,7 +1559,7 @@ function validateImportedData(data) {
 }
 function today(){return new Date().toISOString().slice(0,10)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
-function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let b=[...document.querySelectorAll('nav button')].find(x=>x.dataset.tab===id);if(b)b.classList.add('active');if(id==='screenings')renderScreeningsList();renderAll()}
+function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let b=[...document.querySelectorAll('nav button')].find(x=>x.dataset.tab===id);if(b)b.classList.add('active');if(id==='screenings'){renderScreeningsList();renderReferralsList()}renderAll()}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 function openModal(id){document.getElementById(id).classList.add('open')}function closeModal(id){document.getElementById(id).classList.remove('open')}
 function daysOnUnit(d){if(!d)return'';return Math.max(0,Math.floor((new Date(today())-new Date(d))/86400000))}
