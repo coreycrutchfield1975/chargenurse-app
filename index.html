@@ -1569,7 +1569,7 @@ function importData(file){
         }
 
    const backup={...(typeof db==='object'?db:{})};
-   ['veterans','appointments','treatments','providers'].forEach(k=>{if(Array.isArray(incoming[k]))backup[k]=incoming[k]});
+   ['veterans','appointments','treatments','providers','screenings','referrals'].forEach(k=>{if(Array.isArray(incoming[k]))backup[k]=incoming[k]});
    backup.managedLists=(incoming.managedLists&&typeof incoming.managedLists==='object')?incoming.managedLists:(backup.managedLists||{});
    backup.tickets=(incoming.tickets&&typeof incoming.tickets==='object')?incoming.tickets:(backup.tickets||{});
    backup.staff=(incoming.staff&&typeof incoming.staff==='object')?incoming.staff:(backup.staff||{});
