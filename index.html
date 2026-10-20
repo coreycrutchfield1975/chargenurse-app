@@ -1490,7 +1490,7 @@ function exportData(){
   const json=JSON.stringify(db,null,1);
   const bytes=new Blob([json]).size;
   const box=document.getElementById('exportInfo');
-  if(box)box.innerHTML=`<p><strong>File:</strong> ${fname}</p><p><strong>Size:</strong> ${(bytes/1024).toFixed(1)} KB</p><p><strong>Includes:</strong> ${db.veterans.length} veteran(s), ${db.appointments.length} appointment(s), ${db.treatments.length} treatment(s), ${db.providers.length} provider(s), ${Object.keys(db.staff||{}).length} staff roster(s).</p>`;
+  if(box)box.innerHTML=`<p><strong>File:</strong> ${fname}</p><p><strong>Size:</strong> ${(bytes/1024).toFixed(1)} KB</p><p><strong>Includes:</strong> ${db.veterans.length} veteran(s), ${db.appointments.length} appointment(s), ${db.treatments.length} treatment(s), ${db.providers.length} provider(s), ${db.screenings.length} screening(s), ${db.referrals.length} referral(s), ${Object.keys(db.staff||{}).length} staff roster(s).</p>`;
  }catch(e){}
 }
 function doExportDownload(){
