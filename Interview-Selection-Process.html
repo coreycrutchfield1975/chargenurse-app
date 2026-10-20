@@ -181,6 +181,10 @@ textarea.ii{resize:vertical;min-height:60px}
 <div id="tools-bar" class="np" style="display:none;background:#17365d;color:#fff;padding:7px 10px;text-align:right;position:sticky;top:42px;z-index:19">
   <button onclick="exportData()" style="margin-left:4px">Export</button>
   <button onclick="importData()" style="margin-left:4px">Import</button>
+  <button onclick="exportPanelPacket()" style="margin-left:4px;background:#0a7a4a">Export Panel Packet</button>
+  <button onclick="exportPanelistScores()" style="margin-left:4px;background:#0a7a4a">Export My Scores</button>
+  <button onclick="importPanelistScores()" style="margin-left:4px;background:#0a7a4a">Import Panelist Scores</button>
+  <button onclick="choosePanelistIdentity()" style="margin-left:4px">Scoring As: <span id="panelist-badge">(none)</span></button>
   <button onclick="doClear()" style="margin-left:4px;background:#7f1d1d;color:#fff">Clear All Data</button>
 </div>
 
@@ -558,7 +562,7 @@ function loadProfiles(){
 loadProfiles();
 
 function init(){ questions=DQS.slice(); loadFromStore(); loadUserLib(); loadUserCat(); loadQSets(); renderAll(); renderSteps(); if(activeQSet && qSets[activeQSet]) questions=qSets[activeQSet].questions.slice(); renderQs(); }
-function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQSetSelect(); }
+function renderAll(){ renderApps(); renderQs(); renderMat(); renderRecs(); renderProfileSelect(); renderQSetSelect(); updatePanelistBadge(); }
 
 function renderProfileSelect(){
   var sel = document.getElementById('profile-select');
@@ -1179,13 +1183,37 @@ function printQs(){
     if(ai>0) h+='<div class="pb"></div>';
     h+='<h1 class="h1">Interview Selection Process Report</h1><p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date:</strong> '+esc(a.date||'__________')+'</p>';
     h+='<div class="sec"><h2>Rating Scale</h2><table style="width:100%;border-collapse:collapse;font-size:11px"><tr><th>Score</th><th>Definition</th></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds</td></tr></table></div>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px"><thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Question</th><th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th><th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Notes</th></tr></thead><tbody>';
-    var tot=0;
-    for(var qi=0;qi<questions.length;qi++){
-      var sc=a.qs?parseInt(a.qs[qi])||0:0; var nt=a.qn?a.qn[qi]||'':''; tot+=sc;
-      h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top"><strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td><td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-weight:700">'+sc+'</td><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
+
+    var panel = (a.qs&&isPanelShape(a.qs)) ? panelIds(a) : null;
+    if(panel&&panel.length){
+      // Side-by-side columns, one per panelist, plus a Notes column that stacks each panelist's notes
+      h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px"><thead><tr><th style="padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Question</th>';
+      for(var pi=0;pi<panel.length;pi++) h+='<th style="padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">'+esc(panel[pi])+'</th>';
+      h+='<th style="padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Notes</th></tr></thead><tbody>';
+      var totals={}; panel.forEach(function(p){ totals[p]=0; });
+      for(var qi=0;qi<questions.length;qi++){
+        h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top"><strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td>';
+        var notesParts=[];
+        for(var pi=0;pi<panel.length;pi++){
+          var pid=panel[pi];
+          var sc=(a.qs[pid]&&a.qs[pid][qi])?parseInt(a.qs[pid][qi])||0:0;
+          totals[pid]+=sc;
+          h+='<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-weight:700">'+sc+'</td>';
+          var nt=(a.qn&&a.qn[pid]&&a.qn[pid][qi])?a.qn[pid][qi]:'';
+          if(nt) notesParts.push('<strong>'+esc(pid)+':</strong> '+esc(nt));
+        }
+        h+='<td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555;font-size:10px">'+notesParts.join('<br>')+'</td></tr>';
+      }
+      h+='</tbody></table><p style="font-size:13px;font-weight:700;color:#0d6efd;margin-top:10px">Totals: '+panel.map(function(p){ return esc(p)+' = '+totals[p]+'/'+(questions.length*5); }).join(' &nbsp;|&nbsp; ')+'</p>';
+    } else {
+      h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px"><thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Question</th><th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th><th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Notes</th></tr></thead><tbody>';
+      var tot=0;
+      for(var qi=0;qi<questions.length;qi++){
+        var sc=a.qs?parseInt(a.qs[qi])||0:0; var nt=a.qn?a.qn[qi]||'':''; tot+=sc;
+        h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top"><strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td><td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-weight:700">'+sc+'</td><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
+      }
+      h+='</tbody></table><p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total: '+tot+'/'+(questions.length*5)+'</p>';
     }
-    h+='</tbody></table><p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total: '+tot+'/'+(questions.length*5)+'</p>';
   }
   printHTML('Interview Questions', h);
 }
@@ -1252,13 +1280,38 @@ function renderApps(){
   sel.innerHTML=h;
 }
 
+// Current panelist identity for this browser/session (set when a panel packet is loaded, or chosen manually)
+var currentPanelistId = localStorage.getItem('ip_panelist_id') || '';
+function setCurrentPanelist(id){ currentPanelistId = id||''; localStorage.setItem('ip_panelist_id', currentPanelistId); renderQs(); }
+// Migrate an applicant's qs/qn from the old flat {qIndex:val} shape into {panelistId:{qIndex:val}} on first panelist write,
+// preserving the old scores under a "Panel" bucket so nothing already entered is lost.
+function migrateToPanelShape(app){
+  if(app.qs && !isPanelShape(app.qs) && Object.keys(app.qs).length){
+    var oldQs=app.qs, oldQn=app.qn||{};
+    app.qs={Panel:oldQs}; app.qn={Panel:oldQn};
+  } else {
+    if(!app.qs) app.qs={};
+    if(!app.qn) app.qn={};
+  }
+}
 function renderQs(){
   var wrap=E('qs-wrap'); if(!wrap) return;
   var aid=E('qs-app').value||''; var app=null;
   for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ app=applicants[i]; break; }
+  var pid=currentPanelistId||'Panel';
   var h='';
+  if(app){
+    var existingIds=panelIds(app);
+    if(existingIds.length){
+      h+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Scoring as: <strong>'+esc(pid)+'</strong>'+(existingIds.length>1||(existingIds.length===1&&existingIds[0]!==pid)?' &nbsp;|&nbsp; Also scored by: '+existingIds.filter(function(x){return x!==pid}).map(esc).join(', '):'')+'</div>';
+    }
+  }
   for(var i=0;i<questions.length;i++){
-    var sc=app&&app.qs?(app.qs[i]||0):0; var nt=app&&app.qn?(app.qn[i]||''):'';
+    var sc=0, nt='';
+    if(app&&app.qs){
+      if(isPanelShape(app.qs)){ sc=(app.qs[pid]&&app.qs[pid][i])||0; nt=(app.qn&&app.qn[pid]&&app.qn[pid][i])||''; }
+      else { sc=app.qs[i]||0; nt=(app.qn&&app.qn[i])||''; }
+    }
     h+='<div class="qb"><div class="np" style="display:flex;justify-content:space-between"><span class="qn">Q'+(i+1)+'</span><button class="btn btn-dan btn-sm" onclick="delQ('+i+')">x</button></div><textarea class="ii" style="min-height:50px;margin-bottom:4px" oninput="updQ('+i+',this.value)">'+esc(questions[i])+'</textarea><div class="sr">';
     for(var v=1;v<=5;v++) h+='<span class="sb'+(v===sc?' on':'')+'" onclick="setQ(\''+esc(aid)+'\','+i+','+v+')">'+v+'</span>';
     h+='</div><textarea class="ii" style="min-height:40px;font-style:italic;margin-top:4px" placeholder="Notes..." oninput="setQn(\''+esc(aid)+'\','+i+',this.value)">'+esc(nt)+'</textarea></div>';
@@ -1268,12 +1321,24 @@ function renderQs(){
 
 function setQ(aid,qi,v){
   if(!aid){ alert('Select an applicant.'); return; }
-  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ if(!applicants[i].qs) applicants[i].qs={}; applicants[i].qs[qi]=v; break; }
+  var pid=currentPanelistId||'Panel';
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){
+    migrateToPanelShape(applicants[i]);
+    if(!applicants[i].qs[pid]) applicants[i].qs[pid]={};
+    applicants[i].qs[pid][qi]=v;
+    break;
+  }
   renderQs(); renderMat(); autoSave();
 }
 function setQn(aid,qi,v){
   if(!aid) return;
-  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){ if(!applicants[i].qn) applicants[i].qn={}; applicants[i].qn[qi]=v; break; }
+  var pid=currentPanelistId||'Panel';
+  for(var i=0;i<applicants.length;i++) if(applicants[i].id===aid){
+    migrateToPanelShape(applicants[i]);
+    if(!applicants[i].qn[pid]) applicants[i].qn[pid]={};
+    applicants[i].qn[pid][qi]=v;
+    break;
+  }
   autoSave();
 }
 function updQ(i,v){ questions[i]=v; autoSave(); }
@@ -1281,7 +1346,16 @@ function addQ(){ questions.push("New question - edit me."); renderQs(); autoSave
 function delQ(i){
   if(questions.length<=1){ alert('Need at least one question.'); return; }
   if(!confirm('Delete Q'+(i+1)+'?')) return; questions.splice(i,1);
-  for(var j=0;j<applicants.length;j++){ if(applicants[j].qs) delete applicants[j].qs[i]; if(applicants[j].qn) delete applicants[j].qn[i]; }
+  for(var j=0;j<applicants.length;j++){
+    var app=applicants[j];
+    if(app.qs&&isPanelShape(app.qs)){
+      Object.keys(app.qs).forEach(function(pid){ delete app.qs[pid][i]; });
+      if(app.qn) Object.keys(app.qn).forEach(function(pid){ delete app.qn[pid][i]; });
+    } else {
+      if(app.qs) delete app.qs[i];
+      if(app.qn) delete app.qn[i];
+    }
+  }
   renderQs(); autoSave();
 }
 function resetQs(){
@@ -1298,7 +1372,18 @@ function updTot(){
   E('qs-tot').textContent=tot;
 }
 
-function getIV(a){ var t=0; if(a.qs) Object.keys(a.qs).forEach(function(k){ t+=parseInt(a.qs[k])||0; }); return t; }
+function isPanelShape(qs){ if(!qs) return false; var keys=Object.keys(qs); if(!keys.length) return false; var v=qs[keys[0]]; return v!==null&&typeof v==='object'; }
+function panelIds(a){ if(!a.qs||!isPanelShape(a.qs)) return []; return Object.keys(a.qs); }
+function getIVForPanelist(a,pid){ var t=0; if(a.qs&&a.qs[pid]) Object.keys(a.qs[pid]).forEach(function(k){ t+=parseInt(a.qs[pid][k])||0; }); return t; }
+function getIVAvg(a){
+  if(a.qs&&isPanelShape(a.qs)){
+    var ids=panelIds(a); if(!ids.length) return 0;
+    var sum=0; ids.forEach(function(pid){ sum+=getIVForPanelist(a,pid); });
+    return Math.round((sum/ids.length)*10)/10;
+  }
+  var t=0; if(a.qs) Object.keys(a.qs).forEach(function(k){ t+=parseInt(a.qs[k])||0; }); return t;
+}
+function getIV(a){ return getIVAvg(a); }
 function getTot(a){
   var cols=profileColumns(); var t=0;
   for(var i=0;i<cols.length;i++){ var cid=cols[i].id; var val=a[cid]; if(val!==undefined&&val!==null) t+=(cid==='acls'&&val===-1)?0:parseInt(val)||0; }
@@ -1406,6 +1491,122 @@ function renderRecs(){
   if(sorted.length>2){ sv('r-a2n',sorted[2].name); sv('r-a2s',getTot(sorted[2])); }
 }
 
+// ===== PANEL PACKET WORKFLOW =====
+// Supervisor exports a lightweight packet (questions + applicant names/dates, NO scores) for each
+// panelist to take into their own copy of this app. Each panelist scores independently, then exports
+// just their own results (small file) to send back. Supervisor imports each panelist's results file;
+// scores are kept SIDE BY SIDE per panelist, never averaged or overwritten.
+
+function choosePanelistIdentity(){
+  var name = prompt('Enter your name or panelist label (e.g. "Chair", "Member 1", or your actual name):', currentPanelistId||'');
+  if(name===null) return;
+  name = name.trim();
+  if(!name){ alert('Name cannot be blank.'); return; }
+  setCurrentPanelist(name);
+  updatePanelistBadge();
+}
+function updatePanelistBadge(){
+  var b=E('panelist-badge'); if(b) b.textContent = currentPanelistId || '(none)';
+}
+
+function exportPanelPacket(){
+  if(!activeProfileName||!positionProfiles[activeProfileName]){ alert('Select a position profile first.'); return; }
+  var posApps = applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
+  if(posApps.length===0){ alert('Add applicants before exporting a panel packet.'); return; }
+  var packet = {
+    _packetType: 'interview-panel-packet',
+    _packetVersion: 1,
+    profileName: activeProfileName,
+    profile: positionProfiles[activeProfileName],
+    questions: questions,
+    intro: gv('intro'),
+    panelInstructions: gv('panel-instructions'),
+    applicants: posApps.map(function(a){
+      return { id: a.id, name: a.name, date: a.date||'', profile: a.profile };
+    })
+  };
+  var json = JSON.stringify(packet, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'panel-packet-'+activeProfileName.replace(/[^a-z0-9]+/gi,'-')+'-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+  alert('Panel packet exported. Send this file to each panelist. They should open this app, click Tools > Import (regular Import button), choose this file, then set their name under "Scoring As" before they start scoring.');
+}
+
+function loadPanelPacket(data){
+  // Called from importData() when the imported file is detected as a panel packet rather than a full export.
+  questions = data.questions ? data.questions.slice() : questions;
+  if(data.profile){
+    positionProfiles[data.profileName] = data.profile;
+    activeProfileName = data.profileName;
+    saveProfiles();
+  }
+  applicants = (data.applicants||[]).map(function(a){ return { id:a.id, name:a.name, date:a.date||'', profile:a.profile, qs:{}, qn:{} }; });
+  sv('intro', data.intro||'');
+  sv('panel-instructions', data.panelInstructions||'');
+  autoSave();
+  renderAll();
+  alert('Panel packet loaded: '+applicants.length+' applicant(s), '+questions.length+' question(s). Set your name under "Scoring As" in Tools before you start scoring.');
+}
+
+function exportPanelistScores(){
+  if(!currentPanelistId){ alert('Set your "Scoring As" name first (Tools > Scoring As).'); return; }
+  var posApps = applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
+  var results = posApps.map(function(a){
+    var pid = currentPanelistId;
+    var qs = (a.qs&&isPanelShape(a.qs)) ? (a.qs[pid]||{}) : {};
+    var qn = (a.qn&&isPanelShape(a.qn)) ? (a.qn[pid]||{}) : {};
+    return { applicantId: a.id, applicantName: a.name, qs: qs, qn: qn };
+  }).filter(function(r){ return Object.keys(r.qs).length>0; });
+  if(results.length===0){ alert('No scores entered yet for '+currentPanelistId+'.'); return; }
+  var packet = {
+    _packetType: 'interview-panelist-results',
+    _packetVersion: 1,
+    panelistId: currentPanelistId,
+    profileName: activeProfileName,
+    results: results
+  };
+  var json = JSON.stringify(packet, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'panelist-scores-'+currentPanelistId.replace(/[^a-z0-9]+/gi,'-')+'-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+  alert('Your scores exported. Send this file back to the supervisor.');
+}
+
+function importPanelistScores(){
+  var input=document.createElement('input'); input.type='file'; input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try {
+        var data=JSON.parse(ev.target.result);
+        if(data._packetType!=='interview-panelist-results'){ alert('That is not a panelist results file.'); return; }
+        var pid=data.panelistId;
+        var added=0;
+        (data.results||[]).forEach(function(r){
+          var app=null;
+          for(var i=0;i<applicants.length;i++) if(applicants[i].id===r.applicantId || (applicants[i].name===r.applicantName)){ app=applicants[i]; break; }
+          if(!app) return;
+          migrateToPanelShape(app);
+          app.qs[pid] = r.qs||{};
+          app.qn[pid] = r.qn||{};
+          added++;
+        });
+        autoSave(); renderAll();
+        alert('Imported scores from '+pid+' for '+added+' applicant(s). Side-by-side -- nothing was overwritten or averaged.');
+      } catch(e){ alert('Error: '+e.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 // IMPORT / EXPORT
 function exportData(){
   var d=state(); d._prof=positionProfiles; d._act=activeProfileName; d._qbk=qSets; d._qba=activeQSet;
@@ -1425,6 +1626,8 @@ function importData(){
     reader.onload=function(ev){
       try {
         var data=JSON.parse(ev.target.result);
+        if(data._packetType==='interview-panel-packet'){ loadPanelPacket(data); return; }
+        if(data._packetType==='interview-panelist-results'){ alert('This is a panelist results file -- use Tools > Import Panelist Scores instead of Import.'); return; }
         if(!data.aa&&!data.qs){ alert('Invalid file.'); return; }
         if(data.qs) questions=data.qs.slice();
         if(data.aa) applicants=data.aa;
