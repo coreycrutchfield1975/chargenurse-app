@@ -1395,6 +1395,7 @@ function getMatScore(a){
 }
 function renderRecs(){
   var tb=E('r-body'); if(!tb) return;
+  var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
   var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
   if(sorted.length===0){ tb.innerHTML='<tr><td style="color:var(--muted)" colspan="5">Auto-populates from Matrix</td></tr>'; return; }
   var h='';
