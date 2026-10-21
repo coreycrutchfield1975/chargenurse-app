@@ -216,16 +216,8 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
      box-shadow:0 2px 10px rgba(0,0,0,.18)}
 
 /* ---- Tools bar ---- */
-.tools-bar{position:static;background:#0c2c48;color:#fff;padding:9px 12px;display:flex;
      flex-wrap:wrap;gap:7px;justify-content:flex-end;align-items:center;border-bottom:2px solid #1d7fc4}
-.tools-bar .tbtn{background:rgba(255,255,255,.12);color:#eaf3fb;border:1px solid rgba(255,255,255,.22);
      border-radius:8px;padding:7px 12px;font-size:.78rem;font-weight:650;cursor:pointer;white-space:nowrap}
-.tools-bar .tbtn:hover{background:rgba(255,255,255,.24)}
-.tools-bar .tbtn.flow{background:#0e8a52;border-color:#0a6a3f;color:#fff}
-.tools-bar .tbtn.flow:hover{background:#0c9a5c}
-.tools-bar .tbtn.guide{background:#f5c850;border-color:#d9a72c;color:#3d2a06}
-.tools-bar .tbtn.danger{background:#8a2226;border-color:#6e1a1d}
-.tools-bar .tsep{width:1px;height:20px;background:rgba(255,255,255,.22);margin:0 3px}
 
 /* ---- Tabs: one clean row ---- */
 .tabs{top:0;margin-top:0;display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-start;
@@ -270,6 +262,29 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
   box-shadow:0 2px 8px rgba(16,42,72,.05)}
 .flow-hint .flow-hint-label{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#8b5510;background:#fdf1d6;border-radius:6px;padding:3px 8px}
 .flow-hint .flow-hint-steps{font-size:.9rem;font-weight:650;color:var(--ink2)}
+
+/* ---- Single-row nav: tabs + actions together ---- */
+.tabs{flex-wrap:nowrap;overflow-x:auto;padding:6px 10px;gap:3px;scrollbar-width:thin}
+.tabs button{padding:.54rem .74rem;font-size:.8rem}
+.tabs .nav-sep{width:1px;flex:none;align-self:stretch;margin:5px 7px;background:var(--line)}
+.tabs button.nav-action{background:#eef6ff;color:#12507f;border:1px solid #cfe1f2;font-weight:700}
+.tabs button.nav-action:hover{background:#e0eefc;color:#0e3f66}
+.tabs button.nav-action.flow{background:#0e8a52;color:#fff;border-color:#0a6a3f}
+.tabs button.nav-action.flow:hover{background:#0c9a5c;color:#fff}
+.tabs button.nav-action.danger{background:#fbeeee;color:#8a2226;border-color:#f0cccc}
+.tabs button.nav-action.danger:hover{background:#f6dede}
+@media(max-width:760px){.tabs button{padding:.5rem .6rem;font-size:.75rem}}
+
+/* ---- Out-of-the-way Backup & Restore strip (Start tab) ---- */
+.data-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;
+  background:#f7fafd;border:1px dashed #c6d6e6;border-radius:12px}
+.data-strip .data-strip-label{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;font-weight:900;color:#6b7f96}
+.data-strip .btn-mini{background:#fff;border:1px solid #c6d6e6;color:#12507f;border-radius:8px;padding:6px 12px;
+  font-size:.78rem;font-weight:700;cursor:pointer}
+.data-strip .btn-mini:hover{background:#eef6ff}
+.data-strip .btn-mini.danger{color:#8a2226;border-color:#f0cccc}
+.data-strip .btn-mini.danger:hover{background:#fbeeee}
+.data-strip .data-strip-note{font-size:.74rem;color:#7b8ea3}
 </style>
 </head>
 <body>
@@ -282,25 +297,7 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
       <span class="brand-sub">Panel Interview &amp; Scoring</span>
     </div>
   </div>
-  <div class="ha np">
-    <button class="print-first-top" onclick="openInterviewGuide(false)" title="Open the step-by-step guide PDF and print it before you begin">📘 Print Guide First</button>
-    <button class="hbtn" onclick="printQs()">Print Applicant Qs</button>
-    <button class="hbtn" onclick="printMat()">Print Matrix</button>
-    <button class="hbtn" onclick="toggleTools()" id="tools-toggle">Tools ▾</button>
-  </div>
 </header>
-<div id="tools-bar" class="tools-bar np" style="display:none">
-  <button class="tbtn guide" onclick="openInterviewGuide(false)">📘 Print User Guide (PDF)</button>
-  <button class="tbtn" onclick="openInterviewGuide(true)">Download User Guide</button>
-  <span class="tsep"></span>
-  <button class="tbtn" onclick="exportData()">Export Backup</button>
-  <button class="tbtn" onclick="importData()">Import Backup</button>
-  <span class="tsep"></span>
-  <button class="tbtn flow" onclick="exportPanelPacket()">Export Panel Packet</button>
-  <button class="tbtn flow" onclick="importPanelistScores()">Import Panelist Scores</button>
-  <span class="tsep"></span>
-  <button class="tbtn danger" onclick="doClear()">Clear All Data</button>
-</div>
 
 <nav class="tabs np">
   <button class="act" onclick="showTab('home',this)">Start</button>
@@ -308,6 +305,9 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
   <button onclick="showTab('mat',this)">Rubric &amp; Applicants</button>
   <button onclick="showTab('intro',this)">Introduction</button>
   <button onclick="showTab('qs',this)">Interview Questions</button>
+  <span class="nav-sep"></span>
+  <button class="nav-action flow" onclick="exportPanelPacket()">Prepare 3 Panelist Forms</button>
+  <button class="nav-action flow" onclick="importPanelistScores()">Import Completed Evaluation</button>
 </nav>
 
 
@@ -344,6 +344,14 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
     <h2>Next Step</h2>
     <div class="section-note"><strong>First time here?</strong> Start with <strong>Rubric &amp; Applicants</strong>. Build the position rubric once &mdash; it is saved for future interviews on this computer. For a different position, copy an existing rubric and adjust it.</div>
     <button class="btn btn-pri" onclick="goWorkflow('mat')">Go to Rubric &amp; Applicants →</button>
+  </div>
+
+  <div class="data-strip np">
+    <span class="data-strip-label">Backup &amp; Restore</span>
+    <button class="btn-mini" onclick="exportData()">Export</button>
+    <button class="btn-mini" onclick="importData()">Import</button>
+    <button class="btn-mini danger" onclick="doClear()">Clear All Data</button>
+    <span class="data-strip-note">Saves, reloads, or resets this interview cycle. Your work also saves automatically on this computer.</span>
   </div>
 </div>
 
@@ -1211,57 +1219,6 @@ function printHTML(title, bodyHTML){
   setTimeout(function(){ iframe.contentWindow.print(); setTimeout(function(){ document.body.removeChild(iframe); },100); },300);
 }
 
-function printQs(){
-  if(applicants.length===0){ alert('No applicants to print.'); return; }
-  var h='';
-  for(var ai=0;ai<applicants.length;ai++){
-    var a=applicants[ai];
-    if(ai>0) h+='<div class="pb"></div>';
-    h+='<h1 class="h1">Interview Selection Process Report</h1><p style="font-size:14px;margin:8px 0 4px"><strong>Applicant:</strong> '+esc(a.name)+' &nbsp;|&nbsp; <strong>Date:</strong> '+esc(a.date||'__________')+'</p>';
-    h+='<div class="sec"><h2>Rating Scale</h2><table style="width:100%;border-collapse:collapse;font-size:11px"><tr><th>Score</th><th>Definition</th></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">1</td><td style="padding:4px;border:1px solid #bbb">Not adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">2</td><td style="padding:4px;border:1px solid #bbb">Minimally adequate</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">3</td><td style="padding:4px;border:1px solid #bbb">Acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">4</td><td style="padding:4px;border:1px solid #bbb">Above acceptable</td></tr><tr><td style="text-align:center;padding:4px;border:1px solid #bbb">5</td><td style="padding:4px;border:1px solid #bbb">Far exceeds</td></tr></table></div>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:12px"><thead><tr><th style="width:60%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Question</th><th style="width:10%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff;text-align:center">Score</th><th style="width:30%;padding:6px 8px;border:1px solid #bbb;background:#0d6efd;color:#fff">Notes</th></tr></thead><tbody>';
-    var tot=0;
-    for(var qi=0;qi<questions.length;qi++){
-      var sc=a.qs?parseInt(a.qs[qi])||0:0; var nt=a.qn?a.qn[qi]||'':''; tot+=sc;
-      h+='<tr><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top"><strong>Q'+(qi+1)+'.</strong> '+esc(questions[qi])+'</td><td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-weight:700">'+sc+'</td><td style="padding:6px 8px;border:1px solid #bbb;vertical-align:top;font-style:italic;color:#555">'+(nt?esc(nt):'')+'</td></tr>';
-    }
-    h+='</tbody></table><p style="font-size:14px;font-weight:700;color:#0d6efd;margin-top:10px">Total: '+tot+'/'+(questions.length*5)+'</p>';
-  }
-  printHTML('Interview Questions', h);
-}
-
-function printMat(){
-  if(applicants.length===0){ alert('No applicants.'); return; }
-  if(!activeProfileName){ alert('Select a position profile first.'); return; }
-  var cols = profileColumns(); if(cols.length===0){ alert('Profile has no columns.'); return; }
-  var posApps = applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
-  var sorted=posApps.slice().sort(function(a,b){ return getTot(b)-getTot(a); });
-  var ivm=questions.length*5; var tm=profileColMax()+ivm;
-  var h='<h1 class="h1">Scoring Matrix - '+esc(activeProfileName)+'</h1><table><thead><tr><th>#</th><th>Applicant</th><th>Date</th>';
-  for(var i=0;i<cols.length;i++) h+='<th>'+esc(cols[i].label)+(cols[i].max!==null&&cols[i].max!==undefined?'<br><span style="font-weight:400;font-size:10px">/'+cols[i].max+'</span>':'')+'</th>';
-  h+='<th>Interview</th><th>Total</th></tr></thead><tbody>';
-  for(var i=0;i<sorted.length;i++){
-    var a=sorted[i]; var iv=getIV(a); var to=getTot(a);
-    h+='<tr><td>'+(i===0?'*':''+(i+1))+'</td><td><strong>'+esc(a.name)+'</strong></td><td>'+esc(a.date||'')+'</td>';
-    for(var ci=0;ci<cols.length;ci++){
-      var val=a[cols[ci].id]; if(val===undefined||val===null) val=0;
-      h+='<td>'+(val===-1?'-':val)+'</td>';
-    }
-    h+='<td>'+iv+'</td><td class="tot">'+to+'/'+tm+'</td></tr>';
-  }
-  h+='</tbody></table><div class="sec"><h2>Scoring Criteria</h2>';
-  for(var i=0;i<cols.length;i++){
-    var c=cols[i];
-    h+='<div class="cat"><b>'+esc(c.label)+'</b> '+(c.opts?c.opts.join(' | '):'Score 1-'+(c.max||5))+'</div>';
-  }
-  h+='<div class="cat"><b>Interview</b> '+questions.length+' questions, max '+ivm+'</div></div>';
-  h+='<div class="sec"><h2>Rating Scale</h2><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;font-size:11px;text-align:center">';
-  var labels=['Not adequate','Minimally adequate','Acceptable','Above acceptable','Far exceeds'];
-  for(var i=1;i<=5;i++) h+='<div style="padding:6px;border:1px solid #ddd;border-radius:4px"><strong>'+i+'</strong><br><span style="font-size:10px;color:#888">'+labels[i-1]+'</span></div>';
-  h+='</div></div>';
-  printHTML('Scoring Matrix', h);
-}
-
 function renderApps(){
   var sel=E('qs-app'); if(!sel) return;
   var posApps=applicants.filter(function(a){ return a.profile===activeProfileName||!a.profile; });
@@ -1471,11 +1428,6 @@ var rbStep = 1;
 var rbEditingName = '';
 var rbDraft = [];
 
-function toggleTools(){
-  var b=E('tools-bar');
-  if(!b) return;
-  b.style.display = b.style.display==='none' ? 'block' : 'none';
-}
 function goWorkflow(id){
   var btns=document.querySelectorAll('.tabs button');
   var target=null;

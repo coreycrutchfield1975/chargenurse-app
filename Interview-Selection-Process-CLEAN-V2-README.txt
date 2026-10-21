@@ -2,74 +2,71 @@ INTERVIEW SELECTION PROCESS — CLEAN v2 (fresh look & flow)
 ==========================================================
 
 FILE: Interview-Selection-Process-PRINT-THIS-FIRST-v2.html
-Original kept intact: Interview-Selection-Process-PRINT-THIS-FIRST.html
 
-WHAT CHANGED
-------------
-1. OLD RECOMMENDATIONS TAB — REMOVED COMPLETELY
-   The separate "Recommendations" tab is gone, along with all of its dead
-   code: the tab button, the workflow card, the tc-rec panel, the printRec()
-   function, the renderRecs() function, the r-* form-field save/load state,
-   the "Print Recs" header button, and the old emailRecommendations override.
-   Panel recommendations now live only under Tools > Panel Recommendations,
-   which has its own Print / Save PDF Summary button.
+WHAT CHANGED (latest pass)
+--------------------------
+1. ONE SINGLE NAVIGATION ROW — nothing hidden, no dropdowns
+   The header now holds only the app title. Everything actionable lives in
+   one row under it, left to right:
 
-2. NAVIGATION CLEANED UP — 3 AREAS, ONE CONSISTENT ORDER OF USE
-   - Tab bar: Start | Instructions | Rubric & Applicants | Introduction |
-     Interview Questions   (5 tabs, one clean row, no wrapping or scrolling)
-   - Workflow cards (Start screen): 1 Review Instructions -> 2 Build Rubric &
-     Add Applicants -> 3 Read Introduction -> 4 Conduct Interviews
-   - Step indicator: same 4 steps
-   All three areas now match, in the order you actually use them.
+     Start | Instructions | Rubric & Applicants | Introduction |
+     Interview Questions  |  Prepare 3 Panelist Forms |
+     Import Completed Evaluation | Panel Recommendations
 
-3. FRESH LOOK (CSS only — behaviour unchanged)
-   - New header with brand mark and subtitle
-   - Tools bar restyled as clean grouped buttons with separators
-   - Tabs restyled as a single-row pill/segmented control
-   - Workflow cards restyled (amber accent, 4 across, lift on hover)
-   - Panels, hero, status cards and step chips refreshed
-   - Amber accent throughout to match the "Print This First" emphasis
+   Verified: 8 buttons, one row, fits without scrolling.
 
-4. TABS IN ONE ROW
-   Confirmed: 5 tabs render on a single row and fit without horizontal scroll.
+2. REMOVED (old-thinking tools)
+   - "Print Applicant Qs" button and its printQs() function
+   - "Print Matrix" button and its printMat() function
+   - "Print Guide First" header button (the guide already lives on the
+     Start tab and the Instructions tab)
+   - the "Tools" button and its dropdown bar entirely (toggleTools removed)
+   - the two guide buttons that were inside Tools
+
+3. BACKUP & RESTORE MOVED OUT OF THE WAY
+   Export, Import and Clear All Data now sit in a small, muted
+   "Backup & Restore" strip at the bottom of the Start tab, instead of
+   cluttering the navigation row. They are still one click away on the
+   landing screen, and Clear All Data still asks for confirmation.
+
+4. EARLIER IN THIS FILE
+   - Old Recommendations tab removed completely (tab, workflow card,
+     tc-rec panel, printRec, renderRecs, r-* saved fields, the old
+     emailRecommendations override).
+   - Duplicate navigation removed: the Start-screen numbered cards were
+     replaced with a plain "Order of use" text hint, and the step-chip row
+     on the Instructions tab was removed.
+   - Fresh CSS shell: brand header, pill-style single-row tabs, refreshed
+     panels/hero, amber accent.
 
 WHAT WAS PRESERVED (untouched, fully working)
 ---------------------------------------------
-- Prepare 3 Panelist Forms  (was "Export Panel Packet")
-- Import Completed Evaluation (was "Import Panelist Scores")
+- Prepare 3 Panelist Forms and Import Completed Evaluation
 - Panel Recommendations summary + Print / Save PDF Summary
-- The embedded 4-page Step-by-Step Guide PDF (travels inside every panelist
-  form too — verified present, ~160K of embedded PDF data)
+- The embedded 4-page Step-by-Step Guide PDF (also embedded in every
+  panelist form)
 - The Outlook email flow (Prepare Outlook Email / Prepare Outlook Return Email)
 - The Print / Save as PDF flow
 - PBI question bank (276 questions, 8 categories) + library sync
-- Rubric builder, position profiles, applicant scoring, matrix, print outputs
+- Rubric builder, position profiles, applicant scoring, matrix
 - Auto-save to this computer (localStorage)
 - First-use "Print Your Instructions First" dialog
+- Export / Import / Clear All Data (now on the Start tab)
 
 VERIFICATION DONE
 -----------------
 - All 5 inline JavaScript blocks pass a syntax check.
-- No dangling references remain to the removed Recommendations code.
-- Browser test: all 5 tabs switch, Tools bar toggles, step indicator renders,
-  tc-rec confirmed gone.
-- End-to-end panelist form test: generated a 182 KB self-contained HTML form
-  with the embedded guide PDF, correct packet JSON (2 applicants, 3 questions,
-  panelist identity), the completion/save controls and the Outlook return
-  button. All template placeholders correctly replaced.
-- Guide PDF opens correctly; Panel Recommendations summary opens correctly.
-- Clean first-run with empty storage produces zero console errors.
+- No dangling references to removed functions/buttons.
+- Browser test: all 5 tabs switch; nav row is a single row that fits without
+  scrolling; header has no stray buttons; Backup & Restore strip shows
+  Export / Import / Clear All Data.
+- End-to-end panelist form generation still works (182 KB self-contained HTML
+  with the embedded guide PDF and correct packet JSON).
+- Guide reachable from the Start tab and the Instructions tab.
+- Zero console errors on a clean first run.
 
-HOW TO USE
-----------
-- Test this copy first; do not overwrite your working version until you have
-  clicked through the panelist email -> sign -> import loop once.
-- To publish: upload this file to GitHub (Add file > Upload files).
-- The file works offline; the guide PDF is embedded, so nothing else needs
-  hosting.
-
-CAUTION (unchanged from before)
--------------------------------
+CAUTION (unchanged)
+-------------------
 Prototype for fictional/test data until approved by VA IT / HR / Privacy /
 Records Management. A typed acknowledgement is not a verified electronic
 signature. Official signatures must use the agency-approved process.
