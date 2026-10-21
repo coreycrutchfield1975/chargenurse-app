@@ -263,6 +263,13 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
 
 @media(max-width:900px){.workflow-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.workflow-grid{grid-template-columns:1fr}.hdr .brand-sub{display:none}}
+
+/* Order-of-use hint (informational, not navigation) */
+.flow-hint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 2px;padding:11px 14px;
+  background:#fff;border:1px solid var(--line);border-left:5px solid #1d7fc4;border-radius:12px;
+  box-shadow:0 2px 8px rgba(16,42,72,.05)}
+.flow-hint .flow-hint-label{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#8b5510;background:#fdf1d6;border-radius:6px;padding:3px 8px}
+.flow-hint .flow-hint-steps{font-size:.9rem;font-weight:650;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -328,11 +335,9 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
     </div>
   </div>
 
-  <div class="workflow-grid np">
-    <button class="workflow-card" onclick="goWorkflow('inst')"><span class="num">1</span><strong>Review Instructions</strong><small>Panel instructions and the scoring scale.</small></button>
-    <button class="workflow-card" onclick="goWorkflow('mat')"><span class="num">2</span><strong>Build Rubric &amp; Add Applicants</strong><small>Create or choose the position rubric, then enter applicants.</small></button>
-    <button class="workflow-card" onclick="goWorkflow('intro')"><span class="num">3</span><strong>Read Introduction</strong><small>The standard introduction and union representation.</small></button>
-    <button class="workflow-card" onclick="goWorkflow('qs')"><span class="num">4</span><strong>Conduct Interviews</strong><small>Score the standard questions and record panel notes.</small></button>
+  <div class="flow-hint np">
+    <span class="flow-hint-label">Order of use</span>
+    <span class="flow-hint-steps">Instructions &rarr; Rubric &amp; Applicants &rarr; Introduction &rarr; Interview Questions</span>
   </div>
 
   <div class="cd next-step-card">
@@ -345,7 +350,6 @@ body{background:linear-gradient(180deg,#eef4fb,#f8fbfe 340px);color:var(--ink)}
 <!-- TAB: Instructions -->
 <div id="tc-inst" class="tc">
   <div class="guide-mini np"><h3>📘 Printable Step-by-Step Handbook</h3><p>New to the process or need a refresher? The guide covers both the supervisor's setup and each panelist's evaluation and return steps.</p><div class="guide-actions"><button class="guide-action" type="button" onclick="openInterviewGuide(false)">Open &amp; Print Instructions</button><button class="guide-action secondary" type="button" onclick="openInterviewGuide(true)">Download PDF</button></div></div>
-  <div class="steps" id="step-indicator"></div>
   <div class="cd">
     <h2>Panel Instructions <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(editable)</span></h2>
     <textarea id="panel-instructions" class="ii" style="min-height:180px;line-height:1.6" oninput="autoSave()">1. The Interview Panel Leader will determine how the team will function. Panel will repeat or clarify as requested.
