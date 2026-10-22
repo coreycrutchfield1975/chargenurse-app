@@ -2808,9 +2808,27 @@ function populateQmWeekSelect(){
  if(cur&&weeks.indexOf(cur)>=0)sel.value=cur;
 }
 function addQmWeek(){
- var d=prompt('Enter meeting date (YYYY-MM-DD):');
+ var el=document.getElementById('qmNewWeekPicker');
+ if(!el){
+  el=document.createElement('div');el.id='qmNewWeekPicker';
+  el.style.cssText='display:inline-flex;gap:6px;align-items:center;margin-left:4px';
+  el.innerHTML='<input type="date" id="qmNewDateInput" style="padding:5px;border:1px solid #999;border-radius:4px;font-size:13px"> <button class="primary" onclick="doAddQmWeek()" style="font-size:12px;padding:5px 10px">Add</button> <button style="font-size:12px;padding:5px 10px;border:1px solid #999;border-radius:4px;background:transparent;cursor:pointer" onclick="cancelQmNewWeek()">Cancel</button>';
+  var btn=document.querySelector('button[onclick*="addQmWeek()"]');
+  if(btn&&btn.parentNode)btn.parentNode.insertBefore(el,btn.nextSibling);
+ }
+ var inp=document.getElementById('qmNewDateInput');
+ if(inp)inp.value=new Date().toISOString().slice(0,10);
+ inp.focus();inp.select();
+}
+function cancelQmNewWeek(){
+ var el=document.getElementById('qmNewWeekPicker');if(el)el.remove();
+}
+function doAddQmWeek(){
+ var inp=document.getElementById('qmNewDateInput');
+ if(!inp)return;
+ var d=inp.value;
  if(!d)return;
- if(!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d)){alert('Please use YYYY-MM-DD format (e.g. 2026-08-27)');return}
+ if(!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d)){alert('Invalid date.');return}
  if(db.qmLog.weeks[d]){alert('Week '+d+' already exists!');return}
  var prev=Object.keys(db.qmLog.weeks||{}).sort().reverse()[0];
  var newWeek=prev?JSON.parse(JSON.stringify(db.qmLog.weeks[prev])):{meetingDate:d,reviewPeriod:'',attendance:[],falls:[],pressureUlcers:[],weightChanges:[],catheters:[],behaviors:[],antipsychotics:[],wanderguards:[],bedAlarms:[],hospice:[],otherIssues:''};
@@ -2822,6 +2840,7 @@ function addQmWeek(){
  var sel=document.getElementById('qmWeekSelect');
  sel.value=d;
  switchQmWeek();
+ cancelQmNewWeek();
 }
 function deleteQmWeek(){
  var sel=document.getElementById('qmWeekSelect');
