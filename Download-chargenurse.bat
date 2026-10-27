@@ -18,6 +18,7 @@ if not exist "%TARGET_FOLDER%" mkdir "%TARGET_FOLDER%"
 
 REM List of files to download
 set FILES[0]=index.html
+set FILES[1]=Interview-Selection-Process.html
 set FILES[2]=favicon.svg
 
 set i=0

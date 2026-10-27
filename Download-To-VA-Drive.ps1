@@ -27,6 +27,7 @@ if (-not (Test-Path $targetFolder)) {
 # List of essential files to download
 $files = @(
     "index.html",
+    "Interview-Selection-Process.html",
     "favicon.svg"
 )
 
