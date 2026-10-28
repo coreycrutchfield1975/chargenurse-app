@@ -20,7 +20,7 @@ HOW TO CHANGE THE GUIDE
        file:///path/to/Interview-Selection-Process-GUIDE-source.html
 3. Base64-encode the PDF (single line) and paste it as the content of:
      <script type="application/octet-stream" id="ip-guide-pdf"> ...HERE... </script>
-   inside Interview-Selection-Process-PRINT-THIS-FIRST-v2.html
+   inside Interview-Selection-Process.html
 
 NOTES
 -----

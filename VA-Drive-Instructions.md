@@ -1,95 +1,60 @@
-# Chargenurse App - VA Drive Sharing Instructions
+# BravoShift and the Interview Selection Process — setting up at the VA
 
-## Quick Start (Easiest Methods)
+Two tools, each a single HTML file that runs in Microsoft Edge on a VA computer:
 
-### Option 1: Download ZIP from GitHub
-1. Go to: https://github.com/coreycrutchfield1975/chargenurse-app
-2. Click the green "Code" button
-3. Select "Download ZIP"
-4. Extract the ZIP file to your S: drive
-5. Open `index.html` in any web browser
+| File | What it is |
+|------|------------|
+| `index.html` | **BravoShift**, the charge-nurse command center |
+| `Interview-Selection-Process.html` | The panel interview and scoring tool, with all 276 PBI questions built in |
 
-### Option 2: Use Raw GitHub URL (Single File)
-1. Open browser to: https://raw.githubusercontent.com/coreycrutchfield1975/chargenurse-app/main/index.html
-2. Right-click → "Save Page As"
-3. Save as `index.html` to S: drive
-4. Repeat for `morning-report.html` if needed
+Older versions of the interview tool are in `archive/` for reference only. Do not use them.
 
-### Option 3: Use Download Scripts (Automatic)
-Run one of these scripts on your VA Windows computer:
+## Where the files go
 
-#### PowerShell Script (Recommended)
-1. Save `Download-To-VA-Drive.ps1` to your desktop
-2. Right-click → "Run with PowerShell"
-3. If blocked, run PowerShell as admin and type: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
-4. The script downloads all files to `S:\Shared\chargenurse-app`
+**Keep the working copies on the S: drive**, for example `S:\Shared\chargenurse-app\`.
+Open them from there in Edge (double-click, or drag into an Edge window).
 
-#### Batch File (Fallback)
-1. Save `Download-chargenurse.bat` to your desktop
-2. Double-click to run
-3. May require admin privileges for first run
+**SharePoint is for handing out copies, not running them.** SharePoint Online does
+not open HTML files in the browser; clicking one downloads it. Put the current
+files in a document library so people can find the latest version, but run them
+from the S: drive. Do not put BravoShift's shared data file in a OneDrive-synced
+SharePoint folder: several computers write it every few seconds, and OneDrive sync
+creates conflicting copies.
 
-## Direct URLs for Sharing
+## BravoShift: the shared file
 
-### Main App
-- **GitHub Repository**: https://github.com/coreycrutchfield1975/chargenurse-app
-- **Raw index.html**: https://raw.githubusercontent.com/coreycrutchfield1975/chargenurse-app/main/index.html
-- **Live Deployment**: https://chargenurse-app.vercel.app (always up-to-date)
+BravoShift keeps the unit's information in `bravoshift-data.json` in one folder on the
+S: drive (for example `S:\Shared\chargenurse-app\data\`). Everyone must connect to
+the **same** folder.
 
-### Morning Report
-- **Raw morning-report.html**: https://raw.githubusercontent.com/coreycrutchfield1975/chargenurse-app/main/morning-report.html
+1. Open BravoShift. A **Connect to the unit's shared file** screen appears.
+2. Select **Connect to S: drive** and choose the shared data folder.
+3. When Edge asks, select **Edit files** / **Allow**.
+4. The header shows **Saved to S: drive · time**. Green means your changes are reaching everyone.
 
-## How the App Works
+If the header turns red (**Not saving to S: drive**), select it and reconnect. Edge
+sometimes asks again after it restarts; that is one click, and the folder is remembered.
 
-The chargenurse-app is a **single-page application** that:
-- Runs entirely in the browser (no server needed)
-- Saves data to localStorage (per computer)
-- Works offline after first load
-- Can be opened directly from S: drive (`file:///S:/path/index.html`)
+Changes from every computer are combined: the newest edit of each item wins, deletions
+stay deleted, and a computer that was offline adds its work when it reconnects.
 
-## Updating the App
+The screen locks after 10 minutes without use to hide Veteran information.
 
-When you make changes in GitHub:
-1. Push changes to `main` branch
-2. Wait 1 minute for Vercel auto-deploy
-3. Run the download script again on VA computers
-4. Or manually download updated files
+## Interview Selection Process: auto-save
 
-## Troubleshooting
+The supervisor's rubric, applicants and scores save on the computer automatically.
+To keep them safe if the computer or browser is reset, and to continue on another
+computer:
 
-**"Script execution is disabled"** (PowerShell):
-- Run PowerShell as Administrator
-- Type: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
-- Answer "Y" to confirm
+1. On the **Start** tab, under Backup & Restore, select **Auto-save to a folder…**
+2. Choose a folder only the hiring supervisor (and HR) can open.
+3. From then on every change is also saved there as `interview-data.json`. On another
+   computer, choose the same folder to pick up where you left off.
 
-**Files won't open from S: drive**:
-- Ensure users have read/write permissions to the folder
-- Try opening with different browsers (Chrome, Edge, Firefox)
-- Check if "blocked content" warnings appear (click "Allow")
+The tool does not connect to the internet; the full question bank is inside the file.
 
-**Data not saving**:
-- The app uses browser localStorage
-- Each computer saves its own data
-- For shared data, consider setting up a simple database
+## Updating
 
-## For Advanced Users
-
-### Git Clone (if Git is installed)
-```
-cd S:\Shared\
-git clone https://github.com/coreycrutchfield1975/chargenurse-app.git
-cd chargenurse-app
-git pull  # to update later
-```
-
-### Set up Auto-Update (Scheduled Task)
-1. Create a scheduled task to run the download script daily
-2. Or create a shortcut nurses can click to "Check for Updates"
-
-## Support
-For issues or feature requests:
-- Open an Issue on GitHub
-- Or contact Corey Crutchfield
-
----
-*Last updated: $(date)*
+Run `Download-To-VA-Drive.ps1` (or `Download-chargenurse.bat`) to fetch the latest
+`index.html` and `Interview-Selection-Process.html` from GitHub into the S: drive folder.
+Everyone gets the update the next time they open or refresh the page.

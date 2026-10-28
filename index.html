@@ -164,7 +164,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 </style>
 </head>
 <body>
-<header><h1>BRAVOSHIFT</h1><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Libertyville CLC at John J Pershing VA Medical Center</div><div class="hamburger-wrap" style="position:absolute;right:10px;top:10px;z-index:50">
+<header><h1>BRAVOSHIFT</h1><button type="button" id="syncPill" class="sync-pill bad no-print" onclick="syncPillClick()" title="Where your changes are being saved">Not connected to S: drive</button><div class="brandline">Nurse CommandPost Center</div><div class="unitline">Libertyville CLC at John J Pershing VA Medical Center</div><div class="hamburger-wrap" style="position:absolute;right:10px;top:10px;z-index:50">
 <button class="ham-btn" onclick="toggleHamburger()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:22px;width:40px;height:40px;border-radius:6px;cursor:pointer">☰</button>
 <div id="hamMenu" style="display:none;position:absolute;right:0;top:44px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:100">
 <button onclick="showTab('data');toggleHamburger()" style="display:block;width:100%;padding:12px 16px;background:none;border:none;color:#ddd;font-size:13px;text-align:left;cursor:pointer;font-family:inherit">📦 Import / Export</button>
@@ -180,7 +180,7 @@ oKXTlQ47WD+BaklfUDCS2VSf3j6BqL03sVu266nYJ/Fs4ZvbPj9BSOtL40DfXdUh1GdVs7fs9rGoVV8z
 <section id="home" class="tab active">
 <div class="greeting"><strong id="shiftGreeting">BravoShift is ready.</strong><span id="shiftStatus">Your command post is ready for review.</span></div>
 <div id="behBanner" class="beh-banner" style="display:none;margin:0 0 12px;padding:14px 20px;background:linear-gradient(135deg,#b91c1c,#7f1d1d);border:2px solid #dba42a;border-radius:12px;box-shadow:0 4px 20px rgba(185,28,28,.35)"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:28px;line-height:1">🚩</span><div><b style="color:#f0c040;font-size:17px;font-weight:800">Behavioral Flags / Active Behaviors</b><span style="display:block;color:#e2b84a;font-size:12px;opacity:.9" id="behBannerSub">Veterans with flagged behaviors need attention</span></div></div><div id="behBannerList" style="margin-top:8px"></div></div>
-<div id="autoSaveBanner" style="display:none;margin:0 0 14px;padding:10px 16px;background:#fff4cf;border-left:6px solid var(--yellow);border-radius:10px;font-size:14px"><span id="autoSaveBannerText" style="font-weight:700">Auto-save to S: drive needs reconnected</span> <button class="secondary" onclick="setAutoSaveFolder()" style="margin-left:12px;padding:6px 14px;font-weight:700">Reconnect</button> <span style="margin-left:12px;font-size:12px;color:#666">First time? Go to <a href="#" onclick="showTab('data');return false" style="color:var(--navy)">Import/Export tab</a> for setup instructions.</span></div>
+<div id="autoSaveBanner" style="display:none;margin:0 0 14px;padding:10px 16px;background:#fff4cf;border-left:6px solid var(--yellow);border-radius:10px;font-size:14px"><span id="autoSaveBannerText" style="font-weight:700">Auto-save to S: drive needs reconnected</span> <button class="secondary" onclick="reconnectAutoSaveFolder()" style="margin-left:12px;padding:6px 14px;font-weight:700">Reconnect</button> <span style="margin-left:12px;font-size:12px;color:#666">First time? Go to <a href="#" onclick="showTab('data');return false" style="color:var(--navy)">Import/Export tab</a> for setup instructions.</span></div>
 <div class="stats">
 <div class="card stat"><span>Active Veterans</span><b id="statVets">0</b></div>
 <div class="card stat"><span>Today's Appointments</span><b id="statAppts">0</b></div>
@@ -703,6 +703,7 @@ db=JSON.parse(localStorage.getItem('cn-spectrum-db')||'null')||{
  console.error('Failed to load database from localStorage:', e.message);
  db={veterans:[],appointments:[],staff:{},providers:[],travel:{},tickets:{},treatments:[],treatmentCompletions:{},managedLists:{},dailyLogs:{},sops:[],screenings:[],referrals:[],metadata:{deletedVeterans:[],deletedIds:{appointments:[],treatments:[],providers:[],sops:[],ptCareSheets:[],tickets:[],qmWeeks:[],qmPerm:[],screenings:[],referrals:[]}}};
 }
+savedBodies=null;try{savedBodies=fingerprint()}catch(e){savedBodies=null}
 // Migrate SOPs from localStorage to db.sops (runs on every page load)
 if (!db.sops || db.sops.length === 0) {
     var legacy = JSON.parse(localStorage.getItem("bravoshift_sops") || "[]");
@@ -1271,11 +1272,111 @@ function renderReferralsList(){
 }
 
 
+/* === Reliable S: drive sharing (Oct 2026) ===
+   Every change is time-stamped when it is saved, every save first reads and
+   combines the shared file, and after combining, the newest edit wins on every
+   computer. Nothing anyone typed is overwritten by an older copy. */
+var SHARED_FILE='bravoshift-data.json';
+var ARR_COLLS=['veterans','appointments','treatments','providers','sops','ptCareSheets','screenings','referrals'];
+var OBJ_COLLS=['staff','travel','tickets','treatmentCompletions','managedLists','dailyLogs','snapshots','metadata'];
+var QM_PERM=['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'];
+var TOMBSTONE_KEYS={deletedVeterans:1,deletedIds:1};
+var savedBodies=null,syncBusy=false,saveTimer=null,lastGoodSync=0,syncError='';
+function bodyOf(r){if(!r||typeof r!=='object')return JSON.stringify(r);var c={};Object.keys(r).forEach(function(k){if(k!=='_updatedAt')c[k]=r[k]});return JSON.stringify(c)}
+function fingerprint(){
+ var f={};
+ ARR_COLLS.forEach(function(k){(Array.isArray(db[k])?db[k]:[]).forEach(function(r){if(r&&r.id!=null)f['a|'+k+'|'+r.id]=bodyOf(r)})});
+ OBJ_COLLS.forEach(function(k){var o=db[k];if(o&&typeof o==='object')Object.keys(o).forEach(function(key){if(k==='metadata'&&TOMBSTONE_KEYS[key])return;f['o|'+k+'|'+key]=JSON.stringify(o[key])})});
+ if(db.qmLog){
+  Object.keys(db.qmLog.weeks||{}).forEach(function(wk){f['w|'+wk]=bodyOf(db.qmLog.weeks[wk])});
+  QM_PERM.forEach(function(pk){(db.qmLog[pk]||[]).forEach(function(it){var id=it&&(it._id||it.id);if(id!=null)f['p|'+pk+'|'+id]=bodyOf(it)})});
+ }
+ return f;
+}
+function setStamp(target,coll,key,val){if(!target._stamps)target._stamps={};if(!target._stamps[coll])target._stamps[coll]={};target._stamps[coll][key]=val}
+function stampTime(v){if(!v)return 0;var t=new Date(String(v).replace(/^del:/,'')).getTime();return isNaN(t)?0:t}
+/* Mark everything that changed since the last save with the time of this save. */
+function stampChanges(){
+ var now=new Date().toISOString(),fp=fingerprint();
+ if(!savedBodies){savedBodies=fp;return}
+ Object.keys(fp).forEach(function(key){
+  if(savedBodies[key]===fp[key])return;
+  var part=key.split('|'),kind=part[0];
+  if(kind==='a'){var r=(db[part[1]]||[]).find(function(x){return x&&String(x.id)===part.slice(2).join('|')});if(r)r._updatedAt=now}
+  else if(kind==='o')setStamp(db,part[1],part.slice(2).join('|'),now);
+  else if(kind==='w'){var w=db.qmLog.weeks[part.slice(1).join('|')];if(w)w._updatedAt=now}
+  else if(kind==='p'){var id=part.slice(2).join('|');var it=(db.qmLog[part[1]]||[]).find(function(x){return x&&String(x._id||x.id)===id});if(it)it._updatedAt=now}
+ });
+ // Keys removed from a keyed section (a staffing day, a travel entry...) are remembered as deleted.
+ Object.keys(savedBodies).forEach(function(key){
+  if(key in fp)return;
+  var part=key.split('|');
+  if(part[0]==='o')setStamp(db,part[1],part.slice(2).join('|'),'del:'+now);
+ });
+ savedBodies=fp;
+}
+
 function stampRecords(){var now=new Date().toISOString();(db.veterans||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.appointments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.treatments||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.providers||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.screenings||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now});(db.referrals||[]).forEach(function(r){if(!r._updatedAt)r._updatedAt=now})}
-function persist(){stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){autoSave();localStorage.setItem('autoSaveEnabled','true')}}
+function persist(){stampChanges();stampRecords();localStorage.setItem('cn-spectrum-db',JSON.stringify(db));if(autoSaveDir){scheduleSave();localStorage.setItem('autoSaveEnabled','true')}}
 function currentKey(){var max=0;(db.veterans||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.appointments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.treatments||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.providers||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.screenings||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});(db.referrals||[]).forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t});if(db.qmLog&&db.qmLog.weeks){Object.keys(db.qmLog.weeks).forEach(function(wk){var t=new Date(db.qmLog.weeks[wk]._updatedAt||0).getTime();if(t>max)max=t})}['ssrDischarges','infections','sideRails','fallsLog','erVisits','vaccines'].forEach(function(pk){if(db.qmLog&&Array.isArray(db.qmLog[pk])){db.qmLog[pk].forEach(function(r){var t=new Date(r._updatedAt||0).getTime();if(t>max)max=t})}});return String(max)}
-async function autoSave(){try{var data=JSON.stringify(db,null,2);lastSyncKey=data;let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:true});let w=await f.createWritable();await w.write(data);await w.close();document.getElementById('autoSaveStatus').textContent='Auto-save: ON';document.getElementById('autoSaveStatus').style.color='#2e9d50'}catch(e){document.getElementById('autoSaveStatus').textContent='Auto-save: ERROR - click Reconnect';document.getElementById('autoSaveStatus').style.color='#cf3f3f'}}
-async function autoImport(){if(!autoSaveDir)return;try{let f=await autoSaveDir.getFileHandle('bravoshift-data.json',{create:false});let file=await f.getFile();let text=await file.text();let remoteKey=text.trim();if(!remoteKey){lastSyncKey=currentKey();return}if(remoteKey===lastSyncKey)return;let remote=(()=>{try{return JSON.parse(remoteKey)}catch(e){return null}})();if(!remote)return;let ours=JSON.parse(JSON.stringify(db));let changed=mergeRecords(ours,remote);if(!changed){lastSyncKey=remoteKey;return}lastSyncKey=remoteKey;db=ours;localStorage.setItem('cn-spectrum-db',JSON.stringify(db));renderAll();let st=document.getElementById('autoSaveStatus');if(st){st.textContent='Synced with S: drive - changes merged';st.style.color='#f6c344'}setTimeout(function(){if(st){st.textContent='Auto-save: ON';st.style.color='#2e9d50'}},4000)}catch(e){console.error('Auto-import failed:',e)}}
+function setSyncPill(state,text){var p=document.getElementById('syncPill');if(!p)return;p.className='sync-pill no-print '+state;p.textContent=text}
+function setSyncStatus(state,detail){
+ var el=document.getElementById('autoSaveStatus');if(!el)return;
+ var t=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'});
+ if(state==='ok'){lastGoodSync=Date.now();syncError='';el.textContent='Saved to S: drive · '+t;el.style.color='#2e9d50';setSyncPill('good','Saved to S: drive · '+t)}
+ else if(state==='merged'){lastGoodSync=Date.now();syncError='';el.textContent='Updated from S: drive · '+t;el.style.color='#2e9d50';setSyncPill('good','Updated from S: drive · '+t)}
+ else{syncError=detail||'error';el.textContent='NOT saving to S: drive — click Reconnect';el.style.color='#cf3f3f';setSyncPill('bad','Not saving to S: drive — reconnect');if(typeof showConnectGate==='function')showConnectGate('lost')}
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(autoSave,300)}
+function readRemote(text){if(!text||!text.trim())return null;try{return JSON.parse(text)}catch(e){return null}}
+/* Bring the shared file's changes into this computer. Returns true if anything here changed. */
+function takeRemote(remote){
+ var ours=JSON.parse(JSON.stringify(db));
+ if(!mergeRecords(ours,remote))return false;
+ db=ours;savedBodies=fingerprint();
+ localStorage.setItem('cn-spectrum-db',JSON.stringify(db));
+ try{renderAll()}catch(e){console.error(e)}
+ return true;
+}
+/* Would the shared file change if it took this computer's data? */
+function remoteNeedsOurs(remote){var theirs=JSON.parse(JSON.stringify(remote));return mergeRecords(theirs,JSON.parse(JSON.stringify(db)))}
+async function writeShared(handle){
+ var data=JSON.stringify(db,null,2);
+ var w=await handle.createWritable();await w.write(data);await w.close();
+ lastSyncKey=data;
+}
+/* Save: read the shared file, combine, then write -- never overwrite blindly. */
+async function autoSave(){
+ if(!autoSaveDir)return;
+ if(syncBusy){scheduleSave();return}
+ syncBusy=true;
+ try{
+  var fh=await autoSaveDir.getFileHandle(SHARED_FILE,{create:true});
+  var remote=readRemote(await (await fh.getFile()).text());
+  if(remote)takeRemote(remote);
+  await writeShared(fh);
+  setSyncStatus('ok');
+ }catch(e){console.error('Save to S: drive failed:',e);setSyncStatus('error',e&&e.message)}
+ finally{syncBusy=false}
+}
+/* Every few seconds: pick up others' changes, and put back anything of ours the file is missing. */
+async function autoImport(){
+ if(!autoSaveDir||syncBusy)return;
+ syncBusy=true;
+ try{
+  var fh;
+  try{fh=await autoSaveDir.getFileHandle(SHARED_FILE,{create:false})}
+  catch(e){if(e&&e.name==='NotFoundError'){syncBusy=false;return autoSave()}throw e}
+  var text=(await (await fh.getFile()).text());
+  if(text===lastSyncKey){lastGoodSync=Date.now();if(syncError)setSyncStatus('ok');return}
+  var remote=readRemote(text);
+  if(!remote){await writeShared(fh);setSyncStatus('ok');return}
+  var merged=takeRemote(remote);
+  if(remoteNeedsOurs(remote)){await writeShared(fh);setSyncStatus('ok')}
+  else{lastSyncKey=text;setSyncStatus(merged?'merged':'ok')}
+ }catch(e){console.error('Read from S: drive failed:',e);setSyncStatus('error',e&&e.message)}
+ finally{syncBusy=false}
+}
 function mergeRecords(local,remote){
  var changed=false;
  if(!local.metadata)local.metadata={deletedVeterans:[]};
@@ -1365,9 +1466,12 @@ function mergeRecords(local,remote){
    rArr.forEach(function(rItem){
     var rId=rItem._id||rItem.id;
     if(dIds.qmPerm && dIds.qmPerm.includes(rId))return; // deleted - don't resurrect
-    var exists=local.qmLog[pk].some(function(lItem){return (lItem._id||lItem.id)===rId});
-    if(!exists){
+    var idx=local.qmLog[pk].findIndex(function(lItem){return (lItem._id||lItem.id)===rId});
+    if(idx===-1){
      local.qmLog[pk].push(rItem);
+     changed=true;
+    }else if(new Date(rItem._updatedAt||0).getTime()>new Date(local.qmLog[pk][idx]._updatedAt||0).getTime()){
+     local.qmLog[pk][idx]=rItem;
      changed=true;
     }
    });
@@ -1379,18 +1483,25 @@ function mergeRecords(local,remote){
    }
   });
  }
- // Merge objects (staff, travel, tickets, treatmentCompletions, managedLists, dailyLogs, metadata)
- ['staff','travel','tickets','treatmentCompletions','managedLists','dailyLogs','snapshots','metadata'].forEach(function(k){
-  if(typeof local[k]!=='object'||local[k]===null)return;
-  if(typeof remote[k]!=='object'||remote[k]===null)return;
-  var l=local[k],r=remote[k];
-  var keys=Object.keys(r);
-  keys.forEach(function(key){
-   // deletedVeterans and deletedIds are already unioned above - skip them here to avoid overwrite
-   if(key==='deletedVeterans'||key==='deletedIds')return;
-   if(!l[key]||JSON.stringify(l[key])!==JSON.stringify(r[key])){
-    l[key]=r[key];
-    changed=true;
+ // Keyed sections (staffing days, travel, tickets, lists, daily logs, snapshots, settings):
+ // newest change wins per entry; deletions are remembered so they are not brought back.
+ var ls=local._stamps||(local._stamps={}),rs=remote._stamps||{};
+ OBJ_COLLS.forEach(function(k){
+  var r=remote[k];if(r!==undefined&&(typeof r!=='object'||r===null))return;
+  r=r||{};
+  if(typeof local[k]!=='object'||local[k]===null)local[k]={};
+  var l=local[k],lk=ls[k]||{},rk=rs[k]||{};
+  var keys={};Object.keys(r).forEach(function(x){keys[x]=1});Object.keys(rk).forEach(function(x){keys[x]=1});
+  Object.keys(keys).forEach(function(key){
+   if(k==='metadata'&&TOMBSTONE_KEYS[key])return;
+   var lt=stampTime(lk[key]),rt=stampTime(rk[key]);
+   if(rt>lt){
+    if(/^del:/.test(rk[key])){if(key in l){delete l[key];changed=true}}
+    else if(JSON.stringify(l[key])!==JSON.stringify(r[key])){l[key]=r[key];changed=true}
+    setStamp(local,k,key,rk[key]);changed=true;
+   }else if(rt===0&&lt===0&&(key in r)&&JSON.stringify(l[key])!==JSON.stringify(r[key])){
+    // neither side has a time yet (data from before this update): keep the old behaviour
+    l[key]=r[key];changed=true;
    }
   });
  });
@@ -3356,7 +3467,7 @@ function toggleManagedValue(key,id){let item=(db.managedLists[key]||[]).find(x=>
 function showSubTab(id){var tabs=document.querySelectorAll('#lists > div[id^="lists-"]');tabs.forEach(function(t){t.style.display='none'});var el=document.getElementById(id);if(el)el.style.display='block';var btns=document.querySelectorAll('#lists [id^="subtab"]');btns.forEach(function(b){b.style.background='transparent';b.style.color='var(--ink)'});var btn=document.getElementById('subtab'+id.split('-')[1].charAt(0).toUpperCase());if(btn){btn.style.background='var(--navy)';btn.style.color='white'}}
 function updateShiftGreeting(){let h=new Date().getHours(),g='';if(h>=7&&h<15)g='Morning Brief Ready. Welcome to BravoShift.';else if(h>=15&&h<23)g='Afternoon Operations Underway. Your unit is ready for review.';else g='Night Watch Active. BravoShift is standing by.';shiftGreeting.textContent=g;shiftStatus.textContent='Your command post is ready for review.'}
 try {
- reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();checkAutoSavePref();renderDailyLogWeek();
+ reportDate.value=today();buildStaffFields();updateShiftGreeting();renderAll();window.__startupCheck=checkAutoSavePref();renderDailyLogWeek();
 } catch (e) {
  console.error("App initialization render failed:", e.message);
 }
@@ -3525,4 +3636,78 @@ function deletePtCareSheet(idx){
 
 </script>
 <div class="no-print" style="text-align:center;font-size:10px;color:#999;padding:10px 20px;border-top:1px solid #ddd;margin-top:10px">PHI per VA policy. PHI is on S: Drive.</div>
+
+<!-- Shared S: drive connection and screen lock (Oct 2026) -->
+<div id="connectGate" class="bs-gate" role="dialog" aria-modal="true" aria-labelledby="connectGateTitle" hidden>
+ <div class="bs-gate-card">
+  <h2 id="connectGateTitle">Connect to the unit's shared file</h2>
+  <p id="connectGateText">BravoShift keeps the unit's information in one shared file on the S: drive. Connect so your changes are saved there and you see everyone else's.</p>
+  <button type="button" class="bs-gate-main" id="connectGateBtn" onclick="gateConnect()">Connect to S: drive</button>
+  <p class="bs-gate-help" id="connectGateHelp">First time on this computer? Choose the <b>BravoShift</b> folder on the S: drive, then select <b>Allow</b> / <b>Edit files</b> when the browser asks.</p>
+  <button type="button" class="bs-gate-alt" onclick="gateLocalOnly()">Work on this computer only for now</button>
+ </div>
+</div>
+<div id="lockScreen" class="bs-gate bs-lock" role="dialog" aria-modal="true" aria-labelledby="lockTitle" hidden>
+ <div class="bs-gate-card">
+  <h2 id="lockTitle">BravoShift is locked</h2>
+  <p>Veteran information is hidden after <span id="lockMinutes">10</span> minutes without use.</p>
+  <button type="button" class="bs-gate-main" id="unlockBtn" onclick="unlockScreen()">Resume</button>
+ </div>
+</div>
+<style>
+.sync-pill{position:absolute;left:12px;top:12px;border:0;border-radius:999px;padding:7px 14px;font:700 13px/1.2 inherit;cursor:pointer;max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync-pill.good{background:#e3f6e8;color:#14532d}
+.sync-pill.bad{background:#fde2e2;color:#8a1111;box-shadow:0 0 0 2px #fff}
+.sync-pill:focus-visible{outline:3px solid #f6c344;outline-offset:2px}
+/* Compact menu: one or two rows of plain labels, so the Dashboard is visible without scrolling. */
+nav{display:flex!important;flex-wrap:wrap;gap:4px!important;padding:6px 12px!important;justify-content:center}
+nav .nav-tab::before{display:none!important;content:none!important}
+nav .nav-tab{min-height:0!important;display:inline-flex!important;flex-direction:row!important}
+nav button{font-size:14px!important;padding:9px 14px!important;white-space:nowrap!important;border-bottom-width:3px!important}
+nav button:focus-visible{outline:3px solid #f6c344;outline-offset:1px}
+.bs-gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,30,58,.92)}
+.bs-gate[hidden]{display:none}
+.bs-lock{background:#0a1e3a}
+.bs-gate-card{background:#fff;color:#14233a;max-width:520px;width:100%;border-radius:14px;padding:28px 30px;box-shadow:0 20px 60px rgba(0,0,0,.35);font-size:16px;line-height:1.5}
+.bs-gate-card h2{margin:0 0 10px;font-size:24px;color:#0a1e3a}
+.bs-gate-card p{margin:0 0 16px}
+.bs-gate-main{display:block;width:100%;font-size:18px;font-weight:700;padding:14px 18px;border-radius:10px;border:0;background:#0a1e3a;color:#fff;cursor:pointer}
+.bs-gate-main:hover{background:#163a6b}
+.bs-gate-alt{background:none;border:0;color:#40566f;text-decoration:underline;cursor:pointer;font-size:14px;padding:6px 0;margin-top:4px}
+.bs-gate-help{font-size:14px;color:#40566f;margin-top:12px!important}
+.bs-gate button:focus-visible{outline:3px solid #f6c344;outline-offset:3px}
+</style>
+<script>
+/* Ask to connect whenever this computer is not saving to the shared file, so
+   nobody works for hours on a private copy without knowing. */
+var gateDismissed=false;
+window.addEventListener('load',function(){Promise.resolve(window.__startupCheck).then(function(){if(!autoSaveDir)showConnectGate(window.__rememberedDirHandle?'remembered':'first')})});
+function showConnectGate(reason){
+ if(autoSaveDir&&reason!=='lost')return;
+ if(gateDismissed&&reason!=='lost')return;
+ var g=document.getElementById('connectGate');if(!g||!g.hidden)return;
+ var text=document.getElementById('connectGateText'),btn=document.getElementById('connectGateBtn'),help=document.getElementById('connectGateHelp');
+ if(reason==='lost'){text.textContent='This computer has stopped saving to the shared file on the S: drive, so your changes are not reaching anyone else. Reconnect to fix it.';btn.textContent='Reconnect to S: drive';help.hidden=false}
+ else if(reason==='remembered'){text.textContent='Welcome back. Reconnect to the shared file on the S: drive so your changes are saved for the whole unit.';btn.textContent='Reconnect to S: drive';help.hidden=true}
+ else{text.textContent="BravoShift keeps the unit's information in one shared file on the S: drive. Connect so your changes are saved there and you see everyone else's.";btn.textContent='Connect to S: drive';help.hidden=false}
+ g.hidden=false;btn.focus();
+}
+async function gateConnect(){
+ document.getElementById('connectGate').hidden=true;
+ if(window.__rememberedDirHandle)await reconnectAutoSaveFolder();else await setAutoSaveFolder();
+ if(!autoSaveDir)showConnectGate(window.__rememberedDirHandle?'remembered':'first');
+}
+function gateLocalOnly(){gateDismissed=true;document.getElementById('connectGate').hidden=true;setSyncPill('bad','This computer only — not shared')}
+function syncPillClick(){if(autoSaveDir&&!syncError){autoImport();return}gateDismissed=false;showConnectGate(syncError?'lost':(window.__rememberedDirHandle?'remembered':'first'))}
+/* Lock the screen after a period without use. */
+var LOCK_MINUTES=10,lastActivity=Date.now();
+['pointerdown','keydown','wheel','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){if(document.getElementById('lockScreen').hidden)lastActivity=Date.now()},{passive:true,capture:true})});
+function lockScreen(){var l=document.getElementById('lockScreen');if(!l.hidden)return;document.getElementById('lockMinutes').textContent=LOCK_MINUTES;l.hidden=false;document.getElementById('unlockBtn').focus()}
+function unlockScreen(){document.getElementById('lockScreen').hidden=true;lastActivity=Date.now();if(autoSaveDir)autoImport()}
+setInterval(function(){
+ if(Date.now()-lastActivity>LOCK_MINUTES*60000)lockScreen();
+ // Connected, but nothing has reached the shared file for two minutes: say so.
+ if(autoSaveDir&&lastGoodSync&&Date.now()-lastGoodSync>120000)setSyncStatus('error','no contact with the S: drive for two minutes');
+},15000);
+</script>
 </body></html>
